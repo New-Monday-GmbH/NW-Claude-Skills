@@ -1,0 +1,24 @@
+<section id="{{id}}" class="rv">
+  <div class="wrap">
+    <span class="kicker eyebrow-teal">Wireframe · Vorschlag</span>
+    <h2 class="sec-title">{{titel}}</h2>
+    <div class="wf-row">
+      <div class="wf-notes">
+        {{#ausrichtung}}<p class="wf-ausrichtung">{{ausrichtung}}</p>{{/ausrichtung}}
+        <h3>Was wir verbessern würden</h3>
+        <ul>
+          {{#notizen}}<li>{{.}}</li>
+          {{/notizen}}
+        </ul>
+      </div>
+      <div class="wf">
+        <div class="frame">
+          <div class="wf-nav">
+            <div class="box logo-b"></div><div class="box nav-b"></div><div class="box nav-b"></div><div class="box nav-b"></div><div class="cta-b"></div>
+          </div>
+          {{skizze}}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "insp-linear",
+    "nummer": "01",
+    "quelle": "linear.app",
+    "titel": "Ruhe als Botschaft",
+    "url": "linear.app",
+    "text": "Linear verkauft ein komplexes Produkt mit fast leeren Flächen. Jede Sektion trägt genau einen Gedanken — der Blick weiß immer, wo er hin soll.",
+    "shots": [
+      {
+        "bild": "assets/inspo/linear-1.png",
+        "alt": "Linear Startseite: Hero mit einem Satz und einem Produkt-Visual",
+        "bildtext": "Ein Satz, ein CTA, ein Visual. Sonst nichts."
+      },
+      {
+        "bild": "assets/inspo/linear-2.png",
+        "alt": "Linear: Feature-Sektion mit Produktansicht",
+        "bildtext": "Features als Produktansicht statt als Icon-Kachel."
+      },
+      {
+        "bild": "assets/inspo/linear-3.png",
+        "alt": "Linear: weitere Sektion mit klarer Hierarchie",
+        "bildtext": "Kontraststarke Typo trägt die Aussage allein."
+      }
+    ]
+  },
+  {
+    "id": "insp-pitch",
+    "nummer": "02",
+    "quelle": "pitch.com",
+    "titel": "Beweis neben der Behauptung",
+    "url": "pitch.com",
+    "text": "Pitch stellt Nutzen und Beleg direkt nebeneinander — und macht den nächsten Schritt auf jeder Sektion sichtbar, ohne zu drängen.",
+    "shots": [
+      {
+        "bild": "assets/inspo/pitch-1.png",
+        "alt": "Pitch Startseite: Hero mit klarer Handlungsaufforderung",
+        "bildtext": "Nutzenversprechen und Handlung in einem Blickfeld."
+      },
+      {
+        "bild": "assets/inspo/pitch-2.png",
+        "alt": "Pitch: Sektion mit Produktnachweis",
+        "bildtext": "Behauptung und Beweis stehen nebeneinander."
+      },
+      {
+        "bild": "assets/inspo/pitch-3.png",
+        "alt": "Pitch: Abschluss-Sektion",
+        "bildtext": "Der nächste Schritt wiederholt sich, ohne zu drängen."
+      }
+    ]
+  }
+]

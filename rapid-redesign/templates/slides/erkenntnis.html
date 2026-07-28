@@ -1,0 +1,28 @@
+<section id="{{id}}" class="rv">
+  <div class="wrap">
+    <span class="kicker eyebrow-teal">Erkenntnis {{nummer}} · {{bereich}}</span>
+    <h2 class="sec-title">{{titel}}</h2>
+    <div class="ch-row">
+      <div class="ch-txt">
+        {{#absaetze}}<p>{{.}}</p>
+        {{/absaetze}}
+      </div>
+      {{#console}}
+      <div class="console">
+        <div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+        {{#fehler}}<p class="err">✕ {{.}}</p>
+        {{/fehler}}
+        {{#warnungen}}<p class="warn">⚠ {{.}}</p>
+        {{/warnungen}}
+        <p class="cap">{{cap}}</p>
+      </div>
+      {{/console}}
+      {{#browser}}
+      <div class="browser">
+        <div class="bar"><i></i><i></i><i></i><span>{{url}}</span></div>
+        <img src="{{bild}}" alt="{{alt}}" style="height:auto">
+      </div>
+      {{/browser}}
+    </div>
+  </div>
+</section>

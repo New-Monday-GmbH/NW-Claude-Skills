@@ -1,0 +1,851 @@
+
+/* =====================================================================
+   New Monday - Audit-/Rapid-Redesign-Deck - KANONISCHES STYLESHEET
+   Verbindlich fuer JEDE Anwendung des rapid-redesign Skills.
+   Unveraendert in den <style>-Block der index.html einsetzen.
+   EINZIGE erlaubte Aenderung: --client / --client-2 / --client-ink
+   ===================================================================== */
+
+:root{
+  --nm-50:#f0feff;--nm-100:#d4fbfc;--nm-200:#88e1e3;--nm-300:#4dd5d8;--nm-400:#00c7ca;
+  --nm-500:#008893;--nm-600:#007d7f;--nm-700:#006769;--nm-800:#004f51;--nm-900:#004142;
+  --acc-50:#fff1f0;--acc-100:#ffd2d1;--acc-300:#ff9e9d;--acc-500:#ff6e6c;--acc-600:#e86462;--acc-700:#b54e4d;
+  --ux-100:#d7cdf3;--ux-300:#a994e4;--ux-500:#7f5fd7;--ux-700:#5a4399;
+  --n-50:#f8fafc;--n-100:#ebf2f5;--n-200:#dde5e8;--n-300:#c9cfd1;--n-400:#b3bbbd;
+  --n-500:#9ea8aa;--n-600:#8a9496;--n-700:#738082;--n-800:#5d6c6e;--n-900:#48575a;
+  --white:#fff;--black:#000;
+  --brand:var(--nm-600);--brand-strong:var(--nm-700);--brand-soft:var(--nm-50);
+  --text:#0b1416;--text-2:var(--n-800);--text-3:var(--n-700);--on-brand:#fff;
+  --page:#f8fafc;--surface:var(--white);--border:rgba(0,0,0,.10);
+  --sev-crit:#ff6e6c;--sev-high:#f2994a;--sev-mid:#e0b341;--sev-low:#008893;--pos:#25a825;
+  --client:#512ffc;--client-2:#2a17b0;--client-ink:#fff;
+  --font-display:"Rethink Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-body:"Inter",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:24px;--r-pill:999px;
+  --shadow:0 1px 2px rgba(0,0,0,.05),0 12px 32px rgba(0,0,0,.08);
+  --maxw:1440px;--pad:clamp(1.25rem,4vw,4rem);
+  --kopf:8.6rem;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);color:var(--text);background:var(--page);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3,h4{font-family:var(--font-display);line-height:1.08;font-weight:700}
+img{max-width:100%;display:block}
+.wrap{max-width:var(--maxw);width:100%;margin-inline:auto;padding-inline:var(--pad)}
+/* Inline-Code (Selektoren, URLs, Fehlermeldungen) im Fließtext. Ohne diese Regel
+   fällt <code> auf die Serif-Default-Schrift zurück und bricht das Schriftbild. */
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;
+  background:var(--n-100);border:1px solid var(--border);border-radius:5px;padding:.1em .35em;
+  overflow-wrap:anywhere}
+.divider code,.closing code,.cover code,.finding .band code{background:rgba(255,255,255,.16);
+  border-color:rgba(255,255,255,.3);color:inherit}
+.console code,.evi-card code{background:none;border:0;padding:0}
+section{padding-block:clamp(3.5rem,8vh,6rem)}
+.kicker{font-family:var(--font-body);font-weight:600;letter-spacing:.16em;text-transform:uppercase;font-size:.8rem}
+.sec-title{font-size:clamp(1.9rem,4vw,3.1rem);letter-spacing:-.01em}
+.lead{font-size:clamp(1.05rem,1.6vw,1.3rem);color:var(--text-2);max-width:64ch}
+.eyebrow-teal{color:var(--brand)}
+#bar{position:fixed;top:0;left:0;height:4px;width:0;background:var(--brand);z-index:60;transition:width .1s linear}
+.rv{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+/* top mini nav */
+nav.mini{position:fixed;top:4px;right:0;left:0;z-index:55;display:flex;justify-content:center;gap:.2rem;padding:.5rem;background:rgba(255,255,255,.82);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);font-size:.82rem;transform:translateY(-120%);transition:transform .3s}
+nav.mini.show{transform:none}
+nav.mini a{color:var(--text-2);text-decoration:none;padding:.25rem .6rem;border-radius:var(--r-pill)}
+nav.mini a:hover{background:var(--n-100);color:var(--text)}
+@media(max-width:720px){nav.mini{display:none}}
+
+/* COVER */
+.cover{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(135deg,var(--client),var(--client-2));color:var(--client-ink);padding-block:2.5rem}
+.cover .top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.cover .rule{width:min(680px,60%);height:4px;background:var(--client-ink);opacity:.9;margin-bottom:1rem}
+.cover h1{font-size:clamp(3rem,10vw,7.5rem);letter-spacing:-.02em;font-weight:800;margin:.1em 0 .2em}
+.cover .sub{font-size:clamp(1.15rem,2.4vw,2rem);font-weight:400;max-width:26ch;opacity:.96}
+.cover .meta{font-size:.95rem;opacity:.82;margin-top:1.5rem}
+.focus-pill{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);padding:.5rem 1rem;border-radius:var(--r-pill);font-weight:600;font-size:.9rem;margin-bottom:1.2rem}
+.scrolldown{font-size:.85rem;opacity:.8;letter-spacing:.1em}
+.logo svg{height:26px;width:auto}
+
+/* generic */
+.grid{display:grid;gap:1.25rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.5rem 1.6rem;box-shadow:var(--shadow)}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.tile{background:var(--surface);border-radius:var(--r-lg);padding:1.1rem 1.2rem;border:1px solid var(--border)}
+.tile .num{font-family:var(--font-display);font-weight:800;font-size:2.4rem;line-height:1;color:var(--brand)}
+.tile .lbl{font-weight:600;color:var(--text-2);margin-top:.3rem;font-size:.92rem}
+.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start}
+.cols-hero{display:grid;grid-template-columns:1.1fr .9fr;gap:2.5rem;align-items:center}
+.donut{width:170px;height:170px;border-radius:50%;flex:none;position:relative;background:conic-gradient(var(--sev-crit) 0 22.2%,var(--sev-high) 22.2% 44.4%,var(--sev-mid) 44.4% 88.9%,var(--sev-low) 88.9% 100%)}
+.donut::before{content:"";position:absolute;inset:26px;background:var(--white);border-radius:50%}
+.donut .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut .c b{font-family:var(--font-display);font-size:2.4rem;line-height:1}
+.donut .c span{color:var(--text-2);font-size:.78rem;font-weight:600}
+.legend{display:flex;flex-direction:column;gap:.5rem}
+.legend div{display:flex;align-items:center;gap:.6rem;font-weight:500}
+.dot{width:14px;height:14px;border-radius:4px;flex:none}
+.impact{display:grid;gap:.85rem;margin-top:1.2rem}
+.impact li{list-style:none;display:flex;gap:.8rem;align-items:flex-start;font-size:1.04rem}
+.impact .d{width:14px;height:14px;border-radius:4px;margin-top:.45rem;flex:none}
+.strength{background:#eef8ee;border:1px solid #cfe8cf;border-left:6px solid var(--pos);border-radius:var(--r-lg);padding:1.4rem 1.6rem}
+.strength h3{font-size:1.2rem;color:var(--pos)}
+.strength ul{margin:.6rem 0 0 1.1rem}.strength li{margin:.3rem 0}
+
+/* section divider (teal) */
+.divider{background:linear-gradient(135deg,var(--nm-600),var(--nm-800));color:#fff;min-height:56vh;display:flex;align-items:center;position:relative}
+.divider .rule{width:min(680px,50%);height:4px;background:#fff;opacity:.85;margin-bottom:1.2rem}
+.divider h2{font-size:clamp(2.2rem,5.5vw,4.4rem);letter-spacing:-.01em}
+.divider p{font-size:clamp(1.05rem,2vw,1.5rem);opacity:.92;margin-top:1rem;max-width:42ch}
+.divider .logo svg{height:22px;position:absolute;top:2rem;right:var(--pad)}
+.divider.client{background:linear-gradient(135deg,var(--client),var(--client-2))}
+
+/* agenda */
+.agenda{display:grid;grid-template-columns:1fr 1fr;gap:.4rem 2.5rem;margin-top:1.5rem;counter-reset:ag}
+.agenda div{display:flex;gap:1rem;align-items:baseline;padding:.7rem 0;border-bottom:1px solid var(--border);font-size:1.1rem}
+.agenda div::before{counter-increment:ag;content:counter(ag,decimal-leading-zero);font-family:var(--font-display);font-weight:700;color:var(--brand);font-size:1rem}
+
+/* process steps */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:1.5rem}
+.step{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.3rem}
+.step .n{width:40px;height:40px;border-radius:50%;background:var(--brand);color:#fff;font-family:var(--font-display);font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:.8rem}
+.step h3{font-size:1.1rem}.step p{color:var(--text-2);font-size:.92rem;margin-top:.3rem}
+.steps.six{grid-template-columns:repeat(3,1fr)}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start;margin-top:1.5rem}
+.coral-line{width:min(340px,70%);height:5px;background:var(--acc-500);border-radius:3px;margin:.3rem 0 1.4rem;transform:rotate(-.6deg)}
+.award{display:inline-flex;flex-direction:column;gap:.15rem;background:var(--n-900);color:#fff;padding:.9rem 1.3rem;border-radius:var(--r-md);margin-top:1.2rem;align-items:flex-start}
+.award b{font-family:var(--font-display);letter-spacing:.18em;font-size:1.05rem}
+.award span{font-size:.78rem;opacity:.8}
+.award-label{color:var(--brand);font-family:var(--font-display);font-weight:700;font-size:1.1rem;margin-top:.6rem}
+.teal-statement{color:var(--brand);font-family:var(--font-display);font-weight:600;font-size:clamp(1.15rem,2.1vw,1.55rem);line-height:1.22}
+.logowall{margin-top:1.4rem}
+.lw-group{border-top:1px solid var(--border);padding:1rem 0;display:grid;grid-template-columns:240px 1fr;gap:1rem;align-items:center}
+.lw-group .cat{color:var(--brand);font-weight:600;font-size:.76rem;letter-spacing:.08em;text-transform:uppercase}
+.lw-group .names{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem 1.8rem;font-family:var(--font-display);font-weight:600;color:var(--text-2);font-size:1.02rem}
+.ast-list{list-style:none;margin-top:.6rem}
+.ast-list li{display:flex;gap:.6rem;margin:.75rem 0;color:var(--text-2)}
+.ast-list li::before{content:"✳";color:var(--brand);font-weight:700;flex:none}
+.approach{background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);padding:1.6rem;box-shadow:var(--shadow)}
+.approach h3{font-size:1.15rem}
+.uxda{width:150px;height:auto;display:block}
+.ch-list{margin-top:1.6rem;display:grid;gap:1.8rem}
+.ch-row{display:grid;grid-template-columns:.82fr 1.18fr;gap:2rem;align-items:center}
+.ch-card{border:2px solid var(--acc-500);border-radius:var(--r-lg);padding:1.4rem 1.5rem}
+.ch-card .cn{font-family:var(--font-display);font-weight:800;color:var(--acc-500);font-size:2rem;line-height:1}
+.ch-card h4{font-size:1.25rem;margin-top:.3rem}
+.ch-txt>p{color:var(--text-2);margin-top:1rem}
+.browser.lg img{height:340px}
+.ck-list{list-style:none;margin-top:.6rem}
+.ck-list li{display:flex;gap:.6rem;margin:.7rem 0;color:var(--text);font-weight:500}
+.ck-list li::before{content:"✓";color:var(--pos);font-weight:700;flex:none}
+.di-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.4rem 1.6rem}
+.di-card .l{color:var(--text-3);font-size:.95rem}
+.di-card .v{font-family:var(--font-display);font-weight:700;font-size:1.6rem;margin-top:.2rem;color:var(--text)}
+.closing .logo-center{position:absolute;top:2.4rem;left:var(--pad);display:flex;justify-content:flex-start;margin:0}
+.closing .logo-center svg{height:34px}
+.closing-main{display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start}
+.closing .folks{font-size:1.15rem;opacity:.9;margin-bottom:.2rem}
+.closing .tagline{font-family:var(--font-display);font-weight:600;font-size:clamp(1.4rem,3vw,2.2rem);line-height:1.2}
+.closing-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-top:3.5rem;padding-top:1.4rem;border-top:1px solid rgba(255,255,255,.35)}
+.closing-cols h4{font-size:1.25rem;margin-bottom:.5rem}
+.closing-cols a,.closing-cols address{display:block;color:#fff;opacity:.92;margin:.35rem 0;font-style:normal}
+.closing-cols a{text-decoration:underline}
+.persona-rich{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.8rem;box-shadow:var(--shadow);margin-top:1.5rem}
+.persona-rich .hd{display:flex;gap:1.1rem;align-items:center}
+.persona-rich .av{width:66px;height:66px;border-radius:50%;background:var(--brand);color:#fff;font-family:var(--font-display);font-weight:800;font-size:1.5rem;display:flex;align-items:center;justify-content:center;flex:none}
+.persona-rich h3{font-size:1.35rem}.persona-rich .role{color:var(--text-3)}
+.persona-rich .quote{font-family:var(--font-display);font-weight:600;font-size:clamp(1.15rem,2.1vw,1.55rem);color:var(--brand);margin:1.2rem 0 1.4rem;line-height:1.25}
+.pr-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.3rem}
+.pr-grid h4{font-size:.95rem;color:var(--text);margin-bottom:.4rem}
+.pr-grid ul{list-style:none}.pr-grid li{color:var(--text-2);font-size:.92rem;margin:.4rem 0;padding-left:.9rem;position:relative}
+.pr-grid li::before{content:"•";position:absolute;left:0;color:var(--brand)}
+.acc{margin-top:1.4rem;border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
+/* Zweispaltige Variante (opt-in via deck.json: "zweispaltig":true) -- damit auch
+   10+ Findings auf EINE Folie passen, statt sie auf zwei Folien zu splitten. */
+.acc--2col{display:grid;grid-template-columns:1fr 1fr;column-gap:1rem;border:0;border-radius:0;overflow:visible;align-content:start}
+.acc--2col details.fa{border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:.7rem}
+.acc--2col details.fa:last-child{border-bottom:1px solid var(--border)}
+@media(max-width:900px){ .acc--2col{grid-template-columns:1fr} }
+details.fa{border-bottom:1px solid var(--border);background:#fff}
+details.fa:last-child{border-bottom:0}
+details.fa>summary{list-style:none;cursor:pointer;padding:1.05rem 1.4rem;display:flex;align-items:center;gap:.9rem}
+details.fa>summary::-webkit-details-marker{display:none}
+details.fa>summary h3{font-size:1.06rem;flex:1;font-family:var(--font-display)}
+details.fa>summary .chev{color:var(--text-3);transition:transform .2s;font-size:1.1rem}
+details.fa[open]>summary .chev{transform:rotate(90deg)}
+details.fa[open]>summary{background:var(--n-50)}
+.fa-body{padding:.2rem 1.4rem 1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start}
+.fa-body .blk2{margin-bottom:.8rem}
+.fa-body .blk2 .l{font-weight:600;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--brand)}
+.fa-body .blk2 p{color:var(--text-2);margin-top:.1rem}
+.fa-body .shot{border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow);align-self:start}
+.fa-body .shot img{width:100%;display:block}
+.fa-body .shot.portrait{max-width:240px}
+.lw-group .names img{height:26px;width:auto;max-width:150px;object-fit:contain;opacity:.85;filter:grayscale(1)}
+.lw-group .names .txt{font-family:var(--font-display);font-weight:600;color:var(--text-2)}
+
+/* personas */
+.personas{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem}
+.persona{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.6rem;box-shadow:var(--shadow)}
+.persona .hd{display:flex;gap:1rem;align-items:center;margin-bottom:1rem}
+.persona .av{width:60px;height:60px;border-radius:50%;background:var(--client);color:#fff;font-family:var(--font-display);font-weight:800;font-size:1.4rem;display:flex;align-items:center;justify-content:center;flex:none}
+.persona .av.t{background:var(--brand)}
+.persona h3{font-size:1.2rem}.persona .role{color:var(--text-3);font-size:.9rem}
+.persona .row{display:grid;grid-template-columns:auto 1fr;gap:.3rem 1rem;margin-top:.5rem}
+.persona .row .k{font-weight:600;color:var(--brand);font-size:.85rem}
+.persona .row .v{font-size:.95rem;color:var(--text-2)}
+.jtbd{margin-top:.9rem;padding:.9rem 1.1rem;background:var(--nm-50);border-left:4px solid var(--brand);border-radius:0 var(--r-md) var(--r-md) 0;font-style:italic;color:var(--text-2)}
+.challenges{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.5rem}
+.challenge{background:var(--acc-50);border-left:6px solid var(--acc-500);border-radius:var(--r-md);padding:1.2rem}
+.challenge .cn{font-family:var(--font-display);font-weight:800;color:var(--acc-600)}
+.challenge h4{font-size:1.02rem;margin-top:.2rem}.challenge p{font-size:.9rem;color:var(--text-2);margin-top:.3rem}
+
+/* positionierung */
+.aspects{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:1.5rem}
+.aspect{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.4rem;border-top:4px solid var(--brand)}
+.aspect .num{font-family:var(--font-display);font-weight:800;color:var(--brand);font-size:1.4rem}
+.aspect h3{font-size:1.1rem;margin:.2rem 0 .4rem}.aspect p{color:var(--text-2);font-size:.94rem}
+.claim{margin-top:1.5rem;font-family:var(--font-display);font-weight:700;font-size:clamp(1.4rem,3vw,2rem);color:var(--text)}
+
+/* levers */
+.levers{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:1.5rem}
+.lever{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.4rem 1.5rem;display:flex;gap:1.1rem}
+.lever .n{width:44px;height:44px;border-radius:50%;background:var(--brand);color:#fff;font-family:var(--font-display);font-weight:700;font-size:1.25rem;display:flex;align-items:center;justify-content:center;flex:none}
+.lever h3{font-size:1.12rem}.lever p{color:var(--text-2);margin-top:.3rem;font-size:.96rem}
+.lever.primary{border:2px solid var(--brand);background:var(--nm-50)}
+.lever.primary .badge{display:inline-block;background:var(--brand);color:#fff;font-size:.68rem;font-weight:600;letter-spacing:.06em;padding:.15rem .5rem;border-radius:var(--r-pill);margin-left:.5rem;vertical-align:middle}
+.copy-col h3{color:#fff;padding:1rem 1.4rem;border-radius:var(--r-lg) var(--r-lg) 0 0;font-size:1.3rem}
+.copy-col.pos h3{background:var(--pos)}.copy-col.neg h3{background:var(--acc-500)}
+.copy-col .body{border:1px solid var(--border);border-top:0;border-radius:0 0 var(--r-lg) var(--r-lg);padding:1.3rem 1.5rem}
+.copy-col.pos .body{background:#eef8ee}.copy-col.neg .body{background:var(--acc-50)}
+.copy-col ul{margin-left:1.1rem}.copy-col li{margin:.55rem 0}
+
+/* competitors */
+.comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:1.5rem}
+.browser{border-radius:var(--r-md);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow);background:#fff}
+.browser .bar{background:var(--n-100);padding:.5rem .7rem;display:flex;gap:.35rem;align-items:center}
+.browser .bar i{width:10px;height:10px;border-radius:50%;background:var(--n-400);display:block}
+.browser .bar span{margin-left:.5rem;font-size:.72rem;color:var(--text-3)}
+.browser img{width:100%;height:170px;object-fit:cover;object-position:top}
+.comp h4{font-size:1.05rem;margin-top:.7rem}.comp p{color:var(--text-2);font-size:.9rem;margin-top:.2rem}
+.insp-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;margin-top:1.5rem}
+
+/* findings */
+.finding{border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--shadow);margin-top:2rem}
+.finding .head{background:#fff;padding:1.4rem 1.7rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;border:1px solid var(--border);border-bottom:0;border-radius:var(--r-xl) var(--r-xl) 0 0}
+.finding .head .k{color:var(--brand);font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:.72rem}
+.finding .head h3{font-size:clamp(1.25rem,2.3vw,1.8rem);margin-top:.35rem}
+.pill{flex:none;font-weight:600;font-size:.82rem;padding:.4rem .9rem;border-radius:var(--r-pill);white-space:nowrap}
+.pill.crit{background:var(--sev-crit);color:#fff}.pill.high{background:var(--sev-high);color:#3a2400}
+.pill.mid{background:var(--sev-mid);color:#3a2f00}.pill.low{background:var(--sev-low);color:#fff}
+.finding .band{background:var(--acc-500);color:#fff;display:grid;grid-template-columns:1fr 1fr;gap:2rem;padding:2rem 1.7rem;align-items:center}
+.finding .txt .marker{width:50px;height:50px;border-radius:50%;background:#fff;color:var(--acc-500);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;margin-bottom:1rem}
+.finding .lead-line{font-family:var(--font-display);font-weight:600;font-size:1.2rem;margin-bottom:1.1rem}
+.finding .blk{margin-bottom:.9rem}
+.finding .blk .l{font-weight:600;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.finding .blk p{font-weight:500;margin-top:.12rem}
+.finding .shot{border-radius:var(--r-md);overflow:hidden;background:#fff;box-shadow:0 12px 34px rgba(0,0,0,.28)}
+.finding .shot img{width:100%;height:auto}
+.finding .shot.portrait{max-width:320px;margin-inline:auto}
+.console{background:#16161f;border-radius:var(--r-md);padding:1.2rem 1.3rem;font-family:ui-monospace,Menlo,monospace;box-shadow:0 12px 34px rgba(0,0,0,.28)}
+.console .dots{display:flex;gap:.4rem;margin-bottom:.8rem}.console .dots i{width:11px;height:11px;border-radius:50%;display:block}
+.console .err{color:#ff8a87;margin:.4rem 0;font-size:.92rem}.console .warn{color:#ffcf8a;margin:.4rem 0;font-size:.92rem}
+.console .cap{color:#7a7d88;font-size:.78rem;margin-top:.8rem}
+.evi-card{background:#fff;border-radius:var(--r-md);padding:1.4rem 1.5rem;box-shadow:0 12px 34px rgba(0,0,0,.22)}
+.evi-card .l{font-weight:600;font-size:.7rem;letter-spacing:.1em;color:var(--text-2)}
+.evi-card .big{font-family:var(--font-display);font-weight:800;font-size:2.4rem;color:var(--acc-600);margin:.2rem 0}
+.evi-card ul{margin:.5rem 0 0 1.1rem;color:var(--text-2);font-size:.9rem}
+.evi-card code{font-family:ui-monospace,Menlo,monospace;font-size:1rem;display:block;margin:.5rem 0}
+
+/* roadmap */
+.road{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem}
+.road .col{border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border)}
+.road .col h3{color:#fff;padding:1.1rem 1.4rem;font-size:1.35rem}
+.road .col.qw h3{background:var(--brand)}.road .col.big h3{background:var(--n-800)}
+.road .col h3 small{display:block;font-family:var(--font-body);font-weight:500;font-size:.8rem;opacity:.9}
+.road .col ul{padding:1.3rem 1.5rem 1.5rem 2.4rem}.road .col li{margin:.6rem 0}
+
+/* wireframe */
+.wf{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.5rem;margin-top:1.5rem}
+.wf .frame{border:2px solid var(--n-300);border-radius:var(--r-md);overflow:hidden;background:#fff}
+.wf .wf-nav{display:flex;align-items:center;gap:.8rem;padding:.8rem 1.2rem;border-bottom:1px solid var(--n-200)}
+.wf .box{background:var(--n-100);border-radius:6px}
+.wf .logo-b{width:120px;height:22px}
+.wf .nav-b{width:70px;height:14px}
+.wf .cta-b{margin-left:auto;width:140px;height:38px;background:var(--client);border-radius:var(--r-pill)}
+.wf .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:1.5rem;padding:2rem 1.2rem}
+.wf .h-title{height:22px;border-radius:6px;background:var(--n-300);margin-bottom:.6rem}
+.wf .h-title.w1{width:80%}.wf .h-title.w2{width:60%}
+.wf .h-sub{height:12px;width:70%;background:var(--n-200);border-radius:6px;margin:.9rem 0 1.3rem}
+.wf .primary{width:180px;height:44px;background:var(--client);border-radius:var(--r-pill)}
+.wf .trust{display:flex;gap:.6rem;margin-top:1.3rem}.wf .trust i{width:64px;height:26px;background:var(--n-200);border-radius:6px;display:block}
+.wf .mock{background:var(--n-100);border-radius:var(--r-md);min-height:180px;display:flex;align-items:center;justify-content:center;color:var(--n-500);font-size:.85rem}
+.wf .consent{margin-top:1rem;display:flex;align-items:center;gap:1rem;background:var(--n-900);color:#fff;padding:.7rem 1.1rem;border-radius:var(--r-md);font-size:.85rem}
+.wf .consent .btns{margin-left:auto;display:flex;gap:.5rem}
+.wf .consent .b1{background:#fff;color:var(--n-900);padding:.35rem .9rem;border-radius:var(--r-pill);font-weight:600}
+.wf .consent .b2{border:1px solid rgba(255,255,255,.5);padding:.35rem .9rem;border-radius:var(--r-pill)}
+.wf-notes{margin-top:1.2rem}
+.wf-notes h3{font-size:1.05rem;margin-bottom:.5rem}
+.wf-notes ul{list-style:disc;margin:0 0 0 1.15rem}
+.wf-notes li{font-size:.9rem;color:var(--text-2);margin:.5rem 0;line-height:1.5}
+.wf-notes li::marker{color:var(--pos)}
+.wf-notes b{color:var(--text)}
+
+/* timeline */
+.timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:1.5rem}
+.phase{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.3rem;border-top:4px solid var(--brand)}
+.phase .w{color:var(--brand);font-weight:700;font-size:.85rem}.phase h3{font-size:1.05rem;margin:.2rem 0 .4rem}
+.phase p{color:var(--text-2);font-size:.9rem}
+.offer{margin-top:1.6rem;background:linear-gradient(135deg,var(--nm-600),var(--nm-800));color:#fff;border-radius:var(--r-lg);padding:1.8rem 2rem}
+.offer h3{font-size:1.5rem}.offer p{opacity:.92;margin-top:.4rem;max-width:60ch}
+
+/* closing */
+.closing{position:relative;background:linear-gradient(135deg,var(--nm-600),var(--nm-800));color:#fff;min-height:82vh;display:flex;flex-direction:column;justify-content:center}
+.closing .rule{width:min(680px,55%);height:4px;background:#fff;opacity:.85;margin-bottom:1.4rem}
+.closing h2{font-size:clamp(2.4rem,6vw,4.6rem);letter-spacing:-.01em}
+.closing p{font-size:clamp(1.05rem,2vw,1.4rem);opacity:.94;margin-top:1.2rem;max-width:46ch}
+.closing .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-top:2.5rem;padding-top:1.4rem;border-top:1px solid rgba(255,255,255,.4);font-weight:500}
+
+@media(max-width:860px){
+  .tiles,.steps,.timeline{grid-template-columns:repeat(2,1fr)}
+  .cols-2,.cols-hero,.levers,.personas,.challenges,.aspects,.comp-grid,.insp-grid,.road,.agenda,.finding .band,.wf .hero,.about-grid,.steps.six,.str-grid{grid-template-columns:1fr}
+  .lw-group{grid-template-columns:1fr;gap:.3rem;padding:.8rem 0}
+  .ch-row,.closing-main,.closing-cols,.fa-body{grid-template-columns:1fr}
+  .pr-grid{grid-template-columns:1fr 1fr}
+  .finding .shot.portrait{max-width:100%}
+}
+@media print{.rv{opacity:1;transform:none}nav.mini{display:none}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}section{page-break-inside:avoid}}
+
+/* ===================== DECK / FOLIEN-MODUS ===================== */
+body > header:not(.active), body > section:not(.active), body > footer:not(.active){display:none}
+/* Inhaltsfolien: Kopf IMMER an derselben Stelle.
+   Vorher waren die Folien vertikal zentriert -> die Ueberschrift sprang je nach
+   Inhaltsmenge um bis zu 210px. Jetzt: oben ausgerichtet, fester Kopf-Abstand.
+   Der Inhalt darunter darf wachsen; die Ueberschrift bleibt liegen. */
+body > section.active{display:flex;flex-direction:column;justify-content:flex-start;
+  align-items:stretch;min-height:100vh;padding-top:var(--kopf,7rem);padding-bottom:5.5rem}
+/* Divider, Cover und Danke sind Statements, keine Inhaltsfolien -> bleiben zentriert */
+body > section.divider.active{justify-content:center;padding-top:0;padding-bottom:0}
+body > header.active, body > footer.active{display:flex;min-height:100vh}
+body > .active{animation:slideIn .3s ease both}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.rv{opacity:1 !important;transform:none !important;transition:none !important}
+.deck-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:70;display:flex;align-items:center;gap:.45rem;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border:1px solid var(--border);
+  border-radius:var(--r-pill);padding:.4rem .5rem;box-shadow:var(--shadow)}
+.deck-nav button{border:none;background:var(--brand);color:#fff;width:38px;height:38px;border-radius:50%;
+  cursor:pointer;font-size:1.05rem;line-height:1;display:flex;align-items:center;justify-content:center}
+.deck-nav button:hover:not(:disabled){background:var(--brand-strong)}
+.deck-nav button:disabled{background:var(--n-300);cursor:default}
+.deck-nav .count{font-size:.85rem;font-weight:600;color:var(--text-2);min-width:58px;text-align:center;font-variant-numeric:tabular-nums}
+.inspo-grid{display:grid;grid-template-columns:1fr;gap:1.2rem;margin-top:1.8rem}
+.inspo-frame{border-radius:var(--r-md);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow);aspect-ratio:2880/1140;background:var(--n-100)}
+.inspo-frame img{width:100%;height:100%;object-fit:cover;object-position:center}
+.x-list{list-style:none;margin-top:.5rem}
+.x-list li{display:flex;gap:.6rem;margin:.55rem 0;color:var(--text-2);font-size:.97rem}
+.x-list li::before{content:"\2715";color:var(--acc-600);font-weight:700;flex:none}
+.ck-list li{font-size:.97rem}
+@media(max-width:860px){.inspo-grid{grid-template-columns:1fr}.deck-nav{bottom:12px}}
+@media print{body > header,body > section,body > footer{display:block !important}.deck-nav{display:none}}
+
+/* ===================== Ausbaustufe 2 ===================== */
+.cover .top{align-items:center}
+.cover .rule{display:none}
+.client-logo{height:46px;width:auto;margin-bottom:1.5rem;filter:brightness(0) invert(1);opacity:.97}
+nav.mini{top:0;padding:.5rem .8rem .65rem;gap:.15rem .1rem;align-items:center;flex-wrap:wrap;row-gap:.25rem}
+nav.mini a{font-size:.8rem;padding:.3rem .6rem;line-height:1.3;white-space:nowrap}
+nav.mini a.on{background:var(--brand);color:#fff}
+nav.mini #bar{position:absolute;left:0;bottom:0;top:auto;height:3px;width:0;background:var(--brand);border-radius:0 2px 2px 0;transition:width .3s ease;z-index:1}
+/* Logos: einheitliche HOEHE, natuerliche Breite -- so macht es auch die
+   RR-Vorlage (dort 74px hoch, Breite je Logo verschieden). Eine feste Box
+   waere falsch: ein VW-Kreis und ein Axel-Springer-Schriftzug brauchen bei
+   gleicher optischer Groesse sehr unterschiedliche Breiten.
+   Die Logo-SVGs haben alle viewBox-Hoehe 74 -- daher wirken sie gleich gross. */
+.lw-group .names img{height:30px;width:auto;max-width:none;object-fit:contain;filter:grayscale(1) contrast(1.15)}
+
+/* ---- Ueber New Monday (RR-Slide 03) ----
+   ZWEI SPALTEN statt Titel-ueber-alles: LINKS eine Typo-Spalte (Kicker, Titel,
+   Coral-Linie) die unten von der UXDA-Plakette verankert wird, RECHTS das
+   2x2-Raster (Absatz oben-links, Foto1 oben-rechts, Foto2 unten-links,
+   Teal-Statement unten-rechts).
+   WARUM: Vorher lief der Titel ueber die volle Breite und das Raster stand
+   darunter -- dadurch entstanden ZWEI tote Zonen (rechts neben dem Titel und
+   am rechten Rand), die wie "vergessen" wirkten. Jetzt ruecken Titel und
+   Raster nebeneinander: der Titel fuellt die obere Haelfte links, das Raster
+   die ganze Hoehe rechts, und beide Spalten enden auf derselben Grundlinie
+   (align-items:stretch + margin-top:auto an der Plakette). */
+/* --nmS haelt die Quadrat-Kante gleichzeitig in der BREITE (24vw -- das Raster
+   belegt zwei davon, also rund die halbe Folie, der Rest bleibt der Typo-
+   Spalte) und in der HOEHE (41vh, zwei Reihen muessen unter den Kopf passen).
+   Der 24vw-Term ist der Grund, warum der Titel auch bei ~1200px Fensterbreite
+   nicht aus seiner Spalte laeuft: das Raster schrumpft mit. */
+.nm-body{--nmS:clamp(200px,min(24vw,41vh),360px);
+  display:grid;grid-template-columns:minmax(0,1fr) auto;
+  column-gap:clamp(2rem,5vw,4.5rem);row-gap:1.6rem;align-items:stretch;margin-top:.4rem}
+/* Typo-Spalte: Kopf oben, Plakette unten (margin-top:auto schiebt sie auf die
+   Grundlinie des Rasters) -- der Weissraum liegt damit INNERHALB der Spalte
+   zwischen zwei gesetzten Bloecken statt als Loch neben dem Inhalt. */
+.nm-intro{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+.nm-intro .sec-title{font-size:clamp(1.7rem,3.15vw,2.9rem)}
+.nm-intro .nm-award{margin-top:auto;padding-top:2.5rem}
+/* Nach Figma 3145-6251: VIER GLEICH GROSSE QUADRAT-Zellen (2x2, kein Gap).
+   Bild-Kante = Zell-Kante = Text-Kastenbreite -> die Fotos sind exakt so breit
+   wie der Text darueber/darunter (Kanten fluchten), quadratisch, und stossen
+   an der Mitte Ecke an Ecke. Kantenlaenge kommt aus --nmS (siehe .nm-body).
+   justify-content:end -> das Raster schliesst buendig mit der rechten
+   Wrap-Kante ab, spiegelbildlich zur Titel-Achse links.
+   overflow:hidden ist der Text-Guard. */
+.nm-content{display:grid;grid-template-columns:var(--nmS) var(--nmS);
+  grid-template-rows:var(--nmS) var(--nmS);column-gap:0;row-gap:0;
+  align-items:stretch;justify-content:end}
+/* Schriftgroesse an die Quadrat-Kante gekoppelt: bei grossen Zellen greift das
+   rem-Maximum (unveraendert), bei kleinen Kanten (flache Fenster) skaliert der
+   Text mit -- so passt er IMMER in seinen Kasten statt abgeschnitten zu werden. */
+.nm-content .nm-para{grid-column:1;grid-row:1;
+  font-size:min(.95rem,calc(var(--nmS) / 16));line-height:1.5;
+  padding:0 1.5rem 1rem 0;margin-top:0;overflow:hidden}
+.nm-content .nm-foto-1{grid-column:2;grid-row:1}
+.nm-content .nm-foto-2{grid-column:1;grid-row:2}
+.nm-content .teal-statement{grid-column:2;grid-row:2;padding:1rem 0 0 1.5rem;
+  font-size:min(1.14rem,calc(var(--nmS) / 15.5));overflow:hidden}
+.nm-foto{width:var(--nmS);height:var(--nmS);aspect-ratio:1/1;border-radius:var(--r-md);object-fit:cover;display:block}
+/* Siegel als PLAKETTE: Label UNTER dem Siegel, beides linksbuendig auf der
+   Titel-Achse, als Block am FUSS der Typo-Spalte (siehe .nm-intro .nm-award).
+   Wirkt wie eine gesetzte Auszeichnung statt eines in die Ecke gerutschten
+   Logos -- und gibt der Textspalte unten ein Gegengewicht zum Titel. */
+.nm-award{display:flex;flex-direction:column;align-items:flex-start;gap:1.4rem}
+.uxda{width:144px;height:auto;display:block;flex:none}
+.award-label{color:var(--brand);font-family:var(--font-display);font-weight:700;
+  font-size:1.08rem;line-height:1.25;margin-top:0;flex:none;white-space:nowrap}
+
+/* ---- Jobs To Be Done (RR-Slide 3856-860): direkt nach den Personas ----
+   Zwei weisse Karten auf dem hellen Seitengrund: FUNKTIONALE / EMOTIONALE
+   JOBS als teal Versal-Label, je Karte drei Aussagen in der Display-Schrift,
+   unter JEDER Aussage (auch der letzten) eine Hairline (n-300) — wie in der
+   Figma-Vorlage. Coral-Schwung oben rechts angeschnitten. */
+/* .gfx-deco.jobs-deco: doppelte Klasse noetig — die .gfx-deco-Basisregel steht
+   SPAETER im Stylesheet und wuerde left/bottom/width sonst zuruecksetzen. */
+.gfx-deco.jobs-deco{left:auto;bottom:auto;right:-3%;top:-3.2rem;width:min(38vw,620px);opacity:1}
+.jobs-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(1.6rem,3.5vw,3.6rem);
+  margin-top:clamp(1.8rem,6vh,4rem);align-items:start}
+.jobs-card{padding:1.9rem 2rem 1.5rem;border:0;border-radius:var(--r-md)}
+.jobs-label{color:var(--brand);font-family:var(--font-body);font-size:.95rem;font-weight:600;
+  letter-spacing:.01em;text-transform:uppercase;line-height:1.5;margin-bottom:1.7rem}
+.jobs-list{list-style:none}
+.jobs-list li{font-family:var(--font-display);font-weight:600;font-size:clamp(1.1rem,1.55vw,1.45rem);
+  line-height:1.2;color:var(--text);padding-bottom:1.15rem;border-bottom:1px solid var(--n-300);
+  margin-bottom:1.15rem;max-width:36ch}
+.jobs-list li:last-child{margin-bottom:0}
+@media(max-width:1000px){.jobs-grid{grid-template-columns:1fr}}
+
+/* ---- Referenzen (RR-Slide 04): Text links, Logo-Wand rechts ----
+   Grosse Luecke zwischen Text und Logos -- der Weissraum kommt von rechts
+   (Logo-Spalte schmaler), damit Text und Logos deutlich getrennt stehen. */
+.cred-grid{display:grid;grid-template-columns:minmax(280px,.9fr) 1.35fr;
+  gap:clamp(2.5rem,5.5vw,6rem);align-items:start}
+.cred-intro .sec-title{font-size:clamp(1.6rem,2.9vw,2.5rem)}
+.cred-intro .lead{font-size:1rem;line-height:1.5;margin-top:1rem}
+.cred-grid .logowall{margin-top:0}
+.cred-grid .lw-group{grid-template-columns:1fr;gap:.5rem;padding:.75rem 0;justify-items:start}
+.cred-grid .lw-group .names{gap:.6rem 1.6rem}
+/* Schmaler als ~1150px reicht die Breite fuer zwei Spalten nicht mehr (der
+   Titel wuerde umbrechen oder das Raster ueberlaufen) -> gestapelt: Typo-Spalte
+   oben, Plakette wieder NEBEN den Titel gelegt (flex-row), Raster darunter. */
+@media(max-width:1150px){
+  .nm-body{grid-template-columns:1fr;gap:1.4rem}
+  .nm-intro .sec-title{font-size:clamp(1.9rem,4vw,3.1rem)}
+  .nm-intro .nm-award{margin-top:0;padding-top:1.4rem}
+  .nm-award{flex-direction:row;align-items:flex-end;gap:1.4rem}
+  .uxda{width:104px}
+  .nm-content{grid-template-columns:1fr 1fr;grid-template-rows:auto auto;justify-content:stretch}
+  .nm-content .nm-para,.nm-content .teal-statement{overflow:visible}
+  .nm-content .nm-foto{width:100%}
+}
+@media(max-width:1000px){
+  .cred-grid{grid-template-columns:1fr}
+}
+
+/* ---- Positionierung: in die BREITE statt in die Hoehe ----
+   Kopf (Titel + Claim) neben der Grafik, die drei Aspekte darunter
+   nebeneinander. Vorher stapelten sie in einer schmalen Spalte -> Folie
+   wurde zu hoch und musste gescrollt werden. */
+/* Positionierung: die drei Aspekt-Kacheln LINKS (gestapelt), die Grafik RECHTS. */
+.claim{margin-top:1rem;font-size:clamp(1.2rem,2.2vw,1.65rem)}
+.pos-body{display:grid;grid-template-columns:auto 1fr;gap:clamp(2rem,4vw,3.5rem);align-items:center;margin-top:1.4rem}
+/* Zwei quadratische Kacheln nebeneinander, die dritte darunter (2+1). */
+.pos-body .aspects{grid-template-columns:repeat(2,clamp(190px,17vw,250px));grid-auto-rows:1fr;gap:1rem;margin-top:0}
+/* grid-auto-rows:1fr + gemeinsame Mindesthoehe (quadratisch) -> ALLE drei
+   Kacheln sind gleich hoch, auch wenn ein Text laenger ist. */
+.pos-body .aspect{min-height:clamp(190px,17vw,250px);display:flex;flex-direction:column;padding:1.2rem}
+.pos-gfx{width:100%;height:auto;max-height:60vh;object-fit:contain}
+.aspect p{font-size:.92rem}
+@media(max-width:900px){ .pos-body{grid-template-columns:1fr} .pos-gfx{display:none} }
+
+/* ---- Inspiration: EINE Quelle pro Folie, mehrere Screenshots davon ---- */
+.insp-head{display:grid;grid-template-columns:1.1fr .9fr;gap:2rem;align-items:start}
+.insp-head .lead{font-size:1rem;line-height:1.5}
+.insp-shots{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:1.6rem}
+.insp-shots figure{margin:0;min-width:0}
+.insp-shots .browser img{width:100%;height:clamp(140px,22vh,210px);object-fit:cover;object-position:top center}
+.insp-shots figcaption{margin-top:.6rem;font-size:.85rem;color:var(--text-2);font-weight:500}
+@media(max-width:900px){ .insp-head{grid-template-columns:1fr} .insp-shots{grid-template-columns:1fr} }
+
+/* ---- Luft zwischen Ueberschrift und Beleg-Screenshot ----
+   Auf den Erkenntnis- und Wettbewerber-Folien klebte der Screenshot an der
+   Ueberschrift, weil .ch-row nur den Standard-Abstand hatte. */
+.ch-row{margin-top:1.6rem}
+#gut .cols-2{margin-top:1.6rem !important}
+
+/* ---- Hoehe zaehmen: diese Folien liefen bei ~700px Fensterhoehe ueber ---- */
+/* Wireframes */
+.wf{padding:1.1rem}
+.wf .hero{padding:1.2rem 1rem;gap:1rem}
+.wf .mock{min-height:120px;font-size:.8rem}
+.wf-notes{margin-top:.9rem;gap:.6rem}
+.wf-notes li{font-size:.82rem}
+/* ---- Komplettes Redesign aus einer Hand ----
+   Grosse Grafik links; rechts gestapelt: Ziel, Ergebnis, dann Dauer/Investition
+   und der kleine Satz darunter. */
+.ns-layout{display:grid;grid-template-columns:1fr 1fr;gap:clamp(1.5rem,3vw,3rem);
+  margin-top:1.2rem;align-items:center}
+.ns-visual{display:flex;align-items:center;justify-content:center}
+.ns-visual .gfx{width:100%;height:auto;max-height:56vh;object-fit:contain}
+.ns-body{display:grid;gap:1rem;align-content:start}
+.ns-body .card{padding:1.1rem 1.3rem}
+.ns-body .card h3{font-size:1.08rem}
+.ns-body .ck-list li,.ns-body .ast-list li{margin:.4rem 0;font-size:.95rem}
+.ns-eck{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.ns-eck .di-card{padding:.9rem 1.1rem}
+.ns-eck .di-card .v{font-size:1.3rem}
+.ns-fuss{color:var(--text-3);font-size:.82rem;line-height:1.45;margin:0}
+@media(max-width:900px){ .ns-layout{grid-template-columns:1fr} .ns-visual{display:none} }
+/* Findings-Accordion */
+details.fa>summary{padding:.8rem 1.2rem}
+details.fa>summary h3{font-size:1rem}
+.gfx{width:100%;height:auto;max-height:44vh;object-fit:contain}
+.gfx-row{display:grid;grid-template-columns:.9fr 1.1fr;gap:2.2rem;align-items:center;margin-top:1.6rem}
+.gfx-deco{position:absolute;left:-2%;bottom:4vh;width:min(34vw,380px);opacity:.85;pointer-events:none;z-index:0}
+.personas-wrap{display:grid;gap:1.3rem;margin-top:1.4rem}
+.personas-wrap[data-count="2"]{grid-template-columns:1fr 1fr}
+.personas-wrap[data-count="3"]{grid-template-columns:repeat(3,1fr)}
+.persona-rich .ph{width:78px;height:78px;border-radius:50%;object-fit:cover;flex:none}
+.personas-wrap[data-count="2"] .pr-grid{grid-template-columns:1fr 1fr}
+.personas-wrap[data-count="3"] .pr-grid{grid-template-columns:1fr;gap:.5rem}
+.personas-wrap[data-count="3"] .persona-rich{padding:1.2rem}
+.personas-wrap[data-count="3"] .quote{font-size:1rem}
+.shot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem;margin-top:1.8rem}
+.shot-grid figure{margin:0}
+.shot-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--r-md);border:1px solid var(--border);box-shadow:var(--shadow);display:block}
+.shot-grid figcaption{margin-top:.6rem;font-size:.85rem;color:var(--text-2);font-weight:500}
+/* ---- Projektablauf (nach Figma 3856-1480) ----
+   Titel oben, teal Label darunter; dann drei Phasen: Phasenname (teal) UEBER
+   einer horizontalen Achse mit Tick-Marken am Spaltenanfang + Pfeilspitze rechts;
+   darunter je Phase "Woche X-Y" (fett), Ziel (fett) und eine Bullet-Liste.
+   Alle drei Raster (Heads, Achse, Spalten) teilen sich Spalten + Luecke, damit
+   Ticks und Texte exakt untereinander stehen. */
+.pa{--pa-gap:clamp(1.6rem,3vw,3rem);margin-top:2.4rem}
+.pa-kicker{display:block;margin-top:.7rem}
+.pa-heads{display:grid;grid-template-columns:repeat(3,1fr);column-gap:var(--pa-gap);margin-top:2.4rem}
+.pa-head{color:var(--brand);font-family:var(--font-display);font-weight:700;font-size:clamp(1.05rem,1.8vw,1.35rem)}
+.pa-axis{position:relative;display:grid;grid-template-columns:repeat(3,1fr);column-gap:var(--pa-gap);height:24px;margin:1.1rem 0 1.5rem}
+.pa-line{position:absolute;left:0;right:18px;top:11px;height:2px;background:var(--brand);border-radius:2px}
+.pa-tick{width:2px;height:24px;background:var(--brand);justify-self:start;position:relative;z-index:1}
+.pa-arrow{position:absolute;right:0;top:5px;width:16px;height:14px;color:var(--brand)}
+.pa-cols{display:grid;grid-template-columns:repeat(3,1fr);column-gap:var(--pa-gap)}
+.pa-col-head{display:none}
+.pa-woche{font-family:var(--font-display);font-weight:700;font-size:clamp(1.15rem,2vw,1.5rem);color:var(--text)}
+.pa-ziel{font-weight:700;font-size:.98rem;margin:1.1rem 0 .8rem}
+.pa-punkte{list-style:disc;padding-left:1.15rem;margin:0}
+.pa-punkte li{margin:.4rem 0;font-size:.96rem;color:var(--text-2)}
+@media(max-width:860px){
+  .gfx-row{grid-template-columns:1fr}.gfx-deco{display:none}
+  .shot-grid{grid-template-columns:1fr 1fr}
+  .pa-heads,.pa-axis{display:none}
+  .pa-cols{grid-template-columns:1fr;gap:1.6rem}
+  .pa-col-head{display:block;color:var(--brand);font-family:var(--font-display);font-weight:700;font-size:1.1rem;margin-bottom:.3rem}
+  .personas-wrap[data-count="2"],.personas-wrap[data-count="3"]{grid-template-columns:1fr}
+}
+
+/* ---- Flache Fenster (Laptop mit Browser-Chrome, ~700px Inhaltshoehe) ----
+   Grundsatz "eine Folie = eine Ansicht" gilt auch dort. Der Folien-Innenabstand
+   ist der groesste Einzelposten (2x 72px) und skalierte vorher nicht mit der
+   Fensterhoehe -- dadurch scrollten die dichten Folien. Hier faellt er
+   zusammen mit der Typo-Skala, statt dass der Inhalt aus dem Bild laeuft. */
+@media (max-height:820px){
+  :root{--kopf:5.4rem}
+  body > section.active{padding-top:var(--kopf);padding-bottom:5.2rem}
+  .sec-title{font-size:clamp(1.7rem,3.2vw,2.4rem)}
+  .lead{font-size:1rem}
+  .ch-row{margin-top:1.1rem}
+  .ch-txt>p{margin-top:.6rem;font-size:.95rem}
+  .aspects{margin-top:1rem}
+  .insp-shots{margin-top:1.1rem}
+  details.fa>summary{padding:.6rem 1.1rem}
+  .fa-body{padding-bottom:1rem}
+  .ns-head .gfx{max-height:13vh}
+  .wf .mock{min-height:90px}
+  .wf .hero{padding:1rem .9rem}
+}
+
+/* Sehr flache Fenster (<=680px Inhaltshoehe): letzte Stufe, damit auch die
+   dichtesten Folien (Erkenntnis mit Konsole, Wireframes) ohne Scrollen passen. */
+@media (max-height:680px){
+  :root{--kopf:3.2rem}
+  body > section.active{padding-top:var(--kopf);padding-bottom:4.6rem}
+  .sec-title{font-size:clamp(1.5rem,2.8vw,2rem)}
+  .ch-txt>p{font-size:.88rem;margin-top:.5rem}
+  .console .err,.console .warn{font-size:.8rem;margin:.25rem 0}
+  .console{padding:.9rem 1rem}
+  .nm-content{grid-template-rows:auto auto}
+  .nm-content .teal-statement{font-size:.95rem}
+  .wf .hero{padding:.8rem}
+  .wf .mock{min-height:70px}
+  .wf-notes li{font-size:.78rem}
+}
+
+/* =====================================================================
+   Feinschliff-Runde (2026-07-17)
+   ===================================================================== */
+
+/* ---- Executive Summary: ohne Farbmarkierungen ----
+   Die Severity-Punkte suggerierten eine Technik-Bewertung; auf der Summary
+   zaehlt die Aussage, nicht die Einstufung. Die steht in den Findings. */
+.impact li{gap:0;font-size:1.02rem;padding-left:1rem;position:relative}
+.impact li::before{content:"";position:absolute;left:0;top:.62em;width:5px;height:5px;
+  border-radius:50%;background:var(--n-400)}
+.sum-hinweis{margin-top:1.1rem;color:var(--text-3);font-size:.8rem}
+.sum-hinweis a{color:var(--brand)}
+
+/* ---- Scope: Kacheln 2x2 links, Karten untereinander rechts ---- */
+.scope-cap{color:var(--text-2);font-size:1rem;margin-top:.5rem}
+/* Zwei grosse Stat-Karten statt vieler kleiner Kacheln: Riesenzahl in Teal,
+   Oberbegriff, darunter die enthaltenen Dimensionen. Dezentes Kreis-Ornament
+   rechts oben gibt Tiefe, ohne vom Wert abzulenken. */
+/* auto-fit: 2 ODER 3 Kategorien passen in EINE Reihe, ohne Sonderregel. */
+.scope-hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:1.2rem;margin-top:1.4rem;align-items:start}
+.scope-stat{position:relative;overflow:hidden;background:var(--white);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);padding:1.4rem 1.6rem 1.3rem;box-shadow:var(--shadow)}
+.scope-stat .num{font-family:var(--font-display);font-weight:800;line-height:1;
+  font-size:clamp(2.6rem,4.6vw,3.6rem);color:var(--brand)}
+.scope-stat .lbl{font-family:var(--font-display);font-weight:700;
+  font-size:clamp(1rem,1.5vw,1.2rem);margin-top:.45rem}
+.scope-stat .sub{color:var(--text-2);font-size:.92rem;line-height:1.5;margin-top:.45rem}
+/* Die Kachel zeigt nur Zahl + Oberbegriff + Dimensionen. Der NACHWEIS der Zahl
+   sind die Detail-Findings im Accordion darunter (die Zahl wird vom Build aus
+   ihnen GEZAEHLT, nicht behauptet) -- keine doppelte Beleg-Liste an der Kachel. */
+@media(max-width:900px){ .scope-hero{grid-template-columns:1fr} }
+/* Dezenter Aufklapp-Mechanismus: die technischen Detail-Findings sitzen direkt
+   auf der Scope-Folie, standardmaessig zugeklappt (man sieht nicht alles auf
+   einmal). Aufklappen zeigt ein 2-spaltiges Accordion mit je-Finding-Details. */
+.scope-details{margin-top:1.4rem;border:1px solid var(--border);border-radius:var(--r-lg);background:var(--surface)}
+.scope-details>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:.6rem;padding:.85rem 1.2rem;font-family:var(--font-display);font-weight:600;color:var(--brand-strong)}
+.scope-details>summary::-webkit-details-marker{display:none}
+.scope-details>summary .scd-hint{color:var(--text-3);font-weight:500;font-size:.85rem;font-family:var(--font-body)}
+.scope-details>summary .chev{margin-left:auto;color:var(--text-3);transition:transform .2s;font-size:1.1rem}
+.scope-details[open]>summary .chev{transform:rotate(90deg)}
+.scope-details[open]>summary{border-bottom:1px solid var(--border)}
+.scope-details .acc{margin-top:0;border:0;border-radius:0;padding:1rem 1.2rem}
+@media(max-width:900px){ .scope-tiles{grid-template-columns:1fr} }
+
+/* ---- Erkenntnis / Wettbewerber / Gut: Beleg schrumpft, Abstand bleibt ----
+   Vorher bestimmte die Screenshot-Hoehe den Abstand zwischen Ueberschrift und
+   Text (das Grid zentriert). Jetzt: oben ausgerichtet, Bild deckelt seine Hoehe. */
+.ch-row{align-items:start}
+.ch-row .browser img,.ch-row .browser.lg img{height:auto;max-height:clamp(240px,48vh,440px);
+  object-fit:cover;object-position:top center;width:100%}
+#gut .browser img{max-height:clamp(220px,44vh,400px)}
+
+/* ---- Was gut funktioniert: Karten mit Haekchen statt Textwueste ----
+   Je Punkt eine ruhige weisse Karte mit gruenem Check -- der fette Lead im
+   Text ("<b>Staerke:</b> ...") wird zur Karten-Ueberschrift. */
+.gut-karten{display:grid;gap:.9rem;align-content:start}
+.gut-karte{display:flex;gap:.9rem;align-items:flex-start;background:var(--white);
+  border:1px solid var(--border);border-radius:var(--r-lg);padding:1.05rem 1.2rem;
+  box-shadow:var(--shadow)}
+.gut-karte .gk-check{flex:none;width:28px;height:28px;border-radius:50%;
+  background:#eaf7ea;color:var(--pos);display:flex;align-items:center;justify-content:center;
+  margin-top:.1rem}
+.gut-karte .gk-check svg{width:15px;height:15px}
+.gut-karte p{margin:0;font-size:.95rem;line-height:1.55;color:var(--text-2)}
+.gut-karte p b{display:block;color:var(--text);font-family:var(--font-display);
+  font-size:1.02rem;margin-bottom:.15rem}
+
+/* ---- Wettbewerber: Macht gut / Macht schlechter NEBENEINANDER ---- */
+/* Wettbewerber: "Macht gut" + "Macht schlechter" UNTEREINANDER links, Screenshot rechts. */
+.wb-row{grid-template-columns:.9fr 1.1fr;align-items:start}
+.wb-urteil{display:grid;grid-template-columns:1fr;gap:1.3rem;align-items:start}
+.wb-urteil h3{font-size:1.02rem;margin-bottom:.3rem}
+.wb-pos{color:var(--pos)}
+.wb-neg{color:var(--acc-600)}
+.wb-urteil li{font-size:.92rem;margin:.45rem 0}
+@media(max-width:900px){ .wb-urteil{grid-template-columns:1fr} }
+
+/* ---- Inspiration: die Bilder sind die Aussage ----
+   Gross, ohne Browser-Rahmen. Der Text ordnet nur ein. */
+.insp-head .lead{font-size:.95rem;max-width:52ch}
+/* object-position LINKS oben: der Ausschnitt muss die Ueberschrift der Seite
+   zeigen. Zentriert schneidet er sie mittig weg ("roduct development"). */
+.insp-shots figure img{width:100%;height:clamp(185px,26vh,240px);object-fit:cover;
+  object-position:left top;border-radius:var(--r-md);border:1px solid var(--border);
+  box-shadow:var(--shadow);display:block}
+.insp-shots figure:first-child img{height:clamp(320px,47vh,460px)}
+.insp-shots figcaption{margin-top:.7rem;font-size:.85rem;color:var(--text-2);font-weight:500}
+
+/* ---- Findings: Label und Text mit festem Rhythmus ----
+   Vorher sprangen die Abstaende, weil .blk2 keine feste Struktur hatte. */
+.fa-body .blk2{margin-bottom:.75rem}
+.fa-body .blk2:last-child{margin-bottom:0}
+.fa-body .blk2 .l{margin-bottom:.15rem;line-height:1.4}
+.fa-body .blk2 p{margin-top:0;line-height:1.45;font-size:.92rem}
+
+/* ---- Wireframe: Skizze RECHTS, unsere Aenderungen links als Text ---- */
+.wf-row{display:grid;grid-template-columns:.62fr 1.38fr;gap:1.6rem;margin-top:1.3rem;align-items:start}
+.wf-row .wf{margin-top:0}
+.wf-row .wf-notes{margin-top:0}
+.wf-row .wf-notes li{font-size:.9rem;line-height:1.5}
+/* Worauf der Entwurf ausgerichtet ist -- wechselt mit der Fokus-Persona. */
+.wf-ausrichtung{background:var(--nm-50);border-left:3px solid var(--brand);
+  border-radius:0 var(--r-sm) var(--r-sm) 0;padding:.6rem .9rem;margin-bottom:1rem;
+  color:var(--brand-strong);font-size:.88rem;line-height:1.45;font-weight:500}
+@media(max-width:900px){ .wf-row{grid-template-columns:1fr} }
+
+/* ---- Next Steps: Grafik links, Ziel/Ergebnis/Eckdaten rechts gestapelt ---- */
+.ns-eck .di-card{min-width:0}
+
+/* ---- Über New Monday: Spalten-Setup liegt komplett im Basis-Block oben.
+   Hier bewusst KEINE .nm-body-Regel mehr — eine spaete Regel gleicher
+   Spezifitaet wuerde die max-width:1000px-Query aushebeln. */
+
+/* ---- Unser Vorgehen: sechs Schritte als Kacheln ----
+   Inhalt direkt lesbar (Nummer, Titel, kurze Erklaerung) -- kein Aufklappen. */
+.vg-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem 1.1rem;margin-top:1.6rem;align-content:start}
+.vg{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:1.15rem 1.25rem}
+.vg .n{width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;
+  font-family:var(--font-display);font-weight:700;font-size:.9rem;
+  display:flex;align-items:center;justify-content:center;margin-bottom:.75rem}
+.vg h3{font-size:1.04rem;font-family:var(--font-display);margin-bottom:.35rem}
+.vg p{color:var(--text-2);font-size:.9rem;line-height:1.5}
+@media(max-width:900px){ .vg-steps{grid-template-columns:1fr} }
+
+/* ---- Zielgruppe: Fokus-Persona voll, weitere angedeutet ----
+   Die erste Persona ist die, fuer die wir entwerfen. Die anderen zeigen wir,
+   damit sichtbar ist, dass sie bedacht -- aber bewusst nachgeordnet sind. */
+.pe-row{display:grid;gap:1.2rem;margin-top:1.3rem;align-items:stretch}
+.pe-row[data-weitere="0"]{grid-template-columns:1fr;align-items:start}
+.pe-row:not([data-weitere="0"]){grid-template-columns:1.62fr .38fr}
+.pe-haupt{position:relative;margin-top:0}
+/* Alle Personas werden vor-gerendert (jede als Fokus-Block UND Karte); sichtbar
+   ist nur die aktuelle Auswahl. Der Admin-Switcher toggelt das hidden-Attribut.
+   .pv = ganze Folien-Variante je Persona (personaVarianten im deck.json). */
+.pe-haupt[hidden],.pe-karte[hidden]{display:none!important}
+.pv[hidden],.av[hidden]{display:none!important}
+.pv,.av{width:100%}
+
+/* ---- Figma-Folie (Admin: "Figma-Frame") ----
+   Das Embed IST die Folie: randlos, ohne eigene Ueberschrift. Der iframe wird
+   vergroessert und verschoben, damit die Figma-Bedienleisten (oben Dateiname,
+   unten Logo/Zoom) ausserhalb des sichtbaren Ausschnitts liegen und praktisch
+   nur der Frame selbst zu sehen ist. */
+body > section.figma-slide.active{padding:0;display:block}
+.figma-slide .figma-stage{position:relative;width:100%;height:100vh;overflow:hidden;background:#e5e5e5}
+.figma-slide .figma-stage iframe{position:absolute;left:0;width:100%;border:0;
+  top:-46px;height:calc(100% + 92px)}
+/* 1:1-Bild-Import (Figma-API): das gerenderte Frame-PNG fuellt die Folie. */
+.figma-stage.figma-bild{display:flex;align-items:center;justify-content:center;background:#fff}
+.figma-stage.figma-bild img{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
+/* Frame-Footer abschneiden (unten ~7.5%) und optisch nachzentrieren. */
+.figma-stage.figma-bild.ohne-footer img{clip-path:inset(0 0 7.5% 0);transform:translateY(3.75%)}
+.pe-fokus{position:absolute;top:1rem;right:1rem;background:var(--brand);color:#fff;
+  border-radius:var(--r-pill);padding:.28rem .75rem;font:600 .68rem/1 var(--font-body);
+  letter-spacing:.08em;text-transform:uppercase}
+/* Die zwei Neben-Personas fuellen die Hoehe der Fokus-Persona und schliessen
+   unten buendig mit ihr ab (erste oben, zweite unten). */
+.pe-neben{display:flex;flex-direction:column;justify-content:space-between;gap:1rem}
+.pe-karte{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:1rem 1.1rem;box-shadow:var(--shadow)}
+.pe-karte .hd{display:flex;gap:.7rem;align-items:center}
+.pe-karte .ph{width:42px;height:42px;border-radius:50%;object-fit:cover;flex:none}
+.pe-karte h3{font-size:.98rem}
+.pe-karte .role{color:var(--text-3);font-size:.78rem;line-height:1.3}
+.pe-kurz{color:var(--text-2);font-size:.85rem;margin-top:.7rem;line-height:1.45}
+@media(max-width:900px){ .pe-row:not([data-weitere="0"]){grid-template-columns:1fr}
+  .pe-neben{flex-direction:row} .pe-neben>*{flex:1} }
+
+/* ---- Aufzaehlungen: Marker absolut, Inhalt im normalen Textfluss ----
+   Vorher waren .ck-list/.x-list/.ast-list Flex-Container. Damit wurde jedes
+   Inline-Element (z. B. <b>Preistransparenz:</b>) zu einer eigenen Flex-SPALTE
+   -- Label links, Text daneben umbrochen. Genau das sah "durcheinander" aus.
+   Als Block mit absolutem Marker fliesst Label + Text wieder in einer Zeile. */
+.ck-list li,.x-list li,.ast-list li{
+  display:block;position:relative;padding-left:1.5rem;gap:0;
+  line-height:1.5;margin:.55rem 0;
+}
+.ck-list li::before,.x-list li::before,.ast-list li::before{
+  position:absolute;left:0;top:0;flex:none;
+}
+
+/* ---- Mini-Nav: nur die Umgebung zeigen ----
+   14 Kapitel gleichzeitig sind Orientierungslaerm. Sichtbar sind das aktuelle
+   Kapitel und je eines davor/danach; "Alle" klappt die volle Liste auf. */
+nav.mini:not(.alle) a{display:none}
+nav.mini:not(.alle) a.nah{display:inline-block}
+nav.mini a.on{background:var(--brand);color:#fff}
+.mini-alle{
+  border:1px solid var(--border);background:var(--white);color:var(--text-3);
+  border-radius:var(--r-pill);padding:.28rem .7rem;cursor:pointer;margin-left:.4rem;
+  font:600 .72rem/1 var(--font-body);letter-spacing:.04em;
+}
+.mini-alle:hover{background:var(--n-100);color:var(--brand-strong)}
+
+/* =====================================================================
+   Feinschliff-Runde 2 (2026-07-17)
+   ===================================================================== */
+
+/* ---- Referenzen: Logos groesser ---- */
+.lw-group .names img{height:40px}
+.cred-grid{grid-template-columns:minmax(260px,.85fr) 1.3fr}
+.cred-grid .lw-group{padding:.85rem 0}
+.cred-grid .lw-group .names{gap:.7rem 1.9rem}
+
+/* ---- Unser Vorgehen: die sechs Punkte nach rechts einruecken ---- */
+.vg-steps{margin-left:clamp(0px,10vw,180px)}
+@media(max-width:1100px){ .vg-steps{margin-left:0} }
+
+/* ---- Executive Summary: erster Block traegt, Punkte ordnen sich unter ---- */
+.summary-lead{
+  border-left:5px solid var(--brand);background:var(--nm-50);
+  border-radius:0 var(--r-md) var(--r-md) 0;padding:1rem 1.3rem;margin-top:1.1rem;
+  font-family:var(--font-display);font-weight:600;color:var(--nm-900);
+  font-size:clamp(1.02rem,1.5vw,1.22rem);line-height:1.4;max-width:72ch;
+}
+/* Executive Summary: Bullets 1-spaltig UNTEREINANDER (keine Grafik). */
+.impact{grid-template-columns:1fr;gap:.9rem;margin-top:1.4rem;max-width:88ch}
+.impact li{font-size:1.02rem;line-height:1.5}
+
+/* ---- Inspiration: Bilder gross rechts, alle Aussagen links im Text ---- */
+.insp-row{display:grid;grid-template-columns:.6fr 1.4fr;gap:clamp(1.4rem,2.6vw,2.4rem);align-items:start}
+.insp-text .lead{font-size:1rem;line-height:1.55;margin-top:.9rem;max-width:none}
+.insp-punkte{list-style:none;margin-top:1rem}
+.insp-punkte li{position:relative;padding-left:1.1rem;margin:.5rem 0;
+  color:var(--text-2);font-size:.92rem;line-height:1.5}
+.insp-punkte li::before{content:"";position:absolute;left:0;top:.6em;width:5px;height:5px;
+  border-radius:50%;background:var(--brand)}
+/* Gestapelt statt nebeneinander: in der breiten rechten Spalte wird jedes Bild
+   dadurch fast doppelt so gross wie in einer 3er-Reihe.
+   grid-template-columns explizit zuruecksetzen -- die frueheren repeat(3,1fr)
+   wuerden sonst weitergelten. */
+/* Erster Screenshot gross ueber die volle Breite, die zwei weiteren darunter
+   nebeneinander. object-position:left top zeigt den Kopf des Screenshots. */
+.insp-shots{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0}
+.insp-shots figure{margin:0;min-width:0}
+.insp-shots figure:first-child{grid-column:1/-1}
+@media(max-width:900px){ .insp-row{grid-template-columns:1fr} }
+/* Flache Fenster: die min(26vw,27vh)-Formel in --nmS zieht die Quadrat-Kante
+   von selbst ein -- keine eigenen Overrides mehr noetig. */
+
+/* Inspiration nach RR-Vorlage (Figma 3856-1460): links Titel + Daumen-Icon +
+   Zwischenueberschrift + Bullets, rechts die Beispiel-Screenshots. */
+.insp-ico{width:44px;height:44px;color:var(--text);display:block;margin:1.6rem 0 1.2rem}
+.insp-text .insp-sub{font-size:clamp(1.15rem,2vw,1.5rem);margin-bottom:.2rem}

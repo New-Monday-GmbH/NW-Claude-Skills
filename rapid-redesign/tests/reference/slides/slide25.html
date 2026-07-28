@@ -1,0 +1,141 @@
+<section id="findings" class="rv">
+  <div class="wrap">
+    <span class="kicker eyebrow-teal">Teil 2</span>
+    <h2 class="sec-title">Technische Detail-Findings</h2>
+    <div class="acc">
+      
+      <details class="fa">
+        <summary><span class="pill crit">Kritisch</span><h3>F01 — Tracking und Lead-Erkennung sind defekt</h3><span class="chev">›</span></summary>
+        <div class="fa-body">
+          <div>
+            <div class="blk2"><div class="l">Brille</div><p>Nielsen #1 Sichtbarkeit des Systemstatus / Datenqualität</p></div>
+            <div class="blk2"><div class="l">Beobachtung</div><p><code>WorksdoneTracker is not defined</code> auf 21 Seiten. SalesViewer per CORS blockiert auf 21 Seiten. 186 Konsolenfehler gesamt, davon 57× HTTP 403 und 42× <code>net::ERR_FAILED</code>.</p></div>
+            <div class="blk2"><div class="l">Wirkung</div><p>Marketing misst seinen eigenen Funnel nicht. Optimierungen bleiben unbeweisbar.</p></div>
+            <div class="blk2"><div class="l">Empfehlung</div><p>Ladereihenfolge des Tracker-Scripts prüfen, CORS-/Consent-Kette für SalesViewer korrigieren, 403er-Ressourcen aufräumen.</p></div>
+          </div>
+          
+          <div class="console">
+            <div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+            <p class="err">✕ WorksdoneTracker is not defined</p><p class="err">✕ CORS blocked: www.salesviewer.com</p>
+            <p class="cap">Beleg: consoleErrors in pages/*/survey.json</p>
+          </div>
+          
+          
+        </div>
+      </details>
+      
+      <details class="fa">
+        <summary><span class="pill high">Hoch</span><h3>F02 — Consent-Banner verdeckt Produkt-Visual und Tarif-Karten</h3><span class="chev">›</span></summary>
+        <div class="fa-body">
+          <div>
+            <div class="blk2"><div class="l">Brille</div><p>Nielsen #8 Ästhetik &amp; minimalistisches Design / Conversion</p></div>
+            <div class="blk2"><div class="l">Beobachtung</div><p>Banner als Karte unten rechts über dem Inhalt. Startseite: über dem Produkt-Visual. <code>/preise</code>: zwei von fünf Tarif-Karten vollständig verdeckt.</p></div>
+            <div class="blk2"><div class="l">Wirkung</div><p>Nutzenbeweis und Kaufentscheidung sind beim ersten Kontakt unsichtbar.</p></div>
+            <div class="blk2"><div class="l">Empfehlung</div><p>Schmales Band am unteren Rand statt Karte über dem Content. Preistabellen nie überdecken.</p></div>
+          </div>
+          
+          
+          <div class="shot"><img src="assets/f07.png" alt="Consent-Banner überdeckt zwei Tarif-Karten"></div>
+          
+        </div>
+      </details>
+      
+      <details class="fa">
+        <summary><span class="pill crit">Kritisch</span><h3>F03 — Kontrast unter WCAG-Mindestwert auf zentralen Aussagen</h3><span class="chev">›</span></summary>
+        <div class="fa-body">
+          <div>
+            <div class="blk2"><div class="l">Brille</div><p>WCAG 1.4.3 Kontrast (Minimum), Level AA</p></div>
+            <div class="blk2"><div class="l">Beobachtung</div><p>109 Textstellen auf 19 von 28 Seiten unter dem Grenzwert (Banner-Treffer herausgerechnet). Gemessen: „Wir helfen dir beim Umstieg." 2.57:1 bei 16px, „Datenschutzrichtlinie" 2.54:1 bei 12px, Datenschutz-Hinweis 3.18:1. Eine Seite liegt am Messlimit — echter Wert höher.</p></div>
+            <div class="blk2"><div class="l">Wirkung</div><p>Verkaufsargumente und Preise werden überlesen. Rechtliches Risiko nach BFSG.</p></div>
+            <div class="blk2"><div class="l">Empfehlung</div><p>Zentrales Token für Sekundärtext auf ≥ 4.5:1 abdunkeln (z. B. <code>#5d6c6e</code>).</p></div>
+          </div>
+          
+          
+          <div class="shot"><img src="assets/f02.png" alt="Advanced-Tarif mit zu geringem Kontrast"></div>
+          
+        </div>
+      </details>
+      
+      <details class="fa">
+        <summary><span class="pill high">Hoch</span><h3>F04 — H1-Struktur site-weit kaputt</h3><span class="chev">›</span></summary>
+        <div class="fa-body">
+          <div>
+            <div class="blk2"><div class="l">Brille</div><p>WCAG 1.3.1 / 2.4.6 Überschriften, SEO</p></div>
+            <div class="blk2"><div class="l">Beobachtung</div><p>Nur 5 von 28 Seiten haben genau eine H1. 15 Seiten haben keine, die Startseite zwei, <code>/anmeldung</code> drei. Zwei leere H3 auf der Startseite.</p></div>
+            <div class="blk2"><div class="l">Wirkung</div><p>Google fehlt das stärkste On-Page-Signal. Screenreader verlieren die Sprungnavigation.</p></div>
+            <div class="blk2"><div class="l">Empfehlung</div><p>Pro Seite genau eine H1 mit der Kernbotschaft; bestehende Design-Überschriften auf die richtige Ebene heben. Leere H3 entfernen.</p></div>
+          </div>
+          
+          
+          <div class="shot"><img src="assets/f01.png" alt="Funktionsseite ohne H1"></div>
+          
+        </div>
+      </details>
+      
+      <details class="fa">
+        <summary><span class="pill crit">Kritisch</span><h3>F05 — Formularfelder nicht mit ihren Labels verknüpft</h3><span class="chev">›</span></summary>
+        <div class="fa-body">
+          <div>
+            <div class="blk2"><div class="l">Brille</div><p>WCAG 1.3.1 Info und Beziehungen / 3.3.2 Beschriftungen</p></div>
+            <div class="blk2"><div class="l">Beobachtung</div><p>19 Felder auf 7 Seiten. Die Beschriftungen stehen <b>sichtbar</b> über dem Feld — sind aber <code>&lt;p&gt;</code>, kein <code>&lt;label&gt;</code>: „Deine Nachricht", „E-Mail*", „Telefon". <code>#EMAIL</code>, <code>#TELEFON</code> und <code>#NACHRICHT</code> haben weder <code>label[for]</code> noch <code>aria-label</code> — nur einen Placeholder.</p></div>
+            <div class="blk2"><div class="l">Wirkung</div><p>Screenreader kündigen die Felder unbeschriftet an. Das Kontaktformular ist der Weg zum Lead.</p></div>
+            <div class="blk2"><div class="l">Empfehlung</div><p><code>&lt;p&gt;E-Mail*&lt;/p&gt;</code> → <code>&lt;label for="EMAIL"&gt;E-Mail*&lt;/label&gt;</code>. Tag-Wechsel plus <code>for</code> — Texte und Position stimmen bereits.</p></div>
+          </div>
+          
+          
+          <div class="shot"><img src="assets/f04.png" alt="Kontaktformular mit nicht verknüpften Labels"></div>
+          
+        </div>
+      </details>
+      
+      <details class="fa">
+        <summary><span class="pill high">Hoch</span><h3>F06 — Tap-Targets auf Mobile unter der Mindestgröße</h3><span class="chev">›</span></summary>
+        <div class="fa-body">
+          <div>
+            <div class="blk2"><div class="l">Brille</div><p>WCAG 2.5.8 Zielgröße (Minimum), Mobile</p></div>
+            <div class="blk2"><div class="l">Beobachtung</div><p>Mindestens 691 interaktive Elemente auf 23 von 28 Seiten sind in einer Dimension kleiner als 44px. 13 Seiten liegen am Messlimit von 40 — die echte Zahl liegt deutlich höher.</p></div>
+            <div class="blk2"><div class="l">Wirkung</div><p>Auf dem Smartphone werden Links und Buttons verfehlt. Jeder Fehlklick kostet Abschlüsse.</p></div>
+            <div class="blk2"><div class="l">Empfehlung</div><p>44×44px Mindest-Trefferfläche global über die Link-/Button-Komponenten (Padding, nicht Schriftgröße). Zuerst Navigation und Footer.</p></div>
+          </div>
+          
+          
+          <div class="shot portrait"><img src="assets/f06.png" alt="Mobile Ansicht der Startseite"></div>
+          
+        </div>
+      </details>
+      
+      <details class="fa">
+        <summary><span class="pill mid">Mittel</span><h3>F07 — /funktionen und /feature sind identische Dubletten</h3><span class="chev">›</span></summary>
+        <div class="fa-body">
+          <div>
+            <div class="blk2"><div class="l">Brille</div><p>Nielsen #4 Konsistenz &amp; Standards, SEO</p></div>
+            <div class="blk2"><div class="l">Beobachtung</div><p>Beide URLs liefern denselben Titel, dieselbe Meta-Description, dieselbe Heading-Struktur und dieselben Messwerte (13 Kontrast-Kandidaten, 3 Felder ohne Label, 12 Konsolenfehler).</p></div>
+            <div class="blk2"><div class="l">Wirkung</div><p>Zwei URLs konkurrieren um dasselbe Keyword und teilen die Ranking-Signale.</p></div>
+            <div class="blk2"><div class="l">Empfehlung</div><p><code>/funktionen</code> als kanonisch festlegen, <code>/feature</code> per 301 weiterleiten, interne Links vereinheitlichen.</p></div>
+          </div>
+          
+          
+          <div class="shot"><img src="assets/f01.png" alt="Funktionsseite, die identisch unter /feature erreichbar ist"></div>
+          
+        </div>
+      </details>
+      
+      <details class="fa">
+        <summary><span class="pill low">Niedrig</span><h3>F08 — Awi-Chat-Button ohne zugängliche Beschriftung</h3><span class="chev">›</span></summary>
+        <div class="fa-body">
+          <div>
+            <div class="blk2"><div class="l">Brille</div><p>WCAG 1.1.1 Nicht-Text-Inhalt / 4.1.2 Name, Rolle, Wert</p></div>
+            <div class="blk2"><div class="l">Beobachtung</div><p>18 Treffer „Bild ohne Alt" auf 16 Seiten gehen auf <b>ein einziges Element</b> zurück: das Icon des schwebenden Awi-Chat-Buttons. Die redaktionellen Produkt-Visuals sind durchgängig ausgezeichnet.</p></div>
+            <div class="blk2"><div class="l">Wirkung</div><p>Der Einstieg in den KI-Assistenten wird als unbenanntes Bild angekündigt. Kein Conversion-Schritt betroffen.</p></div>
+            <div class="blk2"><div class="l">Empfehlung</div><p><code>aria-label="Chat mit Awi öffnen"</code> am Button — ein Fix behebt alle 16 Seiten.</p></div>
+          </div>
+          
+          
+          <div class="shot"><img src="assets/f08.png" alt="Schwebender Awi-Chat-Button ohne Beschriftung"></div>
+          
+        </div>
+      </details>
+      
+    </div>
+  </div>
+</section>

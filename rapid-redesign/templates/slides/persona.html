@@ -1,0 +1,34 @@
+<section id="zielgruppe" class="rv">
+  <div class="wrap">
+    <span class="kicker eyebrow-teal">{{kicker}}</span>
+    <h2 class="sec-title">{{titel}}</h2>
+    <div class="pe-row" data-weitere="{{anzahl_weitere}}" data-focus="0">
+      {{#personas}}
+      <div class="persona-rich pe-haupt" data-idx="{{idx}}"{{^is_focus}} hidden{{/is_focus}}>
+        {{#hat_weitere}}<span class="pe-fokus">Unser Fokus</span>{{/hat_weitere}}
+        <div class="hd">
+          <img class="ph" src="{{bild}}" alt="{{alt}}">
+          <div><h3>{{name}}</h3><div class="role">{{rolle}}</div></div>
+        </div>
+        <p class="quote">{{zitat}}</p>
+        <div class="pr-grid">
+          <div><h4>Ziele</h4><ul>{{#ziele}}<li>{{.}}</li>{{/ziele}}</ul></div>
+          <div><h4>Bedürfnisse</h4><ul>{{#beduerfnisse}}<li>{{.}}</li>{{/beduerfnisse}}</ul></div>
+          <div><h4>Motivation</h4><ul>{{#motivation}}<li>{{.}}</li>{{/motivation}}</ul></div>
+          <div><h4>Frustrationen</h4><ul>{{#frustrationen}}<li>{{.}}</li>{{/frustrationen}}</ul></div>
+        </div>
+      </div>
+      {{/personas}}
+      {{#hat_weitere}}<div class="pe-neben">
+        {{#personas}}<div class="pe-karte" data-idx="{{idx}}"{{#is_focus}} hidden{{/is_focus}}>
+          <div class="hd">
+            <img class="ph" src="{{bild}}" alt="{{alt}}">
+            <div><h3>{{name}}</h3><div class="role">{{rolle}}</div></div>
+          </div>
+          <p class="pe-kurz">{{kurz}}</p>
+        </div>
+        {{/personas}}</div>
+      {{/hat_weitere}}
+    </div>
+  </div>
+</section>

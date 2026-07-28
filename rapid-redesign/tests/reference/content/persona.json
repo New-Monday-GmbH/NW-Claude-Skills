@@ -1,0 +1,73 @@
+{
+  "kicker": "Zielgruppe",
+  "titel": "Für wen die Seite arbeiten muss",
+  "personas": [
+    {
+      "bild": "assets/persona-sandra.jpg",
+      "alt": "Porträt von Sandra",
+      "name": "Sandra, 38",
+      "rolle": "Inhaberin einer 25-köpfigen Agentur",
+      "zitat": "„Ich verliere jede Woche Stunden damit, Zahlen aus fünf Tools zusammenzusuchen.\"",
+      "ziele": [
+        "Überblick über Projekte und Auslastung",
+        "Angebote und Rechnungen ohne Medienbruch",
+        "Weniger Tool-Wildwuchs"
+      ],
+      "beduerfnisse": [
+        "Schnell sehen, ob es zu <i>ihrem</i> Geschäft passt",
+        "Realistische, sichtbare Preise",
+        "Sicherheit, dass Daten in Deutschland bleiben"
+      ],
+      "motivation": [
+        "Zeit zurückgewinnen, die in Verwaltung versickert",
+        "Entscheidungen auf Zahlen stützen, nicht auf Bauchgefühl"
+      ],
+      "frustrationen": [
+        "Software, die alles verspricht und nichts zeigt",
+        "Versteckte Preise",
+        "Angst vor dem Migrationsaufwand"
+      ],
+      "kurz": "Einzeiler zur Persona."
+    },
+    {
+      "bild": "assets/persona-thomas.jpg",
+      "alt": "Porträt von Thomas",
+      "name": "Thomas, 52",
+      "rolle": "Geschäftsführer, 80 Mitarbeitende",
+      "kurz": "Will Zahlen, keine Tools. Entscheidet über Budget, nutzt die Software selbst kaum — für ihn zählt, ob das Reporting stimmt.",
+      "zitat": "„Ein Satz in Ich-Form.\"",
+      "ziele": [
+        "Ziel"
+      ],
+      "beduerfnisse": [
+        "Bedürfnis"
+      ],
+      "motivation": [
+        "Motivation"
+      ],
+      "frustrationen": [
+        "Frustration"
+      ]
+    },
+    {
+      "bild": "assets/persona-nina.jpg",
+      "alt": "Porträt von Nina",
+      "name": "Nina, 31",
+      "rolle": "Freelancerin, Design",
+      "kurz": "Preis-sensibel und schnell entschieden. Braucht Angebot und Rechnung — der Rest darf ihr nicht im Weg stehen.",
+      "zitat": "„Ein Satz in Ich-Form.\"",
+      "ziele": [
+        "Ziel"
+      ],
+      "beduerfnisse": [
+        "Bedürfnis"
+      ],
+      "motivation": [
+        "Motivation"
+      ],
+      "frustrationen": [
+        "Frustration"
+      ]
+    }
+  ]
+}

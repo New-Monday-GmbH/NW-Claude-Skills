@@ -1,0 +1,27 @@
+<section id="erk-1" class="rv">
+  <div class="wrap">
+    <span class="kicker eyebrow-teal">Erkenntnis 01 · Messbarkeit</span>
+    <h2 class="sec-title">Das Marketing fliegt blind</h2>
+    <div class="ch-row">
+      <div class="ch-txt">
+        <p>Das eigene Tracking-Script wird auf <b>21 von 28 Seiten</b> aufgerufen, bevor es definiert ist. Parallel wird die Lead-Erkennung SalesViewer vom Browser per CORS blockiert — ebenfalls auf 21 Seiten.</p>
+        <p><b>Wirkung:</b> Der eigene Funnel wird nicht gemessen. Budget-Entscheidungen, Seiten-Optimierung und Lead-Nachverfolgung beruhen auf lückenhaften Daten — und jede Verbesserung bleibt unbeweisbar.</p>
+        <p><b>Empfehlung:</b> Ladereihenfolge des Trackers reparieren, CORS- und Consent-Kette für SalesViewer korrigieren. Das ist der Hebel <i>vor</i> allen anderen.</p>
+        
+      </div>
+      
+      <div class="console">
+        <div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+        <p class="err">✕ Uncaught ReferenceError: WorksdoneTracker is not defined</p>
+        <p class="err">✕ Access to XMLHttpRequest at 'https://www.salesviewer.com/' from origin 'https://worksdone.de' has been blocked by CORS policy</p>
+        <p class="err">✕ Failed to load resource: the server responded with a status of 403 ()</p>
+        
+        <p class="warn">⚠ 186 Konsolenfehler über 28 Seiten · 57× HTTP 403 · 42× ERR_FAILED</p>
+        
+        <p class="cap">Gemessen mit Chromium 1440×900, Startseite und 27 Unterseiten</p>
+      </div>
+      
+      
+    </div>
+  </div>
+</section>

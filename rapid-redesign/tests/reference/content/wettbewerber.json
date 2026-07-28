@@ -1,0 +1,57 @@
+[
+  {
+    "id": "wb-awork",
+    "nummer": "01",
+    "titel": "awork",
+    "url": "awork.com",
+    "bild": "assets/competitors/awork.png",
+    "alt": "Startseite von awork",
+    "gut": [
+      "Ein Satz Nutzenversprechen: „a platform agencies love\"",
+      "Genau ein Primär-CTA („Start free trial\")",
+      "Ruhiger, fokussierter Hero — nichts lenkt ab",
+      "Zielgruppe (Agenturen) klar benannt"
+    ],
+    "schlecht": [
+      "Trust-Signale &amp; Zertifizierungen fehlen above the fold",
+      "Preise erst nach Klick sichtbar",
+      "Enge Zielgruppen-Fokussierung schließt andere aus"
+    ]
+  },
+  {
+    "id": "wb-moco",
+    "nummer": "02",
+    "titel": "MOCO",
+    "url": "mocoapp.com",
+    "bild": "assets/competitors/moco.png",
+    "alt": "Startseite von MOCO",
+    "gut": [
+      "Starker Social Proof mit echten Kundenlogos",
+      "Zahlengetriebene Argumentation",
+      "Agentur-/Projektfokus klar herausgearbeitet"
+    ],
+    "schlecht": [
+      "Sehr hohe Informationsdichte im Einstieg",
+      "Primärhandlung weniger klar isoliert",
+      "Consent-Layer dominiert den ersten Eindruck"
+    ]
+  },
+  {
+    "id": "wb-sevdesk",
+    "nummer": "03",
+    "titel": "sevDesk",
+    "url": "sevdesk.de",
+    "bild": "assets/competitors/sevdesk.png",
+    "alt": "Startseite von sevDesk",
+    "gut": [
+      "Klarer DE-Fokus &amp; Trust („Made in Germany\")",
+      "Eine dominante Handlung im Hero",
+      "Verständliche, unaufgeregte Sprache"
+    ],
+    "schlecht": [
+      "Stark feature-/produktlastig statt lösungsorientiert",
+      "Breite Zielgruppe — wenig projektspezifisch",
+      "Viele visuelle Elemente konkurrieren um Aufmerksamkeit"
+    ]
+  }
+]

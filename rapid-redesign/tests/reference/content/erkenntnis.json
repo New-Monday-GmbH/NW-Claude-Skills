@@ -1,0 +1,72 @@
+[
+  {
+    "id": "erk-1",
+    "nummer": "01",
+    "bereich": "Messbarkeit",
+    "titel": "Das Marketing fliegt blind",
+    "absaetze": [
+      "Das eigene Tracking-Script wird auf <b>21 von 28 Seiten</b> aufgerufen, bevor es definiert ist. Parallel wird die Lead-Erkennung SalesViewer vom Browser per CORS blockiert — ebenfalls auf 21 Seiten.",
+      "<b>Wirkung:</b> Der eigene Funnel wird nicht gemessen. Budget-Entscheidungen, Seiten-Optimierung und Lead-Nachverfolgung beruhen auf lückenhaften Daten — und jede Verbesserung bleibt unbeweisbar.",
+      "<b>Empfehlung:</b> Ladereihenfolge des Trackers reparieren, CORS- und Consent-Kette für SalesViewer korrigieren. Das ist der Hebel <i>vor</i> allen anderen."
+    ],
+    "console": {
+      "fehler": [
+        "Uncaught ReferenceError: WorksdoneTracker is not defined",
+        "Access to XMLHttpRequest at 'https://www.salesviewer.com/' from origin 'https://worksdone.de' has been blocked by CORS policy",
+        "Failed to load resource: the server responded with a status of 403 ()"
+      ],
+      "warnungen": [
+        "186 Konsolenfehler über 28 Seiten · 57× HTTP 403 · 42× ERR_FAILED"
+      ],
+      "cap": "Gemessen mit Chromium 1440×900, Startseite und 27 Unterseiten"
+    }
+  },
+  {
+    "id": "erk-2",
+    "nummer": "02",
+    "bereich": "Erster Eindruck",
+    "titel": "Der Consent-Banner verdeckt<br>genau das, was überzeugen soll",
+    "absaetze": [
+      "Der Banner erscheint als Karte über dem Inhalt — unten rechts. Auf der Startseite liegt er über dem Produkt-Visual. Auf <code>/preise</code> verdeckt er <b>zwei der fünf Tarif-Karten vollständig</b>.",
+      "<b>Wirkung:</b> Sandra kann die Tarife nicht vergleichen, ohne vorher eine Consent-Entscheidung zu treffen. Der Beweis des Nutzens und die Kaufentscheidung sind im ersten Moment unsichtbar.",
+      "<b>Empfehlung:</b> Banner als schmales Band am unteren Rand über die volle Breite — geringe Höhe, kein Entscheidungsinhalt darunter. Preistabellen nie überdecken."
+    ],
+    "browser": {
+      "url": "worksdone.de/preise",
+      "bild": "assets/f07.png",
+      "alt": "Preisseite: Der Consent-Banner überdeckt zwei Tarif-Karten"
+    }
+  },
+  {
+    "id": "erk-3",
+    "nummer": "03",
+    "bereich": "Lesbarkeit",
+    "titel": "Die Verkaufsargumente<br>sind zu hell zum Überzeugen",
+    "absaetze": [
+      "<b>109 Textstellen auf 19 von 28 Seiten</b> unterschreiten den Kontrast-Mindestwert von 4.5:1. Gemessen: „Wir helfen dir beim Umstieg.\" bei <b>2.57:1</b>, „Datenschutzrichtlinie\" bei <b>2.54:1</b>, der Datenschutz-Hinweis am Formular bei <b>3.18:1</b>. Auf der Preisseite stehen ausgerechnet die höherpreisigen Tarife am hellsten (Advanced 24 €, Professional 44 €).",
+      "<b>Wirkung:</b> Was man schlecht liest, überzeugt nicht. Betroffen sind alle bei schlechtem Licht und auf Mobilgeräten — nicht nur Menschen mit Sehbeeinträchtigung. Seit 2025 ist Barrierefreiheit zudem rechtlich verpflichtend (BFSG).",
+      "<b>Empfehlung:</b> Ein zentrales Token für Sekundärtext auf ≥ 4.5:1 abdunkeln — ein Fix statt Dutzender Einzelkorrekturen."
+    ],
+    "browser": {
+      "url": "worksdone.de/preise",
+      "bild": "assets/f02.png",
+      "alt": "Preisseite: Der Advanced-Tarif ist deutlich kontrastärmer als die anderen"
+    }
+  },
+  {
+    "id": "erk-4",
+    "nummer": "04",
+    "bereich": "Sichtbarkeit",
+    "titel": "Die Ranking-Kraft zersplittert",
+    "absaetze": [
+      "Nur <b>5 von 28 Seiten</b> haben genau eine H1. <code>/funktionen</code> und <code>/feature</code> haben gar keine — die sichtbare Hauptüberschrift „Alle Funktionen, die du brauchst.\" ist technisch keine Überschrift. Die Startseite hat zwei H1, <code>/anmeldung</code> drei.",
+      "Zusätzlich sind <code>/funktionen</code> und <code>/feature</code> <b>identische Dubletten</b>: gleicher Titel, gleiche Meta-Description, gleiche Heading-Struktur. Zwei URLs konkurrieren um dasselbe Keyword.",
+      "<b>Empfehlung:</b> Pro Seite genau eine H1, die die Kernbotschaft trägt. Eine der beiden URLs kanonisieren, die andere per 301 weiterleiten."
+    ],
+    "browser": {
+      "url": "worksdone.de/funktionen",
+      "bild": "assets/f01.png",
+      "alt": "Funktionsseite: Die Hauptüberschrift ist technisch keine H1"
+    }
+  }
+]

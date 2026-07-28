@@ -1,0 +1,39 @@
+{
+  "kicker": "Scope & Methodik",
+  "titel": "Was wir geprüft haben",
+  "zahlen_hinweis": "Jede Zahl ist die Anzahl belegter Befunde — alle mit Messwert im Detail-Bereich unten.",
+  "kategorien": [
+    {
+      "key": "ux",
+      "label": "Nutzererlebnis &amp; Gestaltung",
+      "sub": "Usability · Barrierefreiheit · Copy-Text · UI-Design"
+    },
+    {
+      "key": "seo",
+      "label": "Auffindbarkeit",
+      "sub": "SEO · GEO — Suchmaschinen und KI-Suche"
+    }
+  ],
+  "findings": [
+    {
+      "stufe": "crit",
+      "ueberschrift": "F01 — Beispiel-Finding",
+      "brille": "WCAG 1.4.3",
+      "beobachtung": "Was beobachtet wurde.",
+      "wirkung": "Welche Wirkung.",
+      "empfehlung": "Was zu tun ist.",
+      "kategorie": "ux",
+      "beleg": "109 kontrastarme Textstellen"
+    },
+    {
+      "stufe": "mid",
+      "ueberschrift": "F02 — Zweites Finding",
+      "brille": "Nielsen #4",
+      "beobachtung": "Beobachtung.",
+      "wirkung": "Wirkung.",
+      "empfehlung": "Empfehlung.",
+      "kategorie": "seo",
+      "beleg": "2 identische URLs"
+    }
+  ]
+}

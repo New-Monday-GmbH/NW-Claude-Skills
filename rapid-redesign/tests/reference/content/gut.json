@@ -1,0 +1,14 @@
+{
+  "kicker": "Erhalten",
+  "titel": "Was gut funktioniert",
+  "punkte": [
+    "<b>Preistransparenz:</b> echte Preise, Jahresvergleich, „Keine Kreditkarte nötig\" an jeder Karte — genau Sandras Einwand entkräftet.",
+    "<b>Trust dort, wo entschieden wird:</b> DEKRA/ISO 9001, Hosting in Deutschland und DSGVO stehen direkt unter dem Haupt-CTA.",
+    "<b>Nutzen statt Funktion:</b> „Endlich dein ganzes Business an einem Ort.\" trifft die Frustration, statt Features zu listen."
+  ],
+  "browser": {
+    "url": "worksdone.de/preise",
+    "bild": "assets/f07.png",
+    "alt": "Preisseite mit transparenten Tarifen und Hinweis „Keine Kreditkarte nötig“"
+  }
+}

@@ -1,0 +1,20 @@
+<section id="roadmap" class="rv">
+  <div class="wrap">
+    <span class="kicker eyebrow-teal">{{kicker}}</span>
+    <h2 class="sec-title">{{titel}}</h2>
+    <div class="road">
+      <div class="col qw">
+        <h3>{{quick_wins.titel}}<small>{{quick_wins.untertitel}}</small></h3>
+        <ul>
+          {{#quick_wins.punkte}}<li>{{.}}</li>{{/quick_wins.punkte}}
+        </ul>
+      </div>
+      <div class="col big">
+        <h3>{{massnahmen.titel}}<small>{{massnahmen.untertitel}}</small></h3>
+        <ul>
+          {{#massnahmen.punkte}}<li>{{.}}</li>{{/massnahmen.punkte}}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

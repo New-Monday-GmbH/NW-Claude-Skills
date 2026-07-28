@@ -1,0 +1,11 @@
+# Ergebnisse von Audit-Läufen (gehören ins Projekt des Nutzers, nicht in den Skill)
+# (ohne Schraegstrich, damit auch ein Symlink erfasst wird)
+audits
+
+# Maschinenspezifische Python-Umgebung (wird von scripts/setup.sh erzeugt)
+scripts/.venv/
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store

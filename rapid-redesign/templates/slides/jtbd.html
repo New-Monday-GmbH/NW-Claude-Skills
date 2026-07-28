@@ -1,0 +1,24 @@
+<section id="jtbd" class="rv" style="position:relative;overflow:hidden">
+  <img class="gfx-deco jobs-deco" src="assets/gfx/jtbd-schwung.svg" alt="" aria-hidden="true">
+  <div class="wrap" style="position:relative;z-index:1">
+    <h2 class="sec-title">{{titel}}</h2>
+    <div class="jobs-grid">
+      <div class="card jobs-card">
+        <h3 class="jobs-label">Funktionale Jobs</h3>
+        <ul class="jobs-list">
+{{#funktional}}
+          <li>{{.}}</li>
+{{/funktional}}
+        </ul>
+      </div>
+      <div class="card jobs-card">
+        <h3 class="jobs-label">Emotionale Jobs</h3>
+        <ul class="jobs-list">
+{{#emotional}}
+          <li>{{.}}</li>
+{{/emotional}}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

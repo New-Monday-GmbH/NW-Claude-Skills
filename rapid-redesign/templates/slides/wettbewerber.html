@@ -1,0 +1,26 @@
+<section id="{{id}}" class="rv">
+  <div class="wrap">
+    <span class="kicker eyebrow-teal">Wettbewerber {{nummer}}</span>
+    <h2 class="sec-title">{{titel}}</h2>
+    <div class="ch-row wb-row">
+      <div class="wb-urteil">
+        <div>
+          <h3 class="wb-pos">Macht gut</h3>
+          <ul class="ck-list">
+            {{#gut}}<li>{{.}}</li>{{/gut}}
+          </ul>
+        </div>
+        <div>
+          <h3 class="wb-neg">Macht schlechter</h3>
+          <ul class="x-list">
+            {{#schlecht}}<li>{{.}}</li>{{/schlecht}}
+          </ul>
+        </div>
+      </div>
+      <div class="browser lg">
+        <div class="bar"><i></i><i></i><i></i><span>{{url}}</span></div>
+        <img src="{{bild}}" alt="{{alt}}">
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,27 @@
+{
+  "kicker": "Executive Summary",
+  "titel": "Die Substanz stimmt.<br>Sie kommt nur nicht an.",
+  "lead": "worksdone.de hat eine klare Botschaft, transparente Preise und echte Vertrauensanker. Der Funnel ist vollständig — es fehlt keine Seite. Die Conversion-Verluste entstehen an drei Stellen, die den vorhandenen Traffic ausbremsen:",
+  "punkte": [
+    {
+      "sev": "crit",
+      "titel": "Das Marketing fliegt blind.",
+      "text": "Tracking und Lead-Erkennung sind auf 21 von 28 Seiten defekt."
+    },
+    {
+      "sev": "high",
+      "titel": "Der Consent-Banner kostet den ersten Eindruck.",
+      "text": "Er verdeckt das Produkt-Visual und zwei Tarif-Karten."
+    },
+    {
+      "sev": "crit",
+      "titel": "Die Botschaft wirkt schwächer, als sie ist.",
+      "text": "109 Textstellen sind zu kontrastarm — teils bis 2.54:1."
+    },
+    {
+      "sev": "mid",
+      "titel": "Die Ranking-Kraft zersplittert.",
+      "text": "23 von 28 Seiten ohne eindeutige H1, dazu zwei identische URLs."
+    }
+  ]
+}

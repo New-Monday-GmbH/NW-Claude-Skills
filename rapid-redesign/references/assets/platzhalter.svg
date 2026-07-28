@@ -1,0 +1,9 @@
+<svg viewBox="0 0 160 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Platzhalter">
+  <rect width="160" height="100" fill="#ebf2f5"/>
+  <rect x="1" y="1" width="158" height="98" fill="none" stroke="#c9cfd1" stroke-dasharray="4 3"/>
+  <g fill="#b3bbbd">
+    <circle cx="56" cy="40" r="9"/>
+    <path d="M28 78l26-30 18 20 14-14 26 24z"/>
+  </g>
+  <text x="80" y="93" font-family="Inter,sans-serif" font-size="8" fill="#8a9496" text-anchor="middle">Platzhalter</text>
+</svg>

@@ -1,0 +1,35 @@
+<section id="nextsteps" class="rv">
+  <div class="wrap">
+    <span class="kicker eyebrow-teal">{{kicker}}</span>
+    <h2 class="sec-title">{{titel}}</h2>
+    <div class="ns-layout">
+      <div class="ns-visual">
+        <img class="gfx" src="assets/gfx/redesign-fokus.svg" alt="" aria-hidden="true">
+      </div>
+      <div class="ns-body">
+        <div class="card ns-card">
+          <h3>Ziel</h3>
+          <ul class="ck-list">
+{{#ziele}}
+            <li>{{.}}</li>
+{{/ziele}}
+          </ul>
+        </div>
+        <div class="card ns-card">
+          <h3>Ergebnis</h3>
+          <ul class="ast-list">
+{{#ergebnisse}}
+            <li>{{.}}</li>
+{{/ergebnisse}}
+          </ul>
+        </div>
+        <div class="ns-eck">
+{{#eckdaten}}
+          <div class="di-card"><div class="l">{{label}}</div><div class="v">{{wert}}</div></div>
+{{/eckdaten}}
+        </div>
+        <p class="ns-fuss">{{fussnote}}</p>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,24 @@
+[
+  {
+    "id": "vorschlag",
+    "titel": "Startseite",
+    "skizze": "<div class=\"hero\"><div><div class=\"h-title w1\"></div><div class=\"h-title w2\"></div><div class=\"h-sub\"></div><div class=\"primary\"></div><div class=\"trust\"><i></i><i></i><i></i></div></div><div class=\"mock\">Produkt-Visual — frei, nichts liegt darüber</div></div><div class=\"consent\"> Consent als schmales Band am unteren Rand <div class=\"btns\"><span class=\"b1\">Akzeptieren</span><span class=\"b2\">Essenzielle</span></div></div>",
+    "notizen": [
+      "<b>Genau eine H1</b> trägt die Botschaft (F04)",
+      "<b>Kontrast ≥ 4.5:1</b> auf allen Aussagen (F03)",
+      "<b>Trust-Anker</b> bleiben direkt am CTA",
+      "<b>Consent</b> verdeckt keinen Inhalt (F02)"
+    ]
+  },
+  {
+    "id": "vorschlag-2",
+    "titel": "Produktseite (/funktionen)",
+    "skizze": "<div class=\"hero\"><div><div class=\"h-title w1\"></div><div class=\"h-sub\"></div><div class=\"mock\" style=\"min-height:90px\">Alltagssituation statt Feature-Kachel:<br>„Sandra bucht Zeiten aus dem Kalender\"</div></div><div class=\"mock\">Screenshot der Funktion in Benutzung</div></div><div class=\"hero\" style=\"padding-top:0\"><div class=\"mock\" style=\"min-height:90px\">Beweis: Kundenstimme zur Funktion</div><div class=\"mock\" style=\"min-height:90px\">Nächster Schritt: „4 Wochen kostenlos testen\"</div></div>",
+    "notizen": [
+      "<b>Eine URL</b> — /feature leitet weiter (F07)",
+      "<b>H1</b> statt gestalteter Pseudo-Überschrift (F04)",
+      "<b>Nutzen vor Funktion</b> — Situation statt Kachel",
+      "<b>Beweis</b> direkt neben der Behauptung"
+    ]
+  }
+]

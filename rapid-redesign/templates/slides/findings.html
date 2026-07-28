@@ -1,0 +1,31 @@
+<section id="findings" class="rv">
+  <div class="wrap">
+    <span class="kicker eyebrow-teal">{{kicker}}</span>
+    <h2 class="sec-title">{{titel}}</h2>
+    <div class="acc{{#zweispaltig}} acc--2col{{/zweispaltig}}">
+      {{#findings}}
+      <details class="fa">
+        <summary><span class="pill {{stufe}}">{{stufe_text}}</span><h3>{{ueberschrift}}</h3><span class="chev">›</span></summary>
+        <div class="fa-body">
+          <div>
+            <div class="blk2"><div class="l">Brille</div><p>{{brille}}</p></div>
+            <div class="blk2"><div class="l">Beobachtung</div><p>{{beobachtung}}</p></div>
+            <div class="blk2"><div class="l">Wirkung</div><p>{{wirkung}}</p></div>
+            <div class="blk2"><div class="l">Empfehlung</div><p>{{empfehlung}}</p></div>
+          </div>
+          {{#console}}
+          <div class="console">
+            <div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+            {{#zeilen}}<p class="err">✕ {{.}}</p>{{/zeilen}}
+            <p class="cap">{{cap}}</p>
+          </div>
+          {{/console}}
+          {{#shot}}
+          <div class="shot{{#portrait}} portrait{{/portrait}}"><img src="{{bild}}" alt="{{alt}}"></div>
+          {{/shot}}
+        </div>
+      </details>
+      {{/findings}}
+    </div>
+  </div>
+</section>

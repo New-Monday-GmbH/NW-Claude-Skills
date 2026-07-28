@@ -1,0 +1,89 @@
+<div class="deck-nav">
+  <button id="prev" aria-label="Vorherige Folie">‹</button>
+  <span class="count" id="count">1 / 1</span>
+  <button id="next" aria-label="Nächste Folie">›</button>
+</div>
+<script>
+(function(){
+  var nav = document.querySelector('nav.mini');
+  var bar = document.getElementById('bar');
+  var prev = document.getElementById('prev'), next = document.getElementById('next'), count = document.getElementById('count');
+  var i = 0, slides = [];
+
+  function collect(){
+    slides = Array.from(document.querySelectorAll('body > header, body > section, body > footer'));
+  }
+  function render(){
+    slides.forEach(function(s, n){ s.classList.toggle('active', n === i); });
+    count.textContent = (i + 1) + ' / ' + slides.length;
+    prev.disabled = i === 0;
+    next.disabled = i === slides.length - 1;
+    nav.classList.toggle('show', i > 0);
+    bar.style.width = (slides.length < 2 ? 0 : (i / (slides.length - 1)) * 100) + '%';
+    // Aktives Kapitel = letzter Punkt, dessen Folie <= aktueller Folie liegt.
+    // Sichtbar sind standardmaessig nur voriges/aktuelles/naechstes Kapitel --
+    // die volle Liste ist Orientierungslaerm. "Alle" blendet sie ein.
+    var links = Array.from(nav.querySelectorAll('a')), aktiv = -1;
+    links.forEach(function(a, n){
+      var t = document.querySelector(a.getAttribute('href'));
+      var i2 = t ? slides.indexOf(t) : -1;
+      a.classList.remove('on');
+      if (i2 !== -1 && i2 <= i) aktiv = n;
+    });
+    links.forEach(function(a, n){
+      a.classList.toggle('on', n === aktiv);
+      a.classList.toggle('nah', Math.abs(n - aktiv) <= 1);
+    });
+    window.scrollTo(0, 0);
+  }
+  function go(n){ i = Math.max(0, Math.min(slides.length - 1, n)); render(); }
+
+  prev.addEventListener('click', function(){ go(i - 1); });
+  next.addEventListener('click', function(){ go(i + 1); });
+  document.addEventListener('keydown', function(e){
+    if (e.target.isContentEditable || /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { go(i + 1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   { go(i - 1); e.preventDefault(); }
+  });
+  nav.addEventListener('click', function(e){
+    var a = e.target.closest('a'); if (!a) return;
+    e.preventDefault();
+    var t = document.querySelector(a.getAttribute('href'));
+    var n = slides.indexOf(t); if (n !== -1) go(n);
+  });
+  document.addEventListener('click', function(e){
+    var a = e.target.closest('a[href^="#"]'); if (!a || a.closest('nav.mini')) return;
+    var t = document.querySelector(a.getAttribute('href')); if (!t) return;
+    var n = slides.indexOf(t); if (n !== -1) { e.preventDefault(); go(n); }
+  });
+
+
+  /* Nav: zwischen "nur Umgebung" und "alle Kapitel" umschalten */
+  document.addEventListener("click", function(e){
+    var b = e.target.closest("[data-mini-alle]"); if(!b) return;
+    var alle = !nav.classList.contains("alle");
+    nav.classList.toggle("alle", alle);
+    b.setAttribute("aria-expanded", alle ? "true" : "false");
+    b.textContent = alle ? "Weniger" : "Alle";
+  });
+
+  collect(); render();
+
+  // Admin-Modus kann Folien hinzufügen/entfernen/verschieben → neu einlesen
+  var mo = new MutationObserver(function(muts){
+    var before = slides.length, cur = slides[i];
+    collect();
+    var added = null;
+    muts.forEach(function(m){
+      Array.from(m.addedNodes).forEach(function(n){
+        if (n.nodeType === 1 && slides.indexOf(n) !== -1) added = n;
+      });
+    });
+    if (added) { i = slides.indexOf(added); }
+    else if (slides.length !== before) { i = Math.max(0, Math.min(slides.length - 1, slides.indexOf(cur) !== -1 ? slides.indexOf(cur) : i)); }
+    else { var k = slides.indexOf(cur); if (k !== -1) i = k; }
+    render();
+  });
+  mo.observe(document.body, {childList: true});
+})();
+</script>

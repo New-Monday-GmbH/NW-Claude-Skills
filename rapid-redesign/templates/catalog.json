@@ -1,0 +1,394 @@
+{
+  "_hinweis": "Platzhalter-Inhalte fuer den Abschnitts-Katalog im Admin-Modus. build_deck.py rendert jeden Typ hiermit und backt das Ergebnis als window.NM_SECTION_CATALOG in die Seite ein. Die Texte sind bewusst als Platzhalter erkennbar -- sie werden im Deck ueberschrieben, nicht uebernommen. Reihenfolge = Reihenfolge im Menue.",
+  "cover": {
+    "label": "Cover",
+    "content": {
+      "bild": "assets/platzhalter.svg",
+      "alt": "Kundenlogo",
+      "titel": "Rapid Redesign",
+      "domain": "kunde.de",
+      "datum": "Monat Jahr"
+    }
+  },
+  "divider": {
+    "label": "Divider (Teal-Band)",
+    "content": {
+      "kicker": "Teil X · Kicker",
+      "titel": "Ziel durch Mittel.",
+      "text": "Ein Satz, der die folgende Gruppe einleitet."
+    }
+  },
+  "agenda": {
+    "label": "Agenda",
+    "content": {
+      "punkte": [
+        "Erster Punkt",
+        "Zweiter Punkt",
+        "Dritter Punkt",
+        "Vierter Punkt"
+      ]
+    }
+  },
+  "ueber-nm": {
+    "label": "Über New Monday (fix)",
+    "content": {}
+  },
+  "credibility": {
+    "label": "Referenzen & Logos (fix)",
+    "content": {}
+  },
+  "vorgehen": {
+    "label": "Unser Vorgehen (fix)",
+    "content": {}
+  },
+  "closing": {
+    "label": "Danke / Abschluss (fix)",
+    "content": {}
+  },
+  "ueber-projekt": {
+    "label": "Über das Projekt",
+    "content": {
+      "titel": "kunde.de",
+      "absatz1": "Was macht das Unternehmen, wen adressiert die Website?",
+      "absatz2": "Wo liegt die Chance im Redesign?",
+      "statement": "Ein Satz, der die These auf den Punkt bringt.",
+      "punkte": [
+        "Erster Ansatzpunkt",
+        "Zweiter Ansatzpunkt",
+        "Dritter Ansatzpunkt"
+      ]
+    }
+  },
+  "redesign-fokus": {
+    "label": "Redesign-Fokus",
+    "content": {
+      "kicker": "Unser Redesign-Fokus",
+      "titel": "Worauf wir zielen",
+      "ziele": [
+        "Erstes Ziel",
+        "Zweites Ziel",
+        "Drittes Ziel"
+      ],
+      "wirkung": "Welche Wirkung hat das fürs Geschäft?"
+    }
+  },
+  "summary": {
+    "label": "Executive Summary",
+    "content": {
+      "kicker": "Executive Summary",
+      "titel": "Kernaussage in einem Satz",
+      "lead": "Ein Absatz Gesamteindruck — ehrlich, aber wertschätzend.",
+      "punkte": [
+        {
+          "sev": "crit",
+          "titel": "Wichtigster Punkt.",
+          "text": "Ein Satz."
+        },
+        {
+          "sev": "high",
+          "titel": "Zweiter Punkt.",
+          "text": "Ein Satz."
+        },
+        {
+          "sev": "mid",
+          "titel": "Dritter Punkt.",
+          "text": "Ein Satz."
+        }
+      ]
+    }
+  },
+  "staerken": {
+    "label": "Das trägt bereits",
+    "content": {
+      "kicker": "Ausgangslage",
+      "titel": "Das trägt bereits",
+      "untertitel": "Diese Stärken bleiben im Redesign erhalten",
+      "punkte": [
+        {
+          "label": "Stärke",
+          "text": "Warum sie trägt."
+        }
+      ]
+    }
+  },
+  "scope": {
+    "label": "Scope & Methodik",
+    "content": {
+      "kicker": "Scope & Methodik",
+      "titel": "Was wir geprüft haben",
+      "zahlen_hinweis": "Anzahl der gefundenen Issues je Bereich — ohne Deckelung.",
+      "kacheln": [
+        {
+          "zahl": "00",
+          "label": "Nutzererlebnis & Gestaltung",
+          "sub": "Usability · Barrierefreiheit · Copy-Text · UI-Design"
+        },
+        {
+          "zahl": "00",
+          "label": "Auffindbarkeit",
+          "sub": "SEO · GEO — Sichtbarkeit in Suchmaschinen und KI-Suche"
+        }
+      ],
+      "findings": [
+        {
+          "stufe": "high",
+          "ueberschrift": "Finding-Titel",
+          "brille": "Heuristik/WCAG",
+          "beobachtung": "Was beobachtet wurde.",
+          "wirkung": "Welche Wirkung.",
+          "empfehlung": "Was zu tun ist."
+        }
+      ]
+    }
+  },
+  "persona": {
+    "label": "Zielgruppe / Persona",
+    "content": {
+      "kicker": "Zielgruppe",
+      "titel": "Für wen die Seite arbeiten muss",
+      "personas": [
+        {
+          "bild": "assets/platzhalter.svg",
+          "alt": "Porträt",
+          "name": "Name, Alter",
+          "rolle": "Rolle",
+          "zitat": "Ein Satz in Ich-Form, der den Kern trifft.",
+          "ziele": [
+            "Ziel"
+          ],
+          "beduerfnisse": [
+            "Bedürfnis"
+          ],
+          "motivation": [
+            "Motivation"
+          ],
+          "frustrationen": [
+            "Frustration"
+          ],
+          "kurz": "Einzeiler, der die Persona auf den Punkt bringt."
+        }
+      ]
+    }
+  },
+  "jtbd": {
+    "label": "Jobs To Be Done",
+    "content": {
+      "titel": "Jobs To Be Done",
+      "funktional": [
+        "Funktionaler Job 1",
+        "Funktionaler Job 2",
+        "Funktionaler Job 3"
+      ],
+      "emotional": [
+        "Emotionaler Job 1",
+        "Emotionaler Job 2",
+        "Emotionaler Job 3"
+      ]
+    }
+  },
+  "positionierung": {
+    "label": "Positionierung",
+    "content": {
+      "kicker": "Positionierung",
+      "titel": "Zentrale Aspekte der Markenpositionierung",
+      "claim": "„Der Kern-Claim.“",
+      "aspekte": [
+        {
+          "titel": "Fokus",
+          "text": "Worauf?"
+        },
+        {
+          "titel": "Merkmale",
+          "text": "Was zeichnet aus?"
+        },
+        {
+          "titel": "Zusatznutzen",
+          "text": "Was kommt obendrauf?"
+        }
+      ]
+    }
+  },
+  "erkenntnis": {
+    "label": "Erkenntnis (mit Screenshot)",
+    "content": {
+      "id": "erk-neu",
+      "nummer": "0X",
+      "bereich": "Bereich",
+      "titel": "Die Aussage als Überschrift",
+      "absaetze": [
+        "Was ist der Fall? Mit Messwert.",
+        "<b>Wirkung:</b> Warum ist das ein Problem?",
+        "<b>Empfehlung:</b> Was konkret tun?"
+      ],
+      "browser": {
+        "url": "kunde.de/seite",
+        "bild": "assets/platzhalter.svg",
+        "alt": "Beleg-Screenshot"
+      }
+    }
+  },
+  "gut": {
+    "label": "Was gut funktioniert",
+    "content": {
+      "kicker": "Erhalten",
+      "titel": "Was gut funktioniert",
+      "punkte": [
+        "<b>Stärke:</b> warum sie trägt."
+      ],
+      "browser": {
+        "url": "kunde.de",
+        "bild": "assets/platzhalter.svg",
+        "alt": "Beleg-Screenshot"
+      }
+    }
+  },
+  "wettbewerber": {
+    "label": "Wettbewerber",
+    "content": {
+      "id": "wb-neu",
+      "nummer": "0X",
+      "titel": "Wettbewerber",
+      "url": "wettbewerb.de",
+      "bild": "assets/platzhalter.svg",
+      "alt": "Startseite des Wettbewerbers",
+      "gut": [
+        "Macht gut"
+      ],
+      "schlecht": [
+        "Macht schlechter"
+      ]
+    }
+  },
+  "inspiration": {
+    "label": "Inspiration",
+    "content": {
+      "id": "insp-neu",
+      "nummer": "0X",
+      "quelle": "quelle.com",
+      "titel": "Was wir daran gut finden",
+      "url": "quelle.com",
+      "text": "Ein Absatz: warum diese Seite als Vorbild taugt.",
+      "shots": [
+        {
+          "bild": "assets/platzhalter.svg",
+          "alt": "Screenshot",
+          "bildtext": "Was hier funktioniert."
+        }
+      ]
+    }
+  },
+  "findings": {
+    "label": "Detail-Findings (Accordion)",
+    "content": {
+      "kicker": "Teil 2",
+      "titel": "Technische Detail-Findings",
+      "findings": [
+        {
+          "stufe": "crit",
+          "ueberschrift": "F01 — Titel des Findings",
+          "brille": "WCAG 1.4.3 / Nielsen #X",
+          "beobachtung": "Was ist der Fall? Mit Messwert.",
+          "wirkung": "Warum ist das ein Problem?",
+          "empfehlung": "Was konkret tun?",
+          "shot": {
+            "bild": "assets/platzhalter.svg",
+            "alt": "Beleg"
+          }
+        }
+      ]
+    }
+  },
+  "roadmap": {
+    "label": "Priorisierung / Roadmap",
+    "content": {
+      "kicker": "Priorisierung",
+      "titel": "Was zuerst",
+      "quick_wins": {
+        "titel": "Quick Wins",
+        "untertitel": "Hohe Wirkung, geringer Aufwand",
+        "punkte": [
+          "<b>Maßnahme</b> — warum zuerst (F0X)"
+        ]
+      },
+      "massnahmen": {
+        "titel": "Größere Maßnahmen",
+        "untertitel": "Brauchen Konzept und Design-Entscheidungen",
+        "punkte": [
+          "<b>Maßnahme</b> — warum später (F0X)"
+        ]
+      }
+    }
+  },
+  "wireframe": {
+    "label": "Wireframe / Vorschlag",
+    "content": {
+      "id": "wf-neu",
+      "titel": "Seitenname",
+      "skizze": "<div class=\"hero\"><div><div class=\"h-title w1\"></div><div class=\"h-title w2\"></div><div class=\"h-sub\"></div><div class=\"primary\"></div></div><div class=\"mock\">Was hier steht</div></div>",
+      "notizen": [
+        "<b>Punkt</b> — Bezug zum Finding"
+      ]
+    }
+  },
+  "nextsteps": {
+    "label": "Next Steps / Angebot",
+    "content": {
+      "kicker": "Next Steps",
+      "titel": "Komplettes Redesign<br>aus einer Hand",
+      "ziele": [
+        "Ziel"
+      ],
+      "ergebnisse": [
+        "Ergebnis"
+      ],
+      "eckdaten": [
+        {
+          "label": "Dauer",
+          "wert": "ca. 8–10 Wochen"
+        },
+        {
+          "label": "Investition (Richtwert)",
+          "wert": "27–35k €"
+        }
+      ],
+      "fussnote": "Richtwert auf Basis vergleichbarer Projekte — finaler Umfang wird gemeinsam festgelegt."
+    }
+  },
+  "projektablauf": {
+    "label": "Projektablauf (Zeitstrahl)",
+    "content": {
+      "phasen": [
+        {
+          "phase": "Analyse und Strategie",
+          "woche": "Woche 1 – 3",
+          "ziel": "Zielbild &amp; Handlungsempfehlungen",
+          "punkte": [
+            "UX Audit",
+            "Wettbewerbsanalyse",
+            "Stakeholder Workshops"
+          ]
+        },
+        {
+          "phase": "Konzept und Validierung",
+          "woche": "Woche 4 – 7",
+          "ziel": "Abgestimmtes UX-Konzept",
+          "punkte": [
+            "Neue Struktur",
+            "Wireframes",
+            "Klickbarer Prototyp"
+          ]
+        },
+        {
+          "phase": "Design und Umsetzung",
+          "woche": "Woche 8 – 10",
+          "ziel": "Neue Website",
+          "punkte": [
+            "UI Design",
+            "Frontend-Entwicklung",
+            "Qualitätssicherung"
+          ]
+        }
+      ]
+    }
+  }
+}

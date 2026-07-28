@@ -1,0 +1,23 @@
+<section id="redesign-fokus" class="rv">
+  <div class="wrap">
+    <span class="kicker eyebrow-teal">{{kicker}}</span>
+    <h2 class="sec-title">{{titel}}</h2>
+    <div class="gfx-row">
+      <img class="gfx" src="assets/gfx/redesign-fokus.svg" alt="" aria-hidden="true">
+      <div class="cols-2" style="grid-template-columns:1fr 1fr">
+        <div class="card">
+          <h3>Ziele</h3>
+          <ul class="ck-list">
+{{#ziele}}
+            <li>{{.}}</li>
+{{/ziele}}
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Wirkung</h3>
+          <p style="color:var(--text-2);margin-top:.6rem">{{wirkung}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

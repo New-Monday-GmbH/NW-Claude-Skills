@@ -1,0 +1,1019 @@
+<!-- New Monday · Admin/Edit-Modus – self-contained, vor </body> einfügen. Getestet 2026-07-14. -->
+<style id="admin-style">
+/* ===================== New Monday · Admin/Edit-Modus ===================== */
+/* Alle per JS injizierten UI-Elemente tragen .admin-ui -> werden beim Export entfernt */
+.admin-ui{ box-sizing:border-box; font-family:var(--font-body,"Inter",system-ui,sans-serif); }
+.admin-ui *{ box-sizing:border-box; }
+
+/* --- Runder Floating-Toggle unten rechts (immer sichtbar, Einstieg) --- */
+.admin-toggle{
+  position:fixed; right:20px; bottom:20px; z-index:2147483000;
+  display:inline-flex; align-items:center; gap:6px;
+  padding:13px 20px; border:none; border-radius:999px;
+  background:var(--brand,#007d7f); color:#fff; cursor:pointer;
+  font:600 14px/1 var(--font-body,"Inter",system-ui,sans-serif);
+  box-shadow:0 6px 20px rgba(0,0,0,.25);
+  transition:transform .15s ease, background .15s ease;
+}
+.admin-toggle:hover{ transform:translateY(-2px); }
+body.admin-on .admin-toggle{ background:#222; }
+
+/* --- Obere Toolbar: nur im Admin-Modus sichtbar --- */
+.admin-toolbar{ display:none; }
+body.admin-on .admin-toolbar{
+  position:fixed; top:0; left:0; right:0; z-index:2147482000;
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  padding:10px 14px; background:#0f172a; color:#fff;
+  box-shadow:0 2px 12px rgba(0,0,0,.2);
+}
+.admin-toolbar button{
+  border:none; border-radius:8px; padding:8px 12px; cursor:pointer;
+  font:600 13px/1 var(--font-body,"Inter",system-ui,sans-serif);
+  background:var(--brand,#007d7f); color:#fff;
+}
+.admin-toolbar button:hover{ filter:brightness(1.12); }
+.admin-hint{ margin-left:auto; font-size:12px; opacity:.8; }
+/* Abstand nach oben, damit die fixe Toolbar nichts verdeckt (nur im Admin-Modus) */
+body.admin-on{ padding-top:52px; }
+
+/* --- Vorlagen-Menü ("＋ Abschnitt") --- */
+.admin-menu{
+  display:none; position:fixed; top:54px; left:14px; z-index:2147482500;
+  flex-direction:column; gap:6px; min-width:190px;
+  background:#fff; color:#111; border-radius:10px; padding:8px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+.admin-menu.open{ display:flex; }
+.admin-menu button{
+  border:1px solid #e5e7eb; background:#fff; color:#111;
+  border-radius:8px; padding:9px 12px; cursor:pointer; text-align:left;
+  font:500 13px/1 var(--font-body,"Inter",system-ui,sans-serif);
+}
+.admin-menu button:hover{ background:var(--n-50,#f5f5f4); color:var(--brand,#007d7f); }
+
+/* --- Katalog-Variante: alle Folientypen mit echter Miniatur ---
+   Die Vorschau ist kein Bild, sondern die Folie selbst, per transform skaliert.
+   Damit stimmt sie immer -- auch wenn sich eine Vorlage aendert. */
+/* WICHTIG: display nur im offenen Zustand setzen -- .admin-menu ist per
+   default display:none, ein unbedingtes display:grid haette das Menue
+   dauerhaft sichtbar gemacht. */
+.admin-menu--katalog{
+  min-width:0; width:min(560px,86vw); max-height:min(74vh,600px); overflow-y:auto;
+}
+.admin-menu--katalog.open{
+  /* minmax(0,1fr) statt 1fr: 1fr hat ein implizites auto-Minimum -- der
+     Folien-Inhalt im Thumbnail draengt die Spalte sonst auf (95px/451px
+     statt 2x gleich breit). */
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px;
+  align-content:start; align-items:start;
+}
+.admin-menu-head{
+  grid-column:1/-1;
+  font:600 11px/1 var(--font-body,"Inter",system-ui,sans-serif);
+  letter-spacing:.1em; text-transform:uppercase; color:#6b7280;
+  padding:4px 4px 6px; position:sticky; top:-8px; background:#fff; z-index:1;
+}
+.admin-menu--katalog button{
+  display:flex; flex-direction:column; gap:0; padding:0; overflow:hidden;
+  font-size:12px; text-align:left;
+}
+.admin-thumb{
+  width:100%; aspect-ratio:16/9; overflow:hidden; background:#fff;
+  border-bottom:1px solid #e5e7eb; position:relative; pointer-events:none;
+}
+.admin-thumb > div{
+  width:1440px; height:810px; transform-origin:top left;
+  position:absolute; top:0; left:0;
+  /* 1440 -> Spaltenbreite. --thumb-scale setzt das JS nach dem Aufbau. */
+  transform:scale(var(--thumb-scale,.176));
+}
+/* Die Folie im Thumbnail darf nicht die Deck-Regeln erben (100vh, display:none) */
+.admin-thumb section, .admin-thumb header, .admin-thumb footer{
+  display:block !important; min-height:0 !important; padding:28px 34px !important;
+  animation:none !important; opacity:1 !important; transform:none !important;
+}
+.admin-thumb .divider{ min-height:380px; }
+.admin-thumb-label{ padding:8px 10px; font-weight:600; }
+/* Bedienelemente entfernt bereits build_deck.py (nur_vorschau) -- ein <button>
+   im Katalog-<button> waere ungueltiges HTML. Hier nur noch: nichts anklickbar. */
+.admin-thumb details > summary{ pointer-events:none; }
+
+/* --- Block-Kontrollleiste (▲ ▼ ✕), oben rechts im Block --- */
+body.admin-on .admin-block{
+  position:relative;
+  outline:1px dashed rgba(0,125,127,.28); outline-offset:-1px;
+}
+.admin-ctrl{
+  position:absolute; top:8px; right:8px; z-index:50;
+  display:flex; gap:4px;
+}
+.admin-ctrl button{
+  width:28px; height:28px; border:none; border-radius:6px; cursor:pointer;
+  background:rgba(15,23,42,.85); color:#fff; font-size:13px; line-height:1;
+  display:inline-flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+.admin-ctrl button:hover{ background:var(--brand,#007d7f); }
+.admin-ctrl button.admin-del:hover{ background:var(--acc-500,#ff6e6c); }
+
+/* --- Hover-Affordanz bearbeitbarer Texte --- */
+body.admin-on :is(h1,h2,h3,h4,h5,h6,p,li,.kicker,.lead,.award-label,blockquote,summary,a,td):hover{
+  outline:1px dashed var(--brand,#007d7f); outline-offset:2px; cursor:text; border-radius:2px;
+}
+/* aktiv bearbeitetes Element */
+body.admin-on .admin-editing{
+  outline:2px solid var(--brand,#007d7f) !important; outline-offset:2px;
+  background:rgba(0,125,127,.05);
+}
+/* --- Bild-Tausch-Affordanz --- */
+body.admin-on img{ cursor:pointer; }
+body.admin-on img:hover{ outline:3px solid var(--acc-500,#ff6e6c); outline-offset:2px; }
+
+/* Admin-eigene Steuerelemente erben keine Text-/Bild-Outline */
+.admin-ctrl button:hover, .admin-toolbar button:hover, .admin-menu button:hover{ outline:none; cursor:pointer; }
+body.admin-on .admin-ui, body.admin-on .admin-ui *{ cursor:default; }
+
+/* --- Globaler Fokus-Persona-Schalter in der Toolbar --- */
+.admin-persona-global{ display:inline-flex; align-items:center; gap:.4rem; margin-left:.6rem;
+  padding-left:.8rem; border-left:1px solid rgba(255,255,255,.25); }
+.admin-persona-global .aps-lbl{ font:600 .78rem/1 sans-serif; color:#9fd6d7; }
+.admin-persona-global button{ border:1px solid rgba(255,255,255,.35); background:transparent;
+  color:#fff; border-radius:999px; padding:.3rem .7rem; font:600 .76rem/1 sans-serif; }
+.admin-persona-global button.on{ background:#fff; color:#0b1416; border-color:#fff; }
+
+/* --- Übersicht: rausgezoomte Folien, Reihenfolge per Ziehen --- */
+.admin-overview{ position:fixed; inset:0; z-index:2147482800; background:rgba(8,16,18,.94);
+  overflow:auto; padding:64px 24px 28px; }
+.admin-ov-head{ position:fixed; top:0; left:0; right:0; z-index:1; display:flex; gap:1rem;
+  align-items:center; padding:.7rem 1.1rem; background:#0b1416; color:#fff;
+  font:600 .85rem/1 sans-serif; }
+.admin-ov-head span{ opacity:.65; font-weight:500; }
+.admin-ov-head button{ margin-left:auto; border:1px solid rgba(255,255,255,.4); background:transparent;
+  color:#fff; border-radius:999px; padding:.4rem .9rem; font:600 .8rem/1 sans-serif; cursor:pointer; }
+.admin-ov-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+  gap:14px; max-width:1560px; margin:0 auto; }
+.admin-ov-cell{ position:relative; background:#fff; border-radius:10px; overflow:hidden;
+  outline:2px solid transparent; }
+.admin-ov-del{ position:absolute; top:6px; right:6px; width:26px; height:26px;
+  border-radius:50%; border:0; background:rgba(11,20,22,.72); color:#fff;
+  font:700 13px/1 sans-serif; cursor:pointer; opacity:0; transition:opacity .15s; }
+.admin-ov-cell:hover .admin-ov-del{ opacity:1; }
+.admin-ov-del:hover{ background:var(--acc-500,#ff6e6c); }
+body.admin-on .admin-ov-cell{ cursor:grab; }
+.admin-ov-cell.fixed{ opacity:.5; }
+body.admin-on .admin-ov-cell.fixed{ cursor:default; }
+.admin-ov-cell:not(.fixed):hover{ outline-color:var(--acc-500,#ff6e6c); }
+.admin-ov-cell.drag-over{ outline-color:var(--brand,#007d7f); }
+.admin-ov-lbl{ font:600 .72rem/1.3 sans-serif; padding:.4rem .55rem; background:#f2f5f5; color:#333;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+</style>
+<script id="admin-script">(function(){
+  "use strict";
+  /* Schutz gegen doppelte Initialisierung */
+  if(window.__nmAdminInit) return;
+  window.__nmAdminInit = true;
+
+  /* --- Kontext-Erkennung ---------------------------------------------------
+     FROZEN: gesetzt in exportierten Dateien (data-nm-frozen am <html>). In einem
+     eingefrorenen Deliverable wird NICHT restauriert und NICHT persistiert ->
+     der ausgelieferte Stand ist deterministisch das eingebackene Markup
+     (Fix Bug 1/13). EDIT: nur mit ?admin/?edit in der URL erscheint die Edit-UI
+     im eingefrorenen File -> normale Clients sehen keinen Editor (Fix Bug 4),
+     die Datei bleibt aber via ?edit weiter bearbeitbar (Vertrag). */
+  var FROZEN  = document.documentElement.hasAttribute("data-nm-frozen");
+  var EDIT    = /[?&#](admin|edit)\b/i.test(location.href);
+  var PERSIST = !FROZEN;                        // Persistenz nur auf der Autoren-Seite
+  /* Key pro Dokument namespacen, damit verschiedene Deployments auf einem Origin
+     nicht kollidieren (Fix Bug 1). */
+  var DOC_ID  = (location.pathname || "/").replace(/[^a-z0-9]+/gi, "_");
+  var KEY     = "nm-audit-admin-v1::" + DOC_ID;
+
+  /* Sinnvolle Leaf-Text-Elemente (keine strukturellen Wrapper) */
+  var EDIT_SELECTOR = "h1,h2,h3,h4,h5,h6,p,li,.kicker,.lead,.award-label,blockquote,summary,a,td";
+  /* Block-/Medien-Elemente, deren Vorhandensein ein Element als Wrapper entlarvt */
+  var BLOCK_INSIDE  = "div,section,header,footer,article,aside,nav,ul,ol,table,figure,img,h1,h2,h3,h4,h5,h6,p";
+
+  var toggleBtn = null, adminMenu = null;
+
+  /* ---------- Vorlagen für neue Abschnitte ---------- */
+  var TEMPLATES = {
+    text:
+      '<section class="rv in"><div class="wrap">'+
+      '<p class="kicker">Kicker</p>'+
+      '<h2 class="sec-title">Neue Überschrift</h2>'+
+      '<p class="lead">Neuer Beschreibungstext – hier klicken und bearbeiten.</p>'+
+      '</div></section>',
+    cols:
+      '<section class="rv in"><div class="wrap"><div class="cols-2">'+
+      '<div class="card"><h3>Spalte 1</h3><p>Text der ersten Spalte. Klicken zum Bearbeiten.</p></div>'+
+      '<div class="card"><h3>Spalte 2</h3><p>Text der zweiten Spalte. Klicken zum Bearbeiten.</p></div>'+
+      '</div></div></section>',
+    divider:
+      '<section class="rv in divider"><div class="wrap">'+
+      '<p class="kicker">Kicker</p>'+
+      '<h2 class="sec-title">Divider-Titel</h2>'+
+      '</div></section>'
+  };
+
+  /* ---------- Helfer: Inhalts-Blöcke ---------- */
+  /* Inhalts-Blöcke = direkte body-Kinder header/section/footer.
+     #bar und nav.mini werden EXPLIZIT ausgeschlossen (Fix Bug 14 – nicht mehr
+     nur auf den Tag-Namen verlassen), ebenso injizierte Admin-UI (.admin-ui). */
+  function contentBlocks(){
+    var out = [], kids = document.body.children;
+    for(var i=0;i<kids.length;i++){
+      var el = kids[i], t = el.tagName;
+      if((t==="HEADER"||t==="SECTION"||t==="FOOTER")
+         && !el.classList.contains("admin-ui")
+         && el.id !== "bar"
+         && !el.matches("#bar, nav.mini, .mini")){
+        out.push(el);
+      }
+    }
+    return out;
+  }
+
+  /* Ist el ein echtes Text-Leaf (kein Wrapper mit Block-/Medien-Kindern)?
+     Schützt z.B. Karten-<a> oder <td>, die ganze Layouts umschließen (Fix Bug 11). */
+  function isEditableLeaf(el){
+    if(!el) return false;
+    return !el.querySelector(BLOCK_INSIDE);
+  }
+
+  /* Klon eines Blocks, von Admin-Artefakten befreit (für Speicherung & Export) */
+  function cleanClone(block){
+    var c = block.cloneNode(true);
+    c.querySelectorAll(".admin-ctrl,.admin-ui").forEach(function(n){ n.remove(); });
+    c.querySelectorAll("[contenteditable]").forEach(function(n){ n.removeAttribute("contenteditable"); });
+    c.querySelectorAll(".admin-editing,.admin-block").forEach(function(n){
+      n.classList.remove("admin-editing"); n.classList.remove("admin-block");
+    });
+    c.classList.remove("admin-editing"); c.classList.remove("admin-block");
+    return c;
+  }
+
+  /* ---------- Persistenz ---------- */
+  /* Rückgabe true/false, damit Aufrufer (Bild-Tausch) einen Fehlschlag sichtbar
+     melden können (Fix Bug 2/12). In eingefrorenen Dateien no-op. */
+  /* Kennung des aktuellen Builds (setzt build_deck.py). Gespeicherte Aenderungen
+     gelten NUR fuer den Build, in dem sie entstanden sind -- sonst wuerde ein
+     neu gebautes Deck beim Laden stillschweigend durch den alten Stand aus dem
+     localStorage ersetzt (man aendert die deck.json, baut neu, sieht aber die
+     alten Texte). */
+  var BUILD = (typeof window.NM_BUILD === "string") ? window.NM_BUILD : "";
+
+  function save(){
+    if(!PERSIST) return true;
+    try{
+      var blocks = contentBlocks(), data = [];
+      for(var i=0;i<blocks.length;i++) data.push(cleanClone(blocks[i]).outerHTML);
+      localStorage.setItem(KEY, JSON.stringify({ build: BUILD, blocks: data }));
+      return true;
+    }catch(e){
+      /* z.B. Quota überschritten (große Bild-Data-URLs) – nicht werfen */
+      if(window.console && console.warn) console.warn("Admin: Speichern fehlgeschlagen", e);
+      return false;
+    }
+  }
+
+  /* Reveal-Blöcke (Block + Nachfahren) sofort sichtbar machen */
+  function markVisible(node){
+    if(node.classList && node.classList.contains("rv")) node.classList.add("in");
+    if(node.querySelectorAll){
+      var inner = node.querySelectorAll(".rv");
+      for(var i=0;i<inner.length;i++) inner[i].classList.add("in");
+    }
+  }
+
+  /* Wiederherstellung VOR dem Reveal: gespeicherte Blöcke einsetzen und sichtbar
+     schalten. Läuft NUR im Editor-Kontext (PERSIST); ein eingefrorenes Export-File
+     zeigt immer sein eingebackenes Markup (Fix Bug 1/13). */
+  function restore(){
+    if(!PERSIST) return;
+    var raw;
+    try{ raw = localStorage.getItem(KEY); }catch(e){ return; }
+    if(raw === null || raw === undefined) return;   // leerer Speicher -> Originalzustand
+    var gespeichert;
+    try{ gespeichert = JSON.parse(raw); }catch(e){ return; }
+
+    /* Neues Format {build, blocks}; Altformat war ein reines Array. */
+    var arr = Array.isArray(gespeichert) ? gespeichert : (gespeichert && gespeichert.blocks);
+    var stand = Array.isArray(gespeichert) ? null : (gespeichert && gespeichert.build);
+
+    /* Gehoert der Speicherstand zu einem ANDEREN Build? Dann verwerfen --
+       sonst ueberschreibt er die frisch gebauten Folien (Fix: neu gebautes
+       Deck zeigte weiter die alten Texte). */
+    if(BUILD && stand !== BUILD){
+      try{ localStorage.removeItem(KEY); }catch(e){}
+      if(window.console && console.info){
+        console.info("Admin: gespeicherte Änderungen stammen aus einem älteren Build und wurden verworfen.");
+      }
+      return;
+    }
+    if(!Array.isArray(arr) || !arr.length) return;
+
+    var old = contentBlocks();
+    var anchor = old.length ? old[0] : null;        // ursprüngliche Position der Inhalts-Blöcke
+    var frag = document.createDocumentFragment();
+    for(var i=0;i<arr.length;i++){
+      var wrap = document.createElement("div");
+      try{ wrap.innerHTML = String(arr[i]).trim(); }catch(e){ continue; }
+      var node = wrap.firstElementChild;
+      if(!node){
+        if(window.console && console.warn) console.warn("Admin: kaputter Block-Eintrag übersprungen", i); // Fix Bug 7c
+        continue;
+      }
+      markVisible(node);                            // Reveal nicht blockieren (Vertrag: "in")
+      frag.appendChild(node);
+    }
+    if(!frag.childNodes.length) return;
+    document.body.insertBefore(frag, anchor);
+    for(var j=0;j<old.length;j++) old[j].remove();
+  }
+
+  /* ---------- Text bearbeiten (Klick-Delegation, robust gegen Verschachtelung) ---------- */
+  /* Caret an die Klickposition setzen, damit der erste Klick sofort schreibbereit
+     ist (Fix Bug 15). */
+  function placeCaret(el, x, y){
+    if(x == null || y == null) return;
+    try{
+      var range = null;
+      if(document.caretRangeFromPoint){
+        range = document.caretRangeFromPoint(x, y);
+      }else if(document.caretPositionFromPoint){
+        var p = document.caretPositionFromPoint(x, y);
+        if(p){ range = document.createRange(); range.setStart(p.offsetNode, p.offset); range.collapse(true); }
+      }
+      if(range && el.contains(range.startContainer)){
+        var sel = window.getSelection();
+        sel.removeAllRanges(); sel.addRange(range);
+      }
+    }catch(e){}
+  }
+
+  function makeEditable(el, x, y){
+    if(el.getAttribute("contenteditable") === "true") return;   // bereits aktiv
+    el.setAttribute("contenteditable","true");
+    el.classList.add("admin-editing");
+    el.focus();
+    placeCaret(el, x, y);
+    /* Enter beendet die Bearbeitung (Shift+Enter erlaubt Zeilenumbruch) */
+    var onKey = function(ev){
+      if(ev.key === "Enter" && !ev.shiftKey){ ev.preventDefault(); el.blur(); }
+    };
+    /* Nur Klartext einfügen -> kein gestyltes Fremd-Markup (Fix Bug 7a) */
+    var onPaste = function(ev){
+      ev.preventDefault();
+      var cb = ev.clipboardData || window.clipboardData;
+      var text = cb ? cb.getData("text") : "";
+      try{ document.execCommand("insertText", false, text); }catch(e){}
+    };
+    var onBlur = function(){
+      el.removeAttribute("contenteditable");
+      el.classList.remove("admin-editing");
+      el.removeEventListener("keydown", onKey);
+      el.removeEventListener("paste", onPaste);
+      save();                                        // Änderung sichern
+    };
+    el.addEventListener("keydown", onKey);
+    el.addEventListener("paste", onPaste);
+    el.addEventListener("blur", onBlur, { once:true });
+  }
+
+  /* ---------- Bild tauschen ---------- */
+  /* Große Bilder vor dem Speichern per <canvas> herunterskalieren (JPEG), damit
+     ein einzelner Swap nicht die localStorage-Quota sprengt (Fix Bug 2). */
+  function prepareImageDataURL(file, cb){
+    var reader = new FileReader();
+    reader.onload = function(){
+      var dataUrl = reader.result;
+      if(typeof dataUrl !== "string" || dataUrl.length < 700 * 1024){ cb(dataUrl); return; }
+      var img = new Image();
+      img.onload = function(){
+        try{
+          var max = 1400, w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+          var scale = Math.min(1, max / Math.max(w, h));
+          var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+          var cv = document.createElement("canvas"); cv.width = cw; cv.height = ch;
+          cv.getContext("2d").drawImage(img, 0, 0, cw, ch);
+          cb(cv.toDataURL("image/jpeg", 0.85));
+        }catch(e){ cb(dataUrl); }
+      };
+      img.onerror = function(){ cb(dataUrl); };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function swapImage(img){
+    var input = document.createElement("input");
+    input.type = "file"; input.accept = "image/*";
+    input.addEventListener("change", function(){
+      var file = input.files && input.files[0];
+      if(!file) return;
+      prepareImageDataURL(file, function(dataUrl){
+        img.src = dataUrl;                           // sofort in der Session sichtbar & im Export enthalten
+        /* Persistenz kann trotz Downscaling scheitern -> SICHTBAR melden (Fix Bug 2/12) */
+        if(!save()){
+          alert("Hinweis: Dieses Bild ist zu groß für die dauerhafte Speicherung im Browser. "+
+                "Es bleibt nur für diese Sitzung sichtbar – wird aber über \"Exportieren\" korrekt eingebettet.");
+        }
+      });
+    });
+    input.click();
+  }
+
+  /* ---------- Reihenfolge (nur SECTION-Blöcke; Header/Footer bleiben fix) ---------- */
+  /* Sektionen bleiben zwischen Header und Footer; strukturelle Blöcke werden nicht
+     übersprungen, neue Abschnitte landen nie unter dem Footer (Fix Bug 8). */
+  function moveBlock(block, dir){
+    if(block.tagName === "HEADER" || block.tagName === "FOOTER") return;
+    var blocks = contentBlocks(), i = blocks.indexOf(block);
+    if(i < 0) return;
+    var j = i + dir;
+    if(j < 0 || j >= blocks.length) return;
+    var other = blocks[j];
+    if(other.tagName === "HEADER" || other.tagName === "FOOTER") return;
+    if(dir < 0) document.body.insertBefore(block, other);      // nach oben
+    else        document.body.insertBefore(other, block);      // nach unten
+    save();
+  }
+  function removeBlock(block){
+    if(!confirm("Diesen Abschnitt wirklich löschen?")) return;
+    block.remove();
+    save();
+  }
+
+  /* ---------- Block-Kontrollleisten ---------- */
+  function removeControls(){
+    document.querySelectorAll(".admin-ctrl").forEach(function(n){ n.remove(); });
+    contentBlocks().forEach(function(b){ b.classList.remove("admin-block"); });
+  }
+  function refreshControls(){
+    /* KEINE Block-Kontrollleisten (▲▼✕) mehr an den Folien -- Umordnen und
+       Loeschen laufen zentral ueber die Uebersicht. removeControls raeumt
+       Altbestand (z. B. aus gespeicherten Staenden) weiter weg. */
+    removeControls();
+  }
+
+  /* ---------- Fokus-Persona-Switcher (global) ----------
+     Alle Personas sind vor-gerendert (Persona-Folie: .pe-haupt/.pe-karte je idx;
+     Folien mit personaVarianten: eine .pv[data-persona-variant] je Persona).
+     Sichtbar ist nur die Auswahl via hidden. applyPersonaFocus toggelt BEIDES
+     dokumentweit -- damit wechseln auch die TEXTE der Varianten-Folien mit --
+     und persistiert (save schreibt hidden mit ins localStorage/den Export). */
+  function personaNamen(){
+    var hs = document.querySelectorAll(".pe-row .pe-haupt");
+    return Array.prototype.map.call(hs, function(h){
+      var n = h.querySelector("h3");
+      return { idx: h.getAttribute("data-idx"), name: n ? n.textContent : ("Persona " + h.getAttribute("data-idx")) };
+    });
+  }
+  function applyPersonaFocus(k){
+    k = String(k);
+    document.querySelectorAll(".pe-row").forEach(function(row){
+      row.setAttribute("data-focus", k);
+      row.querySelectorAll(".pe-haupt").forEach(function(h){
+        if(String(h.getAttribute("data-idx")) === k) h.removeAttribute("hidden");
+        else h.setAttribute("hidden", "");
+      });
+      row.querySelectorAll(".pe-karte").forEach(function(c){
+        if(String(c.getAttribute("data-idx")) === k) c.setAttribute("hidden", "");
+        else c.removeAttribute("hidden");
+      });
+    });
+    document.querySelectorAll(".pv[data-persona-variant]").forEach(function(el){
+      if(String(el.getAttribute("data-persona-variant")) === k) el.removeAttribute("hidden");
+      else el.setAttribute("hidden", "");
+    });
+    document.querySelectorAll(".admin-persona-global button[data-focus-idx]")
+      .forEach(function(b){ b.classList.toggle("on", String(b.getAttribute("data-focus-idx")) === k); });
+    save();
+  }
+  function personaButtonsHTML(cur){
+    var html = "";
+    personaNamen().forEach(function(p){
+      html += '<button type="button" data-focus-idx="' + p.idx + '"' +
+              (String(p.idx) === String(cur) ? ' class="on"' : '') + '>' + p.name + '</button>';
+    });
+    return html;
+  }
+  function aktuelleFokusIdx(){
+    var row = document.querySelector(".pe-row");
+    return row ? (row.getAttribute("data-focus") || "0") : "0";
+  }
+  /* Kein Per-Folie-Switcher mehr: der globale Schalter in der Toolbar reicht
+     und gilt ueberall (auch auf der Zielgruppen-Folie). */
+
+  /* ---------- Publikums-Schalter (wem wir praesentieren) ----------
+     Analog zur Persona: Folien mit publikumVarianten tragen je Publikum eine
+     .av[data-audience-variant] (Label im data-audience-label). Der Schalter
+     liest Optionen und aktiven Zustand direkt aus dem DOM -- selbsttragend,
+     auch im Export. Publikum (Praesentations-Empfaenger) und Fokus-Persona
+     (Website-Zielgruppe) sind bewusst ZWEI getrennte Schalter. */
+  function publikumOptionen(){
+    var seen = {}, out = [];
+    document.querySelectorAll(".av[data-audience-variant]").forEach(function(el){
+      var k = el.getAttribute("data-audience-variant");
+      if(seen[k]) return; seen[k] = true;
+      out.push({ key: k, label: el.getAttribute("data-audience-label") || k });
+    });
+    return out;
+  }
+  function aktivesPublikum(){
+    var el = document.querySelector(".av[data-audience-variant]:not([hidden])");
+    return el ? el.getAttribute("data-audience-variant") : null;
+  }
+  function applyAudienceFocus(k){
+    document.querySelectorAll(".av[data-audience-variant]").forEach(function(el){
+      if(el.getAttribute("data-audience-variant") === k) el.removeAttribute("hidden");
+      else el.setAttribute("hidden", "");
+    });
+    document.querySelectorAll(".admin-audience-global button[data-audience-key]")
+      .forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-audience-key") === k); });
+    save();
+  }
+
+  /* ---------- Übersicht: rausgezoomt + Reihenfolge per Ziehen ----------
+     Jede Folie als echte Miniatur (transform-Scale wie im Katalog). Sections
+     sind draggable; Drop vor/hinter die Ziel-Folie ordnet den echten DOM um
+     und speichert. Cover/Abschluss bleiben fix. Nach einer Aenderung laedt die
+     Seite beim Schliessen neu, damit die Deck-Navigation die neue Reihenfolge
+     uebernimmt (sie liest die Folienliste beim Laden). */
+  function openOverview(){
+    closeMenu();
+    var ov = document.createElement("div");
+    ov.className = "admin-overview admin-ui";
+    ov.setAttribute("contenteditable", "false");
+    ov.innerHTML =
+      '<div class="admin-ov-head"><b>Übersicht</b>'+
+      '<span>Ziehen ordnet die Folien um · ✕ löscht eine Folie — Cover und Abschluss bleiben fix</span>'+
+      '<button type="button" data-ov-close>✕ Schließen</button></div>'+
+      '<div class="admin-ov-grid"></div>';
+    document.body.appendChild(ov);
+    var geaendert = false, dragIdx = null;
+    var grid = ov.querySelector(".admin-ov-grid");
+
+    function fuellen(){
+      grid.innerHTML = "";
+      contentBlocks().forEach(function(block, i){
+        var cell = document.createElement("div");
+        cell.className = "admin-ov-cell";
+        var fix = block.tagName !== "SECTION";
+        if(fix) cell.classList.add("fixed"); else cell.draggable = true;
+        cell.setAttribute("data-i", i);
+        var th = document.createElement("div"); th.className = "admin-thumb";
+        var inner = document.createElement("div");
+        inner.appendChild(cleanClone(block));
+        th.appendChild(inner);
+        var lbl = document.createElement("div"); lbl.className = "admin-ov-lbl";
+        var name = block.id || (block.classList.contains("cover") ? "Cover" :
+                   block.classList.contains("closing") ? "Abschluss" : block.tagName.toLowerCase());
+        lbl.textContent = (i + 1) + " · " + name;
+        cell.appendChild(th); cell.appendChild(lbl);
+        if(!fix){
+          var del = document.createElement("button");
+          del.type = "button"; del.className = "admin-ov-del";
+          del.title = "Folie löschen"; del.textContent = "✕";
+          del.draggable = false;
+          del.addEventListener("click", function(e){
+            e.stopPropagation(); e.preventDefault();
+            if(!confirm('Folie "' + name + '" wirklich löschen?')) return;
+            block.remove();
+            geaendert = true; save(); fuellen();
+          });
+          cell.appendChild(del);
+        }
+        grid.appendChild(cell);
+      });
+      requestAnimationFrame(function(){
+        var t = grid.querySelector(".admin-thumb");
+        if(!t) return;
+        var w = t.getBoundingClientRect().width;
+        if(w > 0) grid.style.setProperty("--thumb-scale", (w / 1440).toFixed(4));
+      });
+    }
+    fuellen();
+
+    grid.addEventListener("dragstart", function(e){
+      var c = e.target.closest(".admin-ov-cell");
+      if(!c || c.classList.contains("fixed")){ e.preventDefault(); return; }
+      dragIdx = parseInt(c.getAttribute("data-i"), 10);
+      try{ e.dataTransfer.setData("text/plain", String(dragIdx)); e.dataTransfer.effectAllowed = "move"; }catch(err){}
+    });
+    grid.addEventListener("dragover", function(e){
+      var c = e.target.closest(".admin-ov-cell");
+      if(!c || c.classList.contains("fixed") || dragIdx === null) return;
+      e.preventDefault();
+      grid.querySelectorAll(".drag-over").forEach(function(x){ x.classList.remove("drag-over"); });
+      c.classList.add("drag-over");
+    });
+    grid.addEventListener("drop", function(e){
+      var c = e.target.closest(".admin-ov-cell");
+      grid.querySelectorAll(".drag-over").forEach(function(x){ x.classList.remove("drag-over"); });
+      if(!c || c.classList.contains("fixed") || dragIdx === null) return;
+      e.preventDefault();
+      var ziel = parseInt(c.getAttribute("data-i"), 10);
+      if(ziel !== dragIdx){
+        var blocks = contentBlocks(), mv = blocks[dragIdx], tg = blocks[ziel];
+        if(mv && tg && mv.tagName === "SECTION" && tg.tagName === "SECTION"){
+          if(dragIdx < ziel) document.body.insertBefore(mv, tg.nextSibling);
+          else document.body.insertBefore(mv, tg);
+          geaendert = true; save(); fuellen();
+        }
+      }
+      dragIdx = null;
+    });
+    grid.addEventListener("dragend", function(){
+      dragIdx = null;
+      grid.querySelectorAll(".drag-over").forEach(function(x){ x.classList.remove("drag-over"); });
+    });
+
+    function schliessen(){
+      ov.remove(); document.removeEventListener("keydown", esc);
+      if(geaendert) location.reload();
+    }
+    function esc(e){ if(e.key === "Escape") schliessen(); }
+    ov.querySelector("[data-ov-close]").addEventListener("click", schliessen);
+    document.addEventListener("keydown", esc);
+  }
+
+  /* ---------- Abschnitts-Katalog ----------
+     build_deck.py backt window.NM_SECTION_CATALOG ein: alle Folientypen des
+     Skills, fertig gerendert mit Platzhalter-Inhalt. Fehlt er (z. B. bei einer
+     handgeschriebenen Seite), bleiben die drei generischen Vorlagen oben. */
+  function katalog(){
+    var k = window.NM_SECTION_CATALOG;
+    return (k && k.length) ? k : null;
+  }
+
+  /* ---------- Abschnitt hinzufügen ---------- */
+  function addSection(type){
+    var html = TEMPLATES[type];
+    if(!html){
+      var k = katalog();
+      if(k){ for(var i=0;i<k.length;i++){ if(k[i].typ === type){ html = k[i].html; break; } } }
+    }
+    if(!html) return;
+    var wrap = document.createElement("div");
+    wrap.innerHTML = html.trim();
+    var node = wrap.firstElementChild; if(!node) return;
+    markVisible(node);                                // sichtbar (Reveal) + Klasse "in"
+    /* Vor dem ersten Footer einsetzen (sonst ans Ende) -> nie unter dem Seitenfuß (Fix Bug 8) */
+    var blocks = contentBlocks(), footer = null;
+    for(var i=0;i<blocks.length;i++){ if(blocks[i].tagName === "FOOTER"){ footer = blocks[i]; break; } }
+    document.body.insertBefore(node, footer);         // footer null => ans Ende
+    closeMenu();
+    save();
+    refreshControls();                                // sofort steuerbar; bearbeitbar via Klick-Delegation
+    try{ node.scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){}
+  }
+
+  /* ---------- Figma-Frame als Abschnitt einbetten ----------
+     Wandelt einen normalen Figma-Link in eine Embed-URL um: Host www.figma.com ->
+     embed.figma.com + Parameter embed-host (offizieller Weg). Der eingebettete Frame
+     zeigt den Stand aus Figma 1:1 an. Voraussetzung: Die Datei muss in Figma auf
+     "Jeder mit dem Link – kann ansehen" stehen, sonst sieht der Betrachter eine
+     Anmelde-/Rechte-Meldung (das koennen wir clientseitig nicht umgehen). */
+  function figmaEmbedUrl(raw){
+    var u;
+    try { u = new URL(String(raw).trim()); } catch(e){ return null; }
+    if(!/(^|\.)figma\.com$/i.test(u.hostname)) return null;
+    if(!/^https?:$/i.test(u.protocol)) return null;
+    if(u.hostname.toLowerCase() !== "embed.figma.com") u.hostname = "embed.figma.com";
+    u.searchParams.set("embed-host", "share");
+    u.searchParams.set("hide-ui", "1");
+    return u.toString();
+  }
+  /* fileKey + node-id aus einem Figma-Link ziehen (node-id: "12-34" -> "12:34") */
+  function figmaTeile(raw){
+    var u;
+    try { u = new URL(String(raw).trim()); } catch(e){ return null; }
+    if(!/(^|\.)figma\.com$/i.test(u.hostname) || !/^https?:$/i.test(u.protocol)) return null;
+    var m = u.pathname.match(/\/(?:design|file|proto|board)\/([A-Za-z0-9]+)/);
+    var node = u.searchParams.get("node-id") || "";
+    return { fileKey: m ? m[1] : null, nodeId: node ? node.replace(/-/g, ":") : null };
+  }
+
+  function folieEinsetzen(sec){
+    markVisible(sec);
+    var blocks = contentBlocks(), footer = null;
+    for(var i=0;i<blocks.length;i++){ if(blocks[i].tagName === "FOOTER"){ footer = blocks[i]; break; } }
+    document.body.insertBefore(sec, footer);
+    save();
+    refreshControls();
+    try { sec.scrollIntoView({behavior:"smooth", block:"center"}); } catch(e){}
+  }
+
+  /* Fallback: Live-Embed als randlose Folie (Figma-UI weggecroppt). */
+  function addFigmaEmbed(raw){
+    var src = figmaEmbedUrl(raw);
+    if(!src){ window.alert("Das sieht nicht nach einem Figma-Link aus."); return; }
+    var sec = document.createElement("section");
+    sec.className = "rv in figma-slide";
+    var stage = document.createElement("div");
+    stage.className = "figma-stage";
+    var ifr = document.createElement("iframe");
+    ifr.setAttribute("title", "Figma-Entwurf");
+    ifr.setAttribute("loading", "lazy");
+    ifr.setAttribute("allowfullscreen", "");
+    ifr.src = src;                                  /* src ueber DOM setzen, nicht per innerHTML */
+    stage.appendChild(ifr);
+    sec.appendChild(stage);
+    folieEinsetzen(sec);
+  }
+
+  /* 1:1-Import: die offizielle Figma-API rendert den Frame als PNG; das Bild
+     wird als data-URL eingebettet -> die Folie zeigt EXAKT den Frame (ohne
+     Figma-UI), funktioniert offline und ueberlebt den Export. Ein NATIVER
+     HTML-Nachbau ist im Browser nicht moeglich (kein Zugriff auf die
+     Figma-Designdaten) -- dafuer den Link an Claude geben (Skill-Weg). */
+  function baueFigmaBildFolie(dataUrl){
+    var sec = document.createElement("section");
+    sec.className = "rv in figma-slide";
+    var stage = document.createElement("div");
+    stage.className = "figma-stage figma-bild";
+    var img = document.createElement("img");
+    img.alt = "Figma-Entwurf";
+    img.src = dataUrl;
+    stage.appendChild(img);
+    sec.appendChild(stage);
+    if(window.confirm("Footer des Figma-Frames abschneiden?\n(Sinnvoll bei Praesentations-Frames – das Deck hat eine eigene Navigation.)")){
+      stage.classList.add("ohne-footer");
+    }
+    folieEinsetzen(sec);
+  }
+  function importFigmaBild(teile, token, raw){
+    var api = "https://api.figma.com/v1/images/" + teile.fileKey +
+              "?ids=" + encodeURIComponent(teile.nodeId) + "&format=png&scale=2";
+    fetch(api, { headers: { "X-FIGMA-TOKEN": token } })
+      .then(function(res){ if(!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+      .then(function(j){
+        var url = j.images && j.images[teile.nodeId];
+        if(!url) throw new Error("kein Bild für diese node-id");
+        return fetch(url);
+      })
+      .then(function(res){ if(!res.ok) throw new Error("Bild-Download fehlgeschlagen"); return res.blob(); })
+      .then(function(blob){
+        var fr = new FileReader();
+        fr.onload = function(){ baueFigmaBildFolie(String(fr.result)); };
+        fr.readAsDataURL(blob);
+      })
+      .catch(function(err){
+        window.alert("1:1-Import fehlgeschlagen (" + ((err && err.message) || err) + ").\n" +
+                     "Es wird stattdessen das Live-Embed eingefügt.");
+        addFigmaEmbed(raw);
+      });
+  }
+
+  function addFigmaSection(){
+    closeMenu();
+    var raw = window.prompt(
+      "Figma-Link einfügen\n\n" +
+      "Am besten den Link eines einzelnen Frames (enthält node-id).\n\n" +
+      "Mit Figma-Token: Der Frame wird 1:1 als Bild-Folie importiert\n" +
+      "(pixelgenau, ohne Figma-UI, exportfest).\n" +
+      "Ohne Token: Live-Embed (Datei muss auf \"Jeder mit dem Link\" stehen).\n\n" +
+      "Für einen NATIVEN Nachbau als echtes HTML den Link an Claude geben –\n" +
+      "der Skill baut die Folie nach und prüft sie per Abgleich gegen Figma.");
+    if(!raw) return;
+    var teile = figmaTeile(raw);
+    if(!teile){ window.alert("Das sieht nicht nach einem Figma-Link aus."); return; }
+
+    if(teile.fileKey && teile.nodeId){
+      var token = "";
+      try { token = localStorage.getItem("nm-figma-token") || ""; } catch(e){}
+      if(!token){
+        token = window.prompt(
+          "Optional: Figma Personal Access Token für den 1:1-Bild-Import\n" +
+          "(Figma → Settings → Security → Personal access tokens).\n" +
+          "Wird nur lokal gespeichert. Leer lassen für Live-Embed.") || "";
+        token = token.trim();
+        if(token){ try { localStorage.setItem("nm-figma-token", token); } catch(e){} }
+      }
+      if(token){ importFigmaBild(teile, token, raw); return; }
+    }
+    addFigmaEmbed(raw);
+  }
+
+  /* ---------- Menü ---------- */
+  function toggleMenu(){ if(adminMenu) adminMenu.classList.toggle("open"); }
+  function closeMenu(){ if(adminMenu) adminMenu.classList.remove("open"); }
+
+  /* ---------- Zurücksetzen ---------- */
+  function resetAll(){
+    if(!confirm("Alle Änderungen verwerfen und Originalzustand laden?")) return;
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    location.reload();
+  }
+
+  /* ---------- Export: standalone index.html ---------- */
+  /* Referenzierte <img> als data-URI einbetten -> wirklich standalone (Fix Bug 3).
+     Best effort: pro Bild abgesichert, Fehlschlag lässt die relative src stehen. */
+  function inlineImages(root){
+    var imgs = Array.prototype.slice.call(root.querySelectorAll("img"));
+    var jobs = imgs.map(function(img){
+      var src = img.getAttribute("src") || "";
+      if(!src || /^data:/i.test(src)) return Promise.resolve();
+      return fetch(src).then(function(r){ return r.ok ? r.blob() : null; })
+        .then(function(blob){
+          if(!blob) return;
+          return new Promise(function(res){
+            var fr = new FileReader();
+            fr.onload = function(){ img.setAttribute("src", fr.result); res(); };
+            fr.onerror = function(){ res(); };
+            fr.readAsDataURL(blob);
+          });
+        })
+        .catch(function(){ /* Original-src bleibt erhalten */ });
+    });
+    return Promise.all(jobs);
+  }
+
+  function exportHTML(){
+    var docEl = document.documentElement.cloneNode(true);
+    /* Admin-UI restlos aus dem Markup entfernen ... */
+    docEl.querySelectorAll(".admin-ui").forEach(function(n){ n.remove(); });
+    docEl.querySelectorAll(".admin-ctrl").forEach(function(n){ n.remove(); });
+    docEl.querySelectorAll("[contenteditable]").forEach(function(n){ n.removeAttribute("contenteditable"); });
+    docEl.querySelectorAll(".admin-editing,.admin-block").forEach(function(n){
+      n.classList.remove("admin-editing"); n.classList.remove("admin-block");
+    });
+    var b = docEl.querySelector("body");
+    if(b) b.classList.remove("admin-on");
+    /* #admin-style + #admin-script bleiben erhalten (Vertrag: Export ist wieder editierbar),
+       ABER als "frozen" markiert -> restore() greift nicht, Edit-UI nur mit ?edit
+       (Fix Bug 1/4/13): deterministischer Snapshot, keine Editier-Oberfläche für Clients. */
+    docEl.setAttribute("data-nm-frozen", "");
+
+    var finish = function(){
+      var out = "<!doctype html>\n" + docEl.outerHTML;
+      try{
+        var blob = new Blob([out], { type:"text/html;charset=utf-8" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url; a.download = "index.html";
+        document.body.appendChild(a); a.click();
+        setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 1500);
+      }catch(e){ alert("Export fehlgeschlagen: " + (e && e.message)); }
+    };
+    /* Assets inlinen (asynchron), damit die Datei isoliert funktioniert; bei jedem
+       Fehler wird trotzdem exportiert. */
+    try{ inlineImages(docEl).then(finish, finish); }
+    catch(e){ finish(); }
+  }
+
+  /* ---------- Admin-Modus umschalten ---------- */
+  function toggleAdmin(){
+    var on = document.body.classList.toggle("admin-on");
+    if(on){
+      refreshControls();
+      if(toggleBtn) toggleBtn.textContent = "✓ Fertig";
+    }else{
+      closeMenu();
+      /* offene Bearbeitung sauber per blur() beenden -> onBlur räumt Listener auf
+         (Fix Bug 7b, kein Listener-Leak). Kein pauschales save() mehr beim reinen
+         Umschalten -> ohne echte Änderung wird nichts persistiert und die
+         Reveal-Animation bleibt für Betrachter erhalten (Fix Bug 9). */
+      document.querySelectorAll('[contenteditable="true"]').forEach(function(el){
+        try{ el.blur(); }catch(e){}
+      });
+      removeControls();
+      if(toggleBtn) toggleBtn.textContent = "✎ Bearbeiten";
+    }
+  }
+
+  /* ---------- Zentraler Klick-Handler: Text bearbeiten / Bild tauschen ---------- */
+  document.addEventListener("click", function(e){
+    if(!document.body.classList.contains("admin-on")) return;
+    var t = e.target;
+    if(t.closest(".admin-ui")) return;                          // eigene UI nicht bearbeiten
+    if(t.closest("#bar") || t.closest("nav.mini")) return;      // Fortschritt/Nav unangetastet
+    var img = t.closest("img");
+    if(img){ e.preventDefault(); swapImage(img); return; }
+    /* closest(EDIT_SELECTOR) trifft das nächstliegende Leaf – robust gegen Verschachtelung */
+    var el = t.closest(EDIT_SELECTOR);
+    if(el && document.body.contains(el) && !el.closest(".admin-ui")){
+      if(!isEditableLeaf(el)) return;                           // Wrapper (Karten-<a>/<td>) nicht editieren (Fix Bug 11)
+      if(el.tagName === "A" || el.tagName === "SUMMARY") e.preventDefault(); // Link/Details nicht auslösen (Fix Bug 5)
+      makeEditable(el, e.clientX, e.clientY);
+    }
+  }, true); // Capture: läuft vor evtl. Standard-/Navigations-Handlern
+
+  /* ---------- UI aufbauen ---------- */
+  function buildUI(){
+    /* Floating-Toggle */
+    var toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "admin-toggle admin-ui";
+    toggle.textContent = "✎ Bearbeiten";
+    toggle.addEventListener("click", toggleAdmin);
+    document.body.appendChild(toggle);
+    toggleBtn = toggle;
+
+    /* Obere Toolbar */
+    var tb = document.createElement("div");
+    tb.className = "admin-toolbar admin-ui";
+    var persHtml = "";
+    if(personaNamen().length >= 2){
+      persHtml = '<span class="admin-persona-global"><span class="aps-lbl">Fokus-Persona:</span>' +
+                 personaButtonsHTML(aktuelleFokusIdx()) + '</span>';
+    }
+    var opts = publikumOptionen();
+    if(opts.length >= 2){
+      var akt = aktivesPublikum();
+      persHtml += '<span class="admin-persona-global admin-audience-global"><span class="aps-lbl">Publikum:</span>';
+      opts.forEach(function(o){
+        persHtml += '<button type="button" data-audience-key="' + o.key + '"' +
+                    (o.key === akt ? ' class="on"' : '') + '>' + o.label + '</button>';
+      });
+      persHtml += '</span>';
+    }
+    tb.innerHTML =
+      '<button type="button" data-a="add">＋ Abschnitt</button>'+
+      '<button type="button" data-a="ov">🔎 Übersicht</button>'+
+      '<button type="button" data-a="export">💾 Exportieren</button>'+
+      '<button type="button" data-a="reset">↩︎ Zurücksetzen</button>'+
+      persHtml +
+      '<span class="admin-hint">Text anklicken zum Bearbeiten · Bild anklicken zum Tauschen · Reihenfolge &amp; Löschen über 🔎 Übersicht</span>';
+    document.body.appendChild(tb);
+    tb.addEventListener("click", function(e){
+      var btn = e.target.closest("button"); if(!btn) return;
+      var f = btn.getAttribute("data-focus-idx");
+      if(f !== null && f !== undefined){ applyPersonaFocus(f); return; }
+      var ak = btn.getAttribute("data-audience-key");
+      if(ak !== null && ak !== undefined){ applyAudienceFocus(ak); return; }
+      var a = btn.getAttribute("data-a");
+      if(a === "add") toggleMenu();
+      else if(a === "ov") openOverview();
+      else if(a === "export") exportHTML();
+      else if(a === "reset") resetAll();
+    });
+
+    /* Vorlagen-Menü */
+    var menu = document.createElement("div");
+    menu.className = "admin-menu admin-ui";
+    /* Katalog vorhanden -> echte Folientypen anbieten, sonst die generischen drei */
+    var k = katalog();
+    if(k){
+      var h = '<div class="admin-menu-head">Abschnitt einfügen</div>';
+      for(var i=0;i<k.length;i++){
+        h += '<button type="button" data-t="'+k[i].typ+'">'+
+               '<span class="admin-thumb"><div>'+k[i].html+'</div></span>'+
+               '<span class="admin-thumb-label">'+k[i].label+'</span>'+
+             '</button>';
+      }
+      /* Figma-Frame als vollwertiger Katalog-Eintrag: fuegt eine normale,
+         verschieb-/loeschbare Abschnitts-Folie ein (1:1-Bild-Import mit Token,
+         sonst Embed) -- kein Sonderweg mehr ueber die Toolbar. */
+      h += '<button type="button" data-t="__figma">'+
+             '<span class="admin-thumb"><div style="display:flex;align-items:center;justify-content:center;height:810px;background:#fff">'+
+               '<span style="font:700 150px/1.2 sans-serif;text-align:center">🎨<br><span style="font-size:52px;color:#333">Figma-Frame</span></span>'+
+             '</div></span>'+
+             '<span class="admin-thumb-label">Figma-Frame (1:1-Import)</span>'+
+           '</button>';
+      menu.innerHTML = h;
+      menu.classList.add("admin-menu--katalog");
+      /* Miniatur exakt auf die Spaltenbreite skalieren -- erst wenn das Menue
+         gemessen werden kann, sonst ist die Breite 0. */
+      var skaliere = function(){
+        var t = menu.querySelector(".admin-thumb");
+        if(!t) return;
+        var w = t.getBoundingClientRect().width;
+        if(w > 0) menu.style.setProperty("--thumb-scale", (w / 1440).toFixed(4));
+      };
+      requestAnimationFrame(skaliere);
+      window.addEventListener("resize", skaliere);
+    } else {
+      menu.innerHTML =
+        '<button type="button" data-t="text">Titel + Text</button>'+
+        '<button type="button" data-t="cols">Zwei Spalten</button>'+
+        '<button type="button" data-t="divider">Divider</button>'+
+        '<button type="button" data-t="__figma">🎨 Figma-Frame</button>';
+    }
+    document.body.appendChild(menu);
+    adminMenu = menu;
+    menu.addEventListener("click", function(e){
+      var btn = e.target.closest("button"); if(!btn) return;
+      var t = btn.getAttribute("data-t");
+      if(t === "__figma"){ closeMenu(); addFigmaSection(); return; }
+      addSection(t);
+    });
+
+    /* Menü schließen bei Klick daneben */
+    document.addEventListener("click", function(e){
+      if(!adminMenu || !adminMenu.classList.contains("open")) return;
+      if(e.target.closest(".admin-menu")) return;
+      if(e.target.closest('[data-a="add"]')) return;
+      closeMenu();
+    });
+  }
+
+  /* ---------- Start: erst wiederherstellen (vor Reveal), dann UI ---------- */
+  /* Eingefrorenes Deliverable ohne ?edit: gar keine Admin-Logik -> reiner Betrachter,
+     zeigt deterministisch das eingebackene Markup (Fix Bug 4). */
+  if(FROZEN && !EDIT) return;
+
+  restore();     // no-op wenn !PERSIST (eingefroren)
+  buildUI();
+})();</script>

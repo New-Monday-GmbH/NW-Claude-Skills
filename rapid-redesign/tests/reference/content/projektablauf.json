@@ -1,0 +1,22 @@
+{
+  "phasen": [
+    {
+      "phase": "Analyse und Strategie",
+      "woche": "Woche 1 – 3",
+      "ziel": "Zielbild &amp; Handlungsempfehlungen",
+      "punkte": ["UX Audit", "Wettbewerbsanalyse", "Stakeholder Workshops"]
+    },
+    {
+      "phase": "Konzept und Validierung",
+      "woche": "Woche 4 – 7",
+      "ziel": "Abgestimmtes UX-Konzept",
+      "punkte": ["Neue Struktur", "Wireframes", "Klickbarer Prototyp"]
+    },
+    {
+      "phase": "Design und Umsetzung",
+      "woche": "Woche 8 – 10",
+      "ziel": "Neue Website",
+      "punkte": ["UI Design", "Frontend-Entwicklung", "Qualitätssicherung"]
+    }
+  ]
+}

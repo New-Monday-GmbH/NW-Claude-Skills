@@ -1,0 +1,21 @@
+<section id="{{id}}" class="rv">
+  <div class="wrap">
+    <div class="insp-row">
+      <div class="insp-text">
+        <span class="kicker eyebrow-teal">Inspiration {{nummer}} · {{quelle}}</span>
+        <h2 class="sec-title">Inspiration</h2>
+        <svg class="insp-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 22V11l5-9a2.5 2.5 0 0 1 2.4 3.2L13.5 9H19a2.5 2.5 0 0 1 2.4 3.1l-1.7 7A2.5 2.5 0 0 1 17.3 21H7z"/><rect x="2" y="11" width="5" height="11" rx="1"/></svg>
+        <h3 class="insp-sub">{{titel}}</h3>
+        <p class="lead">{{text}}</p>
+        <ul class="insp-punkte">
+          {{#shots}}<li>{{bildtext}}</li>
+          {{/shots}}
+        </ul>
+      </div>
+      <div class="insp-shots">
+        {{#shots}}<figure><img src="{{bild}}" alt="{{alt}}"></figure>
+        {{/shots}}
+      </div>
+    </div>
+  </div>
+</section>
