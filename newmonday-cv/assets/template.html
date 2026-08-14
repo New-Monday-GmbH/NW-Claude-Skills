@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>{{ person.name }} — Lebenslauf</title>
+<link rel="stylesheet" href="cv.css">
+</head>
+<body>
+
+<div class="header"><img src="logos/nm-logo.svg" alt="New Monday"></div>
+
+<div class="intro">
+  <div class="intro__col">
+    {% if person.foto %}<img class="intro__photo" src="{{ person.foto }}" alt="">{% endif %}
+  </div>
+  <div class="intro__info">
+    <div class="name">{{ person.name }}</div>
+    {% if person.rolle %}<div class="role">{{ person.rolle }}</div>{% endif %}
+    {% if person.erfahrung %}<div class="role">{{ person.erfahrung }}</div>{% endif %}
+    {% if person.kurzprofil %}<p class="profile">{{ person.kurzprofil }}</p>{% endif %}
+  </div>
+</div>
+
+{% for s in stationen %}
+<div class="station">
+  {# Breite und Hoehe je Logo kommen aus render_cv.py (logo_masse): jedes Logo
+     deckt dieselbe Flaeche, damit Bildmarke und Schriftzug gleich schwer
+     wirken. Im CSS steht dazu nichts, nur die Ausrichtung. #}
+  <div class="station__rail">
+    {% for l in s.logos %}<img src="logos/{{ l.datei }}" alt="{{ s.firma }}"
+      style="width:{{ l.breite }}pt;height:{{ l.hoehe }}pt">{% endfor %}
+  </div>
+  <div class="station__body">
+    <div class="station__title">{{ s.titel }}</div>
+    <div class="station__meta">
+      <span>{{ s.zeitraum }}</span>{% if s.firma %}<i></i><span>{{ s.firma }}</span>{% endif %}
+    </div>
+    {% if s.zusammenfassung %}<p class="station__summary">{{ s.zusammenfassung }}</p>{% endif %}
+    {% if s.beschreibung %}<p class="station__text">{{ s.beschreibung }}</p>{% endif %}
+    {% if s.aufgaben %}
+    <ul class="tasks">{% for a in s.aufgaben %}<li>{{ a }}</li>{% endfor %}</ul>
+    {% endif %}
+
+    {% for p in s.projekte %}
+    <div class="project">
+      {% if p.logos %}<div class="project__logos">
+        {% for l in p.logos %}<img class="project__logo" src="logos/{{ l.datei }}" alt="{{ p.kunde }}"
+          style="width:{{ l.breite }}pt;height:{{ l.hoehe }}pt">{% endfor %}
+      </div>{% endif %}
+      <div class="project__client">{{ p.kunde }}</div>
+      {% if p.zeitraum %}<div class="project__date">{{ p.zeitraum }}</div>{% endif %}
+      {% if p.beschreibung %}<p class="project__text">{{ p.beschreibung }}</p>{% endif %}
+      {% if p.aufgaben %}
+      <ul class="tasks">{% for a in p.aufgaben %}<li>{{ a }}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+{% if bildung or skillset %}
+<div class="letzte-seite{% if anker %} letzte-seite--anker{% endif %}">
+<div class="abschluss{% if kompakt %} abschluss--kompakt{% endif %}">
+{% if bildung %}
+<div class="section">
+  <h2>{{ t.bildung }}</h2>
+  <div class="cols cols--wrap">
+    {% for b in bildung %}
+    <div class="edu">
+      <div class="edu__degree">{{ b.abschluss }}</div>
+      {% if b.institution %}<div class="edu__line">{{ b.institution }}</div>{% endif %}
+      {% if b.zeitraum %}<div class="edu__line">{{ b.zeitraum }}</div>{% endif %}
+      {% if b.themen %}<ul class="tight">{% for t in b.themen %}<li>{{ t }}</li>{% endfor %}</ul>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="divider"></div>
+</div>
+{% endif %}
+
+{% if skillset %}
+<div class="section">
+  <h2>{{ t.skillset }}</h2>
+  {# Floats nur ohne Anker: sie muessen dann ueber Seiten umbrechen koennen.
+     Im Flex-Wrapper des Ankers verlieren Floats ihre Breite. #}
+  <div class="cols{% if not anker %} cols--fliessend{% endif %}">
+    <div class="stack">
+      {% for g in skillset.links %}
+      <div class="skillgroup">
+        <h3>{{ g.titel }}</h3>
+        <ul class="tight">{% for e in g.eintraege %}<li>{{ e }}</li>{% endfor %}</ul>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="stack">
+      {% for g in skillset.rechts %}
+      <div class="skillgroup">
+        <h3>{{ g.titel }}</h3>
+        <ul class="tight">{% for e in g.eintraege %}<li>{{ e }}</li>{% endfor %}</ul>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+</div>
+<div class="luft"></div>
+{% endif %}
+
+<div class="footer">
+  <div class="footer__note">{{ hinweis }}</div>
+  <div class="footer__divider"></div>
+  <div class="footer__row">
+    <div class="footer__logo"><img src="logos/nm-logo.svg" alt="New Monday" style="width:79pt"></div>
+    <div class="footer__cols">
+      <div>
+        <div class="footer__label">{{ t.ansprechpartner }}</div>
+        <div class="footer__value">{{ kontakt.name }}<br>{{ kontakt.rolle }}</div>
+      </div>
+      <div>
+        <div class="footer__label">{{ t.kontakt }}</div>
+        <div class="footer__value">{{ kontakt.mail }}<br>{{ kontakt.telefon }}</div>
+      </div>
+      <div>
+        <div class="footer__label">{{ t.adresse }}</div>
+        <div class="footer__value">{{ kontakt.firma }}<br>{{ kontakt.strasse }}<br>{{ kontakt.ort }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% if bildung or skillset %}</div>{% endif %}
+
+</body>
+</html>

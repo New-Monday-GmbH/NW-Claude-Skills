@@ -1,0 +1,187 @@
+/* New Monday CV — Tokens 1:1 aus Figma KoR4rzVSoMrvQot8z33gkv (Seite "CV").
+   Figma-Frames sind 595x842 = A4 in Punkt, daher gilt 1 Figma-px = 1pt.
+   Niemals px verwenden: 24px waeren in CSS nur 18pt. */
+
+@font-face { font-family: Inter; src: url(fonts/Inter-Regular.ttf);    font-weight: 400; }
+@font-face { font-family: Inter; src: url(fonts/Inter-SemiBold.ttf);   font-weight: 600; }
+@font-face { font-family: Inter; src: url(fonts/Inter-Bold.ttf);       font-weight: 700; }
+@font-face { font-family: Inter; src: url(fonts/Inter-ExtraBold.ttf);  font-weight: 800; }
+
+:root {
+  --brand:  #009193;
+  --black:  #111111;
+  --muted:  #485758;   /* Aufgaben-Bullets */
+  --rail:   88pt;      /* Logospalte */
+  --gap:    32pt;      /* Spaltenabstand */
+  --main:   308pt;     /* Inhaltsspalte */
+  --hairline: #111111;
+  /* Logomasse stehen nicht hier: render_cv.py rechnet Breite und Hoehe je
+     Logo aus dem Seitenverhaeltnis der Datei aus und schreibt sie ans <img>.
+     Nur so deckt jedes Logo dieselbe Flaeche. Siehe logo_masse(). */
+}
+
+@page {
+  size: A4;
+  margin: 60pt 107pt 32pt 60pt;   /* Inhaltsbreite = 428pt */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Inter;
+  font-size: 10pt;
+  line-height: 1.35;
+  color: var(--black);
+}
+
+/* ---------- Kopf ---------- */
+
+.header { margin-bottom: 35.5pt; }
+.header img { width: 133.231pt; height: 13.5pt; }
+
+.intro { display: flex; gap: 40pt; margin-bottom: 32pt; }
+.intro__col { width: 78pt; padding-top: 7pt; flex: none; }
+.intro__photo { width: 79pt; height: 106pt; object-fit: cover; }
+.intro__info { width: var(--main); }
+
+.name {
+  font-size: 24pt;
+  font-weight: 800;
+  letter-spacing: -1.08pt;
+  margin-bottom: 8pt;
+}
+.role { font-size: 10pt; line-height: normal; }
+.role + .role { margin-top: 4pt; }
+.profile { margin-top: 20pt; letter-spacing: -0.05pt; }
+
+/* ---------- Stationen ---------- */
+
+/* Kein Flexbox: Flex-Container brechen nicht ueber Seiten um, dadurch wuerde
+   eine lange Station komplett auf die naechste Seite springen. Float laesst
+   den Text weiterlaufen und haelt das Logo am Anfang der Station. */
+.station { margin-bottom: 32pt; clear: both; }
+.station::after { content: ""; display: table; clear: both; }
+.station__rail { float: left; width: var(--rail); padding-top: 3pt; }
+/* display: block — mehrere Marken stehen immer untereinander, nie nebeneinander.
+   margin-left: auto — jedes Logo steht rechtsbuendig in der Spalte, also an der
+   Kante zum Text. Die Logos sind verschieden breit; linksbuendig franst die
+   Spalte an der Innenkante aus und der Abstand zum Stationstext springt von
+   Station zu Station. Rechtsbuendig steht immer derselbe Abstand (--gap).
+   Breite und Hoehe setzt render_cv.py je Logo am Element, siehe template.html. */
+.station__rail img { display: block; margin-left: auto; max-width: var(--rail); }
+.station__rail img + img { margin-top: 10pt; }
+/* Literal statt calc(): WeasyPrint (66) wirft calc() im margin-left weg, der
+   Wert landet auf 0 und der Stationstext laeuft ueber das Logo. Muss von Hand
+   nachgezogen werden, wenn --rail oder --gap sich aendern (88pt + 32pt). */
+.station__body { margin-left: 120pt; }
+
+.station__title { font-size: 12pt; font-weight: 700; line-height: normal; }
+.station__meta {
+  display: flex; align-items: flex-start; gap: 8pt;
+  font-size: 8pt; line-height: normal; margin-top: 4pt;
+}
+/* Der Zeitraum bleibt einzeilig, der Firmenname darf umbrechen. Sonst reisst
+   eine lange Kundenliste den Trennstrich mitten in den Block. */
+.station__meta span:first-child { white-space: nowrap; }
+.station__meta i {
+  width: 1px; height: 10pt; background: var(--black);
+  font-style: normal; flex: none;
+}
+.station__summary { margin-top: 8pt; }
+/* Fliesstext auf Stationsebene — dieselbe Form wie bei Projekten. Manche
+   Lebenslaeufe beschreiben die Station als Absatz statt als Bulletliste. */
+.station__text { margin-top: 8pt; }
+
+.project { margin-top: 32pt; }
+.project__logos { margin-bottom: 8pt; }
+/* Gleiche Regel wie im Rail, eine Stufe kleiner: untereinander, gleiche Flaeche.
+   Nicht rechtsbuendig — Projektlogos stehen nicht in der Logospalte, sondern
+   ueber dem Kundennamen und richten sich an dessen linker Textkante aus. */
+.project__logo { display: block; max-width: var(--rail); }
+.project__logo + .project__logo { margin-top: 8pt; }
+.project__client { font-size: 10pt; font-weight: 700; }
+.project__date { font-size: 8pt; margin-top: 4pt; }
+.project__text { margin-top: 8pt; }
+
+/* Aufgaben-Bullets: locker gesetzt, gedecktes Grau */
+ul.tasks {
+  margin-top: 8pt; padding-left: 15pt;
+  color: var(--muted); letter-spacing: -0.05pt; list-style: disc;
+}
+ul.tasks li { margin-bottom: 10pt; }
+ul.tasks li:last-child { margin-bottom: 0; }
+
+/* ---------- Bildung / Skillset ---------- */
+
+/* Bildung und Skillset beginnen immer auf einer neuen Seite, wie in Figma.
+   Der erste .section darin bringt sonst noch seinen eigenen Abstand mit. */
+/* Bildung, Skillset und Footer bilden die letzte Seite. Der Footer sitzt an
+   ihrem unteren Rand — ein Fuellelement dazwischen drueckt ihn dorthin.
+   Der Anker wird nur gesetzt, wenn der Block auf eine Seite passt: ein
+   Flex-Container laesst sich nicht auftrennen. Siehe render_cv.py. */
+.letzte-seite { break-before: page; }
+.letzte-seite--anker { display: flex; flex-direction: column; min-height: 745pt; }
+.letzte-seite--anker > * { width: var(--content); }
+.letzte-seite--anker .luft { flex: 1 0 auto; }
+.abschluss { }
+/* Notstufe: greift nur, wenn Bildung und Skillset sonst eine zweite Seite
+   brauchen. Setzt das Renderskript selbst, siehe render_cv.py. */
+.abschluss--kompakt .section { margin-top: 20pt; }
+.abschluss--kompakt .section h2 { margin-bottom: 20pt; }
+.abschluss--kompakt .section h3 { margin-bottom: 12pt; }
+.abschluss--kompakt .stack > * + * { margin-top: 20pt; }
+.abschluss--kompakt .cols--wrap { row-gap: 20pt; }
+.abschluss--kompakt .divider { margin-top: 20pt; }
+.abschluss--kompakt + .footer { margin-top: 20pt; }
+.abschluss > .section:first-child { margin-top: 0; }
+
+.section { margin-top: 31pt; }
+.section h2 { font-size: 14pt; font-weight: 600; line-height: normal; margin-bottom: 31pt; }
+.section h3 { font-size: 10pt; font-weight: 600; line-height: normal; margin-bottom: 17pt; }
+
+.cols { display: flex; gap: 31pt; }
+/* Skillset als Float-Spalten: ein Flex-Container laesst sich nicht ueber
+   Seiten auftrennen und springt als Ganzes weiter. */
+.cols--fliessend { display: block; }
+.cols--fliessend::after { content: ""; display: table; clear: both; }
+.cols--fliessend > * { float: left; width: 198.5pt; }
+.cols--fliessend > * + * { margin-left: 31pt; }
+.cols > * { flex: 1 0 0; min-width: 0; }
+/* Bildung kann mehr als zwei Eintraege haben: zweispaltig umbrechen statt
+   immer schmaler werden. */
+.cols--wrap { flex-wrap: wrap; row-gap: 31pt; }
+/* 198.5pt = (428pt Inhaltsbreite - 31pt Spaltenabstand) / 2. Fest gesetzt:
+   WeasyPrint stolpert ueber calc() mit Variablen in der flex-Kurzschreibweise. */
+.cols--wrap > * { flex: 0 0 198.5pt; }
+.stack > * + * { margin-top: 31pt; }
+
+.edu__degree { font-weight: 600; line-height: normal; }
+.edu__line { line-height: normal; margin-top: 2pt; }
+.edu ul { margin-top: 17pt; }
+
+/* Kompakte Listen (Bildung, Skillset) — im Gegensatz zu ul.tasks ohne Abstand */
+ul.tight { padding-left: 15pt; list-style: disc; line-height: normal; }
+ul.tight li + li { margin-top: 2pt; }
+
+.divider { border-top: 1px solid var(--hairline); margin-top: 31pt; }
+
+/* ---------- Footer ---------- */
+
+.footer { margin-top: 31pt; break-inside: avoid; }
+.footer__note { font-size: 10pt; }
+.footer__divider { border-top: 1px solid var(--hairline); margin-top: 16pt; }
+.footer__row { display: flex; gap: 31pt; margin-top: 17pt; align-items: flex-start; }
+.footer__logo { width: 79pt; flex: none; }
+.footer__cols { display: flex; gap: 48pt; flex: 1 0 0; }
+.footer__label {
+  font-size: 7pt; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.4pt; line-height: normal;
+}
+.footer__value { font-size: 8pt; line-height: 1.4; margin-top: 8pt; }
+
+/* ---------- Umbruchverhalten ---------- */
+
+.station__body > .project,
+.edu,
+.skillgroup { break-inside: avoid; }
+.station__title, .project__client { break-after: avoid; }

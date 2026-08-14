@@ -1,0 +1,116 @@
+{
+  "person": {
+    "name": "Florian Feiler",
+    "rolle": "UX Designer",
+    "erfahrung": "3+ Jahre Erfahrung",
+    "foto": "beispiel/foto.png",
+    "kurzprofil": "Als UX-Designer mit Schwerpunkt auf digitale Barrierefreiheit wirke ich bei komplexen digitalen Anwendungen im B2B-Kontext sowie an der Konzeption und Umsetzung barrierefreier Weblösungen. Mein Aufgabenbereich umfasst dabei die gesamte Bandbreite des UX-Prozesses – von User Research und Persona-Entwicklung über Wireframing und Prototyping bis hin zu Usability-Tests und Accessibility-Audits."
+  },
+  "stationen": [
+    {
+      "titel": "User Experience Design Specialist",
+      "firma": "New Monday GmbH",
+      "zeitraum": "Juni 2025 - Heute",
+      "logo": "nm-logo.svg",
+      "zusammenfassung": "UX Design, UX Konzeption",
+      "projekte": [
+        {
+          "kunde": "Union Investment",
+          "zeitraum": "Juni 2025 - Mai 2026",
+          "logo": "union-investment.svg",
+          "beschreibung": "Wireframing, User Research und Testing von mehreren Produktkonzepten für Altersvorsorge und eines Junior Depots. Gemeinsam mit der Zielgruppe entwickelte ich nutzerzentrierte Lösungsansätze und testete Prototypen und Marketingkampagnen.",
+          "aufgaben": [
+            "Qualitative Interviews und quantitative Umfragen",
+            "UX Konzeption",
+            "Prototyping",
+            "Stakeholder Management"
+          ]
+        },
+        {
+          "kunde": "beQ",
+          "zeitraum": "Oktober 2025 - April 2026",
+          "logo": "beq.png",
+          "beschreibung": "Das Dashboard von beQ wurde von mir aus einem komplexen Dashboard mit hohem Supportaufwand zu einem nutzerfreundlichen Produkt umgewandelt.",
+          "aufgaben": [
+            "Detaillierte Ausarbeitung komplexer UX Konzepte",
+            "Wireframing, Prototyping, User Flows",
+            "Koordination von UI Design und Entwicklerteams",
+            "Stakeholder Management"
+          ]
+        },
+        {
+          "kunde": "Green Planet Energy",
+          "zeitraum": "Oktober 2025 - März 2026",
+          "logo": "green-planet-energy.svg",
+          "beschreibung": "Green Planet Energy kam mit der Anforderung zu mir, ihre neu gestaltete Homepage zu testen, um Conversions zu erhöhen. In meiner Rolle als User Researcher gab ich anhand von 20 Interviews Feedback zur Verbesserung.",
+          "aufgaben": ["UX Research", "Wireframing", "Prototyping", "Ideation"]
+        }
+      ]
+    },
+    {
+      "titel": "UX/UI Designer, Berater für digitale Barrierefreiheit",
+      "firma": "Tollwerk GmbH",
+      "zeitraum": "November 2024 - Mai 2025",
+      "logo": "tollwerk.png",
+      "aufgaben": [
+        "UX-Design für Websites im Public Sector mit besonderer Beachtung auf Barrierefreiheit von der initialen Analyse über Konzeption und Gestaltung bis zur prototypischen Ausarbeitung mit begleitendem Testing (UX Research)",
+        "Accessibility-Audits und Beratung zu Best Practices digitaler Barrierefreiheit nach WCAG und BITV, inklusive Analyse bestehender Lösungen und Ableitung konkreter Optimierungsempfehlungen",
+        "Stakeholder-Kommunikation und projektbegleitende Abstimmung, Koordination von Anforderungen zwischen Design, Entwicklung und Kund:innen"
+      ]
+    },
+    {
+      "titel": "Werkstudent UX Design",
+      "firma": "DATEV eG",
+      "zeitraum": "April 2021 - September 2024",
+      "logo": "datev.svg",
+      "aufgaben": [
+        "UX Design für mehrere komplexe B2B-Produkte",
+        "UX-Beratung von Bestandssystemen",
+        "Planung, Durchführung und Analyse von Nutzertests",
+        "Aufbau eines internen Accessibility-Teams: Definition erster Standards, Schulung von Mitarbeitenden",
+        "Prüfung von Software auf Barrierefreiheit – WCAG",
+        "Stakeholder Kommunikation"
+      ]
+    }
+  ],
+  "bildung": [
+    {
+      "abschluss": "Master UX-Design & Management",
+      "institution": "PFH Göttingen",
+      "zeitraum": "April 2022 - September 2023",
+      "themen": ["UI-Design", "User Research", "Usability-Testing", "Marktforschung", "Projektmanagement"]
+    },
+    {
+      "abschluss": "Bachelor Medieninformatik",
+      "institution": "FH Hof und MMU Malaysia",
+      "zeitraum": "Oktober 2016 - September 2020",
+      "themen": ["UX-Design", "Frontend-Entwicklung", "Backend-Entwicklung", "Marketing"]
+    }
+  ],
+  "skillset": {
+    "links": [
+      {
+        "titel": "Fähigkeiten",
+        "eintraege": ["UI-Design", "User Research", "Usability-Testing", "Barrierefreiheit", "Requirements Engineering"]
+      },
+      {
+        "titel": "Zertifizierungen",
+        "eintraege": ["CPUX-F-Zertifikat", "WCAG – Barrierefrei Lehren"]
+      },
+      {
+        "titel": "Branchenerfahrung",
+        "eintraege": ["Public Sector", "Datenverarbeitung", "Hotellerie", "Bankenumfeld und Finanzdienstleister", "Energieversorger"]
+      }
+    ],
+    "rechts": [
+      {
+        "titel": "Tools",
+        "eintraege": ["Figma", "Miro", "Lighthouse, PAC 2024"]
+      },
+      {
+        "titel": "Sprachen",
+        "eintraege": ["Deutsch", "Englisch (verhandlungssicher)"]
+      }
+    ]
+  }
+}
