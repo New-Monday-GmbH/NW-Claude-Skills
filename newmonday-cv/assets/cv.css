@@ -36,8 +36,34 @@ body {
 
 /* ---------- Kopf ---------- */
 
+/* Kopfzeile: links das New-Monday-Logo, rechts die Verweise auf derselben
+   Zeile. Sie stehen nicht mehr als Fusszeile unter Seite 1 — oben werden sie
+   gesehen, unten hat sie niemand gesucht. */
+/* Float statt Flex: WeasyPrint (66) rechnet die Breite eines Flex-Elements mit
+   Text zu knapp und bricht die Verweise dann untereinander um, obwohl die Zeile
+   Platz haette. Neben einem Float laufen sie zuverlaessig in einer Zeile — und
+   sind die Adressen doch einmal zu lang, bricht die zweite Zeile sauber unter
+   dem Logo weiter, statt ueber den Satzspiegel hinauszulaufen. */
 .header { margin-bottom: 35.5pt; }
-.header img { width: 133.231pt; height: 13.5pt; }
+.header::after { content: ""; display: table; clear: both; }
+.header__logo { float: left; width: 133.231pt; height: 13.5pt; }
+
+/* Anklickbar, aber dezent: schwarzer Text wie der Rest des Dokuments, nur der
+   Unterstrich steht in der Markenfarbe. Eine farbige Schrift waere im Papier-
+   ausdruck ein Fremdkoerper, ein grauer Unterstrich als Link nicht erkennbar. */
+/* 2pt: setzt die 8pt-Zeile mittig zur 13.5pt hohen Wortmarke daneben. */
+.header__links {
+  text-align: right; font-size: 8pt; line-height: normal; padding-top: 2pt;
+}
+.header__link + .header__link { margin-left: 16pt; }
+.header__link {
+  color: var(--black); white-space: nowrap;
+  text-decoration: underline; text-decoration-color: var(--brand);
+  text-decoration-thickness: 0.5pt; text-underline-offset: 2pt;
+}
+/* Ein Portfolio, das nur als PDF vorliegt, hat keine Adresse — dann steht der
+   Hinweis ohne Unterstrich da, denn anklicken laesst er sich nicht. */
+.header__link--ohne { text-decoration: none; }
 
 .intro { display: flex; gap: 40pt; margin-bottom: 32pt; }
 .intro__col { width: 78pt; padding-top: 7pt; flex: none; }
@@ -52,7 +78,18 @@ body {
 }
 .role { font-size: 10pt; line-height: normal; }
 .role + .role { margin-top: 4pt; }
-.profile { margin-top: 20pt; letter-spacing: -0.05pt; }
+
+/* Das Kurzprofil steht auf Seite 2 ueber den Stationen — als eigene Rubrik mit
+   Ueberschrift und Trennlinie, ueber die volle Inhaltsbreite. Beides trennt es
+   von den Stationen darunter, die bei 120pt einruecken: ohne diese Absetzung
+   liest sich der Absatz wie der Text der ersten Station. */
+.section--profil { margin-top: 0; }
+.section--profil h2 { margin-bottom: 12pt; }
+/* Trennlinie wie nach Bildung. Darunter voller Rasterabstand zur ersten
+   Station — dicht an der Linie wirkt die Station wie ein Teil des Kurzprofils. */
+.section--profil .divider { margin-top: 20pt; }
+.section--profil { margin-bottom: 31pt; }
+.profile { letter-spacing: -0.05pt; }
 
 /* ---------- Stationen ---------- */
 
@@ -60,6 +97,10 @@ body {
    eine lange Station komplett auf die naechste Seite springen. Float laesst
    den Text weiterlaufen und haelt das Logo am Anfang der Station. */
 .station { margin-bottom: 32pt; clear: both; }
+/* Nach der letzten Station kommt nur der Footer, und der bringt seinen Abstand
+   als .fussluft mit. Die 32pt obendrauf haben gereicht, um ihn auf eine sonst
+   leere Seite zu schieben. */
+.station:last-child { margin-bottom: 0; }
 .station::after { content: ""; display: table; clear: both; }
 .station__rail { float: left; width: var(--rail); padding-top: 3pt; }
 /* display: block — mehrere Marken stehen immer untereinander, nie nebeneinander.
@@ -73,7 +114,7 @@ body {
 /* Literal statt calc(): WeasyPrint (66) wirft calc() im margin-left weg, der
    Wert landet auf 0 und der Stationstext laeuft ueber das Logo. Muss von Hand
    nachgezogen werden, wenn --rail oder --gap sich aendern (88pt + 32pt). */
-.station__body { margin-left: 120pt; }
+.station__body, .station__kopftext { margin-left: 120pt; }
 
 .station__title { font-size: 12pt; font-weight: 700; line-height: normal; }
 .station__meta {
@@ -111,29 +152,50 @@ ul.tasks {
 ul.tasks li { margin-bottom: 10pt; }
 ul.tasks li:last-child { margin-bottom: 0; }
 
+/* Notstufen, damit der Footer nicht allein auf einer sonst leeren Seite landet:
+   greifen nur, wenn genau das droht, und holen die fehlenden Punkte aus den
+   Abstaenden zwischen Stationen, Projekten und Bullets. Setzt render_cv.py. */
+.stationen--kompakt .station { margin-bottom: 24pt; }
+.stationen--kompakt .project { margin-top: 24pt; }
+.stationen--kompakt ul.tasks li { margin-bottom: 8pt; }
+.stationen--kompakt .section--profil { margin-bottom: 24pt; }
+.stationen--kompakt .section--profil .divider { margin-top: 16pt; }
+
+.stationen--eng .station { margin-bottom: 20pt; }
+.stationen--eng .project { margin-top: 20pt; }
+.stationen--eng ul.tasks li { margin-bottom: 6pt; }
+.stationen--eng .section--profil { margin-bottom: 20pt; }
+.stationen--eng .section--profil .divider { margin-top: 14pt; }
+.stationen--eng .section--profil h2 { margin-bottom: 10pt; }
+
 /* ---------- Bildung / Skillset ---------- */
 
-/* Bildung und Skillset beginnen immer auf einer neuen Seite, wie in Figma.
-   Der erste .section darin bringt sonst noch seinen eigenen Abstand mit. */
-/* Bildung, Skillset und Footer bilden die letzte Seite. Der Footer sitzt an
-   ihrem unteren Rand — ein Fuellelement dazwischen drueckt ihn dorthin.
-   Der Anker wird nur gesetzt, wenn der Block auf eine Seite passt: ein
-   Flex-Container laesst sich nicht auftrennen. Siehe render_cv.py. */
-.letzte-seite { break-before: page; }
-.letzte-seite--anker { display: flex; flex-direction: column; min-height: 745pt; }
-.letzte-seite--anker > * { width: var(--content); }
-.letzte-seite--anker .luft { flex: 1 0 auto; }
-.abschluss { }
-/* Notstufe: greift nur, wenn Bildung und Skillset sonst eine zweite Seite
-   brauchen. Setzt das Renderskript selbst, siehe render_cv.py. */
-.abschluss--kompakt .section { margin-top: 20pt; }
-.abschluss--kompakt .section h2 { margin-bottom: 20pt; }
-.abschluss--kompakt .section h3 { margin-bottom: 12pt; }
-.abschluss--kompakt .stack > * + * { margin-top: 20pt; }
-.abschluss--kompakt .cols--wrap { row-gap: 20pt; }
-.abschluss--kompakt .divider { margin-top: 20pt; }
-.abschluss--kompakt + .footer { margin-top: 20pt; }
-.abschluss > .section:first-child { margin-top: 0; }
+/* Bildung und Skillset stehen auf Seite 1, unter dem Profilkopf. Sie sind das
+   Erste, was ein Kunde sieht. Die Stationen beginnen danach auf einer neuen
+   Seite; der Abstand zum Profilkopf kommt aus dessen margin-bottom, der erste
+   .section darin bringt sonst noch seinen eigenen mit. */
+.deckblatt > .section:first-child { margin-top: 0; }
+.stationen--neue-seite { break-before: page; }
+
+/* Enger setzen statt Eintraege streichen: reicht Seite 1 nicht, geht das
+   Renderskript die beiden Stufen der Reihe nach durch (siehe render_cv.py).
+   Gekuerzt wird erst, wenn auch --eng nicht reicht. Angefasst werden nur
+   Abstaende, nie Schriftgroessen — der Block soll nicht kleiner aussehen als
+   der Rest des Dokuments. */
+.deckblatt--kompakt .section { margin-top: 20pt; }
+.deckblatt--kompakt .section h2 { margin-bottom: 20pt; }
+.deckblatt--kompakt .section h3 { margin-bottom: 12pt; }
+.deckblatt--kompakt .stack > * + * { margin-top: 20pt; }
+.deckblatt--kompakt .cols--wrap { row-gap: 20pt; }
+.deckblatt--kompakt .divider { margin-top: 20pt; }
+
+.deckblatt--eng .section { margin-top: 14pt; }
+.deckblatt--eng .section h2 { margin-bottom: 12pt; }
+.deckblatt--eng .section h3 { margin-bottom: 8pt; }
+.deckblatt--eng .stack > * + * { margin-top: 14pt; }
+.deckblatt--eng .cols--wrap { row-gap: 14pt; }
+.deckblatt--eng .divider { margin-top: 14pt; }
+.deckblatt--eng .edu ul { margin-top: 8pt; }
 
 .section { margin-top: 31pt; }
 .section h2 { font-size: 14pt; font-weight: 600; line-height: normal; margin-bottom: 31pt; }
@@ -167,7 +229,17 @@ ul.tight li + li { margin-top: 2pt; }
 
 /* ---------- Footer ---------- */
 
-.footer { margin-top: 31pt; break-inside: avoid; }
+/* Der Footer schliesst das Dokument am unteren Rand der letzten Seite ab, wie
+   in Figma. Den Abstand dorthin setzt render_cv.py als margin-top am
+   .fussluft davor — gemessen am ersten Durchgang, siehe footer_tiefe(). Ein
+   Flex-Anker ginge nicht: er laesst sich nicht auftrennen und wuerde den Footer
+   auf eine eigene Seite zwingen. */
+/* Der Abstand vor dem Footer steckt komplett in .fussluft, nicht in einem
+   margin: ein margin am Seitenanfang wirft WeasyPrint weg, ein Element mit
+   Hoehe nicht. Nur so misst der erste Durchgang dieselbe Ausgangslage, die der
+   zweite verschiebt. */
+.fussluft { width: 100%; }
+.footer { break-inside: avoid; }
 .footer__note { font-size: 10pt; }
 .footer__divider { border-top: 1px solid var(--hairline); margin-top: 16pt; }
 .footer__row { display: flex; gap: 31pt; margin-top: 17pt; align-items: flex-start; }
@@ -185,3 +257,18 @@ ul.tight li + li { margin-top: 2pt; }
 .edu,
 .skillgroup { break-inside: avoid; }
 .station__title, .project__client { break-after: avoid; }
+
+/* Eine Station faengt nicht unten auf einer Seite an, um nach dem ersten
+   Stichpunkt umzubrechen: Jobtitel, Firma und ein einzelner Bullet an der
+   Blattkante lesen sich wie zwei angefangene Stationen. Deshalb haengen Kopf
+   und die ersten beiden Stichpunkte zusammen; passt das nicht mehr aufs Blatt,
+   rueckt die ganze Station auf die naechste Seite.
+   Das Logo steckt im selben Block wie der Kopf (siehe template.html) — ohne
+   diese Klammer bleibt der Float auf der alten Seite stehen, waehrend der Text
+   weiterrueckt.
+   :not(:last-child) — hat eine Station nur einen einzigen Stichpunkt, darf
+   hinter ihm umbrochen werden. Sonst zoege er das erste Projekt mit, das als
+   Block ohnehin unteilbar ist. */
+.station__kopf { break-inside: avoid; }
+.station--bullets .station__kopf { break-after: avoid; }
+ul.tasks li:first-child:not(:last-child) { break-after: avoid; }

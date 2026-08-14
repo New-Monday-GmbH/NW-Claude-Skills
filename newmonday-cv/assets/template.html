@@ -7,7 +7,20 @@
 </head>
 <body>
 
-<div class="header"><img src="logos/nm-logo.svg" alt="New Monday"></div>
+{# Die Verweise stehen in der Kopfzeile, rechtsbuendig auf der Hoehe des Logos.
+   Der Unterstrich in der Markenfarbe ist das einzige Signal, dass sie anklickbar
+   sind — mehr braucht es in einem Dokument nicht. #}
+<div class="header">
+  <img class="header__logo" src="logos/nm-logo.svg" alt="New Monday">
+  {% if person.links %}
+  <div class="header__links">
+    {% for l in person.links %}
+    {% if l.url %}<a class="header__link" href="{{ l.url }}">{{ l.text or l.url | anzeige }}</a>
+    {% else %}<span class="header__link header__link--ohne">{{ l.text or l.titel }}</span>{% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
 
 <div class="intro">
   <div class="intro__col">
@@ -17,26 +30,90 @@
     <div class="name">{{ person.name }}</div>
     {% if person.rolle %}<div class="role">{{ person.rolle }}</div>{% endif %}
     {% if person.erfahrung %}<div class="role">{{ person.erfahrung }}</div>{% endif %}
-    {% if person.kurzprofil %}<p class="profile">{{ person.kurzprofil }}</p>{% endif %}
+    {# Das Kurzprofil steht nicht hier, sondern auf Seite 2 ueber den Stationen —
+       auf Seite 1 wird der Platz fuer Bildung und Skillset gebraucht. #}
   </div>
 </div>
 
+{# Bildung und Skillset stehen auf Seite 1, direkt unter dem Profilkopf. Die
+   Stationen beginnen danach auf einer neuen Seite. #}
+{% if bildung or skillset %}
+<div class="deckblatt{% if stufe != 'normal' %} deckblatt--{{ stufe }}{% endif %}">
+{% if bildung %}
+<div class="section">
+  <h2>{{ t.bildung }}</h2>
+  <div class="cols cols--wrap">
+    {% for b in bildung %}
+    <div class="edu">
+      <div class="edu__degree">{{ b.abschluss }}</div>
+      {% if b.institution %}<div class="edu__line">{{ b.institution }}</div>{% endif %}
+      {% if b.zeitraum %}<div class="edu__line">{{ b.zeitraum }}</div>{% endif %}
+      {% if b.themen %}<ul class="tight">{% for t in b.themen %}<li>{{ t }}</li>{% endfor %}</ul>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="divider"></div>
+</div>
+{% endif %}
+
+{% if skillset %}
+<div class="section">
+  <h2>{{ t.skillset }}</h2>
+  {# Float statt Flex: reicht Seite 1 nicht, muessen die Spalten auf die
+     naechste Seite umbrechen koennen. Ein Flex-Container springt als Ganzes. #}
+  <div class="cols cols--fliessend">
+    <div class="stack">
+      {% for g in skillset.links %}
+      <div class="skillgroup">
+        <h3>{{ g.titel }}</h3>
+        <ul class="tight">{% for e in g.eintraege %}<li>{{ e }}</li>{% endfor %}</ul>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="stack">
+      {% for g in skillset.rechts %}
+      <div class="skillgroup">
+        <h3>{{ g.titel }}</h3>
+        <ul class="tight">{% for e in g.eintraege %}<li>{{ e }}</li>{% endfor %}</ul>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+</div>
+{% endif %}
+
+<div class="stationen{% if bildung or skillset %} stationen--neue-seite{% endif %}{% if stationen_kompakt %} stationen--{{ stationen_kompakt }}{% endif %}">
+{# Eigene Rubrik mit Ueberschrift und Trennlinie: ohne sie liest sich der
+   Absatz wie der Text der ersten Station. #}
+{% if person.kurzprofil %}
+<div class="section section--profil">
+  <h2>{{ t.kurzprofil }}</h2>
+  <p class="profile">{{ person.kurzprofil }}</p>
+  <div class="divider"></div>
+</div>
+{% endif %}
 {% for s in stationen %}
-<div class="station">
-  {# Breite und Hoehe je Logo kommen aus render_cv.py (logo_masse): jedes Logo
-     deckt dieselbe Flaeche, damit Bildmarke und Schriftzug gleich schwer
-     wirken. Im CSS steht dazu nichts, nur die Ausrichtung. #}
-  <div class="station__rail">
-    {% for l in s.logos %}<img src="logos/{{ l.datei }}" alt="{{ s.firma }}"
-      style="width:{{ l.breite }}pt;height:{{ l.hoehe }}pt">{% endfor %}
+<div class="station{% if s.aufgaben %} station--bullets{% endif %}">
+  {# Kopf und Logo stehen in einem Block, der nicht umbrochen wird: sonst
+     bliebe das Logo auf der alten Seite stehen, waehrend der Text auf der
+     naechsten weitergeht. Breite und Hoehe je Logo kommen aus render_cv.py. #}
+  <div class="station__kopf">
+    <div class="station__rail">
+      {% for l in s.logos %}<img src="logos/{{ l.datei }}" alt="{{ s.firma }}"
+        style="width:{{ l.breite }}pt;height:{{ l.hoehe }}pt">{% endfor %}
+    </div>
+    <div class="station__kopftext">
+      <div class="station__title">{{ s.titel }}</div>
+      <div class="station__meta">
+        <span>{{ s.zeitraum }}</span>{% if s.firma %}<i></i><span>{{ s.firma }}</span>{% endif %}
+      </div>
+      {% if s.zusammenfassung %}<p class="station__summary">{{ s.zusammenfassung }}</p>{% endif %}
+      {% if s.beschreibung %}<p class="station__text">{{ s.beschreibung }}</p>{% endif %}
+    </div>
   </div>
   <div class="station__body">
-    <div class="station__title">{{ s.titel }}</div>
-    <div class="station__meta">
-      <span>{{ s.zeitraum }}</span>{% if s.firma %}<i></i><span>{{ s.firma }}</span>{% endif %}
-    </div>
-    {% if s.zusammenfassung %}<p class="station__summary">{{ s.zusammenfassung }}</p>{% endif %}
-    {% if s.beschreibung %}<p class="station__text">{{ s.beschreibung }}</p>{% endif %}
     {% if s.aufgaben %}
     <ul class="tasks">{% for a in s.aufgaben %}<li>{{ a }}</li>{% endfor %}</ul>
     {% endif %}
@@ -58,58 +135,16 @@
   </div>
 </div>
 {% endfor %}
-
-{% if bildung or skillset %}
-<div class="letzte-seite{% if anker %} letzte-seite--anker{% endif %}">
-<div class="abschluss{% if kompakt %} abschluss--kompakt{% endif %}">
-{% if bildung %}
-<div class="section">
-  <h2>{{ t.bildung }}</h2>
-  <div class="cols cols--wrap">
-    {% for b in bildung %}
-    <div class="edu">
-      <div class="edu__degree">{{ b.abschluss }}</div>
-      {% if b.institution %}<div class="edu__line">{{ b.institution }}</div>{% endif %}
-      {% if b.zeitraum %}<div class="edu__line">{{ b.zeitraum }}</div>{% endif %}
-      {% if b.themen %}<ul class="tight">{% for t in b.themen %}<li>{{ t }}</li>{% endfor %}</ul>{% endif %}
-    </div>
-    {% endfor %}
-  </div>
-  <div class="divider"></div>
 </div>
-{% endif %}
 
-{% if skillset %}
-<div class="section">
-  <h2>{{ t.skillset }}</h2>
-  {# Floats nur ohne Anker: sie muessen dann ueber Seiten umbrechen koennen.
-     Im Flex-Wrapper des Ankers verlieren Floats ihre Breite. #}
-  <div class="cols{% if not anker %} cols--fliessend{% endif %}">
-    <div class="stack">
-      {% for g in skillset.links %}
-      <div class="skillgroup">
-        <h3>{{ g.titel }}</h3>
-        <ul class="tight">{% for e in g.eintraege %}<li>{{ e }}</li>{% endfor %}</ul>
-      </div>
-      {% endfor %}
-    </div>
-    <div class="stack">
-      {% for g in skillset.rechts %}
-      <div class="skillgroup">
-        <h3>{{ g.titel }}</h3>
-        <ul class="tight">{% for e in g.eintraege %}<li>{{ e }}</li>{% endfor %}</ul>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-</div>
-{% endif %}
-</div>
-<div class="luft"></div>
-{% endif %}
-
+{# Die Fussluft haelt den Footer am unteren Rand der letzten Seite. Sie ist
+   immer da — im Grundzustand 31pt, danach so hoch, wie render_cv.py es aus dem
+   ersten Durchgang gemessen hat. Ein Margin taugte dafuer nicht: am
+   Seitenanfang wirft WeasyPrint ihn weg, und die Messung waere nicht mehr
+   dieselbe Ausgangslage wie der zweite Durchgang. #}
+<div class="fussbereich">
+<div class="fussluft" style="height:{{ fuss_abstand or 31 }}pt"></div>
 <div class="footer">
-  <div class="footer__note">{{ hinweis }}</div>
   <div class="footer__divider"></div>
   <div class="footer__row">
     <div class="footer__logo"><img src="logos/nm-logo.svg" alt="New Monday" style="width:79pt"></div>
@@ -129,7 +164,7 @@
     </div>
   </div>
 </div>
-{% if bildung or skillset %}</div>{% endif %}
+</div>
 
 </body>
 </html>

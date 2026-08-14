@@ -23,14 +23,14 @@ ASSETS = ROOT / "assets"
 
 BESCHRIFTUNG = {
     "de": {
-        "bildung": "Bildung", "skillset": "Skillset",
+        "bildung": "Bildung", "skillset": "Skillset", "links": "Weiterführende Links",
+        "kurzprofil": "Kurzprofil",
         "ansprechpartner": "Ansprechpartner", "kontakt": "Kontakt", "adresse": "Adresse",
-        "hinweis": "Für weitere Informationen fordern Sie bitte das Portfolio an.",
     },
     "en": {
-        "bildung": "Education", "skillset": "Skillset",
+        "bildung": "Education", "skillset": "Skillset", "links": "Further links",
+        "kurzprofil": "Profile",
         "ansprechpartner": "Contact person", "kontakt": "Contact", "adresse": "Address",
-        "hinweis": "Please request the portfolio for further information.",
     },
 }
 
@@ -233,14 +233,15 @@ def pruefe(daten):
     return hinweise
 
 
-def html_bauen(daten, kompakt=False, anker=False):
+def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
     from jinja2 import Environment, FileSystemLoader, select_autoescape
     env = Environment(
         loader=FileSystemLoader(str(ASSETS)),
         autoescape=select_autoescape(["html"]),
     )
+    # Angezeigt wird die Adresse ohne Schema und www — verlinkt bleibt die volle.
+    env.filters["anzeige"] = lambda u: re.sub(r"^https?://(www\.)?", "", str(u)).rstrip("/")
     labels = BESCHRIFTUNG.get(daten.get("sprache", "de"), BESCHRIFTUNG["de"])
-    daten.setdefault("hinweis", labels["hinweis"])
     daten.setdefault("kontakt", {
         "name": "Manuel Klein", "rolle": "COO",
         "mail": "manuel.klein@newmonday.co", "telefon": "+49 (0) 155 1148 0130",
@@ -271,7 +272,8 @@ def html_bauen(daten, kompakt=False, anker=False):
         daten["person"]["foto"] = p.as_uri()
 
     return env.get_template("template.html").render(
-        kompakt=kompakt, anker=anker, t=labels, **daten
+        stufe=stufe, fuss_abstand=fuss_abstand,
+        stationen_kompakt=stationen_kompakt, t=labels, **daten
     )
 
 
@@ -332,29 +334,142 @@ def rendern(html, ziel):
     )
 
 
-def seiten_pruefen(ziel, daten):
-    """Belegen Bildung und Skillset mehr als eine Seite?"""
-    if not (daten.get("bildung") or daten.get("skillset")):
-        return []
+def spalten_pruefen(daten):
+    """Steht das Skillset schief in den Spalten? Dann laesst sich Hoehe gewinnen.
+
+    Der Block ist so hoch wie seine laengere Spalte. Eine halb leere zweite
+    Spalte kostet also Platz auf Seite 1 — und Umverteilen kostet im Gegensatz
+    zum Kuerzen keinen einzigen Eintrag.
+    """
+    skillset = daten.get("skillset") or {}
+    def zeilen(spalte):                       # Ueberschrift plus Eintraege
+        return sum(1 + len(g.get("eintraege") or []) for g in spalte or [])
+    links, rechts = zeilen(skillset.get("links")), zeilen(skillset.get("rechts"))
+    lang, kurz = max(links, rechts), min(links, rechts)
+    if kurz and lang > kurz * 1.5:
+        seite = "linke" if links > rechts else "rechte"
+        return [
+            f"Das Skillset steht schief: die {seite} Spalte traegt {lang} Zeilen, "
+            f"die andere {kurz}. Eine Gruppe hinueberschieben macht den Block "
+            "flacher, ohne dass ein Eintrag wegfaellt — das zuerst versuchen."
+        ]
+    return []
+
+
+# Wo die unterste Zeile des Footers stehen soll, in pt ueber der Blattunterkante.
+# Der Seitenrand liegt bei 32pt; gemessen wird die Schriftlinie, die ein Stueck
+# darueber sitzt. Der Rest ist Sicherheitsabstand: gemessen kippt der Footer auf
+# eine neue Seite, sobald die Fussluft die Restseite auf den Punkt ausfuellt, und
+# 12pt sind vier Millimeter — von buendig nicht zu unterscheiden.
+FUSS_ZIEL = 44
+# Mindestabstand, wenn die Seite nicht mehr hergibt. Lieber eng als eine
+# zusaetzliche Seite, auf der nichts ausser dem Footer steht.
+FUSS_MIN = 12
+
+
+def seitenzahl(ziel):
+    """Seiten im fertigen PDF. 0, wenn pypdf fehlt — dann wird nicht gemessen."""
     try:
         from pypdf import PdfReader
     except ImportError:
-        return []
-    seiten = len(PdfReader(str(ziel)).pages)
-    marken = ("Bildung", "Skillset")
-    erste = None
-    for nummer, seite in enumerate(PdfReader(str(ziel)).pages, start=1):
-        text = seite.extract_text() or ""
-        if any(m in text for m in marken):
-            erste = nummer
-            break
-    if erste and seiten - erste > 0:
-        return [
-            f"Bildung/Skillset laufen ueber {seiten - erste + 1} Seiten. "
-            "Skillset zusammenfassen: Gruppen zusammenlegen, je Gruppe die "
-            "aussagekraeftigsten Eintraege behalten."
-        ]
-    return []
+        return 0
+    return len(PdfReader(str(ziel)).pages)
+
+
+def footer_allein(ziel, daten):
+    """Steht auf der letzten Seite nur noch der Footer?
+
+    Dann ist die Seite reine Verschwendung — es lohnt der Versuch, die Stationen
+    enger zu setzen, damit er auf die Seite davor rutscht. Gemessen wird, was
+    nach Abzug der Footer-Texte an Text uebrig bleibt: ueber die Stationen ginge
+    es nicht, "New Monday GmbH" steht als Firma und als Adresse im Dokument.
+    """
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        return False
+    letzte = " ".join((PdfReader(str(ziel)).pages[-1].extract_text() or "").split()).lower()
+    labels = BESCHRIFTUNG.get(daten.get("sprache", "de"), BESCHRIFTUNG["de"])
+    teile = [labels[k] for k in ("ansprechpartner", "kontakt", "adresse")]
+    teile += [str(w) for w in (daten.get("kontakt") or {}).values()]
+    for stueck in teile:
+        letzte = letzte.replace(" ".join(str(stueck).split()).lower(), " ", 1)
+    return len(letzte.split()) < 4
+
+
+def text_tiefe(ziel, seite=-1):
+    """Wie weit ueber der Blattunterkante endet der Text einer Seite?
+
+    In pt, gemessen an der untersten Schriftlinie. None, wenn nicht messbar.
+    Die Textmatrix allein reicht dafuer nicht: WeasyPrint setzt eine gedrehte
+    und skalierte Grundmatrix, erst beide zusammen ergeben die Seitenkoordinate.
+    """
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        return None
+    hoehen = []
+
+    def besucher(text, cm, tm, schrift, groesse):
+        if text.strip():
+            hoehen.append(tm[4] * cm[1] + tm[5] * cm[3] + cm[5])
+
+    PdfReader(str(ziel)).pages[seite].extract_text(visitor_text=besucher)
+    return min(hoehen) if hoehen else None
+
+
+def _schlussmarken(daten):
+    """Texte, die ganz am Ende des Deckblatts stehen — je Skillset-Spalte einer.
+
+    Nicht am Anfang der Stationen messen: deren erster Titel ist oft derselbe
+    Text wie die Rolle im Profilkopf ("Softwareentwickler") und wird dann schon
+    auf Seite 1 gefunden, obwohl das Skillset laengst ueberlaeuft.
+
+    Die Verweise taugen dafuer nicht: sie stehen in der Kopfzeile, also immer
+    ganz oben auf Seite 1, egal wie weit das Skillset darunter ueberlaeuft.
+    """
+    marken = []
+    skillset = daten.get("skillset") or {}
+    for spalte in (skillset.get("links"), skillset.get("rechts")):
+        if spalte:
+            letzte = spalte[-1]
+            eintraege = letzte.get("eintraege") or []
+            marken.append(eintraege[-1] if eintraege else letzte.get("titel"))
+    if not marken:
+        for b in (daten.get("bildung") or [])[-1:]:
+            themen = b.get("themen") or []
+            marken.append(themen[-1] if themen else b.get("institution") or b.get("abschluss"))
+    return [" ".join(str(m).split()) for m in marken if m]
+
+
+def deckblatt_seiten(ziel, daten):
+    """Wie viele Seiten belegen Profilkopf, Bildung und Skillset zusammen?
+
+    Gemessen am jeweils ersten Vorkommen der Schlussmarken — der Block steht vor
+    den Stationen, ein spaeterer Treffer im Stationstext zaehlt also nicht.
+    0 heisst: gibt hier nichts zu pruefen (kein pypdf, kein Bildung/Skillset).
+    -1 heisst: geprueft, aber keine Marke wiedergefunden.
+    """
+    if not (daten.get("bildung") or daten.get("skillset")):
+        return 0
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        return 0
+
+    marken = _schlussmarken(daten)
+    if not marken:
+        return 0
+    # Normalisiert, weil ein umgebrochener Eintrag im PDF-Text ein \n traegt.
+    seiten = [" ".join((s.extract_text() or "").split())
+              for s in PdfReader(str(ziel)).pages]
+    letzte = 0
+    for marke in marken:
+        for nummer, text in enumerate(seiten, start=1):
+            if marke in text:
+                letzte = max(letzte, nummer)
+                break
+    return letzte or -1
 
 
 def main():
@@ -365,25 +480,83 @@ def main():
 
     hinweise = pruefe(daten)
     ziel.parent.mkdir(parents=True, exist_ok=True)
-    # Erst pruefen, ob der Abschluss auf eine Seite passt — notfalls enger setzen.
-    engine = rendern(html_bauen(daten), ziel)
-    kompakt = False
-    ueberlauf = seiten_pruefen(ziel, daten)
-    if ueberlauf:
-        kompakt = True
-        engine = rendern(html_bauen(daten, kompakt=True), ziel)
-        ueberlauf = seiten_pruefen(ziel, daten)
 
-    if ueberlauf:
-        # Passt selbst eng nicht: ohne Anker laufen lassen, sonst wird geschnitten.
-        hinweise += ueberlauf
-    elif daten.get("bildung") or daten.get("skillset"):
-        # Passt: Footer an den unteren Seitenrand ankern.
-        engine = rendern(html_bauen(daten, kompakt=kompakt, anker=True), ziel)
-        if seiten_pruefen(ziel, daten):          # Anker haette eine Seite gekostet
-            engine = rendern(html_bauen(daten, kompakt=kompakt), ziel)
-        elif kompakt:
-            print("Bildung/Skillset eng gesetzt, damit sie auf eine Seite passen.")
+    # Deckblatt = Profilkopf, Bildung und Skillset auf Seite 1. Passt es nicht,
+    # werden die Abstaende gestaffelt enger gesetzt, bevor irgendwer Eintraege
+    # streicht. Erst wenn auch die engste Stufe nicht reicht, kommt der Hinweis.
+    stufe = "normal"
+    engine = rendern(html_bauen(daten), ziel)
+    for naechste in ("kompakt", "eng"):
+        if deckblatt_seiten(ziel, daten) <= 1:
+            break
+        stufe = naechste
+        engine = rendern(html_bauen(daten, stufe=stufe), ziel)
+
+    kompakt = False
+
+    def setzen(**abstaende):
+        return rendern(html_bauen(daten, stufe=stufe, stationen_kompakt=kompakt,
+                                  **abstaende), ziel)
+
+    # Der Footer schliesst die letzte Seite unten ab. Sein Abstand wird nicht
+    # geraten, sondern gemessen: erst die Ist-Hoehe der untersten Zeile, dann
+    # bekommt die Luft davor genau die Differenz. Unter der Schriftlinie sitzt
+    # aber noch Zeilenrest, und der Umbruch braucht Reserve — wie viel, haengt
+    # am Dokument, deshalb mehrere Zielhoehen von knapp bis gelassen. Was die
+    # Seite sprengt, faellt durch.
+    ZIELE = (FUSS_ZIEL, FUSS_ZIEL + 20, FUSS_ZIEL + 45, FUSS_ZIEL + 75)
+
+    # Eine letzte Seite, auf der nur der Footer steht, ist verschenktes Papier.
+    # Dann werden die Abstaende zwischen Stationen, Projekten und Bullets enger
+    # gesetzt — bringt das die Seite zurueck, bleibt es dabei. Gemessen wird mit
+    # minimaler Fussluft: nur so zeigt sich, ob der Footer ueberhaupt noch auf
+    # die Seite davor passt.
+    engine = setzen(fuss_abstand=FUSS_MIN)
+    if footer_allein(ziel, daten):
+        vorher = seitenzahl(ziel)
+        for enger in ("kompakt", "eng"):
+            kompakt = enger
+            engine = setzen(fuss_abstand=FUSS_MIN)
+            if seitenzahl(ziel) < vorher:
+                break
+        else:
+            kompakt = False
+            engine = setzen(fuss_abstand=FUSS_MIN)
+
+    # Jetzt steht fest, mit wie wenig Seiten das Dokument auskommt. Der Footer
+    # rueckt so weit nach unten, wie es diese Seitenzahl zulaesst — reicht es
+    # nur fuer den Mindestabstand, ist das immer noch besser als eine Seite,
+    # auf der nichts als der Footer steht.
+    minimal = seitenzahl(ziel)
+    tiefe = text_tiefe(ziel)
+    for ziel_hoehe in ZIELE if tiefe else ():
+        abstand = round(tiefe - ziel_hoehe + FUSS_MIN, 1)
+        if abstand <= FUSS_MIN:
+            break
+        engine = setzen(fuss_abstand=abstand)
+        if seitenzahl(ziel) <= minimal:
+            break
+        engine = setzen(fuss_abstand=FUSS_MIN)
+
+    seiten = deckblatt_seiten(ziel, daten)
+    if seiten > 1:
+        hinweise.append(
+            f"Bildung/Skillset passen nicht neben den Profilkopf auf Seite 1, sie "
+            f"laufen ueber {seiten} Seiten. Zusammenfassen: Gruppen zusammenlegen, "
+            "je Gruppe die aussagekraeftigsten Eintraege behalten."
+        )
+        hinweise += spalten_pruefen(daten)
+    elif seiten < 0:
+        hinweise.append(
+            "Die Seitenaufteilung liess sich nicht pruefen: die erste Station "
+            "steht nicht im auslesbaren Text des PDF. Bitte im PDF nachsehen, ob "
+            "Bildung und Skillset zusammen auf Seite 1 stehen."
+        )
+    elif stufe != "normal":
+        print(f"Bildung/Skillset {stufe} gesetzt, damit sie auf Seite 1 passen.")
+    if kompakt:
+        print(f"Stationen {kompakt} gesetzt, damit der Footer nicht allein auf "
+              "einer Seite steht.")
 
     print(f"{ziel} geschrieben (Engine: {engine})")
     if hinweise:

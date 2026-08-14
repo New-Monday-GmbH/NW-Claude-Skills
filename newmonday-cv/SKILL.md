@@ -1,6 +1,6 @@
 ---
 name: newmonday-cv
-allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*) Bash(pdftoppm *) Bash(pdfinfo *)
+allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*) Bash(pdftoppm *) Bash(pdfinfo *) WebSearch WebFetch AskUserQuestion Read Write Edit
 description: Wandelt einen eingehenden Lebenslauf in einen Lebenslauf im New-Monday-Layout als PDF um. Eingang ist ein CV als PDF, ein LinkedIn-PDF-Export, ein LinkedIn-Profil-Link (daraus wird das Profilfoto automatisch geholt) oder eingefügter Profiltext, Ausgang ein fertiges PDF im Agenturlayout. Nutze diesen Skill immer, wenn ein Lebenslauf, CV, Kandidatenprofil oder Bewerberprofil aufbereitet, umformatiert, "ins New Monday Layout gebracht", vereinheitlicht oder für Kunden aufbereitet werden soll – auch wenn nur eine PDF-Datei mit einem Lebenslauf ohne weitere Erklärung geschickt wird, und auch dann, wenn das Wort "Layout" oder "New Monday" gar nicht fällt.
 ---
 
@@ -27,7 +27,11 @@ und nachfragen. Ein Lebenslauf ist ein Dokument über einen echten Menschen, das
 an Kunden geht – jede stille Korrektur ist eine Behauptung, die jemand anders
 verantworten muss.
 
-### Die einzige Ausnahme: das Kurzprofil
+Zwei Stellen sind davon ausgenommen, und nur diese beiden: das **Kurzprofil**
+(gleich unten) und die **erste Station bei New Monday** (Schritt 2). Beide stehen
+nicht im Eingang, weil sie nicht aus ihm stammen können.
+
+### Die erste Ausnahme: das Kurzprofil
 
 Bringt der Eingang kein Kurzprofil mit, wird eines aus den Stationen gebaut. Das
 ist der einzige Text im Dokument, der neu geschrieben wird. Dafür gilt:
@@ -46,6 +50,13 @@ ist der einzige Text im Dokument, der neu geschrieben wird. Dafür gilt:
 
 Bringt der Lebenslauf ein Kurzprofil mit, wird dieses übernommen – dann greift
 wieder die Regel oben, also nur Rechtschreibung.
+
+### Die zweite Ausnahme: die Station bei New Monday
+
+Jeder Lebenslauf beginnt mit New Monday als erster Station. Deren Inhalt kommt
+nicht aus dem Eingang, sondern von New Monday selbst – und ist deshalb
+vorgegeben, nicht frei formuliert. Wortlaut und Regeln stehen in Schritt 2 unter
+"Die erste Station ist immer New Monday".
 
 ## Umgebung
 
@@ -72,6 +83,34 @@ System. Meldet es Lücken, dem Nutzer den Befehl weiterreichen statt zu raten.
 Für die Installation gibt es `INSTALL.md` – die ist für den Nutzer geschrieben,
 nicht für dich, und kann bei Einrichtungsfragen weitergereicht werden.
 
+## Gefragt wird mit Klickboxen, nicht im Fließtext
+
+**Jede Frage, deren Antwort aus einer überschaubaren Menge stammt, läuft über
+`AskUserQuestion`** – die klickbaren Kästchen in Claude Code. Das gilt für jede
+Rückfrage in diesem Skill: Sprache, Rolle bei New Monday, Startmonat, fachfremde
+Stationen, Weiterbildungen. Auch dann, wenn die Frage kurz ist und im Fließtext
+schneller getippt wäre. Der Nutzer soll klicken, nicht tippen.
+
+Nur zwei Dinge stehen weiter als Text in derselben Nachricht:
+
+- **Material**, das der Nutzer schicken muss: Dateien, Links, Logos, Foto. Dafür
+  gibt es nichts anzuklicken.
+- **Freigaben und Berichte** am Ende (Schritt 5). Das ist eine Übergabe, keine
+  Frage.
+
+Fragen werden gebündelt: `AskUserQuestion` nimmt bis zu vier Fragen auf einmal.
+Der Skill kommt mit **zwei** solchen Nachrichten aus – einer vor dem Auslesen
+(Schritt 0) und einer vor dem Bauen der `cv.json` (Schritt 1d). Wo mehr als vier
+Fragen zusammenkämen, werden sie zusammengelegt, nicht in eine dritte Nachricht
+ausgelagert.
+
+Bei jeder Frage steht die Option zuerst, die aus dem Eingang am
+wahrscheinlichsten folgt, mit `(Empfohlen)` im Label. Geraten wird damit nicht:
+Die Entscheidung trifft weiterhin der Nutzer, er hat sie nur schneller.
+
+Rote Flagge: Du tippst gerade eine Frage samt Antwortmöglichkeiten in den
+Fließtext. Dann gehört sie in `AskUserQuestion`.
+
 ## Ablauf
 
 Alle Aufrufe unten nutzen `${CLAUDE_SKILL_DIR}` — den Ordner, in dem diese
@@ -81,12 +120,16 @@ Variable in deiner Umgebung nicht ersetzt, steht sie für genau diesen Ordner.
 
 ### 0. Vor dem Start fragen — immer, in einer einzigen Nachricht
 
-Bevor irgendetwas gebaut wird, diese drei Punkte klären. Gebündelt, nicht
+Bevor irgendetwas gebaut wird, diese Punkte klären. Gebündelt, nicht
 nacheinander: der Nutzer soll alles auf einmal beantworten und liefern können.
 
-1. **Die Sprache.** Wörtlich so fragen:
+1. **Die Sprache.** Als `AskUserQuestion`, nicht als Fließtext:
 
-   > Soll der Lebenslauf auf Deutsch oder Englisch sein?
+   ```
+   Frage:   Soll der Lebenslauf auf Deutsch oder Englisch sein?
+   Header:  Sprache
+   Optionen: Deutsch  |  Englisch
+   ```
 
    Das entscheidet über die Rubriken im Dokument und darüber, in welcher Sprache
    das Kurzprofil geschrieben wird. Die Frage wird **immer** gestellt, auch wenn
@@ -98,14 +141,18 @@ nacheinander: der Nutzer soll alles auf einmal beantworten und liefern können.
    ist eine bewusste Ausnahme von der Regel oben und braucht eine ausdrückliche
    Ansage – von sich aus wird nie übersetzt.
 
-2. **Firmenlogos als SVG.** Die automatische Suche findet globale Marken
-   zuverlässig, deutsche Agenturen und Mittelständler dagegen fast nie. Genau die
-   stehen aber in den meisten Lebensläufen. Deshalb gleich zu Beginn darum
-   bitten, die Logos der Arbeitgeber als SVG mitzuschicken – am besten aus dem
-   Presse- oder Brand-Bereich der jeweiligen Firmenseite. Was schon in
+2. **Firmenlogos als SVG.** Die Logodatenbanken der Skripte führen globale
+   Marken zuverlässig, deutsche Agenturen und Mittelständler dagegen fast nie.
+   Genau die stehen aber in den meisten Lebensläufen. Deshalb gleich zu Beginn
+   darum bitten, die Logos der Arbeitgeber als SVG mitzuschicken – am besten aus
+   dem Presse- oder Brand-Bereich der jeweiligen Firmenseite. Was schon in
    `assets/logos/` liegt, muss nicht noch einmal geliefert werden.
 
-3. **Das LinkedIn-Profil.** Wörtlich so fragen:
+   Die Bitte ist eine Abkürzung, keine Bedingung: Was nicht kommt, suchst du
+   selbst, siehe Schritt 3.
+
+3. **Das LinkedIn-Profil.** Material, also im Text derselben Nachricht, wörtlich
+   so:
 
    > Gibt es ein LinkedIn-Profil? Wenn du mir den Link schickst
    > (linkedin.com/in/…), ziehe ich das Profilfoto automatisch.
@@ -113,16 +160,39 @@ nacheinander: der Nutzer soll alles auf einmal beantworten und liefern können.
    Ist das Profil öffentlich, holt `linkedin_foto.py` das Foto von dort – siehe
    Schritt 1a. Das erspart das Heraussuchen und Zuschneiden von Hand. Der Link
    ist **zusätzlich** zum PDF-Export nützlich, nicht statt seiner: für die
-   Inhalte taugt er nichts (siehe Schritt 1), fürs Foto schon.
+   Inhalte taugt er nichts (siehe Schritt 1), fürs Foto schon. Er landet
+   außerdem als Verweis in die Kopfzeile des Dokuments, siehe `links` in
+   Schritt 2.
 
-4. **Ein Foto**, falls es über LinkedIn nicht klappt. Bringt der Lebenslauf
-   keins mit und gibt es keinen Profil-Link, danach fragen: als Bilddatei
-   schicken lassen, `extract_input.py` wandelt sie in Graustufen und schneidet
-   sie aufs Layoutformat zu. Ohne Foto funktioniert das Layout, wirkt aber leer
-   – die Fotospalte bleibt frei.
+4. **Das Portfolio.** Ebenfalls als Text, wörtlich so:
+
+   > Gibt es ein Portfolio? Entweder als Link zur Website oder als PDF – ich
+   > setze den Verweis in die Kopfzeile und kann fehlende Angaben daraus
+   > ergänzen.
+
+   Drei Dinge hängen daran: der Verweis in der Kopfzeile, eine dritte Quelle für
+   Lücken (Schritt 1c) und, wenn sonst nichts ein Foto hergibt, eine dritte
+   Fotoquelle (Schritt 1a). Ein PDF taugt nur als Quelle, verlinken lässt es sich
+   nicht – dann bleibt die Zeile weg oder trägt einen Hinweis ohne Adresse.
+
+   **Kommt nichts, wird das übersprungen.** Nicht nachhaken, nicht als fehlend
+   melden: Ein Lebenslauf ohne Portfolio ist vollständig. Die Verweise in der
+   Kopfzeile zeigen nur, was da ist, und entfallen ganz, wenn es weder Profil
+   noch Portfolio gibt.
+
+5. **Ein Foto**, falls weder LinkedIn noch die Website eins hergeben (beides
+   siehe Schritt 1a). Bringt der Lebenslauf keins mit und führt auch kein Link
+   dorthin, danach fragen: als Bilddatei schicken lassen, `extract_input.py`
+   wandelt sie in Graustufen und schneidet sie aufs Layoutformat zu. Ohne Foto
+   funktioniert das Layout, wirkt aber leer – die Fotospalte bleibt frei.
 
 Ebenfalls hier erwähnen, falls noch nicht vorhanden: den LinkedIn-PDF-Export
 (siehe Schritt 1). Er gehört in dieselbe Nachricht.
+
+Das ist **eine** Nachricht: die Sprachfrage als Klickbox, die Punkte 2 bis 5 als
+Text daneben. Rolle und Startmonat bei New Monday werden hier noch nicht
+gefragt — für einen brauchbaren Vorschlag muss der Lebenslauf erst gelesen sein,
+deshalb stehen sie in Schritt 1d.
 
 ### 1. Eingang auslesen
 
@@ -155,7 +225,7 @@ der Filter nicht, da ist die Absicht ja klar.
 
 Kein Foto auffindbar: erst Schritt 1a, dann anfragen. Das Layout funktioniert ohne.
 
-### 1a. Foto aus dem LinkedIn-Profil holen
+### 1a. Das Foto selbst holen — erst LinkedIn, dann die Website
 
 Liegt ein Profil-Link vor und hat der Eingang kein brauchbares Foto ergeben:
 
@@ -196,6 +266,34 @@ am `og:image`-Tag, der immer zum Profil selbst gehört. Trotzdem gilt: Ein
 falsches Gesicht in einem Kandidatenprofil fällt niemandem auf, der die Person
 nicht kennt – ein Blick auf das Foto kostet zwei Sekunden.
 
+#### Gibt LinkedIn nichts her, kommt die Website dran
+
+Liegt ein Portfolio oder eine eigene Website vor (Schritt 0), steht das Foto
+oft dort – auf "Über mich", "Profil" oder der Teamseite, und häufig größer als
+das 400×400-Thumbnail von LinkedIn:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/website_foto.py "https://timo-muster.de" arbeit/
+```
+
+Das Skript liest die Startseite und bis zu drei Unterseiten, die nach Porträt
+klingen, lädt deren Bilder und wirft weg, was technisch kein Porträt sein kann:
+querformatig, winzig, zweifarbig, SVG. Was übrig bleibt, liegt fertig
+zugeschnitten in `arbeit/fotos/`, je Kandidat mit Bildadresse und dpi-Zahl –
+dieselbe 200er-Grenze wie oben.
+
+**Wer auf dem Bild ist, weiß das Skript hier nicht.** Bei LinkedIn hängt die
+Auswahl am `og:image` des Profils, auf einer Website an nichts: Teamfotos,
+Kundengesichter, Stockmaterial und Keyvisuals laufen durch denselben Filter. Im
+Test lieferte eine Agenturseite als größten Kandidaten ein Jubiläums-Keyvisual
+und erst danach den Gründer. Also jeden Kandidaten ansehen und mit dem Bild aus
+dem LinkedIn-Export oder dem Lebenslauf abgleichen, bevor eins ins Dokument
+geht. Bleibt unklar, wer da steht: nicht einsetzen, sondern anfragen.
+
+Manche Seiten weisen automatische Abrufe ab (`HTTP 403`), im Browser-Chat blockt
+der Proxy fremde Domains ohnehin. Dann ist dieser Weg zu Ende und das Foto wird
+beim Kandidaten angefragt.
+
 ### 1b. Zwei Quellen zusammenführen
 
 Liegen Lebenslauf und LinkedIn-Export vor, gilt:
@@ -234,6 +332,129 @@ Liegen Lebenslauf und LinkedIn-Export vor, gilt:
 - Tippfehler aus LinkedIn wie jede andere Rechtschreibung glätten ("Jesmine" →
   "Jasmine").
 
+### 1c. Das Portfolio als dritte Quelle
+
+Liegt ein Portfolio vor, wird es gelesen, bevor irgendwo "unklar" steht:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/extract_input.py <portfolio.pdf> arbeit/portfolio/
+```
+
+Bei einer Website die Seite abrufen und die Projektseiten dazu. Was dort steht,
+schließt Lücken, die Lebenslauf und LinkedIn offen lassen: Kundennamen zu
+Projekten, die im Lebenslauf nur als Gattung stehen, Zeiträume, Technologien,
+Rollen. Dieselbe Rangfolge wie in Schritt 1b – **der Lebenslauf schlägt beides**,
+und das Portfolio ergänzt nur, wo er schweigt.
+
+Zwei Grenzen, die auch hier gelten:
+
+- **Ein Portfolio ist Eigenwerbung.** Bewertende Formulierungen ("preisgekrönt",
+  "führend", "innovativ") gehören nicht in den Lebenslauf, auch nicht sinngemäß.
+  Übernommen werden Fakten: wer, wann, was, womit.
+- **Kunden aus dem Portfolio nicht ungefragt einsetzen.** Wenn der Lebenslauf
+  einen Kunden bewusst als "Speditionsdienstleister" anonymisiert, das Portfolio
+  ihn aber beim Namen nennt, ist das kein Fund, sondern eine Entscheidung, die
+  jemand getroffen hat. In die Übergabe damit, nicht ins Dokument.
+
+Was aus dem Portfolio kam, wird in der Übergabe genannt – Feld für Feld.
+
+### 1d. Die zweite Frage-Nachricht — alles, was vor der `cv.json` offen ist
+
+Eine einzige `AskUserQuestion`-Nachricht, gestellt **nach** dem Auslesen
+(Schritte 1 bis 1c) und **vor** der `cv.json`. Vier Fragen passen hinein, mehr
+nimmt das Werkzeug nicht:
+
+1. **Die Rolle bei New Monday** – Titel der ersten Station, siehe Schritt 2.
+2. **Der Startmonat bei New Monday** – Zeitraum derselben Station.
+3. **Fachfremde Stationen** – rein oder raus.
+4. **Weiterbildungen** – rein oder raus.
+
+Die ersten beiden werden immer gefragt, die anderen beiden nur, wenn es etwas zu
+entscheiden gibt. So sehen sie aus:
+
+```
+Frage:   Wie heißt die Rolle bei New Monday?
+Header:  NM-Rolle
+Optionen: User Experience Design Specialist (Empfohlen)
+        | Software Development Specialist
+```
+
+```
+Frage:   Ab wann ist <Vorname> bei New Monday?
+Header:  NM-Start
+Optionen: August 2026 (Empfohlen)   — der laufende Monat
+        | September 2026            — der folgende Monat
+```
+
+Die empfohlene Option ist die, die zum Eingang passt: Bei einem UX-Lebenslauf
+steht die UX-Rolle vorn, bei einem Entwicklerlebenslauf die Entwicklerrolle. Für
+alles andere trägt der Nutzer über "Other" seinen eigenen Titel bzw. Monat ein –
+etwa `Senior Frontend Developer` oder `Januar 2027`.
+
+**Bis die Antworten da sind, wird nicht gebaut.** Titel und Zeitraum der ersten
+Station lassen sich nicht nachträglich einsetzen, ohne Erfahrungsjahre und
+Seitenumbrüche noch einmal durchzugehen.
+
+#### Fachfremdes und Weiterbildungen — fragen, nicht entscheiden
+
+New Monday vermittelt UX-Design und Entwicklung. Lebensläufe bringen daneben
+regelmäßig Stationen mit, die damit nichts zu tun haben: eine Ausbildung zum
+Bankkaufmann, zwei Jahre Gastronomie, Zivildienst, ein Nebenjob im Einzelhandel,
+ein Ehrenamt. **Beides ist falsch – sie stillschweigend übernehmen und sie
+stillschweigend weglassen.** Weglassen kann ein Profil straffen oder eine Lücke
+in den Lebenslauf reißen, die der Kunde bemerkt; drinlassen kann Ballast sein
+oder genau der Grund, warum jemand die Branche kennt, für die er sich bewirbt.
+Das entscheidet der Nutzer, nicht du.
+
+Dieselbe Nachricht klärt die zweite Frage: **Weiterbildungen rein oder raus?**
+Zertifikatskurse, Bootcamps, Onlinekurse, Seminare, Lehrgänge. Auch die stehen
+oft mitten zwischen den Berufsstationen, und ob sie ins Kundendokument gehören,
+ist eine Entscheidung, keine Ableitung.
+
+Beides sind zwei weitere Fragen derselben `AskUserQuestion`-Nachricht, je eine
+mit `multiSelect`. Die Einträge selbst sind die Optionen, mit Zeitraum, damit
+niemand raten muss, welche Station gemeint ist:
+
+```
+Frage:   Welche fachfremden Stationen sollen mit rein?
+Header:  Fachfremd
+multiSelect: ja
+Optionen: Verkäufer, Media Markt (2014 – 2016)
+        | Zivildienst, DRK Braunschweig (2013 – 2014)
+```
+
+```
+Frage:   Welche Weiterbildungen sollen mit rein?
+Header:  Weiterbildung
+multiSelect: ja
+Optionen: Professional Scrum Master I (2022)
+        | Google UX Design Certificate (2021)
+```
+
+Angehakt heißt rein, nicht angehakt heißt raus. Stehen mehr als vier Einträge zur
+Wahl – mehr Optionen nimmt eine Frage nicht –, treten an ihre Stelle
+`Alle rein` / `Alle raus`, und der Nutzer nennt Ausnahmen über "Other".
+
+Dazu gilt:
+
+- **Nicht der Titel entscheidet, sondern die Tätigkeit.** Ein "Werkstudent
+  Marketing", der die Website betreut hat, gehört in die Liste, nicht in eine
+  stille Entscheidung. Im Zweifel fragen – die Liste ist billig, eine falsch
+  gestrichene Station nicht.
+- **Nichts vorsortieren.** Aufgeführt wird alles, was in Frage steht. Ein
+  Vorschlag dazu ist erlaubt, die Entscheidung nicht.
+- **Lücken benennen.** Entsteht durch das Weglassen ein Loch von mehr als ein
+  paar Monaten, steht das in derselben Nachricht.
+- **Weiterbildungen, die drin bleiben, stehen unter `bildung`** – nie als
+  Station. Und sie zählen **nicht als Berufserfahrung**: `erfahrung` rechnet
+  ohne sie, genau wie ohne Ausbildung und Studium.
+- **Ist alles einschlägig, entfällt die Frage.** Keine Frage um der Frage
+  willen, und keine Liste mit einer einzigen Zeile, die offensichtlich dazu
+  gehört.
+- **Bis die Antwort da ist, wird nicht gebaut.** Eine Station nachträglich
+  herauszunehmen heißt, Erfahrungsjahre, Logos und Seitenumbrüche noch einmal
+  durchzugehen.
+
 ### 2. Daten strukturieren
 
 Aus dem Text eine `cv.json` bauen. Vollständiges Beispiel: `beispiel/cv.json`.
@@ -241,7 +462,10 @@ Aus dem Text eine `cv.json` bauen. Vollständiges Beispiel: `beispiel/cv.json`.
 ```json
 {
   "sprache": "de",
-  "person": { "name", "rolle", "erfahrung", "foto", "kurzprofil" },
+  "person": {
+    "name", "rolle", "erfahrung", "foto", "kurzprofil",
+    "links": [{ "titel", "url", "text" }]
+  },
   "stationen": [{
     "titel", "firma", "zeitraum", "logo", "zusammenfassung", "beschreibung",
     "aufgaben": [],
@@ -256,13 +480,100 @@ Aus dem Text eine `cv.json` bauen. Vollständiges Beispiel: `beispiel/cv.json`.
 ```
 
 `sprache` ist `"de"` oder `"en"` und kommt aus der Frage in Schritt 0. Sie steuert
-die Rubriken ("Bildung" / "Education"), die Footer-Beschriftungen und den
-Portfolio-Hinweis. Der Inhalt der Stationen wird davon nicht angefasst.
+die Rubriken ("Bildung" / "Education", "Kurzprofil" / "Profile") und die
+Footer-Beschriftungen. Der Inhalt der Stationen wird davon nicht angefasst.
+
+`person.links` sind die Verweise aus Schritt 0, in der Reihenfolge LinkedIn,
+Portfolio. Sie stehen **rechtsbündig in der Kopfzeile**, auf derselben Zeile wie
+das New-Monday-Logo, unterstrichen in der Markenfarbe – dezent, aber erkennbar
+anklickbar. Das Kurzprofil steht dagegen auf Seite 2, als eigene Rubrik mit
+Überschrift und Trennlinie, damit es sich nicht wie die erste Station liest.
+`url` wird verlinkt und ohne `https://` und `www.` angezeigt, `text` überschreibt
+den Anzeigetext. Ohne `url` erscheint nur `text`, dann ohne Unterstrich – das ist
+der Fall fürs Portfolio-PDF:
+
+```json
+"links": [
+  { "titel": "LinkedIn",  "url": "https://www.linkedin.com/in/timo-muster" },
+  { "titel": "Portfolio", "url": "https://timo-muster.de" }
+]
+```
+
+Gibt es weder Profil noch Portfolio, entfällt `links` und die Kopfzeile trägt
+wieder nur das Logo.
 
 `logo` nimmt einen Dateinamen oder eine Liste davon – siehe Schritt 3.
 `beschreibung` ist der Fließtext einer Station. Manche Lebensläufe beschreiben
 eine Station als Absatz statt als Aufgabenliste; dann gehört der Absatz dorthin
 und nicht als einzelner Bullet in `aufgaben`. Beides zusammen geht auch.
+
+#### Die erste Station ist immer New Monday
+
+**`stationen[0]` ist New Monday, in jedem Lebenslauf.** Die Person wird über New
+Monday vermittelt; das Dokument geht an Kunden, und dort steht die aktuelle
+Station oben. Wie das aussieht, zeigt `beispiel/cv.json` und das gerenderte
+Beispiel-PDF.
+
+Das ist – neben dem Kurzprofil – die **zweite Ausnahme von der Regel, dass nichts
+erfunden wird**. Der Inhalt dieser Station stammt nicht aus dem Lebenslauf,
+sondern von New Monday. Genau deshalb ist er festgelegt und wird nicht frei
+formuliert: Titel und Startmonat kommen aus den Klickfragen in Schritt 1d, die
+Stichpunkte aus den beiden Textbausteinen unten.
+
+```json
+{
+  "titel": "User Experience Design Specialist",
+  "firma": "New Monday GmbH",
+  "zeitraum": "August 2026 - Heute",
+  "logo": "nm-logo.svg",
+  "zusammenfassung": "UX Design, UX Konzeption",
+  "aufgaben": ["…", "…", "…"]
+}
+```
+
+**Die Stichpunkte sind allgemein gehalten**, weil die Person gerade erst anfängt
+und es noch keine Projekte zu berichten gibt. **Höchstens vier**, und sie hängen
+davon ab, ob es ein UX- oder ein Entwicklerprofil ist – das entscheidet dieselbe
+Antwort, die den Titel setzt.
+
+**UX-Profil** (`"zusammenfassung": "UX Design, UX Konzeption"`):
+
+| Deutsch | Englisch |
+|---|---|
+| Konzeption und Gestaltung digitaler Produkte in Kundenprojekten | Concept and design of digital products in client projects |
+| User Research, Wireframing und Prototyping | User research, wireframing and prototyping |
+| Usability-Tests und Prüfung auf Barrierefreiheit | Usability testing and accessibility reviews |
+| Abstimmung mit Stakeholdern, UI Design und Entwicklung | Coordination with stakeholders, UI design and development |
+
+**Entwicklerprofil** (`"zusammenfassung": "Softwareentwicklung, technische Konzeption"`):
+
+| Deutsch | Englisch |
+|---|---|
+| Umsetzung digitaler Produkte in Kundenprojekten | Development of digital products in client projects |
+| Technische Konzeption und Architektur nach Projektanforderung | Technical concept and architecture based on project requirements |
+| Code-Reviews, Tests und technische Dokumentation | Code reviews, testing and technical documentation |
+| Abstimmung mit Design, Produkt und Stakeholdern | Coordination with design, product and stakeholders |
+
+Die Bausteine werden **wörtlich übernommen**, nicht auf die Person zugeschnitten,
+nicht mit Technologien aus ihrem Lebenslauf angereichert und nicht umformuliert.
+Sie beschreiben die Rolle bei New Monday, nicht den Menschen. Trägt der Nutzer
+über "Other" einen eigenen Titel ein, wird der Satz genommen, der inhaltlich
+näher liegt.
+
+Dazu gehört:
+
+- **Keine `projekte`.** Wer anfängt, hat noch keine Kundenprojekte. Sobald welche
+  dazukommen, hängen sie unter diese Station – so wie im Beispiel.
+- **Die bisherigen Arbeitgeber bleiben eigene Stationen.** Sie werden **nicht**
+  zu Projekten unter New Monday umgebaut; das wären sie nur, wenn die Person sie
+  tatsächlich über New Monday betreut hätte.
+- **`erfahrung` ändert sich dadurch nicht.** Die Zahl kommt aus dem eigenen
+  Werdegang der Person, ein Monat bei New Monday rundet nichts auf.
+- **Steht New Monday schon im Lebenslauf**, wird nichts zweites angelegt: Dann
+  ist diese Station schon da und behält ihre Inhalte.
+- **Läuft die letzte eigene Station noch "bis heute"**, überschneidet sie sich mit
+  New Monday. Nicht stillschweigend ein Enddatum setzen – in die Übergabe damit,
+  Schritt 5.
 
 Zum Modell:
 
@@ -272,9 +583,10 @@ Zum Modell:
   Inhalte stehen in `aufgaben`.
 - **`erfahrung`**: Steht die Angabe im Lebenslauf, wird sie übernommen. Fehlt
   sie, ab der **ersten Berufsstation** bis heute rechnen, abgerundet auf volle
-  Jahre, im Format `"7+ Jahre Erfahrung"`. **Ausbildungs- und Studienzeiten
-  zählen nicht mit** – sonst kommen Werte heraus, die nicht zum Alter der Person
-  passen. Ein Werkstudentenjob ist eine Berufsstation, eine Ausbildung nicht.
+  Jahre, im Format `"7+ Jahre Erfahrung"`. **Ausbildungs-, Studien- und
+  Weiterbildungszeiten zählen nicht mit** – sonst kommen Werte heraus, die nicht
+  zum Alter der Person passen. Ein Werkstudentenjob ist eine Berufsstation, eine
+  Ausbildung oder ein Zertifikatskurs nicht.
 - **`zusammenfassung`** ist eine Schlagwortzeile mit zwei bis drei Begriffen, die
   die Tätigkeit der Station benennen – etwa `"Frontend-Entwicklung, Code-Reviews,
   Mentoring"`. Die Begriffe müssen sich aus den darunterliegenden Aufgaben
@@ -283,22 +595,36 @@ Zum Modell:
   nicht ins Dokument: keine Befristungen, keine Kündigungsfristen, keine Gehälter,
   und auch keine Hinweise wie "(freiberuflich in Vollauslastung, 40h/Woche)".
 - **Ausbildungen stehen nur unter `bildung`**, nie zusätzlich als Station, auch
-  wenn der Eingang sie doppelt führt.
+  wenn der Eingang sie doppelt führt. Für Weiterbildungen, die nach Schritt 1d
+  drinbleiben, gilt dasselbe.
 - **`skillset.links`** trägt üblicherweise Fähigkeiten, Zertifizierungen und
   Branchenerfahrung, **`rechts`** Tools und Sprachen. Die Aufteilung ist frei,
-  aber die linke Spalte sollte die längere sein.
+  aber **die beiden Spalten sollen etwa gleich lang sein**. Der Block ist so hoch
+  wie seine längere Spalte; eine halb leere zweite Spalte verschenkt Platz, den
+  sonst jemand durch Streichen hereinholen muss. Zählt man Gruppentitel und
+  Einträge zusammen, sollten beide Spalten auf ungefähr dieselbe Zeilenzahl
+  kommen. Das Renderskript meldet es, wenn sie deutlich auseinanderliegen.
 
-  **Bildung und Skillset müssen zusammen auf eine Seite passen.** Sie beginnen
-  auf einer neuen Seite und dürfen keine weitere nach sich ziehen. Als Richtwert
-  tragen beide zusammen etwa 6 Gruppen mit je bis zu 6 Einträgen. Bringt der
-  Eingang mehr mit – Senior-Profile haben oft 40 Kompetenzen und mehr –, wird
-  zusammengefasst: verwandte Gruppen zusammenlegen, je Gruppe die aussagekräftigsten
-  Einträge behalten. **Der Wortlaut der übernommenen Einträge bleibt unverändert**,
-  gekürzt wird durch Weglassen, nicht durch Umformulieren. Was wegfällt, wird am
-  Ende gemeldet. Das Renderskript warnt, wenn der Block trotzdem überläuft.
+  **Bildung und Skillset stehen auf Seite 1**, direkt unter dem Profilkopf, und
+  müssen dort zusammen Platz finden – die Stationen beginnen danach auf Seite 2.
+  Kopfzeile und Profilkopf nehmen zusammen rund 200pt, es bleiben also
+  etwa 550pt statt einer ganzen Seite. Als Richtwert trägt **jede der beiden
+  Skillset-Spalten etwa 20 Zeilen**, Gruppentitel mitgezählt, bei zwei
+  Bildungseinträgen daneben. Das Kurzprofil zählt hier nicht mit – es steht auf
+  Seite 2 und nimmt Seite 1 keinen Platz weg.
+
+  Bringt der Eingang mehr mit – Senior-Profile haben oft 40 Kompetenzen und mehr
+  –, ist die Reihenfolge: erst die Spalten ausgleichen, dann das Renderskript
+  enger setzen lassen (das macht es von selbst, in zwei Stufen), **und erst dann
+  kürzen**. Gekürzt wird durch Zusammenlegen verwandter Gruppen und Weglassen der
+  schwächsten Einträge. **Der Wortlaut der übernommenen Einträge bleibt
+  unverändert**, gekürzt wird durch Weglassen, nicht durch Umformulieren. Was
+  wegfällt, wird am Ende gemeldet. Das Renderskript sagt, wenn der Block trotz
+  aller Stufen überläuft.
 - **`projekte[].zeitraum`** weglassen, wenn er mit dem der Station identisch ist.
-- **Reihenfolge**: neueste Station zuerst.
-- `kontakt` und `hinweis` weglassen – die Vorgaben stehen im Skript.
+- **Reihenfolge**: New Monday zuerst, danach die eigenen Stationen, neueste
+  zuerst.
+- `kontakt` weglassen – die Vorgaben stehen im Skript.
 
 ### 3. Logos zuordnen
 
@@ -325,6 +651,58 @@ recherchierst du selbst und legst sie daneben ab:
 ```json
 { "Hays": "hays.de", "TEAM GmbH, Paderborn": "team-pb.de" }
 ```
+
+#### Kommt die Kette leer zurück, suchst du selbst weiter — im Web
+
+Die Quellenkette der Skripte (Bibliothek → simple-icons → Wikimedia →
+Brandfetch → logo.dev → Favicon) ist eine Automatik, kein Urteil. Findet sie
+nichts, heißt das: kein Treffer in ein paar Logodatenbanken. Es heißt **nicht**,
+dass es das Logo nicht gibt. Genau die Firmen, die in diesen Lebensläufen stehen
+– deutsche Agenturen, Mittelständler, Institute – stehen in keiner dieser
+Datenbanken. Ihr Logo liegt auf ihrer eigenen Presseseite.
+
+**Für jede offene Firma mindestens eine Websuche, bevor du den Nutzer fragst.**
+Das ist keine Kür und keine Frage der Zeit. Es ist der Unterschied zwischen
+"nicht auffindbar" und "ich habe nicht nachgesehen" – und der Nutzer findet die
+Logos anschließend in zwei Minuten mit derselben Suche, die du gehabt hättest.
+
+Wonach gesucht wird, in dieser Reihenfolge:
+
+1. `<Firma> Logo SVG`, `<Firma> Logo download`
+2. `<Firma> Presse`, `<Firma> Pressebereich`, `<Firma> Media Kit`, `<Firma> Markenrichtlinien`
+3. Die Firmenseite selbst öffnen: Presse, Über uns, Impressum. Das Logo im
+   Seitenkopf ist oft ein SVG, das sich direkt laden lässt.
+
+Zwei Funde sind brauchbar, beide reichen aus:
+
+- **Die Domain.** Häufig ist das schon der ganze Fix: Wikimedia kommt mit dem
+  Namen aus, Brandfetch, logo.dev und der Favicon-Dienst brauchen eine Domain,
+  und die kannten die Skripte nicht. Domain in die `domains.json` eintragen und
+  `logos_ergaenzen.py --domains` noch einmal laufen lassen.
+- **Die Bild-URL.** `add_logo.py` nimmt neben Dateipfaden auch URLs:
+
+  ```bash
+  python3 ${CLAUDE_SKILL_DIR}/scripts/add_logo.py "https://firma.de/presse/logo.svg" firma
+  ```
+
+Erst wenn auch die Suche nichts hergibt, ist die Firma offen und kommt in die
+Schlusszeile aus Schritt 5. Findest du die Datei, kannst sie aber nicht laden
+(im Browser-Chat blockt der Proxy fremde Domains), dann gehört **der Link** in
+die Übergabe, nicht bloß der Firmenname.
+
+Was dabei durch den Kopf geht und trotzdem nicht stimmt:
+
+| Gedanke | Was wirklich stimmt |
+|---|---|
+| "Die Quellenkette kam leer zurück, dann gibt es kein Logo." | Sie hat fünf Datenbanken abgefragt, nicht das Web. Deutsche Agenturen stehen in keiner davon. |
+| "Der Skill sieht doch vor, den Nutzer zu fragen." | Ja – als **letzten** Schritt, nicht als zweiten. Nachfragen ohne eigene Suche ist Arbeit weiterreichen. |
+| "Bei acht offenen Firmen dauert das zu lange." | Acht Suchen sind ein paar Minuten. Der Nutzer braucht für dieselben acht länger, weil er sie erst zusammensuchen und dann hochladen muss. |
+| "Ich habe keine Domain, also kann ich nichts machen." | Die Domain ist das, wonach du suchst. Sie steht im ersten Treffer. |
+| "Das Skript hat schon gesucht, doppelte Arbeit." | Das Skript kennt keine Suchmaschine. Es kennt Datenbanken. |
+
+Rote Flagge: Du schreibst gerade "Folgende Firmenlogos fehlen" und hast in
+diesem Lauf keine einzige Websuche gemacht. Dann ist die Zeile nicht fertig
+recherchiert – zurück nach oben.
 
 Danach zu prüfen:
 
@@ -431,6 +809,18 @@ wkhtmltopdf. Fehlt alles, hilft `pip install weasyprint --break-system-packages`
 Zusätzlich prüft es die Zeiträume und meldet nach stderr: Ende vor Anfang,
 Projekte außerhalb der Anstellung, fehlende Logodateien.
 
+Es setzt Bildung und Skillset selbst enger, wenn sie sonst nicht neben den
+Profilkopf auf Seite 1 passen, und sagt in welcher Stufe. Bleibt die Meldung
+stehen, dass der Block über mehrere Seiten läuft, ist zu kürzen – nach der
+Reihenfolge aus Schritt 2, nicht vorher.
+
+Die Umbrüche in den Stationen macht das Layout selbst: **Eine Station beginnt
+nur dann unten auf einer Seite, wenn dort noch mindestens zwei ihrer Stichpunkte
+stehen.** Reicht der Platz nicht, rückt sie samt Logo komplett auf die nächste
+Seite – ein Jobtitel mit einem einzelnen Bullet an der Blattkante liest sich wie
+zwei angefangene Stationen. In der `cv.json` ist dafür nichts einzutragen und im
+CSS nichts nachzujustieren; Hintergrund in `references/layout.md`.
+
 ### 5. Übergeben
 
 PDF ausgeben und dazu in wenigen Zeilen berichten:
@@ -439,9 +829,15 @@ PDF ausgeben und dazu in wenigen Zeilen berichten:
 - Wo Lebenslauf und LinkedIn auseinandergehen – mit beiden Werten, damit
   Tippfehler auffallen. Ins Dokument kam der Lebenslauf.
 - Was das Skript an Zeiträumen bemängelt hat
-- Woher das Foto stammt, wenn es automatisch von LinkedIn kam – und die
-  gemeldete dpi-Zahl, falls sie unter 200 lag. Der Nutzer soll entscheiden
-  können, ob ihm das für sein Kundendokument reicht.
+- Woher das Foto stammt, wenn es automatisch von LinkedIn oder von der Website
+  kam – bei der Website mit der Bildadresse, damit nachvollziehbar bleibt, wen
+  das Skript da gefunden hat – und die gemeldete dpi-Zahl, falls sie unter 200
+  lag. Der Nutzer soll entscheiden können, ob ihm das für sein Kundendokument
+  reicht.
+- Was nach Schritt 1d draußen bleibt: die gestrichenen Stationen und
+  Weiterbildungen namentlich, und ob dadurch eine Lücke entstanden ist.
+- Ob die letzte eigene Station noch "bis heute" läuft und sich damit mit der
+  New-Monday-Station überschneidet – mit der Frage, ob ein Enddatum hin soll.
 - Welche Rechtschreibfehler korrigiert wurden
 - Was im Eingang unklar war und geraten werden müsste – als Frage, nicht als
   stille Annahme
@@ -459,6 +855,8 @@ Regeln dazu:
 
 - **Fehlt nichts, steht hier nichts.** Kein "alles vollständig", keine
   Erfolgsmeldung. Der Hinweis erscheint nur, wenn wirklich etwas fehlt.
+- **Erst nach der eigenen Suche.** Eine Firma gehört nur dann in die Zeile,
+  wenn Bibliothek, Skript **und** Websuche nichts ergeben haben (Schritt 3).
 - **Fehlt beides**, kommen beide Zeilen untereinander, Logos zuerst.
 - **Fehlt genau ein Logo**, trotzdem derselbe Satz mit dieser einen Firma.
 - **Keine Erklärung dazu.** Nicht begründen, warum ein Logo fehlt, nicht
@@ -472,6 +870,12 @@ Regeln dazu:
 
 ## Was fest steht und nicht zur Disposition steht
 
+- **Seitenaufbau**: Seite 1 trägt die Kopfzeile (Logo links, Verweise
+  rechtsbündig daneben), den Profilkopf (Foto, Name, Rolle), Bildung und
+  Skillset. Ab Seite 2 folgen Kurzprofil und Stationen, am Ende der Footer, der
+  immer am unteren Rand der letzten Seite sitzt. Bildung und Skillset stehen
+  vorn, nicht hinten – daran wird nicht getauscht.
+- **Erste Station ist New Monday**, immer. Siehe Schritt 2.
 - **Ansprechpartner im Footer**: immer Manuel Klein, COO. Steht als Vorgabe im
   Renderskript.
 - **Keine anonymisierte Variante.** Name und Foto gehören ins Dokument.
