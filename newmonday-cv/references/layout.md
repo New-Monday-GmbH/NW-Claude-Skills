@@ -30,7 +30,7 @@ alles auf 428pt vereinheitlicht.
 
 | Seite | Inhalt |
 |---|---|
-| 1 | Kopfzeile (Logo, Verweise), Profilkopf (Foto, Name, Rolle), Bildung, Skillset |
+| 1 | Kopfzeile (Logo), Profilkopf (Foto, Name, Rolle, Erfahrung, Verweise), Bildung, Skillset |
 | 2 ff. | Kurzprofil als eigene Rubrik, danach die Stationen mit ihren Projekten |
 | letzte | Footer, am unteren Seitenrand |
 
@@ -48,24 +48,29 @@ Bildung und Skillset, Text über die volle Inhaltsbreite, Trennlinie darunter.
 Ohne diese Absetzung liest es sich wie der Text der ersten Station — die
 Stationen rücken auf 120pt ein, das Kurzprofil beginnt an der Blattkante.
 
-### Die Verweise stehen in der Kopfzeile
+### Die Verweise stehen unter der Erfahrungszeile
 
-Die Verweise (LinkedIn, Portfolio) stehen **rechtsbündig in der Kopfzeile**, auf
-derselben Zeile wie die Wortmarke. Sie standen früher als Fußzeile unter Seite 1
-— dort hat sie niemand gesucht.
+Die Verweise (LinkedIn, Xing, Portfolio) stehen im Profilkopf, **direkt unter
+der Zeile mit den Jahren Berufserfahrung** (`.intro__links`), alle in einer
+Zeile nebeneinander. Sie standen früher rechtsbündig in der Kopfzeile und davor
+als Fußzeile unter Seite 1. Im Profilkopf gehören sie zur Person, die daneben
+steht — in der Kopfzeile standen sie neben dem Agenturlogo, also beim Absender.
 
-Angezeigt wird die Adresse ohne `https://` und `www.`, verlinkt bleibt die volle.
+Angezeigt wird der Verweis **benannt statt als Adresse**: "zum LinkedIn Profil",
+"zum Xing Profil", "zum Portfolio". Die Texte stehen als `VERWEISTEXT` in
+`render_cv.py`, deutsch und englisch; verlinkt bleibt die volle Adresse. Eine
+nackte URL ist in einem Dokument, das auch gedruckt wird, nur Zeichensalat — der
+benannte Verweis sagt, wohin er führt.
+
 Dass sie anklickbar sind, zeigt allein der **Unterstrich in der Markenfarbe**:
 Der Text bleibt schwarz wie das übrige Dokument, eine farbige Schrift wäre im
 Ausdruck ein Fremdkörper, ein grauer Unterstrich als Link nicht erkennbar. Ein
 Portfolio, das nur als PDF vorliegt, hat keine Adresse und steht deshalb ohne
 Unterstrich da.
 
-Die Kopfzeile ist mit **Float** gebaut, nicht mit Flexbox: WeasyPrint (66)
-rechnet die Breite eines Flex-Elements mit Text zu knapp und bricht die Verweise
-untereinander um, obwohl die Zeile Platz hätte. Neben dem gefloateten Logo
-laufen sie zuverlässig in einer Zeile, und sind die Adressen doch einmal zu lang,
-bricht die zweite Zeile rechtsbündig unter dem Logo weiter.
+Der Abstand zur Erfahrungszeile ist mit 10pt größer als die 4pt zwischen Rolle
+und Erfahrung: Die beiden Zeilen darüber gehören zusammen, die Verweise sind
+etwas anderes. Die Kopfzeile trägt seitdem nur noch die Wortmarke.
 
 Der Profilkopf belegt damit rund 200pt, für Bildung und Skillset bleiben etwa
 550pt statt einer ganzen Seite. `render_cv.py` setzt die Abstände in zwei Stufen
@@ -112,7 +117,7 @@ Foto 79 × 106pt, Graustufen, oben 7pt eingerückt.
 |---|---|---|
 | `--black` | `#111111` | Text, Trennlinien |
 | `--muted` | `#485758` | Aufgaben-Bullets |
-| `--brand` | `#009193` | Logo und der Unterstrich der Verweise in der Kopfzeile |
+| `--brand` | `#009193` | Logo und der Unterstrich der Verweise im Profilkopf |
 
 ## Typografie (Inter)
 
@@ -121,7 +126,7 @@ Foto 79 × 106pt, Graustufen, oben 7pt eingerückt.
 | Name | 24pt | 800 | 1.35 | −1.08pt |
 | Rolle, Erfahrung | 10pt | 400 | normal | – |
 | Kurzprofil (Seite 2) | 10pt | 400 | 1.35 | −0.05pt |
-| Verweise (Kopfzeile) | 8pt | 400 | normal | –, Unterstrich in `--brand` |
+| Verweise (Profilkopf) | 9pt | 400 | normal | –, Unterstrich in `--brand` |
 | Jobtitel | 12pt | 700 | normal | – |
 | Zeitraum, Firma | 8pt | 400 | normal | – |
 | Kundenname | 10pt | 700 | 1.35 | – |

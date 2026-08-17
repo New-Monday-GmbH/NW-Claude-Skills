@@ -34,6 +34,27 @@ BESCHRIFTUNG = {
     },
 }
 
+# Die Verweise im Profilkopf werden benannt, nicht als Adresse gesetzt: "zum
+# LinkedIn Profil" statt "linkedin.com/in/timo-muster". In einem Dokument, das
+# auch gedruckt wird, liest sich der Satz besser als eine nackte URL — und
+# ausserhalb des Browsers ist eine URL ohnehin nur Zeichensalat.
+# Was hier nicht steht, faellt auf den Titel aus der cv.json zurueck; ein
+# eigenes "text" in der cv.json schlaegt beides.
+VERWEISTEXT = {
+    "de": {
+        "linkedin": "zum LinkedIn Profil",
+        "xing": "zum Xing Profil",
+        "portfolio": "zum Portfolio",
+        "website": "zur Website",
+    },
+    "en": {
+        "linkedin": "to the LinkedIn profile",
+        "xing": "to the Xing profile",
+        "portfolio": "to the portfolio",
+        "website": "to the website",
+    },
+}
+
 # Optische Groesse in pt: die Kantenlaenge, die ein quadratisches Logo bekommt.
 # Jedes Logo wird auf dieselbe Flaeche gebracht (Breite x Hoehe = Groesse^2),
 # nicht auf dieselbe Hoehe. Ueber die Hoehe gesetzt wirkt eine kompakte
@@ -239,9 +260,14 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
         loader=FileSystemLoader(str(ASSETS)),
         autoescape=select_autoescape(["html"]),
     )
-    # Angezeigt wird die Adresse ohne Schema und www — verlinkt bleibt die volle.
-    env.filters["anzeige"] = lambda u: re.sub(r"^https?://(www\.)?", "", str(u)).rstrip("/")
-    labels = BESCHRIFTUNG.get(daten.get("sprache", "de"), BESCHRIFTUNG["de"])
+    sprache = daten.get("sprache", "de")
+    labels = BESCHRIFTUNG.get(sprache, BESCHRIFTUNG["de"])
+    # Angezeigt wird der benannte Verweis, nicht die Adresse — verlinkt bleibt
+    # die volle URL. Das Template setzt nur noch, was hier steht.
+    verweise = VERWEISTEXT.get(sprache, VERWEISTEXT["de"])
+    for l in daten.get("person", {}).get("links") or []:
+        titel = str(l.get("titel") or "").strip()
+        l["anzeige"] = l.get("text") or verweise.get(titel.lower()) or titel
     daten.setdefault("kontakt", {
         "name": "Manuel Klein", "rolle": "COO",
         "mail": "manuel.klein@newmonday.co", "telefon": "+49 (0) 155 1148 0130",
@@ -425,8 +451,8 @@ def _schlussmarken(daten):
     Text wie die Rolle im Profilkopf ("Softwareentwickler") und wird dann schon
     auf Seite 1 gefunden, obwohl das Skillset laengst ueberlaeuft.
 
-    Die Verweise taugen dafuer nicht: sie stehen in der Kopfzeile, also immer
-    ganz oben auf Seite 1, egal wie weit das Skillset darunter ueberlaeuft.
+    Die Verweise taugen dafuer nicht: sie stehen im Profilkopf, also immer weit
+    oben auf Seite 1, egal wie weit das Skillset darunter ueberlaeuft.
     """
     marken = []
     skillset = daten.get("skillset") or {}

@@ -7,19 +7,10 @@
 </head>
 <body>
 
-{# Die Verweise stehen in der Kopfzeile, rechtsbuendig auf der Hoehe des Logos.
-   Der Unterstrich in der Markenfarbe ist das einzige Signal, dass sie anklickbar
-   sind — mehr braucht es in einem Dokument nicht. #}
+{# Die Kopfzeile traegt nur die Wortmarke. Die Verweise stehen im Profilkopf
+   unter der Erfahrungszeile — dort, wo der Leser die Person schon vor sich hat. #}
 <div class="header">
   <img class="header__logo" src="logos/nm-logo.svg" alt="New Monday">
-  {% if person.links %}
-  <div class="header__links">
-    {% for l in person.links %}
-    {% if l.url %}<a class="header__link" href="{{ l.url }}">{{ l.text or l.url | anzeige }}</a>
-    {% else %}<span class="header__link header__link--ohne">{{ l.text or l.titel }}</span>{% endif %}
-    {% endfor %}
-  </div>
-  {% endif %}
 </div>
 
 <div class="intro">
@@ -30,6 +21,17 @@
     <div class="name">{{ person.name }}</div>
     {% if person.rolle %}<div class="role">{{ person.rolle }}</div>{% endif %}
     {% if person.erfahrung %}<div class="role">{{ person.erfahrung }}</div>{% endif %}
+    {# Benannt statt als Adresse: "zum LinkedIn Profil" statt "linkedin.com/in/…".
+       Der Unterstrich in der Markenfarbe ist das einzige Signal, dass sie
+       anklickbar sind — mehr braucht es in einem Dokument nicht. #}
+    {% if person.links %}
+    <div class="intro__links">
+      {% for l in person.links %}
+      {% if l.url %}<a class="intro__link" href="{{ l.url }}">{{ l.anzeige }}</a>
+      {% else %}<span class="intro__link intro__link--ohne">{{ l.anzeige }}</span>{% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
     {# Das Kurzprofil steht nicht hier, sondern auf Seite 2 ueber den Stationen —
        auf Seite 1 wird der Platz fuer Bildung und Skillset gebraucht. #}
   </div>

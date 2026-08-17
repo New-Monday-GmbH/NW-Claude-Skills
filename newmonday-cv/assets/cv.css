@@ -36,34 +36,11 @@ body {
 
 /* ---------- Kopf ---------- */
 
-/* Kopfzeile: links das New-Monday-Logo, rechts die Verweise auf derselben
-   Zeile. Sie stehen nicht mehr als Fusszeile unter Seite 1 — oben werden sie
-   gesehen, unten hat sie niemand gesucht. */
-/* Float statt Flex: WeasyPrint (66) rechnet die Breite eines Flex-Elements mit
-   Text zu knapp und bricht die Verweise dann untereinander um, obwohl die Zeile
-   Platz haette. Neben einem Float laufen sie zuverlaessig in einer Zeile — und
-   sind die Adressen doch einmal zu lang, bricht die zweite Zeile sauber unter
-   dem Logo weiter, statt ueber den Satzspiegel hinauszulaufen. */
+/* Kopfzeile: nur die Wortmarke, linksbuendig. Die Verweise standen frueher
+   rechts daneben — sie stehen jetzt im Profilkopf unter der Erfahrungszeile,
+   siehe .intro__links. */
 .header { margin-bottom: 35.5pt; }
-.header::after { content: ""; display: table; clear: both; }
-.header__logo { float: left; width: 133.231pt; height: 13.5pt; }
-
-/* Anklickbar, aber dezent: schwarzer Text wie der Rest des Dokuments, nur der
-   Unterstrich steht in der Markenfarbe. Eine farbige Schrift waere im Papier-
-   ausdruck ein Fremdkoerper, ein grauer Unterstrich als Link nicht erkennbar. */
-/* 2pt: setzt die 8pt-Zeile mittig zur 13.5pt hohen Wortmarke daneben. */
-.header__links {
-  text-align: right; font-size: 8pt; line-height: normal; padding-top: 2pt;
-}
-.header__link + .header__link { margin-left: 16pt; }
-.header__link {
-  color: var(--black); white-space: nowrap;
-  text-decoration: underline; text-decoration-color: var(--brand);
-  text-decoration-thickness: 0.5pt; text-underline-offset: 2pt;
-}
-/* Ein Portfolio, das nur als PDF vorliegt, hat keine Adresse — dann steht der
-   Hinweis ohne Unterstrich da, denn anklicken laesst er sich nicht. */
-.header__link--ohne { text-decoration: none; }
+.header__logo { display: block; width: 133.231pt; height: 13.5pt; }
 
 .intro { display: flex; gap: 40pt; margin-bottom: 32pt; }
 .intro__col { width: 78pt; padding-top: 7pt; flex: none; }
@@ -78,6 +55,28 @@ body {
 }
 .role { font-size: 10pt; line-height: normal; }
 .role + .role { margin-top: 4pt; }
+
+/* Die Verweise (LinkedIn, Xing, Portfolio) stehen direkt unter der
+   Erfahrungszeile, in einer Zeile nebeneinander. 10pt Abstand statt der 4pt
+   zwischen Rolle und Erfahrung: die beiden Zeilen darueber gehoeren zusammen,
+   die Verweise sind etwas anderes. Benannt statt als Adresse — "zum LinkedIn
+   Profil" liest sich in einem Dokument besser als eine nackte URL.
+   Anklickbar, aber dezent: schwarzer Text wie der Rest des Dokuments, nur der
+   Unterstrich steht in der Markenfarbe. Eine farbige Schrift waere im Papier-
+   ausdruck ein Fremdkoerper, ein grauer Unterstrich als Link nicht erkennbar. */
+.intro__links { margin-top: 10pt; font-size: 9pt; line-height: normal; }
+/* Abstand nach rechts, nicht nach links: bei vier Verweisen bricht die Zeile um,
+   und ein margin-left rueckte den ersten der zweiten Zeile ein. */
+.intro__link {
+  margin-right: 16pt;
+  color: var(--black); white-space: nowrap;
+  text-decoration: underline; text-decoration-color: var(--brand);
+  text-decoration-thickness: 0.5pt; text-underline-offset: 2pt;
+}
+.intro__link:last-child { margin-right: 0; }
+/* Ein Portfolio, das nur als PDF vorliegt, hat keine Adresse — dann steht der
+   Hinweis ohne Unterstrich da, denn anklicken laesst er sich nicht. */
+.intro__link--ohne { text-decoration: none; }
 
 /* Das Kurzprofil steht auf Seite 2 ueber den Stationen — als eigene Rubrik mit
    Ueberschrift und Trennlinie, ueber die volle Inhaltsbreite. Beides trennt es

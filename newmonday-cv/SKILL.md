@@ -151,33 +151,33 @@ nacheinander: der Nutzer soll alles auf einmal beantworten und liefern können.
    Die Bitte ist eine Abkürzung, keine Bedingung: Was nicht kommt, suchst du
    selbst, siehe Schritt 3.
 
-3. **Das LinkedIn-Profil.** Material, also im Text derselben Nachricht, wörtlich
-   so:
+3. **Die Profile.** Material, also im Text derselben Nachricht, wörtlich so:
 
    > Gibt es ein LinkedIn-Profil? Wenn du mir den Link schickst
-   > (linkedin.com/in/…), ziehe ich das Profilfoto automatisch.
+   > (linkedin.com/in/…), ziehe ich das Profilfoto automatisch. Ein
+   > Xing-Profil nehme ich auch – es kommt als Verweis mit ins Dokument.
 
-   Ist das Profil öffentlich, holt `linkedin_foto.py` das Foto von dort – siehe
-   Schritt 1a. Das erspart das Heraussuchen und Zuschneiden von Hand. Der Link
-   ist **zusätzlich** zum PDF-Export nützlich, nicht statt seiner: für die
-   Inhalte taugt er nichts (siehe Schritt 1), fürs Foto schon. Er landet
-   außerdem als Verweis in die Kopfzeile des Dokuments, siehe `links` in
-   Schritt 2.
+   Ist das LinkedIn-Profil öffentlich, holt `linkedin_foto.py` das Foto von dort
+   – siehe Schritt 1a. Das erspart das Heraussuchen und Zuschneiden von Hand.
+   Der Link ist **zusätzlich** zum PDF-Export nützlich, nicht statt seiner: für
+   die Inhalte taugt er nichts (siehe Schritt 1), fürs Foto schon. Beide Profile
+   landen außerdem als Verweis in den Profilkopf des Dokuments, siehe `links` in
+   Schritt 2. Aus Xing wird kein Foto geholt, der Link steht nur im Dokument.
 
 4. **Das Portfolio.** Ebenfalls als Text, wörtlich so:
 
    > Gibt es ein Portfolio? Entweder als Link zur Website oder als PDF – ich
-   > setze den Verweis in die Kopfzeile und kann fehlende Angaben daraus
+   > setze den Verweis in den Profilkopf und kann fehlende Angaben daraus
    > ergänzen.
 
-   Drei Dinge hängen daran: der Verweis in der Kopfzeile, eine dritte Quelle für
+   Drei Dinge hängen daran: der Verweis im Profilkopf, eine dritte Quelle für
    Lücken (Schritt 1c) und, wenn sonst nichts ein Foto hergibt, eine dritte
    Fotoquelle (Schritt 1a). Ein PDF taugt nur als Quelle, verlinken lässt es sich
    nicht – dann bleibt die Zeile weg oder trägt einen Hinweis ohne Adresse.
 
    **Kommt nichts, wird das übersprungen.** Nicht nachhaken, nicht als fehlend
-   melden: Ein Lebenslauf ohne Portfolio ist vollständig. Die Verweise in der
-   Kopfzeile zeigen nur, was da ist, und entfallen ganz, wenn es weder Profil
+   melden: Ein Lebenslauf ohne Portfolio ist vollständig. Die Verweise im
+   Profilkopf zeigen nur, was da ist, und entfallen ganz, wenn es weder Profil
    noch Portfolio gibt.
 
 5. **Ein Foto**, falls weder LinkedIn noch die Website eins hergeben (beides
@@ -227,6 +227,30 @@ Kein Foto auffindbar: erst Schritt 1a, dann anfragen. Das Layout funktioniert oh
 
 ### 1a. Das Foto selbst holen — erst LinkedIn, dann die Website
 
+**Die Rangfolge der Fotoquellen. Der Lebenslauf zuerst:**
+
+1. **Das Foto aus dem Lebenslauf**, sobald `extract_input.py` einen brauchbaren
+   Porträtkandidaten daraus gezogen hat. Ein separat geschicktes Bild zählt
+   gleichrangig – auch das hat der Kandidat für diese Bewerbung ausgewählt.
+2. **LinkedIn** (`linkedin_foto.py`), wenn der Lebenslauf keins mitbringt.
+3. **Portfolio oder eigene Website** (`website_foto.py`), wenn auch LinkedIn
+   nichts hergibt.
+4. **Beim Kandidaten anfragen**, wenn keine der drei Quellen etwas liefert.
+
+**Ein schöneres Foto im Portfolio ändert daran nichts.** Führt das Portfolio ein
+größeres, schärferes oder freundlicheres Bild, kommt trotzdem das aus dem
+Lebenslauf ins Dokument. Der Kandidat hat es dort für genau diesen Zweck
+hingelegt; das Portfoliobild ist für eine andere Bühne gemacht – und wer auf
+einer Website abgebildet ist, weiß `website_foto.py` ohnehin nicht (siehe unten).
+Nicht abwägen, welches besser wirkt, und nicht nachfragen, welches lieber
+genommen werden soll.
+
+Die eine Ausnahme ist **technische Unbrauchbarkeit**: Das Foto aus dem
+Lebenslauf ist beschnitten, zeigt kein Porträt oder liegt so klein vor, dass es
+im Layoutformat (79 × 106pt) sichtbar pixelt – dieselbe 200er-dpi-Grenze wie
+unten. Dann darf eine andere Quelle einspringen; in die Übergabe gehört, welche
+und warum.
+
 Liegt ein Profil-Link vor und hat der Eingang kein brauchbares Foto ergeben:
 
 ```bash
@@ -268,9 +292,10 @@ nicht kennt – ein Blick auf das Foto kostet zwei Sekunden.
 
 #### Gibt LinkedIn nichts her, kommt die Website dran
 
-Liegt ein Portfolio oder eine eigene Website vor (Schritt 0), steht das Foto
-oft dort – auf "Über mich", "Profil" oder der Teamseite, und häufig größer als
-das 400×400-Thumbnail von LinkedIn:
+Erst hier, also wenn weder der Lebenslauf noch LinkedIn ein Foto hergeben. Liegt
+ein Portfolio oder eine eigene Website vor (Schritt 0), steht das Foto oft dort –
+auf "Über mich", "Profil" oder der Teamseite, und häufig größer als das
+400×400-Thumbnail von LinkedIn:
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/website_foto.py "https://timo-muster.de" arbeit/
@@ -346,7 +371,7 @@ Projekten, die im Lebenslauf nur als Gattung stehen, Zeiträume, Technologien,
 Rollen. Dieselbe Rangfolge wie in Schritt 1b – **der Lebenslauf schlägt beides**,
 und das Portfolio ergänzt nur, wo er schweigt.
 
-Zwei Grenzen, die auch hier gelten:
+Drei Grenzen, die auch hier gelten:
 
 - **Ein Portfolio ist Eigenwerbung.** Bewertende Formulierungen ("preisgekrönt",
   "führend", "innovativ") gehören nicht in den Lebenslauf, auch nicht sinngemäß.
@@ -355,6 +380,10 @@ Zwei Grenzen, die auch hier gelten:
   einen Kunden bewusst als "Speditionsdienstleister" anonymisiert, das Portfolio
   ihn aber beim Namen nennt, ist das kein Fund, sondern eine Entscheidung, die
   jemand getroffen hat. In die Übergabe damit, nicht ins Dokument.
+- **Das Foto aus dem Portfolio bleibt liegen, wenn der Lebenslauf eins hat.**
+  `extract_input.py` legt auch aus dem Portfolio-PDF Porträtkandidaten in
+  `arbeit/portfolio/fotos/` ab – die sind nur dann dran, wenn Lebenslauf und
+  LinkedIn nichts hergeben. Rangfolge und die eine Ausnahme stehen in Schritt 1a.
 
 Was aus dem Portfolio kam, wird in der Übergabe genannt – Feld für Feld.
 
@@ -484,23 +513,29 @@ die Rubriken ("Bildung" / "Education", "Kurzprofil" / "Profile") und die
 Footer-Beschriftungen. Der Inhalt der Stationen wird davon nicht angefasst.
 
 `person.links` sind die Verweise aus Schritt 0, in der Reihenfolge LinkedIn,
-Portfolio. Sie stehen **rechtsbündig in der Kopfzeile**, auf derselben Zeile wie
-das New-Monday-Logo, unterstrichen in der Markenfarbe – dezent, aber erkennbar
-anklickbar. Das Kurzprofil steht dagegen auf Seite 2, als eigene Rubrik mit
-Überschrift und Trennlinie, damit es sich nicht wie die erste Station liest.
-`url` wird verlinkt und ohne `https://` und `www.` angezeigt, `text` überschreibt
-den Anzeigetext. Ohne `url` erscheint nur `text`, dann ohne Unterstrich – das ist
-der Fall fürs Portfolio-PDF:
+Xing, Portfolio. Sie stehen auf Seite 1 im Profilkopf, **direkt unter der Zeile
+mit den Jahren Berufserfahrung**, alle in einer Zeile nebeneinander,
+unterstrichen in der Markenfarbe – dezent, aber erkennbar anklickbar. Das
+Kurzprofil steht dagegen auf Seite 2, als eigene Rubrik mit Überschrift und
+Trennlinie, damit es sich nicht wie die erste Station liest.
+
+Angezeigt wird der Verweis **benannt, nicht als Adresse**: "zum LinkedIn Profil",
+"zum Xing Profil", "zum Portfolio". Verlinkt bleibt die volle `url`. Den
+Anzeigetext setzt `render_cv.py` aus `titel` (siehe `VERWEISTEXT` dort, deutsch
+und englisch); ein `text` in der cv.json überschreibt ihn. Ohne `url` erscheint
+der Text ohne Unterstrich – das ist der Fall fürs Portfolio-PDF, das sich nicht
+verlinken lässt:
 
 ```json
 "links": [
   { "titel": "LinkedIn",  "url": "https://www.linkedin.com/in/timo-muster" },
+  { "titel": "Xing",      "url": "https://www.xing.com/profile/Timo_Muster" },
   { "titel": "Portfolio", "url": "https://timo-muster.de" }
 ]
 ```
 
-Gibt es weder Profil noch Portfolio, entfällt `links` und die Kopfzeile trägt
-wieder nur das Logo.
+Gibt es weder Profil noch Portfolio, entfällt `links` und unter der
+Erfahrungszeile steht nichts mehr.
 
 `logo` nimmt einen Dateinamen oder eine Liste davon – siehe Schritt 3.
 `beschreibung` ist der Fließtext einer Station. Manche Lebensläufe beschreiben
@@ -608,7 +643,8 @@ Zum Modell:
   **Bildung und Skillset stehen auf Seite 1**, direkt unter dem Profilkopf, und
   müssen dort zusammen Platz finden – die Stationen beginnen danach auf Seite 2.
   Kopfzeile und Profilkopf nehmen zusammen rund 200pt, es bleiben also
-  etwa 550pt statt einer ganzen Seite. Als Richtwert trägt **jede der beiden
+  etwa 550pt statt einer ganzen Seite (mit Verweisen unter der Erfahrungszeile
+  gut 20pt weniger). Als Richtwert trägt **jede der beiden
   Skillset-Spalten etwa 20 Zeilen**, Gruppentitel mitgezählt, bei zwei
   Bildungseinträgen daneben. Das Kurzprofil zählt hier nicht mit – es steht auf
   Seite 2 und nimmt Seite 1 keinen Platz weg.
@@ -833,7 +869,9 @@ PDF ausgeben und dazu in wenigen Zeilen berichten:
   kam – bei der Website mit der Bildadresse, damit nachvollziehbar bleibt, wen
   das Skript da gefunden hat – und die gemeldete dpi-Zahl, falls sie unter 200
   lag. Der Nutzer soll entscheiden können, ob ihm das für sein Kundendokument
-  reicht.
+  reicht. Kam das Foto aus dem Lebenslauf, ist das der Normalfall und muss nicht
+  erwähnt werden. Wurde es dort **übergangen**, weil es technisch unbrauchbar
+  war (Schritt 1a), steht das dagegen in der Übergabe – mit dem Grund.
 - Was nach Schritt 1d draußen bleibt: die gestrichenen Stationen und
   Weiterbildungen namentlich, und ob dadurch eine Lücke entstanden ist.
 - Ob die letzte eigene Station noch "bis heute" läuft und sich damit mit der
@@ -870,8 +908,8 @@ Regeln dazu:
 
 ## Was fest steht und nicht zur Disposition steht
 
-- **Seitenaufbau**: Seite 1 trägt die Kopfzeile (Logo links, Verweise
-  rechtsbündig daneben), den Profilkopf (Foto, Name, Rolle), Bildung und
+- **Seitenaufbau**: Seite 1 trägt die Kopfzeile (nur das Logo), den Profilkopf
+  (Foto, Name, Rolle, Erfahrung, darunter die Verweise), Bildung und
   Skillset. Ab Seite 2 folgen Kurzprofil und Stationen, am Ende der Footer, der
   immer am unteren Rand der letzten Seite sitzt. Bildung und Skillset stehen
   vorn, nicht hinten – daran wird nicht getauscht.

@@ -155,16 +155,18 @@ def pruefe_gleicher_titel(tmp):
 
 
 def pruefe_verweise(tmp):
-    """Stehen LinkedIn und Portfolio oben in der Kopfzeile — und anklickbar?
+    """Stehen die Verweise unter der Erfahrungszeile — benannt und anklickbar?
 
-    Sie standen frueher als Fusszeile unter Seite 1. Geprueft wird beides, was
-    beim Umzug schiefgehen kann: die Hoehe auf der Seite (sie muessen neben dem
-    Logo stehen, nicht darunter) und die Link-Annotation im PDF (ohne sie ist
-    der Unterstrich eine Behauptung).
+    Sie standen frueher rechts in der Kopfzeile und davor als Fusszeile unter
+    Seite 1. Geprueft wird alles, was beim Umzug schiefgehen kann: der
+    Anzeigetext (benannt, nicht als Adresse), die Lage im Profilkopf (direkt
+    unter der Erfahrungszeile, alle in einer Zeile nebeneinander) und die
+    Link-Annotation im PDF (ohne sie ist der Unterstrich eine Behauptung).
     """
     daten = json.loads((WURZEL / "beispiel" / "cv.json").read_text(encoding="utf-8"))
     daten["person"]["links"] = [
         {"titel": "LinkedIn", "url": "https://www.linkedin.com/in/timo-muster"},
+        {"titel": "Xing", "url": "https://www.xing.com/profile/Timo_Muster"},
         {"titel": "Portfolio", "url": "https://timo-muster.de"},
     ]
     quelle = Path(tmp) / "verweise.json"
@@ -181,25 +183,49 @@ def pruefe_verweise(tmp):
     seite = PdfReader(str(ziel)).pages[0]
     fehler = []
 
-    # Die Kopfzeile beginnt 60pt unter der Blattkante (842pt hoch), das Logo ist
-    # 13.5pt hoch. Alles ueber 740pt steht sicher noch in dieser Zeile.
-    hoehen = []
+    # Gemessen wird relativ zur Erfahrungszeile, nicht gegen feste Hoehen: die
+    # Lage des Profilkopfs haengt an der Laenge von Name und Rolle.
+    hoehen = {}
 
     def besucher(text, cm, tm, schrift, groesse):
-        if "timo-muster" in text:
-            hoehen.append(tm[5] * cm[3] + cm[5])
+        y = tm[5] * cm[3] + cm[5]
+        for marke in ("Jahre Erfahrung", "LinkedIn", "Xing", "Portfolio"):
+            if marke in text:
+                hoehen.setdefault(marke, y)
 
     seite.extract_text(visitor_text=besucher)
-    if not hoehen:
-        fehler.append("Verweise stehen nicht auf Seite 1")
-    elif min(hoehen) < 740:
-        fehler.append(f"Verweise stehen zu tief auf Seite 1 ({min(hoehen):.0f}pt "
-                      "ueber der Unterkante) — sie gehoeren in die Kopfzeile")
+
+    fehlend = [m for m in ("LinkedIn", "Xing", "Portfolio") if m not in hoehen]
+    if fehlend:
+        fehler.append(f"Verweise stehen nicht auf Seite 1: {', '.join(fehlend)}")
+    elif "Jahre Erfahrung" not in hoehen:
+        fehler.append("Erfahrungszeile nicht gefunden — Lage der Verweise nicht pruefbar")
+    else:
+        # 10pt Abstand plus Zeilenhoehe: darunter stuenden sie in der
+        # Erfahrungszeile, darueber waeren sie von ihr abgerissen.
+        abstand = hoehen["Jahre Erfahrung"] - hoehen["LinkedIn"]
+        if not 8 <= abstand <= 30:
+            fehler.append(f"Verweise stehen nicht direkt unter der Erfahrungszeile "
+                          f"({abstand:.0f}pt Abstand)")
+        if max(hoehen[m] for m in ("LinkedIn", "Xing", "Portfolio")) - \
+           min(hoehen[m] for m in ("LinkedIn", "Xing", "Portfolio")) > 1:
+            fehler.append("Verweise stehen untereinander statt in einer Zeile")
+
+    # Benannt, nicht als Adresse: eine nackte URL im Text heisst, dass der
+    # Anzeigetext aus VERWEISTEXT nicht gegriffen hat.
+    text = seite.extract_text()
+    if "linkedin.com" in text or "xing.com" in text:
+        fehler.append("Verweise stehen als Adresse im Text statt benannt")
+    for erwartet in ("zum LinkedIn Profil", "zum Xing Profil", "zum Portfolio"):
+        if erwartet not in text:
+            fehler.append(f"Verweistext fehlt: {erwartet}")
 
     adressen = {a.get_object().get("/A", {}).get("/URI")
                 for a in (seite.get("/Annots") or [])
                 if a.get_object().get("/Subtype") == "/Link"}
-    for erwartet in ("https://www.linkedin.com/in/timo-muster", "https://timo-muster.de"):
+    for erwartet in ("https://www.linkedin.com/in/timo-muster",
+                     "https://www.xing.com/profile/Timo_Muster",
+                     "https://timo-muster.de"):
         if erwartet not in adressen:
             fehler.append(f"Verweis nicht anklickbar: {erwartet}")
     return fehler
@@ -282,7 +308,7 @@ def main():
     print(f"  LinkedIn:  Fotoauswahl geprueft (ohne Netz)")
     print(f"  Website:   Bilderfilter geprueft (ohne Netz)")
     print(f"  Ueberlauf: erkannt, auch wenn Rolle = Stationstitel")
-    print(f"  Verweise:  in der Kopfzeile und anklickbar")
+    print(f"  Verweise:  benannt unter der Erfahrungszeile und anklickbar")
     print(f"  Umbruch:   keine Station mit einem einzelnen Stichpunkt am Seitenende")
 
     if fehler:
