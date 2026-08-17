@@ -269,7 +269,7 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
         titel = str(l.get("titel") or "").strip()
         l["anzeige"] = l.get("text") or verweise.get(titel.lower()) or titel
     daten.setdefault("kontakt", {
-        "name": "Manuel Klein", "rolle": "CTO",
+        "name": "Manuel Klein", "rolle": "CCO",
         "mail": "manuel.klein@newmonday.co", "telefon": "+49 (0) 155 1148 0130",
         "firma": "New Monday GmbH", "strasse": "Stresemannstraße 32", "ort": "10963 Berlin",
     })

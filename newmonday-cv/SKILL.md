@@ -914,7 +914,7 @@ Regeln dazu:
   immer am unteren Rand der letzten Seite sitzt. Bildung und Skillset stehen
   vorn, nicht hinten – daran wird nicht getauscht.
 - **Erste Station ist New Monday**, immer. Siehe Schritt 2.
-- **Ansprechpartner im Footer**: immer Manuel Klein, CTO. Steht als Vorgabe im
+- **Ansprechpartner im Footer**: immer Manuel Klein, CCO. Steht als Vorgabe im
   Renderskript.
 - **Keine anonymisierte Variante.** Name und Foto gehören ins Dokument.
 - **Schrift ist Inter**, liegt in `assets/fonts/` und wird ins PDF eingebettet.
