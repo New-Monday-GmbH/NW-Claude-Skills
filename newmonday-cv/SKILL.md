@@ -606,9 +606,20 @@ Dazu gehört:
   Werdegang der Person, ein Monat bei New Monday rundet nichts auf.
 - **Steht New Monday schon im Lebenslauf**, wird nichts zweites angelegt: Dann
   ist diese Station schon da und behält ihre Inhalte.
-- **Läuft die letzte eigene Station noch "bis heute"**, überschneidet sie sich mit
-  New Monday. Nicht stillschweigend ein Enddatum setzen – in die Übergabe damit,
-  Schritt 5.
+- **"Heute" steht nur bei New Monday.** Genau eine Station im Dokument läuft
+  offen aus, und das ist `stationen[0]`. Bringt der Eingang die letzte eigene
+  Station noch als "bis heute", "seit 2024" oder "Present" mit, bekommt sie ein
+  Enddatum: **den Monat vor dem Startmonat bei New Monday**. Beginnt New Monday
+  im August 2026, endet die Station davor im Juli 2026. Zwei offene Zeiträume
+  nebeneinander lesen sich, als arbeite die Person an zwei Stellen gleichzeitig –
+  im Kundendokument ist das ein Fehler, kein Detail.
+
+  Dieses Enddatum ist die einzige Angabe im Dokument, die aus dem Startmonat
+  abgeleitet ist und nicht aus dem Eingang stammt. **Deshalb gehört es in die
+  Übergabe**, Schritt 5: Wer früher aufgehört hat oder noch parallel weiterläuft,
+  kann den Monat dort korrigieren. Ältere Stationen, die im Eingang parallel
+  liefen – eine Nebentätigkeit, eine eigene Agentur –, behalten ihre Zeiträume;
+  die Regel gilt nur für offene Enden.
 
 Zum Modell:
 
@@ -632,6 +643,16 @@ Zum Modell:
 - **Ausbildungen stehen nur unter `bildung`**, nie zusätzlich als Station, auch
   wenn der Eingang sie doppelt führt. Für Weiterbildungen, die nach Schritt 1d
   drinbleiben, gilt dasselbe.
+- **Vom Schulweg steht nur die letzte Station.** Führt der Eingang mehrere
+  Schulabschlüsse – Realschule, Gymnasium, Oberstufenzentrum, Fachoberschule,
+  Kolleg, Fachschule –, kommt nur der **neueste** ins Dokument, die früheren
+  fallen weg. Ein Kundendokument belegt keinen Schulweg, es zeigt den Abschluss,
+  auf dem alles Weitere aufbaut. **Studienabschlüsse, Ausbildungen und die nach
+  Schritt 1d behaltenen Weiterbildungen sind davon nicht betroffen** – die stehen
+  alle drin, auch mehrere nebeneinander. Nennt der Eingang zu einer Station
+  keinen Abschluss, sondern nur Jahr und Haus (etwa "2008 // Media Design
+  Hochschule"), zählt sie zum Schulweg: sie belegt eine Station, keinen Titel.
+  Was wegfällt, wird in der Übergabe genannt.
 - **`skillset.links`** trägt üblicherweise Fähigkeiten, Zertifizierungen und
   Branchenerfahrung, **`rechts`** Tools und Sprachen. Die Aufteilung ist frei,
   aber **die beiden Spalten sollen etwa gleich lang sein**. Der Block ist so hoch
@@ -874,8 +895,10 @@ PDF ausgeben und dazu in wenigen Zeilen berichten:
   war (Schritt 1a), steht das dagegen in der Übergabe – mit dem Grund.
 - Was nach Schritt 1d draußen bleibt: die gestrichenen Stationen und
   Weiterbildungen namentlich, und ob dadurch eine Lücke entstanden ist.
-- Ob die letzte eigene Station noch "bis heute" läuft und sich damit mit der
-  New-Monday-Station überschneidet – mit der Frage, ob ein Enddatum hin soll.
+- Welches Enddatum die letzte eigene Station bekommen hat, wenn sie im Eingang
+  noch offen lief – mit der Bitte, den Ausstiegsmonat zu bestätigen. Abgeleitet
+  ist er aus dem Startmonat bei New Monday, nicht aus dem Eingang.
+- Welche Schulabschlüsse aus dem Bildungsblock weggefallen sind.
 - Welche Rechtschreibfehler korrigiert wurden
 - Was im Eingang unklar war und geraten werden müsste – als Frage, nicht als
   stille Annahme
@@ -913,7 +936,8 @@ Regeln dazu:
   Skillset. Ab Seite 2 folgen Kurzprofil und Stationen, am Ende der Footer, der
   immer am unteren Rand der letzten Seite sitzt. Bildung und Skillset stehen
   vorn, nicht hinten – daran wird nicht getauscht.
-- **Erste Station ist New Monday**, immer. Siehe Schritt 2.
+- **Erste Station ist New Monday**, immer – und **nur sie läuft auf "Heute"**.
+  Siehe Schritt 2.
 - **Ansprechpartner im Footer**: immer Manuel Klein, CCO. Steht als Vorgabe im
   Renderskript.
 - **Keine anonymisierte Variante.** Name und Foto gehören ins Dokument.
