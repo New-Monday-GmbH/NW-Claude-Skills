@@ -1,0 +1,198 @@
+/* New Monday Skillmatrix — Tokens aus dem Vorlagen-PDF "Skill Matrix Wissem"
+   nachgemessen (Pixel- und Cap-Hoehen-Messung, siehe references/layout.md).
+   Die Figma-Frames sind 1440 breit und werden 1:1 in pt uebernommen —
+   niemals px verwenden: 24px waeren in CSS nur 18pt. */
+
+@font-face { font-family: Inter; src: url(fonts/Inter-Regular.ttf);   font-weight: 400; }
+@font-face { font-family: Inter; src: url(fonts/Inter-SemiBold.ttf);  font-weight: 600; }
+@font-face { font-family: Inter; src: url(fonts/Inter-Bold.ttf);      font-weight: 700; }
+@font-face { font-family: Inter; src: url(fonts/Inter-ExtraBold.ttf); font-weight: 800; }
+
+:root {
+  --brand:     #009193;   /* Teal: Kopf, Fuss, Punkte, Akzente */
+  --schwarz:   #111111;   /* Namen, Titel */
+  --grau:      #465469;   /* Hero-Beschreibung, Badge-Text */
+  --grau-2:    #64748a;   /* Kartentexte, Labels, Chips */
+  --flaeche:   #f8f9fb;   /* Hintergrund der Sektionen */
+  --linie:     #e2e8ef;   /* Hairlines, leere Punkte, Chip-Rahmen */
+  --badge-bg:  #f0f4f9;   /* Verfuegbarkeits-Badge */
+  --gruen:     #21c45d;   /* Punkt im Badge */
+  --jahr-bg:   #e6f4f4;   /* Jahres-Badge auf der Zertifikatskarte */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Kein Hintergrund auf html/body: render_skillmatrix.py misst die
+   Inhaltshoehe an der letzten nicht weissen Pixelzeile. Faerbte der Body die
+   ganze Vorratsseite, waere nichts mehr zu messen. */
+body { font-family: Inter; color: var(--schwarz); }
+
+.container { width: 1232pt; margin: 0 auto; }
+
+/* ---------- Kopfzeile ---------- */
+
+.kopf { background: var(--brand); height: 88pt; padding: 33pt 0 0 44pt; }
+.kopf__logo { display: block; width: 166pt; }
+
+/* ---------- Hero ---------- */
+
+.hero { background: #ffffff; padding: 31pt 0 60pt; }
+.hero__zeile { display: flex; justify-content: space-between; align-items: flex-start; }
+.hero__text { width: 700pt; }
+
+.badge {
+  display: inline-block;
+  background: var(--badge-bg); border: 1pt solid var(--linie);
+  border-radius: 14pt; padding: 6pt 16pt 6pt 14pt;
+  font-size: 12pt; font-weight: 600; letter-spacing: 1.2pt;
+  text-transform: uppercase; color: var(--grau);
+}
+.badge__punkt {
+  display: inline-block; width: 8pt; height: 8pt; border-radius: 4pt;
+  background: var(--gruen); margin-right: 8pt;
+}
+
+.hero__name {
+  font-size: 60pt; font-weight: 700; letter-spacing: -1.8pt;
+  line-height: 1.1; margin-top: 32pt;
+}
+.hero__rolle {
+  font-size: 60pt; font-weight: 700; letter-spacing: -1.8pt;
+  line-height: 1.1; color: var(--brand); margin-top: 4pt;
+}
+.hero__beschreibung {
+  font-size: 20pt; line-height: 1.55; color: var(--grau);
+  margin-top: 36pt; max-width: 640pt;
+}
+.hero__schwerpunkte { margin-top: 40pt; }
+/* Drei Buttons muessen nebeneinander in die 700pt der Textspalte passen —
+   bei mehr Padding bricht der dritte um (in der Vorlage stehen alle drei
+   in einer Zeile). */
+.schwerpunkt {
+  display: inline-block;
+  border: 2pt solid var(--brand); border-radius: 14pt;
+  padding: 11pt 14pt; margin-right: 20pt;
+  font-size: 19pt; font-weight: 600; color: var(--schwarz);
+}
+.schwerpunkt:last-child { margin-right: 0; }
+
+/* Fotokarte: 433 x 390pt, Foto in Graustufen, unten der Farbverlauf mit Name
+   und Erfahrung. Das Foto kommt fertig aufs Kartenformat beschnitten aus
+   extract_input.py — object-fit faengt kleine Abweichungen trotzdem ab. */
+.fotokarte {
+  position: relative; width: 433pt; height: 390pt; margin-top: 27pt;
+  border-radius: 16pt; overflow: hidden; background: #f6f7fa;
+}
+.fotokarte__bild { width: 433pt; height: 390pt; object-fit: cover; display: block; }
+/* Der Verlauf beginnt in der Vorlage mit einer sichtbaren, leicht getoenten
+   Kante bei etwa 63 % der Kartenhoehe und steht im unteren Viertel satt —
+   der Name sitzt im vollen Teal. Kein Fehler, so sieht das Original aus. */
+.fotokarte__verlauf {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 145pt;
+  background: linear-gradient(180deg,
+    rgba(0, 145, 147, 0) 0%,
+    rgba(0, 145, 147, 0.16) 2.5%,
+    rgba(0, 145, 147, 0.62) 40%,
+    rgba(0, 145, 147, 0.96) 75%,
+    #009193 100%);
+}
+.fotokarte__text { position: absolute; left: 26pt; bottom: 22pt; color: #ffffff; }
+.fotokarte__name { font-size: 24pt; font-weight: 700; }
+.fotokarte__erfahrung { font-size: 15pt; margin-top: 5pt; }
+
+/* ---------- Rumpf ---------- */
+
+.rumpf { background: var(--flaeche); padding: 80pt 0 56pt; }
+
+.sektion + .sektion { margin-top: 64pt; }
+.sektion__titel { font-size: 24pt; font-weight: 700; }
+.sektion__icon {
+  width: 26pt; height: 26pt; vertical-align: -4pt; margin-right: 14pt;
+}
+
+/* ---------- Zertifikatskarten ---------- */
+
+.zertkarte {
+  background: #ffffff; border-radius: 12pt;
+  border-left: 5pt solid var(--brand);
+  padding: 26pt 32pt 24pt 28pt;
+  margin-top: 40pt;
+  box-shadow: 0 1pt 4pt rgba(15, 23, 42, 0.06);
+}
+.zertkarte__kopf { display: flex; justify-content: space-between; align-items: flex-start; }
+.zertkarte__titel { font-size: 18pt; font-weight: 700; }
+.zertkarte__jahr {
+  background: var(--jahr-bg); color: var(--brand);
+  font-size: 13pt; font-weight: 600;
+  border-radius: 6pt; padding: 4pt 12pt; margin-left: 24pt;
+  white-space: nowrap;
+}
+.zertkarte__aussteller { font-size: 14pt; font-weight: 600; margin-top: 10pt; }
+.zertkarte__beschreibung { font-size: 14pt; color: var(--grau-2); margin-top: 12pt; line-height: 1.4; }
+.zertkarte__tags { margin-top: 16pt; }
+.chip {
+  display: inline-block;
+  border: 1pt solid var(--linie); border-radius: 8pt;
+  padding: 5pt 12pt; margin: 0 10pt 8pt 0;
+  font-size: 12pt; color: var(--grau-2); background: #ffffff;
+}
+
+/* Bilderraster: 3 Kacheln je Zeile, 395 x 284pt, cover. Feste Breiten statt
+   Grid — WeasyPrint setzt sie verlaesslich, und jede Zeile ist ein eigener
+   Flex-Container, den das Template baut. */
+.zertbilder { margin-top: 64pt; }
+.zertbilder__zeile { display: flex; margin-bottom: 24pt; }
+.zertbilder__zeile:last-child { margin-bottom: 0; }
+.zertbilder__kachel {
+  width: 395pt; height: 284pt; margin-right: 24pt;
+  border-radius: 8pt; overflow: hidden; background: #ffffff;
+}
+.zertbilder__kachel:last-child { margin-right: 0; }
+.zertbilder__kachel img { width: 395pt; height: 284pt; object-fit: cover; display: block; }
+
+/* ---------- Kernkompetenzen ---------- */
+
+.kategorie { margin-top: 40pt; }
+.kategorie__label {
+  font-size: 14pt; font-weight: 600; letter-spacing: 0.8pt;
+  text-transform: uppercase; color: var(--grau-2);
+  border-bottom: 1pt solid var(--linie); padding-bottom: 14pt;
+}
+
+.skills__zeile { display: flex; margin-top: 20pt; }
+.skillkarte {
+  width: 397pt; margin-right: 20.5pt;
+  background: #ffffff; border-radius: 14pt;
+  padding: 24pt 26pt 22pt;
+  box-shadow: 0 1pt 4pt rgba(15, 23, 42, 0.06);
+}
+.skillkarte:last-child { margin-right: 0; }
+.skillkarte__kopf { display: flex; justify-content: space-between; align-items: flex-start; }
+.skillkarte__name { font-size: 17pt; font-weight: 700; }
+.skillkarte__beschreibung {
+  font-size: 14pt; color: var(--grau-2); line-height: 1.45; margin-top: 10pt;
+  letter-spacing: -0.1pt;
+}
+
+.punkte { white-space: nowrap; padding-top: 4pt; margin-left: 12pt; }
+.punkt {
+  display: inline-block; width: 10pt; height: 10pt; border-radius: 5pt;
+  background: var(--linie); margin-left: 3.5pt;
+}
+.punkt--voll { background: var(--brand); }
+
+/* ---------- Fuss ---------- */
+
+.fuss { background: var(--brand); color: #ffffff; padding: 64pt 0 56pt; }
+.fuss__frage { font-size: 28pt; font-weight: 700; }
+.fuss__linie { border-top: 1pt solid rgba(255, 255, 255, 0.25); margin-top: 40pt; }
+.fuss__zeile { display: flex; align-items: flex-start; margin-top: 40pt; }
+.fuss__logo { width: 140pt; margin-right: 96pt; }
+.fuss__spalten { display: flex; }
+.fuss__spalten > div { width: 240pt; margin-right: 48pt; }
+.fuss__spalten > div:last-child { margin-right: 0; }
+.fuss__label {
+  font-size: 11pt; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.8pt; color: rgba(255, 255, 255, 0.75);
+}
+.fuss__wert { font-size: 14pt; line-height: 1.5; margin-top: 10pt; }

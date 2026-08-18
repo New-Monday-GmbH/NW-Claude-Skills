@@ -7,6 +7,7 @@ Ordner und ist für sich installierbar.
 |-------|--------------|
 | [`rapid-redesign`](rapid-redesign/) | Erzeugt ein komplettes New-Monday-Rapid-Redesign: UX/UI- und Usability-Audit einer ganzen Website (echter Browser via Playwright) und daraus ein fertiges Folien-Deck im RR-Stil. |
 | [`newmonday-cv`](newmonday-cv/) | Macht aus einem fremden Lebenslauf einen im New-Monday-Layout, als fertiges PDF. Eingang: CV als PDF, LinkedIn-Export, LinkedIn-Profil-Link oder eingefügter Profiltext. |
+| [`newmonday-skillmatrix`](newmonday-skillmatrix/) | Baut aus Lebenslauf, Portfolio und LinkedIn-Export eine Skill Matrix im New-Monday-Layout: eine lange Seite mit Hero, Zertifikaten und nach Kategorien gruppierten Kompetenzen mit 1–5-Punkte-Bewertung. |
 
 ## Installation
 

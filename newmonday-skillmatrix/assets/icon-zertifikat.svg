@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26" width="26" height="26">
+  <!-- Zwoelfzackiger Stern in der Markenfarbe, wie vor "Zertifikate" in der
+       Vorlage — dort ohne Binnenzeichnung, nur die Silhouette. -->
+  <path fill="#009193" d="M13 0l2.53 2.06 3.14-.86 1.4 2.96 3.2.62-.2 3.26 2.4 2.2-1.74 2.76 1.74 2.76-2.4 2.2.2 3.26-3.2.62-1.4 2.96-3.14-.86L13 26l-2.53-2.06-3.14.86-1.4-2.96-3.2-.62.2-3.26-2.4-2.2 1.74-2.76L.53 10.24l2.4-2.2-.2-3.26 3.2-.62 1.4-2.96 3.14.86z"/>
+</svg>

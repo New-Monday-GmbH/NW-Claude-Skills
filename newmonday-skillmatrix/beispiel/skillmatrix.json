@@ -1,0 +1,72 @@
+{
+  "sprache": "de",
+  "person": {
+    "name": "Wissem Kordi",
+    "rolle": "Senior UX/UI Designer",
+    "verfuegbar_ab": "Juli 2026",
+    "erfahrung": "12+ Jahre Erfahrung",
+    "beschreibung": "Ich verwandle komplexe Herausforderungen mit KI in intuitive, hochwertige und nutzerzentrierte Produkte.",
+    "schwerpunkte": ["Agentic Coding", "AI Design System Automation", "Vibe Coding"],
+    "foto": "material/foto.png"
+  },
+  "zertifikate": [
+    {
+      "titel": "Anthropic AI Certificate & Google UX Design Certificate & Microsoft UI UX Certificate",
+      "aussteller": "Anthropic & Google & Microsoft",
+      "jahr": "2026",
+      "beschreibung": "Umfassende Weiterbildung in UX Research, Wireframing, Prototyping und Usability Testing mit praxisnahen Portfolio-Projekten.",
+      "tags": ["AI Skills", "Agentic Coding", "AI for UX / UI", "User Interface", "Figma", "Design Systems", "Stakeholder Management", "Prototyping"]
+    }
+  ],
+  "zertifikat_bilder": [
+    "material/zert-01-google-ai-fundamentals.png",
+    "material/zert-02-ai-fluency-capabilities.png",
+    "material/zert-03-agent-skills.png",
+    "material/zert-04-subagents.png",
+    "material/zert-05-claude-code-in-action.png",
+    "material/zert-06-ai-fluency-small-business.png"
+  ],
+  "kompetenzen": [
+    {
+      "kategorie": "AI",
+      "skills": [
+        { "name": "Vibe Coding", "punkte": 5, "beschreibung": "KI-gestützte Entwicklung, iteratives Prototyping." },
+        { "name": "Skills Setup", "punkte": 5, "beschreibung": "Einsatz von KI entlang des gesamten UX-, Design- und Entwicklungsprozesses." },
+        { "name": "Agentic Coding", "punkte": 5, "beschreibung": "Entwicklung autonomer KI-Workflows mit zusammenarbeitenden Agenten." },
+        { "name": "Subagent Setup", "punkte": 5, "beschreibung": "Konzeption und Konfiguration spezialisierter KI-Subagenten für definierte Aufgaben." },
+        { "name": "Guard Rails", "punkte": 5, "beschreibung": "Definition von Regeln und Sicherheitsmechanismen für zuverlässige KI-Systeme." }
+      ]
+    },
+    {
+      "kategorie": "Strategie & Research",
+      "skills": [
+        { "name": "User Interviews & Testing", "punkte": 5, "beschreibung": "Moderierte / unmoderierte Nutzertests zur Validierung." },
+        { "name": "Journey Mapping", "punkte": 4, "beschreibung": "Nutzerreise zur Identifikation von Pain Points." },
+        { "name": "Product Thinking", "punkte": 5, "beschreibung": "Ergebnisorientierte und nutzerzentrierte Produkte." },
+        { "name": "Information Architecture", "punkte": 5, "beschreibung": "Strukturierung komplexer Informationen." },
+        { "name": "Workshop Facilitation", "punkte": 3, "beschreibung": "Workshops und Abstimmung relevanter Stakeholder." },
+        { "name": "Concepts", "punkte": 5, "beschreibung": "Ideen zu validierten und tragfähigen Konzepten." }
+      ]
+    },
+    {
+      "kategorie": "Interaction & Visual Design",
+      "skills": [
+        { "name": "Wireframing & Prototyping", "punkte": 5, "beschreibung": "Von Low-Fidelity-Wireframes bis hin zu interaktiven High-Fidelity-Prototypen." },
+        { "name": "Design Systems", "punkte": 5, "beschreibung": "Aufbau skalierbarer und barrierefreier Komponentenbibliotheken (Figma)." },
+        { "name": "Design System Testing", "punkte": 5, "beschreibung": "Validierung von Komponenten hinsichtlich Konsistenz, Barrierefreiheit und Edge Cases." },
+        { "name": "Responsive Web Design", "punkte": 4, "beschreibung": "Mobile-First-Ansätze für konsistente Nutzererlebnisse." },
+        { "name": "Micro-interactions", "punkte": 4, "beschreibung": "Animationen für unmittelbares Feedback." }
+      ]
+    },
+    {
+      "kategorie": "Tools & Implementation",
+      "skills": [
+        { "name": "Figma / FigJam", "punkte": 5, "beschreibung": "Auto-Layout, Komponenten, Varianten und Variablen." },
+        { "name": "HTML / CSS", "punkte": 5, "beschreibung": "Umsetzung funktionaler Prototypen und Brücke zur Entwicklung." },
+        { "name": "React / TypeScript / Vite", "punkte": 5, "beschreibung": "Entwicklung produktionsreifer Frontends und wiederverwendbarer Komponenten." },
+        { "name": "Adobe Creative Suite", "punkte": 5, "beschreibung": "Photoshop, Illustrator, After Effects" },
+        { "name": "Anthropic Design", "punkte": 5, "beschreibung": "KI-gestützte Konzeption, Ideation und Designprozesse." }
+      ]
+    }
+  ]
+}

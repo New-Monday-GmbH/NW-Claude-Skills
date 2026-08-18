@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26" width="26" height="26">
+  <!-- Gestapelte Ebenen wie vor "Kernkompetenzen": volle Raute oben, zwei
+       Baender darunter — alle in voller Deckkraft, wie in der Vorlage. -->
+  <path d="M13 3.2 L23.4 8.9 13 14.6 2.6 8.9 Z"
+        fill="#009193" stroke="#009193" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M2.6 13.6 L13 19.3 23.4 13.6" fill="none"
+        stroke="#009193" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M2.6 18.2 L13 23.9 23.4 18.2" fill="none"
+        stroke="#009193" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

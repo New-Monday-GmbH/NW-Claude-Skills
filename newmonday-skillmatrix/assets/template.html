@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="{{ sprache or 'de' }}">
+<head>
+<meta charset="utf-8">
+<title>{{ person.name }} — Skill Matrix</title>
+<link rel="stylesheet" href="skillmatrix.css">
+{# Die Seitenhoehe setzt render_skillmatrix.py: erst Vorratshoehe, dann exakt
+   die gemessene Inhaltshoehe. Eine Matrix ist eine einzige lange Seite. #}
+<style>@page { size: 1440pt {{ hoehe }}pt; margin: 0; }</style>
+</head>
+<body>
+<div class="seite">
+
+{# Kopfzeile: teal Balken, Wortmarke in Weiss. Sie sitzt naeher an der
+   Blattkante als der Inhaltscontainer — wie in der Vorlage. #}
+<header class="kopf">
+  <img class="kopf__logo" src="nm-logo-weiss.svg" alt="New Monday">
+</header>
+
+<section class="hero">
+  <div class="container hero__zeile">
+    <div class="hero__text">
+      <span class="badge"><i class="badge__punkt"></i>{{ t.verfuegbar }} {{ person.verfuegbar_ab }}</span>
+      <h1 class="hero__name">{{ person.name }}</h1>
+      <div class="hero__rolle">{{ person.rolle }}</div>
+      <p class="hero__beschreibung">{{ person.beschreibung }}</p>
+      {% if person.schwerpunkte %}
+      <div class="hero__schwerpunkte">
+        {% for s in person.schwerpunkte %}<span class="schwerpunkt">{{ s }}</span>{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {# Fotokarte: Graustufenfoto, unten ein teal Farbverlauf mit Name und
+       Erfahrung. Das Foto kommt fertig beschnitten aus extract_input.py. #}
+    <div class="fotokarte">
+      {% if person.foto %}<img class="fotokarte__bild" src="{{ person.foto }}" alt="">{% endif %}
+      <div class="fotokarte__verlauf"></div>
+      <div class="fotokarte__text">
+        <div class="fotokarte__name">{{ person.name }}</div>
+        <div class="fotokarte__erfahrung">{{ person.erfahrung }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# Die Zertifikatssektion als Makro: sie steht standardmaessig vor den
+   Kernkompetenzen (Wissem-Vorlage), mit "zertifikate_position": "ende"
+   dahinter (Florian-Variante). #}
+{% macro zertsektion() %}
+  {% if zertifikate or zertifikat_bilder %}
+  <section class="sektion">
+    <h2 class="sektion__titel">
+      <img class="sektion__icon" src="icon-zertifikat.svg" alt="">{{ t.zertifikate }}
+    </h2>
+
+    {% for z in zertifikate %}
+    <div class="zertkarte">
+      <div class="zertkarte__kopf">
+        <div class="zertkarte__titel">{{ z.titel }}</div>
+        {% if z.jahr %}<span class="zertkarte__jahr">{{ z.jahr }}</span>{% endif %}
+      </div>
+      {% if z.aussteller %}<div class="zertkarte__aussteller">{{ t.aussteller }} {{ z.aussteller }}</div>{% endif %}
+      {% if z.beschreibung %}<p class="zertkarte__beschreibung">{{ z.beschreibung }}</p>{% endif %}
+      {% if z.tags %}
+      <div class="zertkarte__tags">
+        {% for tag in z.tags %}<span class="chip">{{ tag }}</span>{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    {# Bilderraster: drei Kacheln je Zeile, mittig gefuellt. Die Zeilen baut
+       das Template selbst — feste Breiten statt Grid, damit jede Engine
+       dasselbe Raster setzt. #}
+    {% if zertifikat_bilder %}
+    <div class="zertbilder">
+      {% for zeile in zertifikat_bilder | batch(3) %}
+      <div class="zertbilder__zeile">
+        {% for bild in zeile %}
+        <div class="zertbilder__kachel"><img src="{{ bild }}" alt=""></div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </section>
+  {% endif %}
+{% endmacro %}
+
+<main class="rumpf">
+  <div class="container">
+
+  {% if zertifikate_position != 'ende' %}{{ zertsektion() }}{% endif %}
+
+  {% if kompetenzen %}
+  <section class="sektion">
+    <h2 class="sektion__titel">
+      <img class="sektion__icon" src="icon-kernkompetenzen.svg" alt="">{{ t.kernkompetenzen }}
+    </h2>
+
+    {% for kategorie in kompetenzen %}
+    <div class="kategorie">
+      <div class="kategorie__label">{{ kategorie.kategorie }}</div>
+      {% for zeile in kategorie.skills | batch(3) %}
+      <div class="skills__zeile">
+        {% for s in zeile %}
+        <div class="skillkarte">
+          <div class="skillkarte__kopf">
+            <div class="skillkarte__name">{{ s.name }}</div>
+            <div class="punkte">
+              {% for i in range(5) %}<i class="punkt{% if i < s.punkte %} punkt--voll{% endif %}"></i>{% endfor %}
+            </div>
+          </div>
+          <p class="skillkarte__beschreibung">{{ s.beschreibung }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if zertifikate_position == 'ende' %}{{ zertsektion() }}{% endif %}
+
+  </div>
+</main>
+
+{# Der Fuss schliesst die Matrix ab: die Frage in Weiss auf Teal, darunter der
+   Kontaktblock. Die Vorlagen-PDFs sind mitten im Fuss abgeschnitten — Frage
+   und Trennlinie stammen aus ihnen, der Kontaktblock folgt dem CV-Skill. #}
+<footer class="fuss">
+  <div class="container">
+    <h2 class="fuss__frage">{{ t.footer_frage }}</h2>
+    <div class="fuss__linie"></div>
+    <div class="fuss__zeile">
+      <img class="fuss__logo" src="nm-logo-weiss.svg" alt="New Monday">
+      <div class="fuss__spalten">
+        <div>
+          <div class="fuss__label">{{ t.ansprechpartner }}</div>
+          <div class="fuss__wert">{{ kontakt.name }}<br>{{ kontakt.rolle }}</div>
+        </div>
+        <div>
+          <div class="fuss__label">{{ t.kontakt }}</div>
+          <div class="fuss__wert">{{ kontakt.mail }}<br>{{ kontakt.telefon }}</div>
+        </div>
+        <div>
+          <div class="fuss__label">{{ t.adresse }}</div>
+          <div class="fuss__wert">{{ kontakt.firma }}<br>{{ kontakt.strasse }}<br>{{ kontakt.ort }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</div>
+</body>
+</html>
