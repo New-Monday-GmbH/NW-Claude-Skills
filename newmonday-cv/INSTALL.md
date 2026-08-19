@@ -109,5 +109,5 @@ lassen sich auch ohne Claude aufrufen:
 S=~/.claude/skills/newmonday-cv
 python3 $S/scripts/extract_input.py eingang.pdf arbeit/
 python3 $S/scripts/logos_ergaenzen.py cv.json
-python3 $S/scripts/render_cv.py cv.json ausgabe/nachname-vorname.pdf
+python3 $S/scripts/render_cv.py cv.json ausgabe/
 ```

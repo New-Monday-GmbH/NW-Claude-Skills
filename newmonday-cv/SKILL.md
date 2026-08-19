@@ -858,8 +858,21 @@ nicht aufgefallen. Ein Blick auf die Miniatur reicht dafür nicht.
 ### 4. Rendern
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/scripts/render_cv.py cv.json ausgabe/nachname-vorname.pdf
+python3 ${CLAUDE_SKILL_DIR}/scripts/render_cv.py cv.json ausgabe/
 ```
+
+**Den Dateinamen setzt das Skript**, nicht der Aufruf: es baut ihn aus
+`person.name` und `person.rolle` zusammen und legt die Datei im angegebenen
+Ordner ab.
+
+```
+New-Monday - Vorname Nachname - Jobtitel - CV.pdf
+```
+
+Steht im Aufruf trotzdem ein Dateiname, gilt davon nur der Ordner – das Skript
+meldet die Umbenennung. Der Name im Bericht an den Nutzer ist der, den das
+Skript ausgibt, nicht der aus dem Aufruf. Die Datei heißt so, wie sie beim
+Kunden ankommt, deshalb wird hier nicht abgekürzt und nicht umbenannt.
 
 Das Skript sucht sich die Engine selbst: WeasyPrint, sonst headless Chrome, sonst
 wkhtmltopdf. Fehlt alles, hilft `pip install weasyprint --break-system-packages`.

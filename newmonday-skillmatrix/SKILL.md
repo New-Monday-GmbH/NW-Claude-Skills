@@ -304,8 +304,22 @@ Dazu:
 ### 4. Rendern
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/scripts/render_skillmatrix.py skillmatrix.json ausgabe/skillmatrix-nachname-vorname.pdf
+python3 ${CLAUDE_SKILL_DIR}/scripts/render_skillmatrix.py skillmatrix.json ausgabe/
 ```
+
+**Den Dateinamen setzt das Skript**, nicht der Aufruf: es baut ihn aus
+`person.name` und `person.rolle` zusammen und legt die Datei im
+angegebenen Ordner ab.
+
+```
+New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf
+```
+
+Steht im Aufruf trotzdem ein Dateiname, gilt davon nur der Ordner — das
+Skript meldet die Umbenennung. Der Name im Bericht an den Nutzer ist der,
+den das Skript ausgibt, nicht der aus dem Aufruf. Die Datei heißt so, wie
+sie beim Kunden ankommt, deshalb wird hier nicht abgekürzt und nicht
+umbenannt.
 
 Das Skript rendert zweimal (Vorratshöhe, dann exakte Inhaltshöhe – die
 Matrix ist eine einzige lange Seite), sucht sich die Engine selbst und
@@ -318,7 +332,7 @@ Bilddateien. Die Hinweise sind zu lesen und abzuarbeiten, nicht zu
 Warnungen:
 
 ```bash
-pdftoppm -png -r 40 ausgabe/skillmatrix-nachname-vorname.pdf arbeit/vorschau
+pdftoppm -png -r 40 "ausgabe/New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf" arbeit/vorschau
 ```
 
 Auf der Vorschau prüfen: Steht das Gesicht frei vom Farbverlauf? Brechen

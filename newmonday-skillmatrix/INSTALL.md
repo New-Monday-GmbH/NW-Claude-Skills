@@ -45,7 +45,7 @@ Die mitgelieferte Beispielmatrix (Wissems Vorlage) rendern:
 
 ```bash
 cd ~/.claude/skills/newmonday-skillmatrix/beispiel
-python3 ../scripts/render_skillmatrix.py skillmatrix.json /tmp/skillmatrix-beispiel.pdf
+python3 ../scripts/render_skillmatrix.py skillmatrix.json /tmp/
 ```
 
 Läuft das durch und meldet `Seitenformat: 1440 x …pt`, funktioniert die

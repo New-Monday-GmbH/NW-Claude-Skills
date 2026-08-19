@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """Rendert cv.json ueber das New-Monday-Template zu einem PDF.
 
-    python3 scripts/render_cv.py daten/cv.json ausgabe/lebenslauf.pdf
+    python3 scripts/render_cv.py daten/cv.json ausgabe/
+
+Den Dateinamen setzt das Skript selbst aus den Daten:
+"New-Monday - Vorname Nachname - Jobtitel - CV.pdf". Das zweite Argument
+bestimmt nur den Ordner — ein dort angehaengter Dateiname wird ersetzt
+(Ausnahme: --pfad-genau, siehe main()).
 
 Sucht sich die Render-Engine selbst: WeasyPrint (bevorzugt, ueberall per pip),
 sonst headless Chrome, sonst wkhtmltopdf. Prueft ausserdem die Zeitraeume auf
@@ -498,13 +503,50 @@ def deckblatt_seiten(ziel, daten):
     return letzte or -1
 
 
+def dateiname(daten):
+    """New-Monday - Vorname Nachname - Jobtitel - CV.pdf
+
+    Der Name kommt aus den Daten, nicht aus dem Aufrufargument: so heisst jeder
+    Lebenslauf beim Kunden gleich, egal wie der Zielpfad getippt war. Fehlt ein
+    Feld, faellt nur sein Abschnitt weg — eine Datei entsteht trotzdem.
+    """
+    person = daten.get("person") or {}
+    teile = ["New-Monday"]
+    for feld in ("name", "rolle"):
+        wert = re.sub(r'[/\\:*?"<>|]', "-", str(person.get(feld) or ""))
+        wert = re.sub(r"\s+", " ", wert).strip(" .")
+        if wert:
+            teile.append(wert)
+    teile.append("CV")
+    return " - ".join(teile) + ".pdf"
+
+
+def zielpfad(argument, daten):
+    """Ordner aus dem Argument, Dateiname aus den Daten."""
+    name = dateiname(daten)
+    pdf_gemeint = argument.suffix.lower() == ".pdf"
+    ordner = argument.parent if pdf_gemeint else argument
+    if pdf_gemeint and argument.name != name:
+        print(f"Dateiname gesetzt: {argument.name} -> {name}")
+    return ordner / name
+
+
 def main():
-    if len(sys.argv) < 3:
+    # --pfad-genau nimmt den Zielpfad wie angegeben — nur fuer Tests, die eine
+    # bekannte Datei wieder aufmachen. Im normalen Lauf gilt der Namensaufbau.
+    genau = "--pfad-genau" in sys.argv[1:]
+    args = [a for a in sys.argv[1:] if a != "--pfad-genau"]
+    if len(args) < 2:
         raise SystemExit(__doc__)
-    quelle, ziel = Path(sys.argv[1]), Path(sys.argv[2])
+    quelle = Path(args[0])
     daten = json.loads(quelle.read_text(encoding="utf-8"))
 
     hinweise = pruefe(daten)
+    person = daten.get("person") or {}
+    for feld in ("name", "rolle"):
+        if not person.get(feld):
+            hinweise.append(f"person.{feld} fehlt — der Dateiname bleibt ohne diesen Teil.")
+    ziel = Path(args[1]) if genau else zielpfad(Path(args[1]), daten)
     ziel.parent.mkdir(parents=True, exist_ok=True)
 
     # Deckblatt = Profilkopf, Bildung und Skillset auf Seite 1. Passt es nicht,

@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """Rendert skillmatrix.json ueber das New-Monday-Template zu einem PDF.
 
-    python3 scripts/render_skillmatrix.py daten/skillmatrix.json ausgabe/skillmatrix-name.pdf
+    python3 scripts/render_skillmatrix.py daten/skillmatrix.json ausgabe/
+
+Den Dateinamen setzt das Skript selbst aus den Daten:
+"New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf". Das zweite
+Argument bestimmt nur den Ordner — ein dort angehaengter Dateiname wird
+ersetzt (Ausnahme: --pfad-genau, siehe main()).
 
 Die Skillmatrix ist eine einzige lange Seite: 1440pt breit, so hoch wie ihr
 Inhalt — wie die Vorlage aus Figma, die eine Webseite abbildet und kein
@@ -314,13 +319,46 @@ def seitenzahl(pdf):
     return len(PdfReader(str(pdf)).pages)
 
 
+def dateiname(daten):
+    """New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf
+
+    Der Name kommt aus den Daten, nicht aus dem Aufrufargument: so heisst jede
+    Matrix beim Kunden gleich, egal wie der Zielpfad getippt war. Fehlt ein
+    Feld, faellt nur sein Abschnitt weg — eine Datei entsteht trotzdem.
+    """
+    person = daten.get("person") or {}
+    teile = ["New-Monday"]
+    for feld in ("name", "rolle"):
+        wert = re.sub(r'[/\\:*?"<>|]', "-", str(person.get(feld) or ""))
+        wert = re.sub(r"\s+", " ", wert).strip(" .")
+        if wert:
+            teile.append(wert)
+    teile.append("Skillmatrix")
+    return " - ".join(teile) + ".pdf"
+
+
+def zielpfad(argument, daten):
+    """Ordner aus dem Argument, Dateiname aus den Daten."""
+    name = dateiname(daten)
+    pdf_gemeint = argument.suffix.lower() == ".pdf"
+    ordner = argument.parent if pdf_gemeint else argument
+    if pdf_gemeint and argument.name != name:
+        print(f"Dateiname gesetzt: {argument.name} -> {name}")
+    return ordner / name
+
+
 def main():
-    if len(sys.argv) < 3:
+    # --pfad-genau nimmt den Zielpfad wie angegeben — nur fuer Tests, die eine
+    # bekannte Datei wieder aufmachen. Im normalen Lauf gilt der Namensaufbau.
+    genau = "--pfad-genau" in sys.argv[1:]
+    args = [a for a in sys.argv[1:] if a != "--pfad-genau"]
+    if len(args) < 2:
         raise SystemExit(__doc__)
-    quelle, ziel = Path(sys.argv[1]), Path(sys.argv[2])
+    quelle = Path(args[0])
     daten = json.loads(quelle.read_text(encoding="utf-8"))
 
     hinweise = pruefe(daten)
+    ziel = Path(args[1]) if genau else zielpfad(Path(args[1]), daten)
     ziel.parent.mkdir(parents=True, exist_ok=True)
 
     # Durchgang 1: Vorratshoehe. Durchgang 2: exakt. Die 2pt Reserve decken

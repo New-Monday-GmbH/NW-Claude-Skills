@@ -146,7 +146,8 @@ def pruefe_gleicher_titel(tmp):
     quelle.write_text(json.dumps(daten, ensure_ascii=False), encoding="utf-8")
     ziel = Path(tmp) / "gleicher-titel.pdf"
     lauf = subprocess.run(
-        [sys.executable, str(WURZEL / "scripts" / "render_cv.py"), str(quelle), str(ziel)],
+        [sys.executable, str(WURZEL / "scripts" / "render_cv.py"), str(quelle), str(ziel),
+         "--pfad-genau"],
         capture_output=True, text=True, cwd=str(WURZEL),
     )
     if "passen nicht" not in lauf.stderr:
@@ -173,7 +174,8 @@ def pruefe_verweise(tmp):
     quelle.write_text(json.dumps(daten, ensure_ascii=False), encoding="utf-8")
     ziel = Path(tmp) / "verweise.pdf"
     subprocess.run(
-        [sys.executable, str(WURZEL / "scripts" / "render_cv.py"), str(quelle), str(ziel)],
+        [sys.executable, str(WURZEL / "scripts" / "render_cv.py"), str(quelle), str(ziel),
+         "--pfad-genau"],
         capture_output=True, text=True, cwd=str(WURZEL),
     )
     if not ziel.exists():
@@ -247,7 +249,8 @@ def pruefe_stationsumbruch(tmp):
     quelle.write_text(json.dumps(daten, ensure_ascii=False), encoding="utf-8")
     ziel = Path(tmp) / "umbruch.pdf"
     subprocess.run(
-        [sys.executable, str(WURZEL / "scripts" / "render_cv.py"), str(quelle), str(ziel)],
+        [sys.executable, str(WURZEL / "scripts" / "render_cv.py"), str(quelle), str(ziel),
+         "--pfad-genau"],
         capture_output=True, text=True, cwd=str(WURZEL),
     )
     if not ziel.exists():
@@ -284,7 +287,7 @@ def main():
         ziel = Path(tmp) / "selbsttest.pdf"
         lauf = subprocess.run(
             [sys.executable, str(WURZEL / "scripts" / "render_cv.py"),
-             str(beispiel), str(ziel)],
+             str(beispiel), str(ziel), "--pfad-genau"],
             capture_output=True, text=True, cwd=str(WURZEL),
         )
         if lauf.returncode != 0 or not ziel.exists():
