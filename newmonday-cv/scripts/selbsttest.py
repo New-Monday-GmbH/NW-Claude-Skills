@@ -278,6 +278,96 @@ def pruefe_stationsumbruch(tmp):
     return fehler
 
 
+# So heisst Inter in Figma — mit Leerzeichen. "SemiBold" und "ExtraBold" lassen
+# loadFontAsync werfen, und damit faellt jeder Textknoten des Frames aus. Der
+# Massstab steht deshalb hier und wird nicht aus dem Bauplan gelesen: ein Test,
+# der seine Sollwerte vom Prueflingen bezieht, prueft nichts.
+FIGMA_SCHNITTE = {"Regular", "Semi Bold", "Bold", "Extra Bold"}
+
+
+# Der Figma-Frame wird nicht hier gebaut — das braucht eine angemeldete
+# Anbindung und eine fremde Datei. Geprueft wird der Bauplan: Er ist das, was
+# schiefgehen kann, ohne dass es jemandem auffaellt.
+def pruefe_figma_plan(pdf, stufen, tmp):
+    """Stimmt der Bauplan mit dem gerenderten PDF ueberein?"""
+    from pypdf import PdfReader
+    fehler = []
+    lauf = subprocess.run(
+        [sys.executable, str(WURZEL / "scripts" / "figma_plan.py"),
+         str(WURZEL / "beispiel" / "cv.json"), str(pdf), str(tmp),
+         "--stufen", str(stufen)],
+        capture_output=True, text=True, cwd=str(WURZEL),
+    )
+    if lauf.returncode != 0:
+        return [f"figma_plan.py fehlgeschlagen: {(lauf.stderr or lauf.stdout).strip()}"]
+
+    plan = json.loads((Path(tmp) / "figma_plan.json").read_text(encoding="utf-8"))
+    norm = lambda t: " ".join((t or "").split())
+    seiten = [norm(s.extract_text()) for s in PdfReader(str(pdf)).pages]
+
+    if len(plan["frames"]) != len(seiten):
+        fehler.append(f"{len(plan['frames'])} Frames, aber {len(seiten)} PDF-Seiten")
+
+    if set(plan["schrift"]["schnitte"]) != FIGMA_SCHNITTE:
+        fehler.append(f'Schnittliste im Plan: {plan["schrift"]["schnitte"]} '
+                      f'statt {sorted(FIGMA_SCHNITTE)}')
+    arten = []
+    for frame in plan["frames"]:
+        for b in frame["bloecke"]:
+            arten.append((frame["nr"], b["art"]))
+            # Jeder Block muss dort stehen, wo sein Text im PDF steht. Sonst
+            # weicht der Frame genau da vom Dokument ab, wo es keiner nachprueft.
+            marke = _marke(b)
+            if marke and marke[:60] not in seiten[frame["nr"] - 1]:
+                fehler.append(f'Frame {frame["nr"]}: "{marke[:40]}" steht dort nicht im PDF')
+            for stil in _stile(b):
+                if stil not in FIGMA_SCHNITTE:
+                    fehler.append(f"Unbekannter Schriftschnitt: {stil!r}")
+            for logo in _logos(b):
+                if not Path(logo["datei"]).exists():
+                    fehler.append(f"Logodatei fehlt: {logo['datei']}")
+
+    if arten[0] != (1, "kopfzeile"):
+        fehler.append("Die Kopfzeile steht nicht als erster Block auf Frame 1")
+    if arten[-1] != (len(seiten), "footer"):
+        fehler.append("Der Footer steht nicht als letzter Block auf dem letzten Frame")
+    return fehler
+
+
+def _marke(b):
+    """Der Text, an dem sich ein Block im PDF wiederfinden laesst."""
+    for schluessel in ("titel", "kunde", "name"):
+        if isinstance(b.get(schluessel), dict):
+            return b[schluessel]["text"]
+    if isinstance(b.get("text"), str):
+        return b["text"]
+    eintraege = b.get("eintraege")
+    if isinstance(eintraege, list) and eintraege and isinstance(eintraege[0], str):
+        return eintraege[0]
+    return None
+
+
+def _stile(wert):
+    """Alle Figma-Schnittnamen, die irgendwo in einem Block stecken."""
+    if isinstance(wert, dict):
+        if isinstance(wert.get("schnitt"), str):
+            yield wert["schnitt"]
+        for v in wert.values():
+            yield from _stile(v)
+    elif isinstance(wert, list):
+        for v in wert:
+            yield from _stile(v)
+
+
+def _logos(b):
+    if isinstance(b.get("logo"), dict):
+        yield b["logo"]
+    for l in (b.get("rail") or {}).get("logos") or []:
+        yield l
+    for l in (b.get("logos") or {}).get("eintraege") or []:
+        yield l
+
+
 def main():
     beispiel = WURZEL / "beispiel" / "cv.json"
     if not beispiel.exists():
@@ -285,9 +375,11 @@ def main():
 
     with tempfile.TemporaryDirectory() as tmp:
         ziel = Path(tmp) / "selbsttest.pdf"
+        stufen = Path(tmp) / "stufen.json"
         lauf = subprocess.run(
             [sys.executable, str(WURZEL / "scripts" / "render_cv.py"),
-             str(beispiel), str(ziel), "--pfad-genau"],
+             str(beispiel), str(ziel), "--pfad-genau",
+             "--stufen-json", str(stufen)],
             capture_output=True, text=True, cwd=str(WURZEL),
         )
         if lauf.returncode != 0 or not ziel.exists():
@@ -300,6 +392,7 @@ def main():
         fehler += pruefe_gleicher_titel(tmp)
         fehler += pruefe_verweise(tmp)
         fehler += pruefe_stationsumbruch(tmp)
+        fehler += pruefe_figma_plan(ziel, stufen, tmp)
 
     fehler += pruefe_linkedin_auswahl()
     fehler += pruefe_website_auswahl()
@@ -313,6 +406,7 @@ def main():
     print(f"  Ueberlauf: erkannt, auch wenn Rolle = Stationstitel")
     print(f"  Verweise:  benannt unter der Erfahrungszeile und anklickbar")
     print(f"  Umbruch:   keine Station mit einem einzelnen Stichpunkt am Seitenende")
+    print(f"  Figma:     Bauplan deckt sich mit dem PDF (Seiten, Logos, Schnitte)")
 
     if fehler:
         print("\nProbleme:")

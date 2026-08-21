@@ -5,3 +5,6 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# Rohbilder zur Logorecherche, werden vom Skill nicht gebraucht
+assets/hq/

@@ -535,7 +535,24 @@ def main():
     # --pfad-genau nimmt den Zielpfad wie angegeben — nur fuer Tests, die eine
     # bekannte Datei wieder aufmachen. Im normalen Lauf gilt der Namensaufbau.
     genau = "--pfad-genau" in sys.argv[1:]
-    args = [a for a in sys.argv[1:] if a != "--pfad-genau"]
+    # --stufen-json schreibt nebenbei mit, welche Verdichtungsstufen gegriffen
+    # haben. Das braucht figma_plan.py: der Figma-Frame muss dieselben Abstaende
+    # setzen wie das PDF, sonst laeuft er ueber. Aus der Ausgabe unten laesst es
+    # sich nicht ablesen — die Deckblattstufe wird nur gemeldet, wenn sie am Ende
+    # auch gereicht hat. Ohne die Option aendert sich nichts.
+    stufen_datei = None
+    args = []
+    rest = list(sys.argv[1:])
+    while rest:
+        a = rest.pop(0)
+        if a == "--pfad-genau":
+            continue
+        if a == "--stufen-json":
+            if not rest:
+                raise SystemExit("--stufen-json braucht einen Dateinamen")
+            stufen_datei = Path(rest.pop(0))
+            continue
+        args.append(a)
     if len(args) < 2:
         raise SystemExit(__doc__)
     quelle = Path(args[0])
@@ -625,6 +642,17 @@ def main():
     if kompakt:
         print(f"Stationen {kompakt} gesetzt, damit der Footer nicht allein auf "
               "einer Seite steht.")
+
+    if stufen_datei:
+        stufen_datei.parent.mkdir(parents=True, exist_ok=True)
+        stufen_datei.write_text(json.dumps({
+            "deckblatt": stufe,
+            "stationen": kompakt or "normal",
+            "seiten": seitenzahl(ziel),
+            "engine": engine,
+            "pdf": str(ziel),
+        }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"{stufen_datei} geschrieben")
 
     print(f"{ziel} geschrieben (Engine: {engine})")
     if hinweise:

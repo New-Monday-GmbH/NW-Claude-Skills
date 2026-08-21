@@ -72,6 +72,36 @@ pip3 install weasyprint jinja2 pypdf pillow
 `pango` ist der Teil, an dem WeasyPrint auf macOS am häufigsten scheitert — ohne
 die Bibliothek startet der Import nicht.
 
+## Figma (optional)
+
+Der Skill kann den fertigen Lebenslauf zusätzlich als bearbeitbaren Frame in ein
+Figma-File legen. Das ist eine Zugabe: **ohne Figma läuft der Skill vollständig**,
+das PDF entsteht genauso.
+
+Gebraucht wird dafür:
+
+- **Die Figma-MCP-Anbindung**, verbunden und angemeldet. In Claude Code über
+  `claude mcp` bzw. `/mcp` in einer interaktiven Sitzung, in den claude.ai-Apps
+  über die Connector-Einstellungen. Ist sie nicht angemeldet, meldet der Skill das
+  und liefert nur das PDF.
+- **Bearbeitungsrechte** auf der Zieldatei. Ein Betrachter-Link genügt nicht.
+- **Eine Design-Datei**, also ein Link der Form `figma.com/design/…`. FigJam
+  (`/board/`), Slides (`/slides/`), Make (`/make/`) und Prototypen (`/proto/`)
+  lassen sich nicht beschreiben.
+- **`pypdf`**, siehe Abhängigkeiten. Ohne es lässt sich die Seitenaufteilung nicht
+  aus dem PDF lesen, und ohne die wird kein Frame gebaut.
+
+Gefragt wird gleich zu Beginn, zusammen mit der Sprache — mitschicken muss man nur
+den Link zur Datei.
+
+**Warum der Skill keine `allowed-tools`-Zeile mehr hat:** Sie zählte auf, welche
+Werkzeuge der Skill benutzen darf. Der Name des Figma-Servers steht aber nicht fest
+— je nach Installation heißt er `mcp__figma__use_figma` oder trägt eine ID, die sich
+ändern kann. Ein Name, der nicht passt, hätte den Figma-Teil stillschweigend
+lahmgelegt. Ohne die Zeile gelten die normalen Berechtigungsregeln: Claude Code
+fragt beim ersten Aufruf nach, danach nicht mehr. Wer die Zeile zurück will, findet
+sie in den Schwesterskills `newmonday-portfolio` und `newmonday-skillmatrix`.
+
 ## Selbsttest
 
 ```bash
