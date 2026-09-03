@@ -82,19 +82,31 @@ Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
 
    Sie steuert die Rubriken ("Kernkompetenzen" / "Core Skills", "Ausgestellt
    von:" / "Issued by:", die Fußzeile) – und darüber hinaus **jeden Satz im
-   Dokument**. Der Katalog führt jedes Attribut zweisprachig; genommen wird
-   immer die Spalte der gewählten Sprache. Eine deutsche Matrix, auf deren
-   Karten "Using AI to analyze user data." steht, ist ein Fehler und kein
-   Fachbegriff. Das gilt genauso für die Hero-Beschreibung und für jede
-   Beschreibung, die neu formuliert werden muss.
+   Dokument**. Eine deutsche Matrix, auf deren Karten "Using AI to analyze
+   user data." steht, ist ein Fehler und kein Fachbegriff. Das gilt genauso
+   für die Hero-Beschreibung und für jede Beschreibung, die neu formuliert
+   werden muss.
+
+   **Der Katalog führt die Beschreibungen nur auf Deutsch** – so, wie sie im
+   Figma-Pool stehen. Für eine **englische** Matrix wird jede Beschreibung
+   beim Bauen übersetzt und das in der Übergabe gemeldet; Toolnamen und
+   Fachbegriffe bleiben dabei stehen. Erfundene englische Fassungen zu
+   behaupten, die es im Pool nicht gibt, war der Fehler der Vorgängerversion.
 
    **Nicht übersetzt werden Attribut- und Kategorienamen.** Sie sind
    Fachbegriffe und stehen auch in den deutschen Vorlagen englisch – eine
    deutsche Matrix trägt "Wireframing & Prototyping", "Design Systems" und
-   "Tools & Implementation". Ebenso bleiben Toolnamen und eingeführte
+   "Coding Skills". Ebenso bleiben Toolnamen und eingeführte
    Fachwörter innerhalb der Beschreibungen englisch ("Auto-Layout",
    "Edge Cases", "WCAG", "Jobs-to-be-Done"). Übersetzt wird, was ein Satz
    ist.
+
+   **Produktnamen tragen die Schreibweise des Herstellers.** Belegbare
+   Eigenschreibung schlägt jede andere Variante – auch die aus dem Auftrag:
+   "Fullstory", nicht "FullStory"; "Hotjar", nicht "HotJar"; "UXPin", nicht
+   "UxPin". Wer eine Schreibweise korrigiert, nennt das in der Übergabe, statt
+   es stillschweigend zu tun. Ist die Eigenschreibung nicht zu belegen, bleibt
+   die vorgegebene stehen.
 
 2. **Die Verfügbarkeit.** Ebenfalls als Klickbox – sie steht als Badge ganz
    oben im Dokument und ist keine Ableitung aus dem Lebenslauf:
@@ -209,22 +221,51 @@ lesen – er ist der Wortschatz der Matrix.
 
 #### 2a. Kategorien festlegen
 
-Ausgangspunkt sind die vier Standardkategorien der Wissem-Vorlage: **AI**,
-**Strategie & Research**, **Interaction & Visual Design**,
-**Tools & Implementation**. Sie werden ans Profil angepasst, nicht
-mechanisch übernommen: Ein Profil ohne KI-Belege bekommt keine AI-Kategorie;
-ein Barrierefreiheits-Schwerpunkt bekommt eine eigene (wie in Florians
-Vorlage "Barrierefreiheit & Inklusives Design"). **Drei bis fünf
-Kategorien**, jede mit **drei bis sechs Skills** – die Vorlage trägt
-insgesamt 21. Weniger ist besser als aufgefüllt: eine Kategorie mit zwei
-Skills wird mit einer verwandten zusammengelegt.
+Kategorien werden **nicht erfunden**. Genommen werden Abschnittstitel aus
+`references/attribute-katalog.md` – dort stehen dreizehn, und sie decken jedes
+Profil ab, das dieses Haus vermittelt.
+
+**Die Sektion Kernkompetenzen trägt höchstens 24 Skills:** vier Kategorien zu
+je sechs, gesetzt als **drei Karten pro Reihe, zwei Reihen** je Kategorie. Das
+ist keine Empfehlung, sondern das Layout – ein siebter Skill hat keinen Platz,
+eine fünfte Kategorie sprengt die Seite. Weniger ist erlaubt und oft besser:
+eine Kategorie mit zwei Skills wird mit einer verwandten zusammengelegt, drei
+Kategorien sind ein vollständiges Dokument.
+
+Ausgewählt werden die Kategorien, die das Profil **belegt**, die stärkste
+zuerst. Ein Profil ohne KI-Belege bekommt keine AI-Kategorie; ein
+Barrierefreiheits-Schwerpunkt bekommt `Accessibility & Inclusive Design`.
+
+**`Tools` ist keine Kategorie, sondern eine eigene Sektion.** Sie bekommt eine
+eigene Überschrift mit Icon – genau wie „Kernkompetenzen" – und steht **vor**
+den Kernkompetenzen. Sie zählt nicht gegen die 24, weil sie Werkzeuge listet
+und keine Fähigkeiten. Ein Kategorielabel innerhalb der Sektion entfällt: Die
+Überschrift sagt bereits „Tools", ein zweites Label darunter wäre doppelt.
+
+Damit trägt der Rumpf in dieser Reihenfolge: **Tools → Kernkompetenzen**
+(→ Zertifikate, falls belegt). Befüllt wird Tools aus dem Katalogabschnitt
+`Tools`, und auch hier gilt: nur was der Eingang belegt.
+
+`Coding Skills` ist dagegen eine gewöhnliche Kategorie innerhalb der
+Kernkompetenzen und ersetzt dann eine der vier.
 
 #### 2b. Attribute wählen
 
 Je Kategorie die Skills, die der Eingang **belegt** – über Stationen,
-Projekte, Tool-Listen, Portfolio-Cases oder Zertifikate. Steht ein Attribut
+Projekte, Tool-Listen, Portfolio-Cases oder Zertifikate.
+
+**Die Katalogabschnitte sind Ablage, keine Schranke.** Eine Matrix-Kategorie
+darf ihre Attribute aus jedem Abschnitt ziehen; entscheidend ist, was der
+Eingang hergibt, nicht wo das Attribut im Katalog einsortiert ist. Ein Profil
+mit vier Stationen, die "Frontend Development" als Skill führen, bekommt
+`HTML / CSS` in seine Development-Kategorie – auch wenn der Eintrag im Katalog
+unter `Coding Skills` steht. Wer stattdessen abschnittstreu befüllt, wählt
+nach Ordnerstruktur statt nach Beleg und schiebt den konkreten Eintrag
+zugunsten eines vageren beiseite, der zufällig im richtigen Abschnitt liegt.
+
+Steht ein Attribut
 im Katalog, werden **Name und Beschreibung wörtlich** übernommen – die
-Beschreibung aus der **Spalte der gewählten Sprache**, der Name unverändert.
+Beschreibung so, wie sie im Katalog steht, der Name unverändert.
 Nur was dort fehlt, wird neu formuliert (Stilregeln am Ende des Katalogs),
 und zwar ebenfalls in der Dokumentsprache. So tragen alle Matrizen für
 denselben Skill denselben Text.
@@ -262,8 +303,16 @@ denselben Skill denselben Text.
 | 3 | Solide, wiederkehrend eingesetzt | vereinzelte Projekte, Kurspraxis, Nebenrolle im Alltag |
 | 1–2 | Berührungspunkte | **kommt nicht in die Matrix** – weglassen statt abwerten |
 
-Die Vorlagen kennen keine Karte unter 3 Punkten: Was schwächer belegt ist,
-gehört nicht in ein Verkaufsdokument. Und **nicht alles ist eine 5** – eine
+**Drei Punkte sind die Untergrenze für die Ausgabe.** Ein Skill mit 1 oder 2
+Punkten wird nicht angezeigt – nicht abgewertet, nicht in Klammern, nicht
+kleiner gesetzt, nicht als leere Karte: weggelassen. Wer eine 2 vergibt, hat
+die Entscheidung schon getroffen, dass der Skill nicht ins Dokument gehört.
+Steht am Ende eine Karte mit weniger als drei gefüllten Punkten im Frame, ist
+das ein Fehler und keine Geschmacksfrage – im Figma-Frame wird sie auf
+`visible = false` gesetzt, in der JSON gar nicht erst geführt.
+
+Was schwächer belegt ist, gehört nicht in ein Verkaufsdokument. Und
+**nicht alles ist eine 5** – eine
 Matrix, in der jede Zeile fünf volle Punkte trägt, liest sich wie ein
 Prospekt, nicht wie eine Einschätzung. Wissems Vorlage hat 4er und einen
 3er; die Abstufung macht die 5er glaubwürdig. Für jede Bewertung den Beleg
@@ -380,6 +429,44 @@ Ordnung – die Vorlage hat das auch)?
 Entfällt, wenn in Schritt 0 „Nein" kam oder kein Link vorliegt. **Das PDF ist an
 dieser Stelle fertig** und geht so oder so raus.
 
+**Es gibt zwei Wege, und die Wahl ist keine Geschmacksfrage.** Zuerst nachsehen,
+ob die Zieldatei die New-Monday-Komponenten führt:
+
+```js
+figma.root.children.map(p => p.name)        // gibt es eine Seite "Components"?
+```
+
+| Zieldatei | Weg | Rezept |
+|---|---|---|
+| **Masterdatei** `Portfolio - CV Master` oder jede Datei mit den New-Monday-Komponenten | **Vorlage klonen und befüllen** | `references/figma-vorlage.md` |
+| fremde oder leere Datei ohne diese Komponenten | aus dem Bauplan zeichnen | `references/figma.md` |
+
+**Im Zweifel der erste Weg.** Gezeichnet wird jedes Element aus Maßen — und
+jedes Element, für das keine Maße vorliegen, wird geraten. Genau dort entstehen
+erfundene Icons, Verläufe und Bildinhalte. Ein Klon der Vorlage kann das nicht,
+weil er nichts neu erfindet, und er bleibt an die Komponenten der Datei
+gebunden: Ändert jemand später `Skill Card`, ziehen alle Matrizen mit.
+
+#### Weg A — Vorlage klonen (Masterdatei)
+
+Kein Bauplan nötig. Die Vorlage `Nachbau` klonen, auf die Zielseite hängen,
+Texte über `characters` matchen und überschreiben, `Dots` über die Variante
+`Filled` setzen, Foto über den `imageHash` einsetzen. Vollständig mit allen
+Fallstricken in `references/figma-vorlage.md` — darunter die drei, die still
+danebengehen:
+
+- **Sektionen ohne Beleg entfernen**, nicht mit Vorlageninhalt stehen lassen.
+  Ohne Zertifikate im Eingang fliegt die Zertifikatssektion raus; sonst
+  behaupten die Zertifikatsbilder der Vorlage Qualifikationen, die der Kandidat
+  nie erworben hat.
+- **`resetOverrides()` vor dem Befüllen** einer `Skill Section` — in der
+  Vorlage sind dort Kartenslots per Override gelöscht, und eine Schleife über
+  die vorhandenen Karten schluckt den Überhang wortlos.
+- **Der Frame ist 1444pt breit**, nicht 1440. Die 1440 aus `layout.md` stammen
+  aus dem PDF-Nachbau.
+
+#### Weg B — aus dem Bauplan zeichnen (fremde Datei)
+
 Erst den Bauplan, dann bauen:
 
 ```bash
@@ -389,16 +476,18 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py skillmatrix.json arbeit/ \
 
 Das schreibt `arbeit/figma_plan.json`: **ein** Frame, darin die vier Bänder
 (Kopf, Hero, Rumpf, Fuß) in Lesereihenfolge, alle Werte fertig ausgerechnet.
-Anders als beim CV gibt es keine Seitenaufteilung zu ermitteln – die Matrix ist
-eine lange Seite und wird ein langer Frame. `--pdf` ist optional und trägt nur
-die gemessene Seitenhöhe als **Sollwert** in den Plan; am Ende wird die
-Frame-Höhe dagegen gehalten (±20pt sind normal, mehr ist ein Hinweis).
+`--pdf` ist optional und trägt nur die gemessene Seitenhöhe als **Sollwert** in
+den Plan; am Ende wird die Frame-Höhe dagegen gehalten (±20pt sind normal, mehr
+ist ein Hinweis).
 
 Gebaut wird mit `use_figma` nach dem Rezept in `references/figma.md`. Dort stehen
 Linkauslesung, Zielseite, Schnittnamen, das Band-Rezept, der Weg für Logos, Foto
-und Zertifikatsbilder und die Aufteilung in rund zehn Aufrufe. **Vor dem ersten
-Aufruf den Skill `figma-use` laden** — ohne ihn sind die Fallstricke des
-Plugin-API nicht zu umgehen.
+und Zertifikatsbilder und die Aufteilung in rund zehn Aufrufe.
+
+---
+
+**Für beide Wege gilt: vor dem ersten Aufruf den Skill `figma-use` laden** —
+ohne ihn sind die Fallstricke des Plugin-API nicht zu umgehen.
 
 Vier Dinge stehen fest:
 
@@ -469,6 +558,11 @@ Fehlt nichts, steht hier nichts.
 - **Keine anonymisierte Variante.** Name und Foto gehören ins Dokument.
 - **Das PDF ist der Ausgang, der Figma-Frame die Zugabe.** Er wird nie statt
   des PDFs geliefert und nie vor ihm gebaut.
+- **Kein Inhalt aus der Vorlage bleibt stehen.** Weder ein Name noch ein
+  Zertifikatsbild noch eine Beispielbeschreibung. Was das Material nicht
+  hergibt, wird entfernt oder ausgeblendet – nie mit fremdem Inhalt
+  ausgeliefert. Nach jedem Figma-Lauf wird der Frame gegen die Namen aus der
+  Vorlage geprüft; ein Treffer ist ein Fehler, kein Schönheitsfehler.
 
 ## Wenn das Layout doch angefasst werden muss
 
@@ -478,5 +572,11 @@ stehen in `references/layout.md` – vor jeder Änderung lesen, sonst bricht
 die Höhenmessung des Renderskripts.
 
 Wer dort etwas ändert, muss `scripts/figma_plan.py` mitziehen: Es trägt dieselben
-Abstände, Breiten und Schriftwerte ein zweites Mal, damit der Figma-Frame nicht
-vom PDF abweicht. Wie daraus ein Frame wird, steht in `references/figma.md`.
+Abstände, Breiten und Schriftwerte ein zweites Mal, damit der gezeichnete
+Figma-Frame (Weg B) nicht vom PDF abweicht. Wie daraus ein Frame wird, steht in
+`references/figma.md`.
+
+**Weg A ist davon nicht betroffen** – der Klon holt seine Maße aus der Vorlage
+und nicht aus dem CSS. Umgekehrt gilt: Ändert sich die Vorlage in der
+Masterdatei, ist `references/figma-vorlage.md` nachzuziehen, insbesondere die
+Tabelle der Komponenten und die Liste der Hero-Ersetzungen.
