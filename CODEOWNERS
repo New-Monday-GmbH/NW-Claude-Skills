@@ -1,0 +1,8 @@
+# Wer PRs in diesem Repo freigeben/mergen darf.
+# Nur diese Personen erscheinen als Pflicht-Reviewer, siehe Branch-Protection-Regel auf main.
+#
+# Noch zu ergaenzen, sobald die GitHub-Einladung angenommen ist:
+# - Dario
+# - Laura
+
+* @FloNewMonday @DanielFallack @Mancini-NM
