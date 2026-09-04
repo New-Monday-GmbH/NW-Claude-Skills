@@ -1,0 +1,7 @@
+# Zwischenstände beim Rendern liegen ohnehin ausserhalb (~/.cache/newmonday-portfolio),
+# hier landen nur noch Artefakte von Python selbst.
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
