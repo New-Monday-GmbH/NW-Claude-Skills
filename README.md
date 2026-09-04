@@ -6,11 +6,11 @@ Ordner und ist für sich installierbar.
 | Skill | Was er macht |
 |-------|--------------|
 | [`rapid-redesign`](rapid-redesign/) | Erzeugt ein komplettes New-Monday-Rapid-Redesign: UX/UI- und Usability-Audit einer ganzen Website (echter Browser via Playwright) und daraus ein fertiges Folien-Deck im RR-Stil. |
-| [`newmonday-cv`](newmonday-content/skills/newmonday-cv/) | Macht aus einem fremden Lebenslauf einen im New-Monday-Layout, als fertiges PDF. Eingang: CV als PDF, LinkedIn-Export, LinkedIn-Profil-Link oder eingefügter Profiltext. Auf Wunsch zusätzlich als bearbeitbarer Frame in einem Figma-File. |
-| [`newmonday-skillmatrix`](newmonday-content/skills/newmonday-skillmatrix/) | Baut aus Lebenslauf, Portfolio und LinkedIn-Export eine Skill Matrix im New-Monday-Layout: eine lange Seite mit Hero, Zertifikaten und nach Kategorien gruppierten Kompetenzen mit 1–5-Punkte-Bewertung. |
-| [`newmonday-portfolio`](newmonday-content/skills/newmonday-portfolio/) | Baut aus Portfolio, Lebenslauf und LinkedIn-Export ein fertiges Portfolio im New-Monday-Layout als PDF: 16:9-Folien mit Profilseite, Kundenwand, Design-Prozess, Projektstrecken und Kontaktseite. |
+| [`newmonday-cv`](newmonday-bewerber/skills/newmonday-cv/) | Macht aus einem fremden Lebenslauf einen im New-Monday-Layout, als fertiges PDF. Eingang: CV als PDF, LinkedIn-Export, LinkedIn-Profil-Link oder eingefügter Profiltext. Auf Wunsch zusätzlich als bearbeitbarer Frame in einem Figma-File. |
+| [`newmonday-skillmatrix`](newmonday-bewerber/skills/newmonday-skillmatrix/) | Baut aus Lebenslauf, Portfolio und LinkedIn-Export eine Skill Matrix im New-Monday-Layout: eine lange Seite mit Hero, Zertifikaten und nach Kategorien gruppierten Kompetenzen mit 1–5-Punkte-Bewertung. |
+| [`newmonday-portfolio`](newmonday-bewerber/skills/newmonday-portfolio/) | Baut aus Portfolio, Lebenslauf und LinkedIn-Export ein fertiges Portfolio im New-Monday-Layout als PDF: 16:9-Folien mit Profilseite, Kundenwand, Design-Prozess, Projektstrecken und Kontaktseite. |
 
-Die drei Dokument-Skills liegen zusammen im Ordner [`newmonday-content`](newmonday-content/) –
+Die drei Dokument-Skills liegen zusammen im Ordner [`newmonday-bewerber`](newmonday-bewerber/) –
 das ist organisatorisch ein Bundle (mit eigener `plugin.json`/`marketplace.json` für eine
 spätere Marketplace-Installation), installiert wird aber weiterhin jeder Skill einzeln per
 Symlink, siehe unten. Grund: Bei einer echten Marketplace-Installation würde
@@ -29,9 +29,9 @@ Gewünschten Skill in den Claude-Skills-Ordner verlinken:
 
 ```bash
 ln -s ~/NW-Claude-Skills/rapid-redesign ~/.claude/skills/rapid-redesign
-ln -s ~/NW-Claude-Skills/newmonday-content/skills/newmonday-cv ~/.claude/skills/newmonday-cv
-ln -s ~/NW-Claude-Skills/newmonday-content/skills/newmonday-skillmatrix ~/.claude/skills/newmonday-skillmatrix
-ln -s ~/NW-Claude-Skills/newmonday-content/skills/newmonday-portfolio ~/.claude/skills/newmonday-portfolio
+ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-cv ~/.claude/skills/newmonday-cv
+ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-skillmatrix ~/.claude/skills/newmonday-skillmatrix
+ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-portfolio ~/.claude/skills/newmonday-portfolio
 ```
 
 Ein Symlink statt einer Kopie sorgt dafür, dass ein `git pull` im Repo den
@@ -48,7 +48,7 @@ bash ~/.claude/skills/rapid-redesign/scripts/setup.sh
 deinem Rechner fehlt, sagt dir:
 
 ```bash
-python3 ~/NW-Claude-Skills/newmonday-content/skills/newmonday-cv/scripts/pruefe_umgebung.py
+python3 ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-cv/scripts/pruefe_umgebung.py
 ```
 
 Auf macOS meist `brew install python-pango pango libffi gdk-pixbuf poppler potrace`
@@ -58,11 +58,11 @@ prüft `scripts/selbsttest.py` an einem mitgelieferten Beispiel.
 ## Die Logobibliothek gehört allen
 
 `newmonday-cv` legt jedes neu gefundene Firmenlogo in seinem eigenen Ordner
-`newmonday-content/skills/newmonday-cv/assets/logos/` ab. Über den Symlink oben landet es
+`newmonday-bewerber/skills/newmonday-cv/assets/logos/` ab. Über den Symlink oben landet es
 damit direkt im Arbeitsverzeichnis dieses Repos — also bitte committen und pushen:
 
 ```bash
-cd ~/NW-Claude-Skills && git add newmonday-content/skills/newmonday-cv/assets/logos && git commit -m "Logos ergaenzt" && git push
+cd ~/NW-Claude-Skills && git add newmonday-bewerber/skills/newmonday-cv/assets/logos && git commit -m "Logos ergaenzt" && git push
 ```
 
 Dann muss der nächste Kollege dasselbe Logo nicht noch einmal heraussuchen. Die
