@@ -5,8 +5,8 @@
   },
   "plugins": [
     {
-      "name": "newmonday-content",
-      "source": "./newmonday-content",
+      "name": "newmonday-bewerber",
+      "source": "./newmonday-bewerber",
       "description": "Lebenslauf, Skill Matrix und Portfolio im New-Monday-Layout – ein Paket, eine Versionsnummer.",
       "version": "1.0.0"
     }
