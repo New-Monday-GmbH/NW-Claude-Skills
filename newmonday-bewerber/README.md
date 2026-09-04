@@ -15,11 +15,12 @@ führe diese Schritte aus:
    - Falls ja: dort `git pull`, um die Skills zu aktualisieren.
    - Falls nein: klonen mit
      ```bash
-     git clone git@github.com:New-Monday-GmbH/NW-Claude-Skills.git ~/NW-Claude-Skills
+     git clone https://github.com/New-Monday-GmbH/NW-Claude-Skills.git ~/NW-Claude-Skills
      ```
-     Schlägt das mit einem Authentifizierungsfehler fehl, braucht die Person
-     zuerst einen eigenen SSH-Key bei GitHub hinterlegt
-     (github.com/settings/keys) — kein Passwort-Login möglich.
+     Das Repo ist öffentlich, Klonen/Pullen braucht keinen Login. Ein SSH-Key
+     bei GitHub ist erst nötig, wenn die Person auch Änderungen zurück ins
+     Repo pushen will (z. B. neue Logos, eigene PRs) — siehe
+     [Haupt-README](../README.md).
 
 2. Die drei Skills per Symlink verlinken:
    ```bash
