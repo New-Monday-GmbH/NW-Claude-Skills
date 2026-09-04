@@ -1,7 +1,6 @@
 ---
 name: newmonday-cv
-allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*) Bash(pdftoppm *) Bash(pdfinfo *) WebSearch WebFetch AskUserQuestion Read Write Edit
-description: Wandelt einen eingehenden Lebenslauf in einen Lebenslauf im New-Monday-Layout als PDF um. Eingang ist ein CV als PDF, ein LinkedIn-PDF-Export, ein LinkedIn-Profil-Link (daraus wird das Profilfoto automatisch geholt) oder eingefügter Profiltext, Ausgang ein fertiges PDF im Agenturlayout. Nutze diesen Skill immer, wenn ein Lebenslauf, CV, Kandidatenprofil oder Bewerberprofil aufbereitet, umformatiert, "ins New Monday Layout gebracht", vereinheitlicht oder für Kunden aufbereitet werden soll – auch wenn nur eine PDF-Datei mit einem Lebenslauf ohne weitere Erklärung geschickt wird, und auch dann, wenn das Wort "Layout" oder "New Monday" gar nicht fällt.
+description: Wandelt einen eingehenden Lebenslauf in einen Lebenslauf im New-Monday-Layout als PDF um. Eingang ist ein CV als PDF, ein LinkedIn-PDF-Export, ein LinkedIn-Profil-Link (daraus wird das Profilfoto automatisch geholt) oder eingefügter Profiltext, Ausgang ein fertiges PDF im Agenturlayout. Nutze diesen Skill immer, wenn ein Lebenslauf, CV, Kandidatenprofil oder Bewerberprofil aufbereitet, umformatiert, "ins New Monday Layout gebracht", vereinheitlicht oder für Kunden aufbereitet werden soll – auch wenn nur eine PDF-Datei mit einem Lebenslauf ohne weitere Erklärung geschickt wird, und auch dann, wenn das Wort "Layout" oder "New Monday" gar nicht fällt. Gilt auch, wenn der Lebenslauf zusätzlich in ein Figma-File, als Figma-Frame oder als bearbeitbare Datei für Designer abgelegt werden soll.
 ---
 
 # New Monday CV
@@ -87,8 +86,8 @@ nicht für dich, und kann bei Einrichtungsfragen weitergereicht werden.
 
 **Jede Frage, deren Antwort aus einer überschaubaren Menge stammt, läuft über
 `AskUserQuestion`** – die klickbaren Kästchen in Claude Code. Das gilt für jede
-Rückfrage in diesem Skill: Sprache, Rolle bei New Monday, Startmonat, fachfremde
-Stationen, Weiterbildungen. Auch dann, wenn die Frage kurz ist und im Fließtext
+Rückfrage in diesem Skill: Sprache, Figma-Ablage, Rolle bei New Monday,
+Startmonat, fachfremde Stationen, Weiterbildungen. Auch dann, wenn die Frage kurz ist und im Fließtext
 schneller getippt wäre. Der Nutzer soll klicken, nicht tippen.
 
 Nur zwei Dinge stehen weiter als Text in derselben Nachricht:
@@ -141,7 +140,37 @@ nacheinander: der Nutzer soll alles auf einmal beantworten und liefern können.
    ist eine bewusste Ausnahme von der Regel oben und braucht eine ausdrückliche
    Ansage – von sich aus wird nie übersetzt.
 
-2. **Firmenlogos als SVG.** Die Logodatenbanken der Skripte führen globale
+2. **Zusätzlich als Figma-Frame?** Ebenfalls als `AskUserQuestion`, direkt neben
+   der Sprachfrage:
+
+   ```
+   Frage:   Soll der Lebenslauf zusätzlich als bearbeitbarer Frame in einem
+            Figma-File landen?
+   Header:  Figma
+   Optionen: Ja, zusätzlich ins Figma-File (Empfohlen)
+           | Nein, nur das PDF
+   ```
+
+   Bei „Ja" braucht es den Link – Material, also im Text derselben Nachricht,
+   wörtlich so:
+
+   > Schick mir den Link zum Figma-File, in das der Lebenslauf soll
+   > (figma.com/design/…). Zeigt der Link auf eine bestimmte Seite, lege ich ihn
+   > dort ab, sonst auf einer neuen Seite. Ich brauche Bearbeitungsrechte auf
+   > der Datei.
+
+   Der Frame entsteht erst nach dem Rendern, siehe Schritt 4a. Drei Regeln dazu:
+
+   - **Kommt „Ja" ohne Link**, wird er einmal im Fließtext nachgefragt – nicht
+     über eine dritte `AskUserQuestion`-Nachricht.
+   - **Der Link blockiert nichts.** Bleibt er aus, entsteht trotzdem das PDF,
+     und der Figma-Teil entfällt mit einem Satz in der Übergabe. Ein Lebenslauf
+     ohne Figma-Frame ist vollständig.
+   - **Nur Design-Dateien.** `figma.com/design/…` ja; `/board/` (FigJam),
+     `/slides/`, `/make/` und `/proto/` nein. Dann sagen, was gebraucht wird,
+     statt es zu versuchen.
+
+3. **Firmenlogos als SVG.** Die Logodatenbanken der Skripte führen globale
    Marken zuverlässig, deutsche Agenturen und Mittelständler dagegen fast nie.
    Genau die stehen aber in den meisten Lebensläufen. Deshalb gleich zu Beginn
    darum bitten, die Logos der Arbeitgeber als SVG mitzuschicken – am besten aus
@@ -151,7 +180,7 @@ nacheinander: der Nutzer soll alles auf einmal beantworten und liefern können.
    Die Bitte ist eine Abkürzung, keine Bedingung: Was nicht kommt, suchst du
    selbst, siehe Schritt 3.
 
-3. **Die Profile.** Material, also im Text derselben Nachricht, wörtlich so:
+4. **Die Profile.** Material, also im Text derselben Nachricht, wörtlich so:
 
    > Gibt es ein LinkedIn-Profil? Wenn du mir den Link schickst
    > (linkedin.com/in/…), ziehe ich das Profilfoto automatisch. Ein
@@ -164,7 +193,7 @@ nacheinander: der Nutzer soll alles auf einmal beantworten und liefern können.
    landen außerdem als Verweis in den Profilkopf des Dokuments, siehe `links` in
    Schritt 2. Aus Xing wird kein Foto geholt, der Link steht nur im Dokument.
 
-4. **Das Portfolio.** Ebenfalls als Text, wörtlich so:
+5. **Das Portfolio.** Ebenfalls als Text, wörtlich so:
 
    > Gibt es ein Portfolio? Entweder als Link zur Website oder als PDF – ich
    > setze den Verweis in den Profilkopf und kann fehlende Angaben daraus
@@ -180,7 +209,7 @@ nacheinander: der Nutzer soll alles auf einmal beantworten und liefern können.
    Profilkopf zeigen nur, was da ist, und entfallen ganz, wenn es weder Profil
    noch Portfolio gibt.
 
-5. **Ein Foto**, falls weder LinkedIn noch die Website eins hergeben (beides
+6. **Ein Foto**, falls weder LinkedIn noch die Website eins hergeben (beides
    siehe Schritt 1a). Bringt der Lebenslauf keins mit und führt auch kein Link
    dorthin, danach fragen: als Bilddatei schicken lassen, `extract_input.py`
    wandelt sie in Graustufen und schneidet sie aufs Layoutformat zu. Ohne Foto
@@ -189,8 +218,8 @@ nacheinander: der Nutzer soll alles auf einmal beantworten und liefern können.
 Ebenfalls hier erwähnen, falls noch nicht vorhanden: den LinkedIn-PDF-Export
 (siehe Schritt 1). Er gehört in dieselbe Nachricht.
 
-Das ist **eine** Nachricht: die Sprachfrage als Klickbox, die Punkte 2 bis 5 als
-Text daneben. Rolle und Startmonat bei New Monday werden hier noch nicht
+Das ist **eine** Nachricht: Sprache und Figma als die beiden Klickboxen, die
+Punkte 3 bis 6 als Text daneben. Rolle und Startmonat bei New Monday werden hier noch nicht
 gefragt — für einen brauchbaren Vorschlag muss der Lebenslauf erst gelesen sein,
 deshalb stehen sie in Schritt 1d.
 
@@ -861,6 +890,11 @@ nicht aufgefallen. Ein Blick auf die Miniatur reicht dafür nicht.
 python3 ${CLAUDE_SKILL_DIR}/scripts/render_cv.py cv.json ausgabe/
 ```
 
+Ist ein Figma-Frame gewünscht (Schritt 0), kommt `--stufen-json arbeit/stufen.json`
+dazu. Das schreibt nebenbei mit, welche Verdichtungsstufen gegriffen haben — ohne
+sie setzt der Frame andere Abstände als das PDF und läuft über. Ohne die Option
+ändert sich nichts.
+
 **Den Dateinamen setzt das Skript**, nicht der Aufruf: es baut ihn aus
 `person.name` und `person.rolle` zusammen und legt die Datei im angegebenen
 Ordner ab.
@@ -891,6 +925,43 @@ Seite – ein Jobtitel mit einem einzelnen Bullet an der Blattkante liest sich w
 zwei angefangene Stationen. In der `cv.json` ist dafür nichts einzutragen und im
 CSS nichts nachzujustieren; Hintergrund in `references/layout.md`.
 
+### 4a. Den Figma-Frame ablegen — nur wenn danach gefragt wurde
+
+Entfällt, wenn in Schritt 0 „Nein" kam oder kein Link vorliegt. **Das PDF ist an
+dieser Stelle fertig** und geht so oder so raus.
+
+Erst den Bauplan, dann bauen:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py cv.json "<pfad/zum.pdf>" arbeit/ \
+        --stufen arbeit/stufen.json
+```
+
+Das schreibt `arbeit/figma_plan.json`: je PDF-Seite ein Frame, darin die Blöcke in
+Lesereihenfolge, alle Werte fertig ausgerechnet. **Die Seitenaufteilung wird aus dem
+gerenderten PDF gelesen, nicht geschätzt** — deshalb steht dieser Schritt nach dem
+Rendern und nicht davor. Ohne `pypdf` bricht das Skript ab; dann entfällt der Frame
+mit einem Satz in der Übergabe.
+
+Gebaut wird mit `use_figma` nach dem Rezept in `references/figma.md`. Dort stehen
+Linkauslesung, Zielseite, Schnittnamen, das Frame-Rezept und der Weg für Logos und
+Foto. **Vor dem ersten Aufruf den Skill `figma-use` laden** — ohne ihn sind die
+Fallstricke des Plugin-API nicht zu umgehen.
+
+Vier Dinge stehen fest:
+
+- **Figma hält das PDF nicht auf.** Schlägt irgendetwas fehl — Werkzeug nicht
+  verbunden, nicht angemeldet, keine Bearbeitungsrechte, falscher Dateityp, Proxy
+  blockt —, wird das PDF trotzdem übergeben und der Grund genannt. Nicht abbrechen,
+  nicht nachträglich am PDF drehen, und keinen zweiten Anlauf mit anderen Daten.
+- **In eine fremde Datei kommt nichts Globales.** Keine Text-Styles, keine
+  Variablen, keine Komponenten. Der Frame trägt rohe Werte. Was schon in der Datei
+  liegt, wird nicht umbenannt, nicht verschoben und nicht gelöscht.
+- **Nichts überschreiben.** Steht dort schon ein Frame gleichen Namens, kommt der
+  neue daneben, nicht darüber.
+- **Kein Ersatz-Layout.** Reicht es nicht für den Frame, wird kein vereinfachter
+  gebaut. Entweder das Dokument oder nichts.
+
 ### 5. Übergeben
 
 PDF ausgeben und dazu in wenigen Zeilen berichten:
@@ -915,6 +986,12 @@ PDF ausgeben und dazu in wenigen Zeilen berichten:
 - Welche Rechtschreibfehler korrigiert wurden
 - Was im Eingang unklar war und geraten werden müsste – als Frage, nicht als
   stille Annahme
+- **Der Figma-Frame**, falls einer gewünscht war: der Link auf den ersten Frame
+  (`…?node-id=…`) und auf welcher Seite der Datei er liegt. Ist er nicht zustande
+  gekommen, steht hier stattdessen der Grund in einem Satz. Hat `figma_plan.py`
+  gemeldet, dass eine Textmarke im PDF nicht wiederzufinden war, gehört auch das
+  hierher: An dieser Stelle ist die Seitenkante im Frame geraten und sollte
+  nachgesehen werden.
 
 #### Ganz zum Schluss: was zur Vollständigkeit fehlt
 
@@ -958,9 +1035,15 @@ Regeln dazu:
   Nicht durch Systemschriften ersetzen.
 - **Kein Umbau des Layouts.** Neue Rubriken, andere Farben, zusätzliche Spalten:
   nur nach ausdrücklicher Ansage.
+- **Das PDF ist der Ausgang**, der Figma-Frame die Zugabe. Er wird nie statt des
+  PDF gebaut, und sein Ausfall hält das PDF nicht auf.
 
 ## Wenn das Layout doch angefasst werden muss
 
 Maße, Typo und Farben stehen in `references/layout.md`. Dort steht auch, warum die
 Stationen mit Float statt Flexbox gebaut sind – diese Stelle bitte vor jeder
 Änderung lesen, sonst brechen die Seitenumbrüche.
+
+Wer dort etwas ändert, muss `scripts/figma_plan.py` mitziehen: Es trägt dieselben
+Abstände und Schriftwerte ein zweites Mal, damit der Figma-Frame nicht vom PDF
+abweicht. Wie daraus ein Frame wird, steht in `references/figma.md`.

@@ -6,7 +6,7 @@ Ordner und ist für sich installierbar.
 | Skill | Was er macht |
 |-------|--------------|
 | [`rapid-redesign`](rapid-redesign/) | Erzeugt ein komplettes New-Monday-Rapid-Redesign: UX/UI- und Usability-Audit einer ganzen Website (echter Browser via Playwright) und daraus ein fertiges Folien-Deck im RR-Stil. |
-| [`newmonday-cv`](newmonday-content/skills/newmonday-cv/) | Macht aus einem fremden Lebenslauf einen im New-Monday-Layout, als fertiges PDF. Eingang: CV als PDF, LinkedIn-Export, LinkedIn-Profil-Link oder eingefügter Profiltext. |
+| [`newmonday-cv`](newmonday-content/skills/newmonday-cv/) | Macht aus einem fremden Lebenslauf einen im New-Monday-Layout, als fertiges PDF. Eingang: CV als PDF, LinkedIn-Export, LinkedIn-Profil-Link oder eingefügter Profiltext. Auf Wunsch zusätzlich als bearbeitbarer Frame in einem Figma-File. |
 | [`newmonday-skillmatrix`](newmonday-content/skills/newmonday-skillmatrix/) | Baut aus Lebenslauf, Portfolio und LinkedIn-Export eine Skill Matrix im New-Monday-Layout: eine lange Seite mit Hero, Zertifikaten und nach Kategorien gruppierten Kompetenzen mit 1–5-Punkte-Bewertung. |
 | [`newmonday-portfolio`](newmonday-content/skills/newmonday-portfolio/) | Baut aus Portfolio, Lebenslauf und LinkedIn-Export ein fertiges Portfolio im New-Monday-Layout als PDF: 16:9-Folien mit Profilseite, Kundenwand, Design-Prozess, Projektstrecken und Kontaktseite. |
 
