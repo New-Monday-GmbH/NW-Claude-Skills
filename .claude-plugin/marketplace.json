@@ -1,0 +1,14 @@
+{
+  "name": "nw-claude-skills",
+  "owner": {
+    "name": "New Monday GmbH"
+  },
+  "plugins": [
+    {
+      "name": "newmonday-content",
+      "source": "./newmonday-content",
+      "description": "Lebenslauf, Skill Matrix und Portfolio im New-Monday-Layout – ein Paket, eine Versionsnummer.",
+      "version": "1.0.0"
+    }
+  ]
+}

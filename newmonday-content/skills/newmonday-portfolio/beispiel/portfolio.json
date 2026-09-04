@@ -1,0 +1,201 @@
+{
+  "sprache": "de",
+  "person": {
+    "name": "Ansgar Rolfes",
+    "rolle": "Brand & UX/UI Designer",
+    "cover_titel": "UI/UX Design Portfolio",
+    "jahr": "2026",
+    "foto": "material/foto.jpg",
+    "erfahrung_jahre": "25+",
+    "top_kenntnisse": [
+      "Branding & Identity",
+      "Design Systeme",
+      "Brand-driven Product Design"
+    ],
+    "kenntnisse": [
+      "User Interface & Interaction Design",
+      "User Experience / Usability",
+      "Design Systems (Components, Tokens, Libraries)",
+      "Corporate & Brand Design",
+      "Information Architecture",
+      "Prototyping (Figma)",
+      "Konzeption & Design-Beratung",
+      "Workshops & Ideation"
+    ],
+    "sprachen": [
+      {
+        "sprache": "Deutsch",
+        "niveau": "Muttersprache"
+      },
+      {
+        "sprache": "Englisch",
+        "niveau": "Business Niveau"
+      }
+    ],
+    "links": [
+      {
+        "titel": "Portfolio",
+        "url": "https://www.ansgar-rolfes.de"
+      },
+      {
+        "titel": "LinkedIn Profil",
+        "url": "https://www.linkedin.com/in/ansgar-rolfes/"
+      }
+    ],
+    "statement_rolle": "User\nInterface &\nExperience\nDesigner",
+    "statement": {
+      "zitat": true,
+      "text": "Gutes Design beginnt nicht beim Screen, sondern beim Verstehen – erst die Klarheit über das Problem macht die Oberfläche einfach."
+    },
+    "ki": {
+      "text": "KI nutze ich dort, wo sie Arbeit abkürzt, ohne die Entscheidung abzunehmen: beim Sichten von Research-Material, beim Durchspielen von Konzeptvarianten und bei der Dokumentation von Komponenten.\n\nDie Bewertung bleibt beim Menschen. Was ein Modell vorschlägt, wird gegen Nutzerdaten, Projektwissen und das bestehende Design System geprüft, bevor es in ein Konzept einfließt.",
+      "tools": [
+        "chatgpt.svg",
+        "copilot.svg"
+      ]
+    }
+  },
+  "kunden": [
+    {
+      "name": "Deutsche Bank",
+      "logo": "deutsche-bank.svg"
+    },
+    {
+      "name": "Postbank",
+      "logo": "postbank.svg"
+    },
+    {
+      "name": "Union Investment",
+      "logo": "union-investment.svg"
+    },
+    {
+      "name": "Volkswagen",
+      "logo": "volkswagen.svg"
+    },
+    {
+      "name": "Opel",
+      "logo": "opel.svg"
+    },
+    {
+      "name": "Peugeot",
+      "logo": "peugeot.svg"
+    },
+    {
+      "name": "Citroën",
+      "logo": "citroen.svg"
+    },
+    {
+      "name": "DATEV",
+      "logo": "datev.svg"
+    },
+    {
+      "name": "Rossmann",
+      "logo": "rossmann.svg"
+    },
+    {
+      "name": "Hays",
+      "logo": "hays.svg"
+    },
+    {
+      "name": "Pixelpark",
+      "logo": "pixelpark.svg"
+    },
+    {
+      "name": "BBDO",
+      "logo": "bbdo.svg"
+    }
+  ],
+  "prozess": [
+    {
+      "titel": "Analyse",
+      "kurztext": "Ich messe Erfolg an Verhaltensänderung und Business-Wirkung, nicht an gelieferten Screens.",
+      "langtext": "Ich nutze UX-Analyse, um Probleme nicht nur oberflächlich zu erkennen, sondern ihre Ursachen zu verstehen. Dabei prüfe ich Nutzerflüsse, Verhalten, Feedback und Anforderungen und verbinde diese Erkenntnisse mit Business-Zielen und technischen Rahmenbedingungen.\n\nSo entsteht eine fundierte Grundlage für Produktentscheidungen, basierend auf Beobachtungen statt Annahmen."
+    },
+    {
+      "titel": "Konzept-\nentwicklung",
+      "kurztext": "Bevor ich designe, frame ich das Problem mit Stakeholdern und User-Evidence. Die Hälfte meiner Arbeit findet vor dem ersten Frame statt.",
+      "langtext": "Ich arbeite als Senior UX Designer an Projekten von der ersten Discovery bis zur Delivery. Dabei begleite ich den gesamten Prozess: Ich analysiere Anforderungen, verstehe Nutzer:innenbedürfnisse, plane und moderiere (Design Thinking) Workshops, entwickle erste Konzepte und übersetze diese in klare User Flows, Wireframes und Prototypen.\n\nMeine UX-Arbeit entsteht dabei nie isoliert, sondern im engen Austausch mit Visual Design, Entwicklung und Product Management. So stelle ich sicher, dass Nutzer:innenperspektive, technische Machbarkeit und Produktziele früh zusammenkommen – und aus Ideen konkrete, umsetzbare Lösungen werden."
+    },
+    {
+      "titel": "Qualitative\nUser Tests",
+      "kurztext": "Ich denke in Patterns, Komponenten und Mental Models – damit Lösungen skalieren statt zu fragmentieren.",
+      "langtext": "Das regelmäßige Verproben der digitalen Produkte und Services geschieht inzwischen in der Regel via Figma-Prototyping oder programmierten (Sandbox-)Prototypen, sollten entsprechende Entwickler zur Verfügung stehen. Diese eignen sich dann, zum Beispiel, sehr gut für qualitative Befragungen oder Stakeholder-Playbacks.\n\nIm Rahmen von Workshops oder Schulungen weise ich hingegen gern auf die Vorteile des Rapid Prototyping hin oder lehre in kleinen Übungseinheiten die richtige Anwendung dieser. So lässt sich schnell der AHA-Effekt des Gelernten erreichen und Interesse wecken."
+    }
+  ],
+  "projekte": [
+    {
+      "kunde": "apoBank",
+      "logo": "material/apobank.png",
+      "markenfarbe": "#012169",
+      "projekt": "Wir wurden beauftragt, das **Design des neuen Kundenportals** zur Verwaltung von Finanzierungsprojekten für die Nutzer zu gestalten.\n\nNach einem fachlichen Review der bestehenden User Experience wurde vereinbart, im Rahmen eines agilen Projektes in mehreren Sprints die Konzeption der Nutzerführung und Gestaltung der Oberflächen in Zusammenarbeit mit der Marketing- und IT-Abteilung und unter Berücksichtigung des Corporate Designs zu entwerfen und zu dokumentieren.",
+      "kunde_text": "Die Deutsche Apotheker- und Ärztebank eG ist die Vertrauensbank der Heilberufe mit herausragender Branchenexpertise im Gesundheitsmarkt.",
+      "rolle": [
+        "Senior UX Designer"
+      ],
+      "nda": false,
+      "summary": {
+        "bild": "material/apo-1.jpg",
+        "text": "In mehreren Workshops optimierten wir den User Flow durch den Finanzierungsprozess mit dem Ziel, die digitale Verwaltung der Finanzierungsprojekte in Zusammenspiel mit den persönlichen Beratungsterminen einfach und intuitiv zu gestalten.\n\nGleichzeitig wurden in einer Design Exploration unterschiedliche Gestaltungslinien entworfen, die sich an das bestehende Corporate Design der apoBank anlehnen und gleichzeitig eine Weiterentwicklung des digitalen Design und eine massive Verbesserung der Usability darstellen."
+      },
+      "screens": [
+        "material/apo-3.jpg",
+        "material/apo-4.jpg"
+      ],
+      "loesungen": [
+        {
+          "titel": "Aus einer Design Exploration wird eine Komponentenbibliothek",
+          "screens": [
+            "material/apo-3.jpg",
+            "material/apo-4.jpg"
+          ],
+          "text": "In einem iterativen Verfahren wurden die Designs verfeinert. Um die Gestaltung auch für weitere Projekte etablieren zu können, wurden die Komponenten in einer übergreifenden Bibliothek organisiert.\n\nDabei wurden die Gestaltungselemente des digitalen Design auf die kleinsten Bausteine heruntergebrochen und dann einzeln zusammengesetzt. Globale Farben und Stile werden dabei zentral verwaltet. Die Komponenten der Oberfläche abonnieren diese Einstellungen.\n\nNeben vielen weiteren Vorteilen schafft eine einheitliche Pattern Library vor allem Konsistenz und damit ein besseres Nutzungserlebnis."
+        },
+        {
+          "titel": "Modulare Design Patterns für das Kreditportal",
+          "screens": [
+            "material/apo-4.jpg",
+            "material/apo-3.jpg"
+          ],
+          "text": "So wurden die Nutzeroberflächen des Kreditportals unter Berücksichtigung der Aspekte, die im Expert Review hervorgehoben wurden, mit modularen Design Patterns durchgestaltet und für die interne Entwicklungsabteilung in einem eigens installierten Kollaborationstool interaktiv dokumentiert.\n\nDas Ergebnis ist eine nachhaltige Designlösung, die es erlaubt, auch in Zukunft sehr schnell digitale Prototypen zu bauen, zu testen und zur Umsetzung ausliefern zu können."
+        }
+      ]
+    },
+    {
+      "kunde": "Yareto GmbH",
+      "logo": "material/yareto.png",
+      "markenfarbe": "#f56a03",
+      "projekt": "Seit dem Start im Jahr 2016 wird das Startup Yareto durch unser Büro in allen Fragen rund um User Experience Design und Usability betreut.\n\nSeitdem wurde das digitale Produktportfolio für mehr als 15.000 registrierte Händler stetig ausgebaut. Immer im Blick: Die **einfache und intuitive Nutzung** der Services.",
+      "kunde_text": "Yareto.de ist das erste und marktführende B2B-Portal für den Vergleich von Fahrzeugfinanzierungen für den deutschen Kfz-Handel.\n\nDurch Yareto hat der Kfz-Handel mehr Auswahlmöglichkeiten bei der Absatzfinanzierung, bei Leasingangeboten sowie weiteren speziellen Finanzierungsprodukten.",
+      "rolle": [
+        "Senior UX Designer"
+      ],
+      "nda": false,
+      "summary": {
+        "bild": "material/yar-1.jpg",
+        "text": "In Anlehnung an das bestehende Corporate Design wurde das User Interface entwickelt und mit dem Relaunch im Jahr 2022 auch in ein modulares, responsives Design System mit wiederverwendbaren Komponenten umgebaut."
+      },
+      "screens": [
+        "material/yar-4.jpg",
+        "material/yar-3.jpg"
+      ],
+      "loesungen": [
+        {
+          "titel": "Ein modulares Design System für alle Yareto-Produkte",
+          "screens": [
+            "material/yar-3.jpg",
+            "material/yar-4.jpg"
+          ],
+          "text": "Für Yareto wurden die Designs der Screens auf Basis eines modularen Design Systems aufgebaut. Alle UI-Komponenten wurden in Absprache mit der Entwicklung in einer übergreifenden Bibliothek organisiert.\n\nGlobale Farben und Stile werden dabei zentral verwaltet. Die Komponenten abonnieren diese Einstellungen und lassen sich dadurch schneller und vor allem global anpassen."
+        },
+        {
+          "titel": "Einfache Oberflächen für den Kfz-Handel",
+          "screens": [
+            "material/yar-4.jpg",
+            "material/yar-3.jpg"
+          ],
+          "text": "»Einfach« ist einer der Kernwerte von Yareto. Dazu gehören vor allem leicht und intuitiv zu bedienende Oberflächen für VerkäuferInnen im Kfz-Handel, die bestmöglich die Arbeitsaufgaben abbilden.\n\nDies zeigt sich auch im positiven Feedback aus dem Markt und beweist, dass gutes digitales Produkt-Design nicht nur Optik alleinstehend, sondern vor allem Nutzbarkeit und Begeisterungsfähigkeit auszeichnet."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,329 @@
+/* New Monday Portfolio – 1920 × 1080 pt Querformat
+   Maße aus den Referenzportfolios gemessen, nicht geschätzt.
+   Hintergrund und Begründungen: references/layout.md */
+
+@page { size: 1920pt 1080pt; margin: 0; }
+
+@font-face { font-family: Inter; font-weight: 400; src: url("fonts/Inter-Regular.ttf"); }
+@font-face { font-family: Inter; font-weight: 600; src: url("fonts/Inter-SemiBold.ttf"); }
+@font-face { font-family: Inter; font-weight: 700; src: url("fonts/Inter-Bold.ttf"); }
+@font-face { font-family: Inter; font-weight: 800; src: url("fonts/Inter-ExtraBold.ttf"); }
+
+:root {
+  --brand:      #009193;   /* Markenpetrol: Cover, Divider, Panels, Akzente */
+  --brand-dark: #265d60;   /* nur die Eyebrow-Zeile über den Headlines */
+  --ink:        #111111;   /* Headlines, Labels */
+  --body:       #485758;   /* Fließtext */
+  /* Nebelblau ist der einzige helle Grund der Vorlage: Streifen, Kontaktband,
+     Logowand und Zitatfläche messen dort alle #ebf2f5. Ein zweiter, neutral
+     grauer Ton stand hier einmal für die Zitatseite - er ließ genau diese eine
+     Seite kalt aus der Strecke fallen. */
+  --mist:       #ebf2f5;   /* heller Streifen, Kontaktband, Zitatfläche, Balken */
+  --line:       #dedede;   /* Kartenrahmen */
+  --warm:       #f4ece8;   /* Fläche hinter dem Profilfoto */
+
+  --kante:      193pt;     /* linke Textkante aller Inhaltsseiten */
+  --kante-weit: 160pt;     /* Cover und Divider */
+  --streifen:   72pt;      /* linker Randstreifen */
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { font-family: Inter, sans-serif; font-weight: 400; color: var(--body);
+       -webkit-font-smoothing: antialiased; }
+
+/* ── Seitengerüst ─────────────────────────────────────────────────────── */
+
+.seite {
+  position: relative;
+  width: 1920pt; height: 1080pt;
+  overflow: hidden;
+  background: #fff;
+  page-break-after: always;
+}
+.seite:last-child { page-break-after: auto; }
+
+/* Der Streifen ist die Sektionsmarke: Petrol heißt „hier beginnt etwas",
+   Nebelblau heißt „das läuft weiter". Deshalb steht er in jeder Seitenklasse. */
+.streifen { position: absolute; left: 0; top: 0; width: var(--streifen); height: 100%; }
+.streifen--start { background: var(--brand); }
+.streifen--weiter { background: var(--mist); }
+
+.logo { position: absolute; right: 60pt; top: 60pt; width: 148pt; height: 15pt; }
+.logo img { width: 100%; height: 100%; }
+
+.seitenzahl {
+  position: absolute; right: 60pt; bottom: 46pt;
+  font-size: 21.8pt; font-weight: 700; color: var(--ink);
+}
+.seitenzahl--hell { color: #fff; }
+
+/* Die Bildhälfte. Zwei Breiten, weil die Vorlage zwei Textmengen kennt:
+   Arbeitsweise (Text neben dem Motiv) und Summary/Lösung (Text neben der
+   breiten Fläche). Die Projekt-Kopfseite trägt seit dieser Fassung kein Bild. */
+.bild { position: absolute; right: 0; top: 0; height: 100%; overflow: hidden; }
+.bild img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bild--halb    { left: 1011pt; }
+.bild--breit   { left: 900pt; }
+
+/* Fehlt ein Bild, bleibt die Fläche als beschrifteter Platzhalter stehen.
+   Das Raster bricht dadurch nicht, und es ist sofort sichtbar, was fehlt. */
+.bild--platzhalter { background: var(--mist); }
+.bild--platzhalter .hinweis {
+  position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+  text-align: center; font-size: 24pt; color: var(--body); padding: 0 60pt;
+}
+.bild--platzhalter .hinweis b { display: block; font-weight: 700; margin-bottom: 12pt; }
+
+/* ── Typografie ───────────────────────────────────────────────────────── */
+
+.eyebrow {
+  font-size: 20pt; font-weight: 700; color: var(--brand-dark);
+  text-transform: uppercase; letter-spacing: 1.2pt;
+}
+.h1 { font-size: 96pt; font-weight: 800; color: var(--ink); line-height: 1.2;
+      letter-spacing: -2pt; overflow-wrap: break-word; }
+.h1--hell { color: #fff; }
+.fliess { font-size: 20pt; line-height: 1.35; color: var(--body); }
+.fliess p + p { margin-top: 27pt; }
+.fliess b, .fliess strong { font-weight: 700; color: var(--body); }
+.label { font-size: 21pt; font-weight: 700; color: var(--ink); }
+
+ul.punkte { list-style: none; font-size: 20pt; line-height: 1.35; color: var(--body); }
+ul.punkte li { position: relative; padding-left: 26pt; margin-top: 16pt; }
+ul.punkte li:first-child { margin-top: 0; }
+ul.punkte li::before { content: "•"; position: absolute; left: 4pt; }
+
+/* ── 1 · Cover ────────────────────────────────────────────────────────── */
+
+.seite--cover { background: var(--brand); }
+.seite--cover .cover-logo { position: absolute; left: 160pt; top: 160pt; width: 335.5pt; }
+.seite--cover .titel { position: absolute; left: var(--kante-weit); top: 447pt;
+  width: 1600pt; font-size: 96pt; font-weight: 800; color: #fafafa;
+  letter-spacing: -2pt; line-height: 1.2; }
+.seite--cover .name  { position: absolute; left: var(--kante-weit); top: 626pt;
+  width: 1600pt; font-size: 48pt; font-weight: 700; color: #fafafa; }
+.seite--cover .rolle { position: absolute; left: var(--kante-weit); top: 703pt;
+  width: 1600pt; font-size: 40pt; color: #fafafa; }
+.seite--cover .jahr  { position: absolute; left: var(--kante-weit); top: 890pt;
+  width: 1600pt; font-size: 48pt; color: #fafafa; }
+
+/* ── 2 · Profil ───────────────────────────────────────────────────────── */
+
+.seite--profil .foto {
+  position: absolute; left: 65pt; top: 144pt; width: 363pt; height: 445pt;
+  background: var(--warm); overflow: hidden;
+}
+.seite--profil .foto img { width: 100%; height: 100%; object-fit: cover;
+  filter: grayscale(1); }
+.seite--profil .p-name  { position: absolute; left: 500pt; top: 117pt; width: 860pt;
+  font-size: 72pt; font-weight: 800; color: var(--ink); letter-spacing: -1.6pt; }
+.seite--profil .p-rolle { position: absolute; left: 500pt; top: 219pt; width: 860pt;
+  font-size: 40pt; color: var(--ink); }
+
+.karte { position: absolute; background: #fff; border: 1pt solid var(--line);
+  border-radius: 12pt; padding: 28pt 32pt; }
+.karte h3 { font-size: 24pt; font-weight: 700; color: var(--ink); }
+.karte--top { left: 500pt; top: 305pt; width: 834pt; }
+.karte--top p { margin-top: 30pt; font-size: 20pt; color: var(--body); }
+/* 36pt Luft zur Top-Kenntnisse-Karte (endet bei 475pt) - die beiden Rahmen
+   kleben sonst aneinander; Referenzabstand bei Paul ~38pt. */
+.karte--koennen { left: 500pt; top: 511pt; width: 834pt; }
+
+ul.zeilen { list-style: none; margin-top: 20pt; }
+ul.zeilen li { font-size: 20pt; color: var(--body);
+  padding: 17.5pt 0; border-bottom: 1pt solid var(--line); }
+ul.zeilen li:last-child { border-bottom: 0; padding-bottom: 4pt; }
+
+/* Rechte Panelspalte: Petrolfläche mit weißen Karten darin. */
+.panel { position: absolute; right: 0; top: 0; width: 527pt; height: 100%;
+  background: var(--brand); }
+.pkarte { position: absolute; left: 1453pt; width: 407pt;
+  background: #fff; border-radius: 12pt; padding: 26pt 30pt; }
+.pkarte h3 { font-size: 24pt; font-weight: 700; color: var(--ink); }
+.pkarte .zahl { font-size: 96pt; font-weight: 800; color: var(--brand);
+  line-height: 1.1; letter-spacing: -2pt; margin-top: 4pt; }
+.pkarte .fuss { font-size: 20pt; color: var(--body); }
+.pkarte .paar { margin-top: 24pt; }
+.pkarte .paar:first-of-type { margin-top: 22pt; }
+.pkarte .paar + .paar { border-top: 1pt solid var(--line); padding-top: 24pt; }
+.pkarte .paar b { display: block; font-size: 20pt; font-weight: 700; color: var(--ink); }
+.pkarte .paar span { font-size: 20pt; color: var(--body); }
+.pkarte a { font-size: 20pt; color: var(--brand); text-decoration: underline; }
+/* Connect-Eintraege: petrolfarbene Pfeil-Links wie in der Referenz - ohne
+   Unterstreichung, ohne Trennlinie zwischen den Eintraegen. */
+.pkarte .paar--link + .paar--link { border-top: 0; padding-top: 0; margin-top: 18pt; }
+.pkarte .paar--link a, .pkarte .paar--link span {
+  font-size: 20pt; color: var(--brand); text-decoration: none; }
+
+/* ── 3 · Meine Kunden ─────────────────────────────────────────────────── */
+
+.seite--kunden .h1 { position: absolute; left: var(--kante); top: 143pt; width: 1400pt; }
+.kundenwand { position: absolute; left: var(--kante); top: 300pt;
+  width: 1607pt; height: 640pt; display: flex; flex-wrap: wrap;
+  align-content: center; }
+/* Zentriert über gerechnetes Padding aus dem Renderskript, nicht über Flex:
+   WeasyPrint setzt justify-content nicht um – die Logos hingen linksbündig in
+   ihren Zellen („verschoben"). */
+.kachel { }
+.kachel img { object-fit: contain; display: block; }
+
+/* ── 4 · Statement ────────────────────────────────────────────────────── */
+
+/* Das Zitat steht mittig in der Fläche. Es steckt deshalb in ihr drin und wird
+   per Flexbox zentriert – ein translateY(-50%) verrutscht in WeasyPrint, sobald
+   die Zeilenzahl wechselt. Die 166pt sind die Textkante 964pt minus 798pt. */
+.seite--statement .halb-rechts { position: absolute; left: 798pt; top: 0;
+  right: 0; height: 100%; background: var(--mist);
+  display: flex; align-items: center; }
+.seite--statement .rolle { position: absolute; left: var(--kante); top: 354pt;
+  width: 520pt; font-size: 96pt; font-weight: 800; color: var(--ink);
+  line-height: 1.2; letter-spacing: -2pt; }
+.seite--statement .aussage { margin-left: 166pt; width: 850pt;
+  font-size: 52pt; line-height: 1.4; color: var(--body); }
+
+/* ── 5 · Divider ──────────────────────────────────────────────────────── */
+
+.seite--divider { background: var(--brand); }
+.seite--divider .h1 { position: absolute; left: var(--kante-weit); top: 371pt;
+  color: #fff; width: 1500pt; }
+
+/* ── 6 · Design-Prozess ───────────────────────────────────────────────── */
+
+.seite--prozess .eyebrow { position: absolute; left: var(--kante); top: 120pt; width: 900pt; }
+.prozess-spalte { position: absolute; top: 434pt; width: 400pt; }
+.prozess-spalte .balken { width: 323pt; height: 12pt; background: var(--brand); }
+.prozess-spalte h2 { margin-top: 17pt; font-size: 42pt; font-weight: 800;
+  color: var(--ink); line-height: 1.31; letter-spacing: -1pt; }
+.prozess-spalte p { margin-top: 26pt; font-size: 24pt; line-height: 1.5; color: var(--body); }
+
+/* ── 7–10 · Arbeitsweise ──────────────────────────────────────────────── */
+
+/* Die Überschrift bekommt 800pt – in p-07 steht „Human Centered" auf einer
+   Zeile und reicht bis 960pt. Bei 700pt bräche sie eine Zeile früher um. */
+.seite--arbeitsweise .eyebrow { position: absolute; left: var(--kante); top: 120pt; width: 800pt; }
+.seite--arbeitsweise .h1 { position: absolute; left: var(--kante); top: 155pt; width: 800pt; }
+/* Die Oberkante des Textes hängt an der Zeilenzahl der Überschrift und kommt
+   deshalb als Inline-Style aus dem Renderskript – CSS kann nicht zählen. */
+.seite--arbeitsweise .fliess { position: absolute; left: var(--kante); width: 640pt; }
+
+/* Werkzeugreihe der KI-Seite: Kacheln immer 80pt im 102,4-pt-Takt wie in
+   p-10 (fünf) und p-08 (vier), Unterkante 826pt – auch bei wenigen Kacheln,
+   eine wachsende Reihe saß sichtbar anders als die Referenz. Sechs passen in
+   eine Reihe; Breite und Oberkante kommen als Inline-Style aus dem Skript.
+   Kein Umbruch: die Breite ist ausgerechnet, und ein Rundungspunkt zu wenig
+   würde die letzte Kachel in die Schrittleiste schieben. */
+.seite--ki .werkzeuge { position: absolute; left: var(--kante);
+  display: flex; flex-wrap: nowrap; gap: 22.4pt; }
+/* Das Logo sitzt über gerechnetes Padding mittig (Renderskript) – Flex-
+   Zentrierung ließ es in WeasyPrint verschoben stehen. */
+.seite--ki .werkzeug { flex: 0 0 auto; background: var(--mist); }
+.seite--ki .werkzeug img { object-fit: contain; display: block; }
+
+/* Die Balkenreihe läuft über die ganze Seite – der dritte Balken liegt auf dem
+   Bild. Dort wird er weiß, sonst verschwindet er im Motiv. Drei Balken im Takt
+   der Prozessseite (323pt bei x 193/682/1171); die KI-Seite trägt keine Leiste,
+   weil KI kein Prozessschritt ist. */
+.schritte { position: absolute; left: 0; right: 0; bottom: 78pt; height: 60pt; }
+.schritt { position: absolute; width: 323pt; }
+.schritt .balken { height: 12pt; background: var(--mist); }
+.schritt.ist .balken { background: var(--brand); }
+.schritt span { display: block; margin-top: 21pt; font-size: 21pt; font-weight: 700;
+  color: var(--ink); }
+.schritt.aufbild span { color: #fff; }
+.schritt.aufbild .balken { background: #fff; }
+.schritt.aufbild.ist .balken { background: var(--brand); }
+/* Verlauf, damit die weiße Beschriftung auf hellen Motiven trägt */
+.bildschatten { position: absolute; right: 0; bottom: 0; height: 298pt;
+  background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.55)); }
+
+/* ── 11 · New Monday Agentur ──────────────────────────────────────────── */
+
+.seite--agentur .h1 { position: absolute; left: var(--kante); top: 116pt; width: 1150pt; }
+.seite--agentur .subline { position: absolute; left: var(--kante); top: 386pt;
+  width: 1150pt; font-size: 21pt; font-weight: 700; color: var(--body); }
+.seite--agentur .kunden { position: absolute; left: 193pt; top: 500pt; width: 665pt; }
+.seite--agentur .kunden img { width: 100%; display: block; }
+.seite--agentur .badge { position: absolute; left: 1120pt; top: 707pt; width: 110pt; }
+.seite--agentur .badge img { width: 100%; display: block; }
+.seite--agentur .badge-text { position: absolute; left: 1120pt; top: 885pt; width: 400pt;
+  font-size: 18pt; line-height: 1.35; font-weight: 600; color: var(--brand); }
+
+/* ── Projektseiten ────────────────────────────────────────────────────── */
+
+/* Flächengleich statt fester Höhe: Breite und Höhe kommen als Inline-Style aus
+   dem Renderskript (LOGO_PROJEKT_MASS). Mit festen 61pt stand eine breite
+   Wortmarke doppelt so wuchtig da wie eine kompakte Bildmarke – in der Referenz
+   (p-13/18/23) wirken alle Kundenlogos gleich schwer. */
+/* Breit genug fuer mehrere Marken nebeneinander (logo als Liste);
+   inline-block + vertical-align statt block, damit eine Reihe entsteht und
+   ungleich hohe Logos auf einer Mittellinie sitzen. */
+.kundenlogo { position: absolute; left: var(--kante); top: 121pt; width: 1400pt; }
+.kundenlogo img { object-fit: contain; object-position: left center;
+                  display: inline-block; vertical-align: middle;
+                  margin-right: 48pt; }
+
+.seite--projekt .h1 { position: absolute; left: var(--kante); top: 252pt;
+  width: 1534pt; }   /* ohne Aufmacherbild steht die ganze Blattbreite offen */
+/* Beide Spalten stehen im Referenzmaß: 575pt bei x 193 und x 916, wie in
+   p-13/18/23 gemessen. „Meine Rolle" folgt dem Textfluss der Projekt-Spalte –
+   die alte Fassung heftete den Block an die Blattkante, und bei kurzen Texten
+   klebte er sichtbar allein am unteren Rand. */
+.seite--projekt .sp-projekt { position: absolute; left: var(--kante); top: 451pt; width: 575pt; }
+.seite--projekt .sp-kunde   { position: absolute; left: 916pt; top: 451pt; width: 575pt; }
+.seite--projekt .sp-projekt .fliess,
+.seite--projekt .sp-kunde .fliess { margin-top: 30pt; }
+.seite--projekt .rolle-block { margin-top: 56pt; }
+.seite--projekt .rolle-block ul { margin-top: 26pt; }
+
+.seite--summary .h1 { position: absolute; left: var(--kante); top: 252pt; width: 600pt; }
+.seite--summary .fliess { position: absolute; left: var(--kante); top: 452pt; width: 575pt; }
+
+/* Einleitungszeile, Fließtext und Stichpunkte stehen auf der Lösungsseite in
+   einem Fluss: die Einleitung darf ein- oder zweizeilig sein, und der Text
+   rutscht dann von selbst nach. Die Oberkante liegt auf 252pt wie die
+   Überschriften der Kopf- und Summary-Seite – die Seiten fluchten. */
+.seite--loesung .inhalt { position: absolute; left: var(--kante); top: 252pt; width: 575pt; }
+.seite--loesung .einleitung { font-size: 21pt; font-weight: 700; color: var(--ink);
+  line-height: 1.3; }
+.seite--loesung .inhalt .fliess { margin-top: 30pt; }
+
+/* Die Abschlussseite ist randlos: nur die Screenfläche, Wortmarke, Seitenzahl. */
+.seite--abschluss .vollflaeche { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.seite--abschluss .vollflaeche img { width: 100%; height: 100%; object-fit: cover;
+  display: block; }
+
+/* Der Vertraulichkeitshinweis steht auf der Bildseite, klein und unten. */
+.nda-hinweis { position: absolute; right: 60pt; bottom: 90pt; width: 460pt;
+  font-size: 15pt; line-height: 1.4; text-align: right; }
+.nda-hinweis--hell { color: #fff; }
+.nda-hinweis--dunkel { color: var(--body); }
+
+/* ── Kontakt ──────────────────────────────────────────────────────────── */
+
+.seite--kontakt .band { position: absolute; left: 0; right: 0; top: 413pt; bottom: 0;
+  background: var(--mist); }
+.seite--kontakt .adresse { position: absolute; left: 240pt; top: 101pt; width: 450pt;
+  font-size: 24pt; line-height: 1.5; color: var(--ink); }
+.seite--kontakt .adresse a { color: var(--brand); text-decoration: underline; }
+.seite--kontakt .aufruf { position: absolute; left: 752pt; top: 102pt; width: 749pt; }
+.seite--kontakt .aufruf h2 { font-size: 32pt; font-weight: 700; color: var(--ink); }
+.seite--kontakt .aufruf p { margin-top: 26pt; font-size: 24pt; line-height: 1.5;
+  color: var(--ink); }
+.seite--kontakt .box { position: absolute; left: 240pt; top: 609pt; width: 657pt;
+  background: #fff; border-radius: 12pt; padding: 32pt 36pt; }
+.seite--kontakt .box h3 { font-size: 24pt; font-weight: 700; color: var(--ink); }
+.seite--kontakt .box p { margin-top: 22pt; font-size: 24pt; line-height: 1.5; color: var(--ink); }
+.seite--kontakt .box .felder { display: flex; gap: 46pt; margin-top: 26pt; }
+.seite--kontakt .box .felder b { display: block; font-size: 20pt; font-weight: 700;
+  color: var(--ink); margin-bottom: 8pt; }
+.seite--kontakt .box .felder a { font-size: 20pt; color: var(--brand);
+  text-decoration: underline; }
+.seite--kontakt .person { position: absolute; left: 1360pt; top: 516pt; width: 359pt;
+  border-radius: 12pt; overflow: hidden; }
+.seite--kontakt .person img { width: 359pt; height: 320pt; object-fit: cover;
+  object-position: center top; filter: grayscale(1); display: block; }
+.seite--kontakt .person .name { background: var(--brand); color: #fff; text-align: center;
+  padding: 22pt 20pt 26pt; }
+.seite--kontakt .person .name b { display: block; font-size: 24pt; font-weight: 700; }
+.seite--kontakt .person .name span { display: block; font-size: 20pt; line-height: 1.4; }
