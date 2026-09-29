@@ -105,8 +105,8 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
    Lücken-Nachricht nachfragen.
 2. **Kandidatenname** aus der ersten Seite von Lebenslauf oder LinkedIn-Export.
    Bleibt der Text leer (als Bild gesetztes PDF), die erste Seite als Bild lesen.
-   Das ist die einzige Inhaltsarbeit dieses Skills; der Name gibt Laufordner und
-   Figma-Seite ihren Namen.
+   Mit der Zuordnung aus Punkt 1 ist das die einzige Inhaltsarbeit dieses
+   Skills; der Name gibt Laufordner und Figma-Seite ihren Namen.
 3. **Ablageort.** Der Laufordner heißt wie der Kandidat und liegt im
    Arbeitsverzeichnis – außer das Arbeitsverzeichnis gehört zum Skill-Repo:
 
@@ -160,19 +160,23 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
    Dazu eine Klickbox:
 
    ```
-   Frage:    Kannst du das nachliefern?
+   Frage:    Kannst du das nachliefern bzw. einrichten?
    Header:   Nachliefern
-   Optionen: Ich liefere nach (Empfohlen) | Ohne weitermachen
+   Optionen: Ich liefere nach bzw. richte es ein (Empfohlen) | Ohne weitermachen
    ```
 
    Weder Lebenslauf noch LinkedIn-Export: Dann gibt es keine Klickbox, sondern
    nur die Bitte darum. Ohne eins von beiden beginnt kein Lauf.
 
-   „Ich liefere nach“: auf das Material warten und die Punkte 1–6 für das
-   Nachgelieferte wiederholen. „Ohne weitermachen“: Die Posten kommen in
-   `auftrag.json` unter `ohne` und werden in diesem Lauf nicht mehr
-   angesprochen – auch von den Skills nicht. Das optionale Material aus Phase 1
-   ist nie eine Lücke.
+   „Ich liefere nach bzw. richte es ein“: auf das Material bzw. die Einrichtung
+   warten und die Punkte 1–6 dafür wiederholen. „Ohne weitermachen“: Die
+   Materialposten kommen in `auftrag.json` unter `ohne` und werden in diesem
+   Lauf nicht mehr angesprochen – auch von den Skills nicht. Stand „Figma
+   nicht verbunden oder falscher Dateityp“ auf der Liste, wird Figma
+   ausgelassen: `figma.aktiv = false`. Fehlte nur der Figma-Link, entsteht ein
+   neues File (Punkt 7). Stand die Umgebung auf der Liste, bricht der
+   betroffene Skill beim Rendern ab und steht in der Übergabe unter „Nicht
+   gebaut“. Das optionale Material aus Phase 1 ist nie eine Lücke.
 7. **Figma-Zielseite anlegen – zugleich der Schreibtest.** Nur wenn Figma
    bleibt. Erst den Skill `figma:figma-use` laden, dann per `use_figma`:
    - Link mit `node-id` → die Seite dieses Knotens:
@@ -205,7 +209,8 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
    nichts.
 
    Scheitert das Schreiben (nur Leserecht, Datei gesperrt), eine Klickbox:
-   *Ich richte es ein (Empfohlen)* | *Ohne Figma weiter*. Das ist die einzige
+   *Ich richte es ein (Empfohlen)* | *Ohne Figma weiter* (→ `figma.aktiv = false`).
+   Das ist die einzige
    Frage nach der Lücken-Nachricht, und sie kommt nur in diesem Fall. Bricht der
    Nutzer den Lauf später ab, bleibt die leere Seite stehen – das ist in Kauf
    genommen.
@@ -256,8 +261,9 @@ Eine Sitzung, in dieser Reihenfolge:
    wieder. „Ohne weitermachen“: die Posten unter `ohne`. „Ohne <Dokument>“:
    dessen Status auf `ausgelassen`.
 2. **Texte.** Alle `texte` in Bau-Reihenfolge, je Skill unter einer
-   Zwischenzeile („**Skill Matrix**“). Vor allem Hero-Beschreibung, Matrix- und
-   Tools-Tabelle – der Nutzer braucht sie, um die Freigabe-Frage zu beantworten.
+   Zwischenzeile („**Skill Matrix**“). Vor allem Hero-Beschreibung, Schwerpunkte,
+   Matrix- und Tools-Tabelle mit Belegen – der Nutzer braucht sie, um die
+   Freigabe-Frage zu beantworten.
 3. **Fragen.** Je Skill ein `AskUserQuestion`-Aufruf mit seinen `fragen`, in
    Bau-Reihenfolge. Übergeben werden `question`, `header`, `multiSelect` und
    `options` mit `label` und `description`; `id` und `text_noetig` bleiben
@@ -289,7 +295,8 @@ Die drei `uebergabe.md` ganz lesen. Sie haben dieselben sechs Abschnitte
 daraus zusammen, in einer Nachricht:
 
 1. **Fertig: Vorname Nachname** – die Dateien aus `ausgabe/` und der Link auf die
-   Figma-Seite.
+   Figma-Seite. Ist Figma bei einem Dokument gescheitert, steht hier der Grund –
+   die PDFs sind trotzdem da.
 2. **Zur Freigabe** – je Dokument, was dort steht, im Wortlaut: Kurzprofil,
    Hero-Beschreibung und die endgültige Matrix, Cover-Titel, KI- und
    Prozesstexte, Kundentexte mit Quellen, KI-generierte Gebäude.
@@ -302,9 +309,10 @@ daraus zusammen, in einer Nachricht:
    Leer: Abschnitt weglassen.
 6. **Nicht gebaut** – Dokumente mit `fehler` oder `ausgelassen`, mit Grund.
    Leer: weglassen.
-7. **Ganz zum Schluss** die Zeilen aus „Fehlt noch“ aller drei, **wörtlich** und
-   in Bau-Reihenfolge. Nichts dazuschreiben, nicht zusammenfassen – jeder Skill
-   hat seinen Satz. Fehlt nirgends etwas, steht hier nichts.
+7. **Ganz zum Schluss** die Zeilen aus „Fehlt noch“ aller drei, **wörtlich**:
+   die Logo-Zeilen zuerst, danach die übrigen, beides in Bau-Reihenfolge.
+   Nichts dazuschreiben, nicht zusammenfassen – jeder Skill hat seinen Satz.
+   Fehlt nirgends etwas, steht hier nichts.
 
 Wurden Frames neben ältere eines früheren Laufs gelegt, steht das in den
 Hinweisen: Die alten bleiben stehen, bis jemand sie löscht.
@@ -338,9 +346,10 @@ Skill-Ordner: <laufordner>/<cv|skillmatrix|portfolio>/
    - Arbeitsordner ist der Skill-Ordner: arbeit/, die JSON des Skills,
      fragen.json, notizen.md und uebergabe.md liegen dort. PDFs nach
      <laufordner>/ausgabe/.
-   - Figma nur, wenn figma.aktiv true ist. figma.link zeigt mit node-id auf die
-     Seite, auf die alles kommt. Keine eigene Seite anlegen, nichts Vorhandenes
-     anfassen.
+   - Figma, wenn figma.aktiv true ist – dann immer, auch bei der Skill Matrix;
+     sonst gar nicht. figma.link zeigt mit node-id auf die Seite, auf die alles
+     kommt. Keine eigene Seite anlegen, nichts Vorhandenes anfassen. Scheitert
+     Figma, gehen die PDFs trotzdem raus, und der Grund steht in uebergabe.md.
    - Was in auftrag.json unter „ohne“ steht, nicht noch einmal erbitten.
    - Antworten: auftrag.json → entscheidungen.<skill>.<id>, wörtlich, wie der
      Nutzer sie gegeben hat; die Optionen dazu stehen in fragen.json.
@@ -349,7 +358,8 @@ Skill-Ordner: <laufordner>/<cv|skillmatrix|portfolio>/
      "<laufordner>" – Fehler in deinen Dateien beheben.
 4. Rückgabe, eine Zeile:
    vorbereiten → „fertig: <n> Fragen, <m> Lücken“ oder „fehler: <Grund>“
-   bauen → „fertig: <PDF-Dateien>; Figma: <node-id oder –>“ oder „fehler: <Grund>“
+   bauen → „fertig: <PDF-Dateien>; Figma: <node-id | aus | gescheitert – Grund>“
+           oder „fehler: <Grund>“
 ```
 
 Bei einem Änderungswunsch nach der Übergabe (siehe unten) kommt als letzte Zeile
@@ -366,7 +376,10 @@ Phase 5; alles fertig → Phase 6 noch einmal. Beantwortetes wird nicht erneut
 gefragt.
 
 **Nachlieferung nach der Übergabe.** Dateien nach `eingang/`, `material`
-ergänzen, den Posten aus `ohne` streichen. Dann je nach Material:
+ergänzen, den Posten aus `ohne` streichen. Neu gebaut werden die Dokumente,
+deren `uebergabe.md` das Material unter „Fehlt noch“ nennt. Ob dafür neu
+vorbereitet werden muss – und welche Dokumente es trifft, wenn keine
+„Fehlt noch“-Zeile das Material nennt –, sagt die Tabelle:
 
 | Nachgeliefert | neu vorbereiten | neu bauen |
 |---|---|---|

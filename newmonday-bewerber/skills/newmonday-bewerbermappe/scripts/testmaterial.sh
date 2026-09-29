@@ -11,7 +11,11 @@ HIER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CV="$(cd "$HIER/../../newmonday-cv" && pwd)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
-( cd "$CV" && python3 scripts/render_cv.py beispiel/cv.json "$TMP/" >/dev/null 2>&1 )
+if ! ( cd "$CV" && python3 scripts/render_cv.py beispiel/cv.json "$TMP/" ) >"$TMP/render.log" 2>&1; then
+  cat "$TMP/render.log" >&2
+  echo "testmaterial.sh: render_cv.py ist gescheitert – Ausgabe oben" >&2
+  exit 1
+fi
 mkdir -p "$ZIEL"
 mv "$TMP"/*.pdf "$ZIEL/lebenslauf.pdf"
 echo "$ZIEL/lebenslauf.pdf"

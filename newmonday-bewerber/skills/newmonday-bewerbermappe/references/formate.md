@@ -100,7 +100,8 @@ Ist ein Abschnitt leer, steht darunter „–“. Beispiel:
 # Übergabe <skill>
 
 ## Dateien
-PDF-Dateien in ausgabe/ und der Figma-Link auf den ersten Frame (…?node-id=…)
+PDF-Dateien in ausgabe/ und der Figma-Link auf den ersten Frame (…?node-id=…) –
+oder der Grund, warum kein Frame entstand
 
 ## Zur Freigabe
 Alles, was der Skill selbst formuliert hat, im Wortlaut
