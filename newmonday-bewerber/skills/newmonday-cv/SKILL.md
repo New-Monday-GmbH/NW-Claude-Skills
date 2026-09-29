@@ -176,6 +176,64 @@ System. Meldet es Lücken, dem Nutzer den Befehl weiterreichen statt zu raten.
 Für die Installation gibt es `INSTALL.md` – die ist für den Nutzer geschrieben,
 nicht für dich, und kann bei Einrichtungsfragen weitergereicht werden.
 
+## Im Gesamtlauf
+
+Dieser Abschnitt gilt nur, wenn der Auftrag mit „Gesamtlauf
+newmonday-bewerbermappe“ beginnt. Dann läuft dieser Skill als Subagent in einer
+von zwei Phasen, und der Auftrag bringt die allgemeinen Regeln mit: keine
+Rückfragen, Laufordner, `auftrag.json`, die Formate in
+`newmonday-bewerbermappe/references/formate.md`. Hier steht nur, was für den
+Lebenslauf dazukommt. Wo dieser Abschnitt etwas regelt, geht er dem Rest des
+Skills vor; im Einzellauf gilt er nicht.
+
+**Schritt 0 entfällt.** Was er einholt, steht in `auftrag.json`:
+
+| Schritt 0 | aus `auftrag.json` |
+|---|---|
+| Sprache | `sprache` |
+| Figma-Ziel | `figma.link` – er trägt die `node-id` der Kandidatenseite, also gilt in `references/figma.md` „Zielseite“ mit `node-id`. Ist `figma.aktiv` false, entfällt Schritt 4a. |
+| Lebenslauf, LinkedIn-Export und -Link, Xing, Portfolio, Foto, Logos | `material` |
+
+**Phase vorbereiten: Schritte 1 bis 1c.** Statt der Frage-Nachricht aus Schritt
+1d entsteht `fragen.json`:
+
+- `fragen`: `nm_rolle` und `nm_start` immer, `fachfremd` und `weiterbildung`
+  nur, wenn es etwas zu entscheiden gibt – Wortlaut, Optionen, `multiSelect` und
+  „(Empfohlen)“ genau wie in Schritt 1d. Entstünde durch das Streichen einer
+  Station eine Lücke, steht sie in der `description` dieser Option.
+- `luecken`: „Profilfoto“, wenn Schritt 1a bei „beim Kandidaten anfragen“ endet
+  oder das beste Foto unter 200 dpi liegt – die Folge nennt die dpi-Zahl bzw.
+  „die Fotospalte bleibt leer“, die Form „Bilddatei, Porträt, gut aufgelöst“.
+- `texte`: leer.
+
+In `notizen.md`:
+
+- die gewählte Fotoquelle mit Datei, dpi und – bei Website-Fotos – Bildadresse;
+- jede Abweichung zwischen Lebenslauf, LinkedIn und Portfolio mit beiden Werten
+  (Schritte 1b und 1c) und welche Fassung ins Dokument kommt;
+- Kunden, die der Lebenslauf anonymisiert und das Portfolio beim Namen nennt;
+- was aus dem Portfolio ergänzt werden soll, Feld für Feld;
+- die Pfade der Auszüge (`arbeit/…/text.txt`).
+
+Keine `cv.json`, keine Logos, nichts rendern.
+
+**Phase bauen: Schritte 2 bis 5**, beide Fassungen. Die Antworten stehen in
+`entscheidungen.newmonday-cv`:
+
+- `nm_rolle`, `nm_start` → Titel und Zeitraum von `stationen[0]` und die
+  Textbausteine dazu (Schritt 2). Ein eigener Titel über „Other“ wird genommen,
+  wie er dasteht.
+- `fachfremd`, `weiterbildung` → die angehakten Einträge bleiben drin, alle
+  anderen aus der Frage fallen weg. Fehlt die `id`, gab es nichts zu entscheiden
+  – dann bleibt alles drin.
+
+Stationen mit mehreren Marken (Schritt 3): ohne Rückfrage in einer Station, alle
+Logos als Liste in `logo`, und das unter „Ohne Rückfrage entschieden“. Die
+Übergabe aus Schritt 5 geht nach `uebergabe.md`: Kurzprofil unter „Zur
+Freigabe“, die Abweichungen aus `notizen.md` unter „Quellen weichen ab“, der
+Hinweis auf den vollen Namen im Figma-File und alles Übrige unter „Hinweise“, die
+beiden Schlusszeilen wörtlich unter „Fehlt noch“.
+
 ## Gefragt wird mit Klickboxen, nicht im Fließtext
 
 **Jede Frage, deren Antwort aus einer überschaubaren Menge stammt, läuft über
