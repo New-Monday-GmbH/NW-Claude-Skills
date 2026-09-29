@@ -4,8 +4,8 @@
     python3 scripts/linkedin_foto.py "https://www.linkedin.com/in/timo-muster" arbeit/
 
 Legt das fertig zugeschnittene Graustufenfoto in arbeit/fotos/ ab — im selben
-Format wie extract_input.py, das Ergebnis ist direkt als "foto" in die cv.json
-eintragbar.
+Format wie extract_input.py, das Ergebnis ist direkt als person.foto in die
+skillmatrix.json eintragbar.
 
 Wie das geht: Die oeffentliche Profilseite liefert das Foto in den
 Meta-Tags mit, wenn man sie mit einem Browser-User-Agent und mit Redirects
@@ -26,7 +26,7 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from extract_input import portraet_zuschneiden  # noqa: E402
+from extract_input import FOTO_BREITE, portraet_zuschneiden  # noqa: E402
 
 # Ohne Browser-User-Agent antwortet LinkedIn mit HTTP 999.
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -212,13 +212,15 @@ def main():
 
     print(f"Foto: {ergebnis}")
     print(f"Quelle: {url} ({breite}x{hoehe} px)")
-    # Die Fotokarte im Hero ist 433pt breit, also 433/72 Zoll — sechsmal so
-    # breit wie der Fotokasten im CV. Das 400px-Thumbnail von LinkedIn kommt
-    # damit nur auf rund 65 dpi und ist auf der Karte sichtbar weich. Die
-    # Matrix wird meist am Bildschirm gelesen, deshalb liegt die Grenze bei
-    # 100 dpi statt der 200 aus dem CV-Skill — darunter lohnt immer die
-    # Anfrage nach einem richtigen Foto.
-    dpi = round(Image.open(ergebnis).size[0] / (433 / 72))
+    # Das Foto auf der Fotokarte im Hero ist gut 435pt breit (FOTO_BREITE aus
+    # assets/tokens.json), also rund 6 Zoll — sechsmal so breit wie der
+    # Fotokasten im CV. Das 400px-Thumbnail von LinkedIn kommt damit hoechstens
+    # auf rund 65 dpi - nach dem Kopfzuschnitt meist 40-60 - und ist auf der
+    # Karte sichtbar weich. Die Matrix wird meist
+    # am Bildschirm gelesen, deshalb liegt die Grenze bei 100 dpi statt der 200
+    # aus dem CV-Skill — darunter lohnt immer die Anfrage nach einem richtigen
+    # Foto.
+    dpi = round(Image.open(ergebnis).size[0] / (FOTO_BREITE / 72))
     print(f"Aufloesung im Layout: ~{dpi} dpi")
     if dpi < 100:
         print("Hinweis: unter 100 dpi auf der grossen Fotokarte — sichtbar "

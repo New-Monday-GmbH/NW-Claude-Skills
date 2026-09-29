@@ -4,9 +4,10 @@
     python3 scripts/extract_input.py eingang.pdf arbeit/
 
 Schreibt arbeit/text.txt (Layout erhalten) und arbeit/fotos/*.png. Fotos werden
-nach Portraetformat gefiltert, auf das Format der Fotokarte (433 x 390pt,
-leicht querformatig) beschnitten und in Graustufen gewandelt — so wie im
-New-Monday-Skillmatrix-Layout.
+nach Portraetformat gefiltert, auf das Format der Fotokarte (Bildbereich laut
+assets/tokens.json, 435 x 433pt, fast quadratisch) beschnitten - mit dem Kopf in
+der Mitte, siehe kopf_ausschnitt.py - und in Graustufen gewandelt, so wie im
+New-Monday-Skillmatrix-Layout. Kontrollbilder liegen in arbeit/fotos/kontrolle/.
 
 Die inhaltliche Zuordnung macht das Modell, nicht dieses Skript.
 """
@@ -14,9 +15,14 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Breite zu Hoehe der Fotokarte im Hero der Skillmatrix. Anders als beim CV
-# (79/106, hochkant) ist die Karte hier leicht breiter als hoch.
-SEITENVERHAELTNIS = 433 / 390
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import design_system  # noqa: E402  — nach sys.path.insert
+
+# Bildbereich der Fotokarte im Hero, aus assets/tokens.json. Anders als beim CV
+# (79/106, hochkant) ist die Karte hier fast quadratisch.
+_FOTO = design_system.laden()["komponenten"]["fotokarte"]
+FOTO_BREITE, FOTO_HOEHE = _FOTO["bild-breite"], _FOTO["bild-hoehe"]
+SEITENVERHAELTNIS = FOTO_BREITE / FOTO_HOEHE
 
 
 def text_lesen(pdf, ziel):
@@ -46,33 +52,25 @@ def portraet_zuschneiden(pfad, ziel, pruefen=True):
     pruefen=False bei einem bewusst gelieferten Foto — dann greifen die
     Heuristiken nicht, die aus einem PDF Logos aussortieren.
 
-    Beschnitten wird oben buendig: auf der Fotokarte liegt der Farbverlauf
-    mit Name und Erfahrung unten ueber dem Bild, das Gesicht muss also im
-    oberen Teil stehen bleiben.
+    Den Ausschnitt setzt kopf_ausschnitt.py: Kopf waagerecht in der Mitte,
+    Haaransatz bei 5 %, Kinn bei 70 % der Bildhoehe - so wie im Figma-Master,
+    und frei vom Farbverlauf mit Name und Erfahrung unten auf der Karte. Das
+    Kontrollbild dazu liegt in <ziel>/kontrolle/.
     """
-    from PIL import Image
-    bild = Image.open(pfad)
+    import kopf_ausschnitt
+    pfad = Path(pfad)
+    bild = kopf_ausschnitt.vorbereiten(pfad)   # nach EXIF gedreht, 8 Bit, ohne Transparenz
     b, h = bild.size
     if pruefen:
         if b < 80 or h < 80:
             return None                  # Logo oder Icon, kein Foto
         if b / h > 1.6:
             return None                  # stark querformatig: Banner oder Logo
+        if entropie(bild.convert("L")) < 4.5:
+            return None                  # zweifarbig: Logo, Alphamaske, Strichzeichnung
 
-    bild = bild.convert("L")
-    if pruefen and entropie(bild) < 4.5:
-        return None                      # zweifarbig: Logo, Alphamaske, Strichzeichnung
-    ist = b / h
-    if ist > SEITENVERHAELTNIS:          # zu breit: seitlich beschneiden
-        neu_b = int(h * SEITENVERHAELTNIS)
-        links = (b - neu_b) // 2
-        bild = bild.crop((links, 0, links + neu_b, h))
-    else:                                # zu hoch: unten beschneiden
-        neu_h = int(b / SEITENVERHAELTNIS)
-        bild = bild.crop((0, 0, b, neu_h))
-
-    ausgabe = ziel / f"foto-{pfad.stem}.png"
-    bild.save(ausgabe)
+    ausgabe, bericht = kopf_ausschnitt.zuschneiden(pfad, ziel)
+    print(kopf_ausschnitt.kurzbericht(ausgabe, bericht))
     return ausgabe
 
 

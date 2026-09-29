@@ -1,198 +1,236 @@
-/* New Monday Skillmatrix — Tokens aus dem Vorlagen-PDF "Skill Matrix Wissem"
-   nachgemessen (Pixel- und Cap-Hoehen-Messung, siehe references/layout.md).
-   Die Figma-Frames sind 1440 breit und werden 1:1 in pt uebernommen —
-   niemals px verwenden: 24px waeren in CSS nur 18pt. */
+/* New Monday Skillmatrix — nur Struktur.
 
-@font-face { font-family: Inter; src: url(fonts/Inter-Regular.ttf);   font-weight: 400; }
-@font-face { font-family: Inter; src: url(fonts/Inter-SemiBold.ttf);  font-weight: 600; }
-@font-face { font-family: Inter; src: url(fonts/Inter-Bold.ttf);      font-weight: 700; }
-@font-face { font-family: Inter; src: url(fonts/Inter-ExtraBold.ttf); font-weight: 800; }
+   Jeder Wert (Farbe, Abstand, Radius, Rahmen, Schatten, Schrift) kommt als
+   var(--komponente-eigenschaft) bzw. als Textklasse .t-<verwendung> aus
+   assets/tokens.json. render_skillmatrix.py erzeugt beides und setzt es vor
+   dieses Stylesheet. Hier steht keine Farbe und keine Groesse von Hand — wer
+   einen Wert aendern will, aendert tokens.json.
 
-:root {
-  --brand:     #009193;   /* Teal: Kopf, Fuss, Punkte, Akzente */
-  --schwarz:   #111111;   /* Namen, Titel */
-  --grau:      #465469;   /* Hero-Beschreibung, Badge-Text */
-  --grau-2:    #64748a;   /* Kartentexte, Labels, Chips */
-  --flaeche:   #f8f9fb;   /* Hintergrund der Sektionen */
-  --linie:     #e2e8ef;   /* Hairlines, leere Punkte, Chip-Rahmen */
-  --badge-bg:  #f0f4f9;   /* Verfuegbarkeits-Badge */
-  --gruen:     #21c45d;   /* Punkt im Badge */
-  --jahr-bg:   #e6f4f4;   /* Jahres-Badge auf der Zertifikatskarte */
-}
+   Einheit ist pt: Der Figma-Frame ist 1444 breit und geht 1:1 in pt ueber.
+   Niemals px — 24px waeren in CSS nur 18pt. */
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Kein Hintergrund auf html/body: render_skillmatrix.py misst die
-   Inhaltshoehe an der letzten nicht weissen Pixelzeile. Faerbte der Body die
-   ganze Vorratsseite, waere nichts mehr zu messen. */
-body { font-family: Inter; color: var(--schwarz); }
+/* Kein Hintergrund auf html/body: Faellt die Messung der Inhaltshoehe auf die
+   Pixelmethode zurueck (Chrome), zaehlt die letzte nicht weisse Zeile. */
+body { font-family: "Inter"; }
 
-.container { width: 1232pt; margin: 0 auto; }
+.seite { width: var(--seite-breite); }
 
-/* ---------- Kopfzeile ---------- */
+/* ---------- Kopf ---------- */
 
-.kopf { background: var(--brand); height: 88pt; padding: 33pt 0 0 44pt; }
-.kopf__logo { display: block; width: 166pt; }
+/* Wie der Header in Figma: feste Hoehe, Padding oben/unten, Logo zentriert.
+   Das SVG ist 21 hoch, die Marke darin 20,16 - die Box wird auf die Logohoehe
+   gesetzt und das Bild oben angeschlagen, sonst saesse es 0,4pt zu hoch. */
+.kopf {
+  display: flex; align-items: center;
+  height: var(--kopf-hoehe);
+  padding: var(--kopf-padding-y) var(--kopf-padding-x);
+  background: var(--kopf-hintergrund);
+}
+.kopf__logo {
+  display: block; flex: none;
+  width: var(--kopf-logo-breite); height: var(--kopf-logo-hoehe);
+  object-fit: cover; object-position: top;
+}
 
 /* ---------- Hero ---------- */
 
-.hero { background: #ffffff; padding: 31pt 0 60pt; }
-.hero__zeile { display: flex; justify-content: space-between; align-items: flex-start; }
-.hero__text { width: 700pt; }
+.hero {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: var(--hero-padding-y) var(--hero-padding-x);
+  background: var(--hero-hintergrund);
+}
+.hero__text { width: var(--hero-textspalte); flex: none; }
 
+/* Das Badge huggt seinen Inhalt: eigene Flex-Zeile, sonst zoege es sich ueber
+   die ganze Textspalte oder bekaeme die Zeilenhoehe eines Inline-Elements. */
+.hero__badgezeile { display: flex; }
 .badge {
-  display: inline-block;
-  background: var(--badge-bg); border: 1pt solid var(--linie);
-  border-radius: 14pt; padding: 6pt 16pt 6pt 14pt;
-  font-size: 12pt; font-weight: 600; letter-spacing: 1.2pt;
-  text-transform: uppercase; color: var(--grau);
+  display: flex; align-items: center;
+  padding: var(--badge-padding-y) var(--badge-padding-x);
+  border: var(--badge-rahmen); border-radius: var(--badge-radius);
+  background: var(--badge-hintergrund);
 }
 .badge__punkt {
-  display: inline-block; width: 8pt; height: 8pt; border-radius: 4pt;
-  background: var(--gruen); margin-right: 8pt;
+  display: block; flex: none;
+  width: var(--badge-punkt); height: var(--badge-punkt);
+  border-radius: var(--badge-radius); background: var(--badge-punkt-farbe);
+  margin-right: var(--badge-abstand);
 }
 
-.hero__name {
-  font-size: 60pt; font-weight: 700; letter-spacing: -1.8pt;
-  line-height: 1.1; margin-top: 32pt;
-}
-.hero__rolle {
-  font-size: 60pt; font-weight: 700; letter-spacing: -1.8pt;
-  line-height: 1.1; color: var(--brand); margin-top: 4pt;
-}
-.hero__beschreibung {
-  font-size: 20pt; line-height: 1.55; color: var(--grau);
-  margin-top: 36pt; max-width: 640pt;
-}
-.hero__schwerpunkte { margin-top: 40pt; }
-/* Drei Buttons muessen nebeneinander in die 700pt der Textspalte passen —
-   bei mehr Padding bricht der dritte um (in der Vorlage stehen alle drei
-   in einer Zeile). */
+.hero__name { margin-top: var(--hero-abstand-badge); padding-bottom: var(--hero-text-unten); }
+.hero__rolle { padding-bottom: var(--hero-text-unten); }
+.hero__beschreibung { margin-top: var(--hero-abstand-text); padding-bottom: var(--hero-text-unten); }
+
+/* Schwerpunkte stehen wie in Figma in einer Zeile und brechen nicht um. Wird
+   die Zeile breiter als die Textspalte, meldet render_skillmatrix.py das. */
+.hero__schwerpunkte { display: flex; margin-top: var(--hero-abstand-schwerpunkte); }
 .schwerpunkt {
-  display: inline-block;
-  border: 2pt solid var(--brand); border-radius: 14pt;
-  padding: 11pt 14pt; margin-right: 20pt;
-  font-size: 19pt; font-weight: 600; color: var(--schwarz);
+  display: block; flex: none; white-space: nowrap;
+  height: var(--schwerpunkt-hoehe);
+  padding: var(--schwerpunkt-padding-y) var(--schwerpunkt-padding-x);
+  border: var(--schwerpunkt-rahmen); border-radius: var(--schwerpunkt-radius);
+  background: var(--schwerpunkt-hintergrund);
 }
-.schwerpunkt:last-child { margin-right: 0; }
+.schwerpunkt + .schwerpunkt { margin-left: var(--schwerpunkte-abstand); }
 
-/* Fotokarte: 433 x 390pt, Foto in Graustufen, unten der Farbverlauf mit Name
-   und Erfahrung. Das Foto kommt fertig aufs Kartenformat beschnitten aus
-   extract_input.py — object-fit faengt kleine Abweichungen trotzdem ab. */
+/* Fotokarte, aufgebaut wie die Figma-Komponente: Foto mit 90 % Deckkraft um
+   die Rahmenbreite eingerueckt auf hellem Grund, darueber der Verlauf ueber
+   die volle Kartenbreite bis an die Unterkante, obenauf die Kontur. Laege der
+   Rahmen als border unter dem Verlauf, schimmerte das Foto an der Unterkante
+   als dunkle Linie durch. Das Foto kommt fertig beschnitten und in Graustufen
+   aus extract_input.py (WeasyPrint kennt kein filter). */
 .fotokarte {
-  position: relative; width: 433pt; height: 390pt; margin-top: 27pt;
-  border-radius: 16pt; overflow: hidden; background: #f6f7fa;
+  flex: none; position: relative; overflow: hidden;
+  width: var(--fotokarte-breite); height: var(--fotokarte-hoehe);
+  padding: var(--fotokarte-rahmen-breite);
+  border-radius: var(--fotokarte-radius);
+  background: var(--fotokarte-hintergrund);
 }
-.fotokarte__bild { width: 433pt; height: 390pt; object-fit: cover; display: block; }
-/* Der Verlauf beginnt in der Vorlage mit einer sichtbaren, leicht getoenten
-   Kante bei etwa 63 % der Kartenhoehe und steht im unteren Viertel satt —
-   der Name sitzt im vollen Teal. Kein Fehler, so sieht das Original aus. */
+.fotokarte::after {
+  content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+  border: var(--fotokarte-rahmen); border-radius: var(--fotokarte-radius);
+}
+.fotokarte__bild {
+  display: block; object-fit: cover;
+  width: var(--fotokarte-bild-breite); height: var(--fotokarte-bild-hoehe);
+  opacity: var(--fotokarte-bild-deckkraft);
+}
 .fotokarte__verlauf {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 145pt;
-  background: linear-gradient(180deg,
-    rgba(0, 145, 147, 0) 0%,
-    rgba(0, 145, 147, 0.16) 2.5%,
-    rgba(0, 145, 147, 0.62) 40%,
-    rgba(0, 145, 147, 0.96) 75%,
-    #009193 100%);
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: var(--fotokarte-verlauf-padding);
+  border-radius: var(--fotokarte-verlauf-radius);
+  background: var(--fotokarte-verlauf);
 }
-.fotokarte__text { position: absolute; left: 26pt; bottom: 22pt; color: #ffffff; }
-.fotokarte__name { font-size: 24pt; font-weight: 700; }
-.fotokarte__erfahrung { font-size: 15pt; margin-top: 5pt; }
 
 /* ---------- Rumpf ---------- */
 
-.rumpf { background: var(--flaeche); padding: 80pt 0 56pt; }
+/* position + z-index machen den Rumpf zum Stapelkontext: Die Schattenbilder
+   der Karten (z-index -1) liegen damit ueber dem grauen Grund und unter den
+   Karten. */
+.rumpf {
+  position: relative; z-index: 0;
+  padding: var(--rumpf-padding-oben) var(--rumpf-padding-x) var(--rumpf-padding-unten);
+  border-top: var(--rumpf-linie-oben);
+  background: var(--rumpf-hintergrund);
+}
+.sektion + .sektion { margin-top: var(--rumpf-sektionsabstand); }
 
-.sektion + .sektion { margin-top: 64pt; }
-.sektion__titel { font-size: 24pt; font-weight: 700; }
-.sektion__icon {
-  width: 26pt; height: 26pt; vertical-align: -4pt; margin-right: 14pt;
+.sektionstitel { display: flex; align-items: center; }
+.sektionstitel__icon {
+  display: block; flex: none;
+  width: var(--sektionstitel-icon); height: var(--sektionstitel-icon);
+  margin-right: var(--sektionstitel-abstand);
 }
 
-/* ---------- Zertifikatskarten ---------- */
+/* Schatten: WeasyPrint kennt kein box-shadow. render_skillmatrix.py zeichnet
+   ihn deshalb je Karte als Bild und legt es hier dahinter. box-shadow steht
+   trotzdem an den Karten — fuer den Ausweichweg ueber Chrome. */
+.schatten { position: absolute; z-index: -1; display: block; max-width: none; }
 
+/* ---------- Zertifikate ---------- */
+
+.zertkarten { margin-top: var(--zertifikate-titel-abstand); }
 .zertkarte {
-  background: #ffffff; border-radius: 12pt;
-  border-left: 5pt solid var(--brand);
-  padding: 26pt 32pt 24pt 28pt;
-  margin-top: 40pt;
-  box-shadow: 0 1pt 4pt rgba(15, 23, 42, 0.06);
+  position: relative;
+  padding: var(--zertkarte-padding);
+  border-left: var(--zertkarte-kante); border-radius: var(--zertkarte-radius);
+  background: var(--zertkarte-hintergrund);
+  box-shadow: var(--zertkarte-schatten);
 }
+.zertkarte + .zertkarte { margin-top: var(--zertifikate-karten-abstand); }
 .zertkarte__kopf { display: flex; justify-content: space-between; align-items: flex-start; }
-.zertkarte__titel { font-size: 18pt; font-weight: 700; }
-.zertkarte__jahr {
-  background: var(--jahr-bg); color: var(--brand);
-  font-size: 13pt; font-weight: 600;
-  border-radius: 6pt; padding: 4pt 12pt; margin-left: 24pt;
-  white-space: nowrap;
+.zertkarte__titel { flex: 1 1 auto; margin-right: var(--zertkarte-jahr-abstand-min); }
+.jahr {
+  display: block; flex: none; white-space: nowrap;
+  padding: var(--jahr-padding-y) var(--jahr-padding-x);
+  border: var(--jahr-rahmen); border-radius: var(--jahr-radius);
+  background: var(--jahr-hintergrund);
 }
-.zertkarte__aussteller { font-size: 14pt; font-weight: 600; margin-top: 10pt; }
-.zertkarte__beschreibung { font-size: 14pt; color: var(--grau-2); margin-top: 12pt; line-height: 1.4; }
-.zertkarte__tags { margin-top: 16pt; }
-.chip {
-  display: inline-block;
-  border: 1pt solid var(--linie); border-radius: 8pt;
-  padding: 5pt 12pt; margin: 0 10pt 8pt 0;
-  font-size: 12pt; color: var(--grau-2); background: #ffffff;
+.zertkarte__aussteller { margin-top: var(--zertkarte-gruppen-abstand); }
+.zertkarte__unten { margin-top: var(--zertkarte-abstand); }
+/* Tags: Abstand zur Beschreibung = gruppen-abstand + abstand-oben (8 + 8).
+   Den oberen Teil traegt jeder Tag selbst — so haben umbrechende Zeilen
+   denselben Abstand, und unter der letzten Zeile entsteht keiner. */
+.zertkarte__tags { display: flex; flex-wrap: wrap; margin-top: var(--zertkarte-gruppen-abstand); }
+.zert-tag {
+  display: block; flex: none; white-space: nowrap;
+  margin: var(--zert-tags-abstand-oben) var(--zert-tags-abstand) 0 0;
+  padding: var(--zert-tag-padding-y) var(--zert-tag-padding-x);
+  border: var(--zert-tag-rahmen); border-radius: var(--zert-tag-radius);
+  background: var(--zert-tag-hintergrund);
 }
 
-/* Bilderraster: 3 Kacheln je Zeile, 395 x 284pt, cover. Feste Breiten statt
-   Grid — WeasyPrint setzt sie verlaesslich, und jede Zeile ist ein eigener
-   Flex-Container, den das Template baut. */
-.zertbilder { margin-top: 64pt; }
-.zertbilder__zeile { display: flex; margin-bottom: 24pt; }
-.zertbilder__zeile:last-child { margin-bottom: 0; }
+/* Bilderraster: feste Kachelbreiten statt Grid — jede Zeile ist ein eigener
+   Flex-Container, den das Template baut. Bilder mittig gefuellt. */
+.zertbilder { margin-top: var(--zertifikate-abstand); }
+.zertbilder__zeile { display: flex; }
+.zertbilder__zeile + .zertbilder__zeile { margin-top: var(--raster-abstand); }
 .zertbilder__kachel {
-  width: 395pt; height: 284pt; margin-right: 24pt;
-  border-radius: 8pt; overflow: hidden; background: #ffffff;
+  flex: none; overflow: hidden;
+  width: var(--raster-kachel-breite); height: var(--raster-kachel-hoehe);
 }
-.zertbilder__kachel:last-child { margin-right: 0; }
-.zertbilder__kachel img { width: 395pt; height: 284pt; object-fit: cover; display: block; }
+.zertbilder__kachel + .zertbilder__kachel { margin-left: var(--raster-abstand); }
+.zertbilder__kachel img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
 /* ---------- Kernkompetenzen ---------- */
 
-.kategorie { margin-top: 40pt; }
+.kategorie { margin-top: var(--kompetenzen-kategorie-abstand); }
+.sektionstitel + .kategorie { margin-top: var(--kompetenzen-titel-abstand); }
+.kategorie__kopf { padding: var(--kategorie-padding); }
 .kategorie__label {
-  font-size: 14pt; font-weight: 600; letter-spacing: 0.8pt;
-  text-transform: uppercase; color: var(--grau-2);
-  border-bottom: 1pt solid var(--linie); padding-bottom: 14pt;
+  padding-bottom: var(--kategorie-text-unten);
+  border-bottom: var(--kategorie-linie);
 }
 
-.skills__zeile { display: flex; margin-top: 20pt; }
+.skillraster { margin-top: var(--kompetenzen-raster-abstand); }
+/* Tools: kein Kategorielabel — die Karten folgen direkt auf die Ueberschrift. */
+.tools .sektionstitel + .skillraster { margin-top: var(--tools-titel-abstand); }
+.skillraster__zeile { display: flex; }
+.skillraster__zeile + .skillraster__zeile { margin-top: var(--skillraster-zeilenabstand); }
+/* Karten einer Zeile sind gleich hoch (align-items: stretch) — wie FILL im
+   Figma-Raster. */
 .skillkarte {
-  width: 397pt; margin-right: 20.5pt;
-  background: #ffffff; border-radius: 14pt;
-  padding: 24pt 26pt 22pt;
-  box-shadow: 0 1pt 4pt rgba(15, 23, 42, 0.06);
+  position: relative; flex: none;
+  width: var(--skillkarte-breite); min-height: var(--skillkarte-mindesthoehe);
+  padding: var(--skillkarte-padding);
+  border: var(--skillkarte-rahmen); border-radius: var(--skillkarte-radius);
+  background: var(--skillkarte-hintergrund);
+  box-shadow: var(--skillkarte-schatten);
 }
-.skillkarte:last-child { margin-right: 0; }
+.skillkarte + .skillkarte { margin-left: var(--skillraster-spaltenabstand); }
 .skillkarte__kopf { display: flex; justify-content: space-between; align-items: flex-start; }
-.skillkarte__name { font-size: 17pt; font-weight: 700; }
-.skillkarte__beschreibung {
-  font-size: 14pt; color: var(--grau-2); line-height: 1.45; margin-top: 10pt;
-  letter-spacing: -0.1pt;
-}
+.skillkarte__name { flex: 1 1 auto; margin-right: var(--skillkarte-titel-abstand-min); }
+.skillkarte__beschreibung { margin-top: var(--skillkarte-abstand); }
 
-.punkte { white-space: nowrap; padding-top: 4pt; margin-left: 12pt; }
+.punkte { display: flex; flex: none; }
 .punkt {
-  display: inline-block; width: 10pt; height: 10pt; border-radius: 5pt;
-  background: var(--linie); margin-left: 3.5pt;
+  display: block; flex: none;
+  width: var(--punkte-groesse); height: var(--punkte-groesse);
+  border-radius: var(--punkte-radius); background: var(--punkte-leer);
 }
-.punkt--voll { background: var(--brand); }
+.punkt + .punkt { margin-left: var(--punkte-abstand); }
+.punkt--voll { background: var(--punkte-voll); }
 
 /* ---------- Fuss ---------- */
 
-.fuss { background: var(--brand); color: #ffffff; padding: 64pt 0 56pt; }
-.fuss__frage { font-size: 28pt; font-weight: 700; }
-.fuss__linie { border-top: 1pt solid rgba(255, 255, 255, 0.25); margin-top: 40pt; }
-.fuss__zeile { display: flex; align-items: flex-start; margin-top: 40pt; }
-.fuss__logo { width: 140pt; margin-right: 96pt; }
-.fuss__spalten { display: flex; }
-.fuss__spalten > div { width: 240pt; margin-right: 48pt; }
-.fuss__spalten > div:last-child { margin-right: 0; }
-.fuss__label {
-  font-size: 11pt; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.8pt; color: rgba(255, 255, 255, 0.75);
+.fuss {
+  padding: var(--fuss-padding-y) var(--fuss-padding-x);
+  background: var(--fuss-hintergrund);
 }
-.fuss__wert { font-size: 14pt; line-height: 1.5; margin-top: 10pt; }
+/* Die Linie liegt in Figma innerhalb des Abstands (Kontur innen, nicht im
+   Layout mitgezaehlt): Block 36 + 32 = 68 hoch, Linie auf den untersten 1pt.
+   Als border-bottom kaeme sie unten dazu und der Fuss waere 1pt zu hoch. */
+.fuss__frage { position: relative; padding-bottom: var(--fuss-frage-unten); }
+.fuss__frage::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+  border-bottom: var(--fuss-linie);
+}
+.fuss__frage h2 { width: var(--fuss-frage-breite); }
+.fuss__zeile { display: flex; align-items: flex-start; margin-top: var(--fuss-abstand); }
+.fuss__zeile > * { flex: none; }
+.fuss__zeile > * + * { margin-left: var(--fuss-spaltenabstand); }
+.fuss__logo { display: block; width: var(--fuss-logo-breite); }
+.fuss__wert { margin-top: var(--fuss-label-abstand); }
+.fuss__wert + .fuss__wert { margin-top: var(--fuss-kontakt-zeilenabstand); }

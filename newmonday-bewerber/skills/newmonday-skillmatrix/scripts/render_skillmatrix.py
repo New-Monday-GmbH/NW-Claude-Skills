@@ -8,17 +8,25 @@ Den Dateinamen setzt das Skript selbst aus den Daten:
 Argument bestimmt nur den Ordner — ein dort angehaengter Dateiname wird
 ersetzt (Ausnahme: --pfad-genau, siehe main()).
 
-Die Skillmatrix ist eine einzige lange Seite: 1440pt breit, so hoch wie ihr
-Inhalt — wie die Vorlage aus Figma, die eine Webseite abbildet und kein
-A4-Dokument. Weil CSS keine Seite "so hoch wie der Inhalt" kennt, wird zweimal
-gerendert: erst auf Vorrat hoch, dann wird die tatsaechliche Inhaltshoehe
-gemessen und exakt gesetzt.
+Die Skillmatrix ist eine einzige lange Seite: so breit wie der Figma-Frame der
+Vorlage (1444pt, aus assets/tokens.json), so hoch wie ihr Inhalt — sie bildet
+eine Webseite ab, kein A4-Dokument. Weil CSS keine Seite "so hoch wie der
+Inhalt" kennt, wird zweimal gerendert: erst auf Vorrat hoch, dann mit der
+gemessenen Inhaltshoehe.
+
+Alle Farben, Abstaende, Radien, Schatten und Schriften kommen aus
+assets/tokens.json (design_system.py erzeugt daraus das CSS). WeasyPrint kennt
+kein box-shadow; im ersten Durchgang werden deshalb die Karten vermessen und
+ihre Schatten als Bild gezeichnet, im zweiten liegen sie hinter den Karten.
+Zum Schluss wird das fertige PDF gegen die Tokens geprueft — Seitenbreite,
+Schriften, Textstile, Farben. Weicht es ab, endet das Skript mit Code 2.
 
 Sucht sich die Render-Engine selbst: WeasyPrint (bevorzugt), sonst headless
 Chrome, sonst wkhtmltopdf. Prueft ausserdem die Daten auf Auffaelligkeiten und
 schreibt sie nach stderr — korrigiert wird nichts.
 """
 import json
+import math
 import os
 import re
 import shutil
@@ -27,17 +35,21 @@ import sys
 import tempfile
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import design_system  # noqa: E402  — nach sys.path.insert
+
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
 
-SEITENBREITE = 1440          # pt, wie die Figma-Frames der Vorlage
 VORRAT_HOEHE = 12000         # pt, erster Durchgang — reicht fuer jede Matrix
+PT_JE_PX = 0.75              # WeasyPrint rechnet intern in CSS-px (96 dpi)
 
 BESCHRIFTUNG = {
     "de": {
         "verfuegbar": "Verfügbar ab",
         "zertifikate": "Zertifikate",
         "kernkompetenzen": "Kernkompetenzen",
+        "tools": "Tools",
         "aussteller": "Ausgestellt von:",
         "footer_frage": "Bereit für das nächste Projekt?",
         "ansprechpartner": "Ansprechpartner", "kontakt": "Kontakt", "adresse": "Adresse",
@@ -46,6 +58,7 @@ BESCHRIFTUNG = {
         "verfuegbar": "Available from",
         "zertifikate": "Certificates",
         "kernkompetenzen": "Core Skills",
+        "tools": "Tools",
         "aussteller": "Issued by:",
         "footer_frage": "Ready for the next project?",
         "ansprechpartner": "Contact person", "kontakt": "Contact", "adresse": "Address",
@@ -102,9 +115,17 @@ def pruefe(daten):
     if len(schwerpunkte) > 3:
         hinweise.append(
             f"{len(schwerpunkte)} Schwerpunkte gesetzt — die Vorlage traegt drei. "
-            "Mehr als drei brechen im Hero um.")
+            "Die Buttons stehen in einer Zeile; mehr als drei laufen ueber die "
+            "Textspalte hinaus.")
     if not person.get("foto"):
         hinweise.append("Kein Foto — die Fotokarte zeigt nur den Farbverlauf mit dem Namen.")
+    elif not str(person["foto"]).startswith(("http:", "https:", "file:")):
+        foto = Path(person["foto"]).expanduser()
+        if not foto.is_absolute():
+            foto = Path.cwd() / foto
+        if not foto.exists():
+            hinweise.append(f"Foto nicht gefunden: {foto} — die Fotokarte bliebe leer. "
+                            "Relative Pfade gelten ab dem Arbeitsverzeichnis.")
 
     # Die Hero-Beschreibung ist der einzige laengere neue Text im Dokument und
     # steht in der Ich-Perspektive — die Matrix ist kein Steckbrief ueber den
@@ -135,10 +156,23 @@ def pruefe(daten):
         if not pfad.exists():
             hinweise.append(f"Zertifikatsbild nicht gefunden: {datei}")
 
-    for kategorie in daten.get("kompetenzen") or []:
-        skills = kategorie.get("skills") or []
+    tools = daten.get("tools") or []
+    hoechstens = design_system.laden()["komponenten"]["tools"]["anzahl"]
+    if len(tools) > hoechstens:
+        hinweise.append(
+            f"{len(tools)} Tools gesetzt — die Sektion traegt hoechstens {hoechstens} "
+            "(zwei Reihen). Die schwaechsten weglassen.")
+    gruppen = [(k.get("kategorie"), k.get("skills") or []) for k in daten.get("kompetenzen") or []]
+    for kategorie, _ in gruppen:
+        if re.match(r"\s*tools\b", str(kategorie or ""), re.I):
+            hinweise.append(
+                f"Kategorie „{kategorie}“ unter den Kernkompetenzen — Tools haben eine "
+                "eigene Sektion (JSON-Feld tools); Werkzeuge gehoeren dorthin.")
+    if tools:
+        gruppen.append((TOOLS_SEKTION, tools))
+    for kategorie, skills in gruppen:
         if not skills:
-            hinweise.append(f"Kategorie ohne Skills: {kategorie.get('kategorie')}")
+            hinweise.append(f"Kategorie ohne Skills: {kategorie}")
         for s in skills:
             p = s.get("punkte")
             if not isinstance(p, int) or not 1 <= p <= 5:
@@ -158,8 +192,48 @@ def pruefe(daten):
                 hinweis = _sprachhinweis(s["beschreibung"], sprache, s.get("name"))
                 if hinweis:
                     hinweise.append(hinweis)
+    hinweise += _doppelte(gruppen)
     if not daten.get("kompetenzen"):
         hinweise.append("Keine Kernkompetenzen — die Matrix besteht dann nur aus dem Hero.")
+    return hinweise
+
+
+TOOLS_SEKTION = object()      # Kennung der Tools-Sektion - eine Kategorie darf auch "Tools" heissen
+
+
+def _namensteile(name):
+    """'Figma / FigJam' -> {'figma', 'figjam', 'figmafigjam'}: Sammelnamen
+    zaehlen auch mit jedem ihrer Teile."""
+    norm = lambda s: re.sub(r"[^0-9a-z+#]", "", s.lower())      # C++ und C# bleiben verschieden
+    teile = {norm(t) for t in re.split(r"\s*/\s*", str(name or ""))}
+    teile.add(norm(str(name or "")))
+    return {t for t in teile if t}
+
+
+def _doppelte(gruppen):
+    """Jeder Name steht einmal im Dokument; ein Tool nur in der Tools-Sektion."""
+    hinweise, gesehen = [], []                 # (teile, name, kategorie)
+    for kategorie, skills in gruppen:
+        for s in skills:
+            teile = _namensteile(s.get("name"))
+            for teile_alt, name_alt, kat_alt in gesehen:
+                if not teile & teile_alt:
+                    continue
+                if TOOLS_SEKTION in (kategorie, kat_alt) and kategorie != kat_alt:
+                    if kategorie is TOOLS_SEKTION:
+                        tool, skill, skill_kat = s.get("name"), name_alt, kat_alt
+                    else:
+                        tool, skill, skill_kat = name_alt, s.get("name"), kategorie
+                    hinweise.append(
+                        f"„{skill}“ unter „{skill_kat}“ doppelt das Tool „{tool}“ — ein Tool "
+                        "steht nur in der Tools-Sektion; unter den Kernkompetenzen streichen.")
+                else:
+                    orte = [("Tools-Sektion" if k is TOOLS_SEKTION else k) for k in (kat_alt, kategorie)]
+                    hinweise.append(
+                        f"„{s.get('name')}“ steht doppelt ({orte[0]} und {orte[1]}) — "
+                        "jeder Name kommt nur einmal vor.")
+                break
+            gesehen.append((teile, s.get("name"), kategorie))
     return hinweise
 
 
@@ -171,12 +245,18 @@ def _pfad_zu_uri(wert):
     p = Path(wert).expanduser()
     if not p.is_absolute():
         p = Path.cwd() / p
-    if not p.exists():
+    if not p.exists() and p not in _GEMELDET:
+        _GEMELDET.add(p)
         print(f"Warnung: Datei nicht gefunden: {p}", file=sys.stderr)
     return p.as_uri()
 
 
-def html_bauen(daten, hoehe):
+_GEMELDET = set()
+
+
+def html_bauen(daten, hoehe, design, schatten=None):
+    """schatten: Karten-ID -> Schattenbild samt Lage, nur im zweiten
+    WeasyPrint-Durchgang. Ohne sie zeichnet Chrome box-shadow selbst."""
     from jinja2 import Environment, FileSystemLoader, select_autoescape
     env = Environment(
         loader=FileSystemLoader(str(ASSETS)),
@@ -198,11 +278,19 @@ def html_bauen(daten, hoehe):
 
     daten.setdefault("kontakt", {
         "name": "Manuel Klein", "rolle": "CCO",
-        "mail": "manuel.klein@newmonday.co", "telefon": "+49 (0) 155 1148 0130",
+        "mail": "manuel.klein@newmonday.co", "telefon": "+49 (0)155 1148 0130",
         "firma": "New Monday GmbH", "strasse": "Stresemannstraße 32", "ort": "10963 Berlin",
     })
+    komponenten = design["komponenten"]
     return env.get_template("template.html").render(
-        hoehe=hoehe, t=labels, **daten)
+        hoehe=hoehe, t=labels,
+        design_css=design_system.css(design),
+        seitenbreite=komponenten["seite"]["breite"],
+        raster_spalten=komponenten["raster"]["spalten"],
+        skill_spalten=komponenten["skillraster"]["spalten"],
+        punkte_anzahl=komponenten["punkte"]["anzahl"],
+        schatten=schatten or {},
+        **daten)
 
 
 def chrome_pfad():
@@ -218,20 +306,91 @@ def chrome_pfad():
     return None
 
 
-def rendern(html, ziel):
-    """Erste verfuegbare Engine gewinnt. Gibt ihren Namen zurueck.
+def _kaesten(box):
+    yield box
+    for kind in getattr(box, "children", None) or []:
+        yield from _kaesten(kind)
 
-    Schreibt nichts in den Skill-Ordner: WeasyPrint bekommt die Basis-URL
-    direkt, die anderen Engines eine Temporaerdatei mit <base>-Tag.
-    """
+
+def _kasten(box):
+    """Rahmenkasten eines Layout-Kastens in pt."""
+    return {
+        "x": box.border_box_x() * PT_JE_PX, "y": box.border_box_y() * PT_JE_PX,
+        "breite": box.border_width() * PT_JE_PX, "hoehe": box.border_height() * PT_JE_PX,
+        "rahmen_links": box.border_left_width * PT_JE_PX,
+        "rahmen_oben": box.border_top_width * PT_JE_PX,
+    }
+
+
+def _elemente(wurzel):
+    """Je HTML-Element sein erster (Haupt-)Kasten, in Dokumentreihenfolge."""
+    gesehen = set()
+    for box in _kaesten(wurzel):
+        element = getattr(box, "element", None)
+        if element is None or id(element) in gesehen or not hasattr(box, "border_width"):
+            continue
+        gesehen.add(id(element))
+        yield element, box
+
+
+def layout_pruefen(wurzel, design):
+    """Hinweise, die erst das fertige Layout zeigt."""
+    hinweise = []
+    spalte = design["komponenten"]["hero"]["textspalte"]
+    for element, box in _elemente(wurzel):
+        if "hero__schwerpunkte" in (element.get("class") or ""):
+            buttons = [_kasten(k) for k in box.children if hasattr(k, "border_width")]
+            if buttons:
+                breite = buttons[-1]["x"] + buttons[-1]["breite"] - buttons[0]["x"]
+                if breite > spalte + 0.5:
+                    hinweise.append(
+                        f"Die Schwerpunkt-Buttons sind zusammen {breite:.0f}pt breit, "
+                        f"die Textspalte {spalte}pt — kuerzere Begriffe waehlen.")
+    return hinweise
+
+
+def rendern_weasyprint(daten, design, ziel):
+    """Zwei Durchgaenge. Der erste liefert Inhaltshoehe und Kartengroessen, der
+    zweite rendert mit exakter Hoehe und den Schattenbildern hinter den Karten.
+    Gibt (engine, hoehe_pt, anzahl_schatten, hinweise) zurueck; ImportError,
+    wenn WeasyPrint fehlt."""
+    from weasyprint import HTML
     basis = ASSETS.as_uri() + "/"
-    try:
-        from weasyprint import HTML
-        HTML(string=html, base_url=basis).write_pdf(str(ziel))
-        return "WeasyPrint"
-    except ImportError:
-        pass
+    doc = HTML(string=html_bauen(daten, VORRAT_HOEHE, design), base_url=basis).render()
+    wurzel = doc.pages[0]._page_box
+    html_kasten = wurzel.children[0]
+    hoehe = math.ceil((html_kasten.position_y + html_kasten.margin_height()) * PT_JE_PX)
+    hinweise = layout_pruefen(wurzel, design)
 
+    with tempfile.TemporaryDirectory() as tmp:
+        cache, schatten = {}, {}
+        for element, box in _elemente(wurzel):
+            komponente = element.get("data-schatten")
+            if not komponente:
+                continue
+            k = _kasten(box)
+            eigenschaften = design["komponenten"][komponente]
+            radius = design_system.aufloesen(design, eigenschaften["radius"])
+            bild, rand = design_system.schatten_bild(
+                design, eigenschaften["schatten"], k["breite"], k["hoehe"],
+                min(radius, k["breite"] / 2, k["hoehe"] / 2), tmp, cache)
+            schatten[element.get("id")] = {
+                "src": bild.as_uri(),
+                "links": round(-rand - k["rahmen_links"], 3),
+                "oben": round(-rand - k["rahmen_oben"], 3),
+                "breite": round(k["breite"] + 2 * rand, 3),
+                "hoehe": round(k["hoehe"] + 2 * rand, 3),
+            }
+        HTML(string=html_bauen(daten, hoehe, design, schatten),
+             base_url=basis).write_pdf(str(ziel))
+    return "WeasyPrint", hoehe, len(schatten), hinweise
+
+
+def rendern_ausweich(html, ziel):
+    """Ohne WeasyPrint: headless Chrome, sonst wkhtmltopdf. Gibt den Namen der
+    Engine zurueck. Schreibt nichts in den Skill-Ordner — die Engines bekommen
+    eine Temporaerdatei mit <base>-Tag."""
+    basis = ASSETS.as_uri() + "/"
     with tempfile.TemporaryDirectory() as tmp:
         seite = Path(tmp) / "matrix.html"
         seite.write_text(
@@ -357,24 +516,41 @@ def main():
     quelle = Path(args[0])
     daten = json.loads(quelle.read_text(encoding="utf-8"))
 
+    design = design_system.laden()
+    fehlend = design_system.schriften_fehlen(design)
+    if fehlend:
+        # Ohne die Datei setzt jede Engine still eine Ersatzschrift — lieber
+        # gar kein PDF als eines in der falschen Schrift.
+        raise SystemExit(
+            "Schriftdateien fehlen — ohne sie entstuende das PDF in einer "
+            "Ersatzschrift:\n" + "\n".join(f"  {p}" for p in fehlend) +
+            "\nDie Schnitte nennt assets/tokens.json unter \"schriften\" "
+            "(Google Fonts, OFL).")
+
     hinweise = pruefe(daten)
     ziel = Path(args[1]) if genau else zielpfad(Path(args[1]), daten)
     ziel.parent.mkdir(parents=True, exist_ok=True)
+    breite = design["komponenten"]["seite"]["breite"]
 
-    # Durchgang 1: Vorratshoehe. Durchgang 2: exakt. Die 2pt Reserve decken
-    # den Messfehler der Rasterung — lieber eine haarduenne weisse Kante als
-    # ein abgeschnittener Footer.
-    engine = rendern(html_bauen(daten, VORRAT_HOEHE), ziel)
-    hoehe = inhaltshoehe_messen(ziel)
-    if hoehe is None:
-        hinweise.append(
-            f"Inhaltshoehe nicht messbar (weder PyMuPDF noch pdftoppm+Pillow) — "
-            f"die Seite bleibt auf Vorratshoehe {VORRAT_HOEHE}pt und traegt unten "
-            "viel Weissraum. pruefe_umgebung.py zeigt, was fehlt.")
-    else:
-        hoehe = round(hoehe + 2)
-        engine = rendern(html_bauen(daten, hoehe), ziel)
-        print(f"Seitenformat: {SEITENBREITE} x {hoehe}pt")
+    try:
+        engine, hoehe, schatten, layout_hinweise = rendern_weasyprint(daten, design, ziel)
+        hinweise += layout_hinweise
+        print(f"Seitenformat: {breite} x {hoehe}pt, {schatten} Kartenschatten")
+    except ImportError:
+        # Ausweichweg: Hoehe am Bild messen (letzte nicht weisse Pixelzeile).
+        # Die 2pt Reserve decken den Messfehler der Rasterung — lieber eine
+        # haarduenne weisse Kante als ein abgeschnittener Footer.
+        engine = rendern_ausweich(html_bauen(daten, VORRAT_HOEHE, design), ziel)
+        hoehe = inhaltshoehe_messen(ziel)
+        if hoehe is None:
+            hinweise.append(
+                f"Inhaltshoehe nicht messbar (weder PyMuPDF noch pdftoppm+Pillow) — "
+                f"die Seite bleibt auf Vorratshoehe {VORRAT_HOEHE}pt und traegt unten "
+                "viel Weissraum. pruefe_umgebung.py zeigt, was fehlt.")
+        else:
+            hoehe = round(hoehe + 2)
+            engine = rendern_ausweich(html_bauen(daten, hoehe, design), ziel)
+            print(f"Seitenformat: {breite} x {hoehe}pt")
 
     seiten = seitenzahl(ziel)
     if seiten > 1:
@@ -383,10 +559,20 @@ def main():
             "die gesetzte Seitenhoehe. Das darf nicht passieren, bitte melden.")
 
     print(f"{ziel} geschrieben (Engine: {engine})")
+
+    fehler, design_hinweise = design_system.pruefe_pdf(ziel, design)
+    hinweise += design_hinweise
     if hinweise:
         print("\nPruefen:", file=sys.stderr)
         for h in hinweise:
             print(f"  - {h}", file=sys.stderr)
+    if fehler:
+        print("\nFEHLER — das PDF weicht vom Design System ab (assets/tokens.json). "
+              "So nicht ausliefern:", file=sys.stderr)
+        for f in fehler:
+            print(f"  - {f}", file=sys.stderr)
+        sys.exit(2)
+    print("Design System eingehalten: Seitenbreite, Schriften, Textstile, Farben.")
 
 
 if __name__ == "__main__":

@@ -4,8 +4,8 @@
     python3 scripts/website_foto.py "https://timo-muster.de" arbeit/
 
 Legt die Kandidaten fertig zugeschnitten in arbeit/fotos/ ab — im selben Format
-wie extract_input.py und linkedin_foto.py, also direkt als "foto" in die cv.json
-eintragbar. Gedacht als dritter Weg, wenn der Lebenslauf kein Foto mitbringt und
+wie extract_input.py und linkedin_foto.py, also direkt als person.foto in die
+skillmatrix.json eintragbar. Gedacht als dritter Weg, wenn der Lebenslauf kein Foto mitbringt und
 LinkedIn keins hergibt: viele Portfolios tragen auf "Ueber mich" ein besseres
 Bild als das 400x400-Thumbnail von LinkedIn.
 
@@ -22,7 +22,7 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from extract_input import portraet_zuschneiden  # noqa: E402
+from extract_input import FOTO_BREITE, portraet_zuschneiden  # noqa: E402
 
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
@@ -172,8 +172,8 @@ def main():
     from PIL import Image
     print("Portraetkandidaten (groesster zuerst pruefen):")
     for ergebnis, url in sorted(treffer, key=lambda p: p[0].stat().st_size, reverse=True):
-        # Die Fotokarte im Hero ist 433pt breit, also 433/72 Zoll.
-        dpi = round(Image.open(ergebnis).size[0] / (433 / 72))
+        # Das Foto auf der Fotokarte ist FOTO_BREITE pt breit (assets/tokens.json).
+        dpi = round(Image.open(ergebnis).size[0] / (FOTO_BREITE / 72))
         hinweis = "  — unter 100 dpi, auf der grossen Fotokarte sichtbar weich" if dpi < 100 else ""
         print(f"  {ergebnis}  ~{dpi} dpi{hinweis}")
         print(f"    Quelle: {url}")

@@ -3,42 +3,45 @@
 <head>
 <meta charset="utf-8">
 <title>{{ person.name }} — Skill Matrix</title>
+{# Schriften, Token-Variablen und Textklassen — erzeugt aus assets/tokens.json
+   von design_system.css(). skillmatrix.css traegt nur noch die Struktur. #}
+<style>{{ design_css | safe }}</style>
 <link rel="stylesheet" href="skillmatrix.css">
 {# Die Seitenhoehe setzt render_skillmatrix.py: erst Vorratshoehe, dann exakt
    die gemessene Inhaltshoehe. Eine Matrix ist eine einzige lange Seite. #}
-<style>@page { size: 1440pt {{ hoehe }}pt; margin: 0; }</style>
+<style>@page { size: {{ seitenbreite }}pt {{ hoehe }}pt; margin: 0; }</style>
 </head>
 <body>
 <div class="seite">
 
-{# Kopfzeile: teal Balken, Wortmarke in Weiss. Sie sitzt naeher an der
-   Blattkante als der Inhaltscontainer — wie in der Vorlage. #}
+{# Schattenbild einer Karte. Nur im zweiten WeasyPrint-Durchgang gesetzt, wenn
+   die Kartengroessen feststehen; sonst leer (Chrome zeichnet box-shadow). #}
+{% macro schatten_von(id) %}{% if schatten and schatten.get(id) %}{% set s = schatten[id] %}<img class="schatten" src="{{ s.src }}" alt="" style="left: {{ s.links }}pt; top: {{ s.oben }}pt; width: {{ s.breite }}pt; height: {{ s.hoehe }}pt">{% endif %}{% endmacro %}
+
 <header class="kopf">
   <img class="kopf__logo" src="nm-logo-weiss.svg" alt="New Monday">
 </header>
 
 <section class="hero">
-  <div class="container hero__zeile">
-    <div class="hero__text">
-      <span class="badge"><i class="badge__punkt"></i>{{ t.verfuegbar }} {{ person.verfuegbar_ab }}</span>
-      <h1 class="hero__name">{{ person.name }}</h1>
-      <div class="hero__rolle">{{ person.rolle }}</div>
-      <p class="hero__beschreibung">{{ person.beschreibung }}</p>
-      {% if person.schwerpunkte %}
-      <div class="hero__schwerpunkte">
-        {% for s in person.schwerpunkte %}<span class="schwerpunkt">{{ s }}</span>{% endfor %}
-      </div>
-      {% endif %}
+  <div class="hero__text">
+    <div class="hero__badgezeile">
+      <span class="badge t-badge"><i class="badge__punkt"></i>{{ t.verfuegbar }} {{ person.verfuegbar_ab }}</span>
     </div>
-    {# Fotokarte: Graustufenfoto, unten ein teal Farbverlauf mit Name und
-       Erfahrung. Das Foto kommt fertig beschnitten aus extract_input.py. #}
-    <div class="fotokarte">
-      {% if person.foto %}<img class="fotokarte__bild" src="{{ person.foto }}" alt="">{% endif %}
-      <div class="fotokarte__verlauf"></div>
-      <div class="fotokarte__text">
-        <div class="fotokarte__name">{{ person.name }}</div>
-        <div class="fotokarte__erfahrung">{{ person.erfahrung }}</div>
-      </div>
+    <h1 class="hero__name t-hero-name">{{ person.name }}</h1>
+    <div class="hero__rolle t-hero-rolle">{{ person.rolle }}</div>
+    <p class="hero__beschreibung t-hero-beschreibung">{{ person.beschreibung }}</p>
+    {% if person.schwerpunkte %}
+    <div class="hero__schwerpunkte">
+      {% for s in person.schwerpunkte %}<span class="schwerpunkt t-schwerpunkt">{{ s }}</span>{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {# Fotokarte: Graustufenfoto, unten der Verlauf mit Name und Erfahrung. #}
+  <div class="fotokarte">
+    {% if person.foto %}<img class="fotokarte__bild" src="{{ person.foto }}" alt="">{% endif %}
+    <div class="fotokarte__verlauf">
+      <div class="t-foto-name">{{ person.name }}</div>
+      <div class="t-foto-erfahrung">{{ person.erfahrung }}</div>
     </div>
   </div>
 </section>
@@ -48,33 +51,40 @@
    dahinter (Florian-Variante). #}
 {% macro zertsektion() %}
   {% if zertifikate or zertifikat_bilder %}
-  <section class="sektion">
-    <h2 class="sektion__titel">
-      <img class="sektion__icon" src="icon-zertifikat.svg" alt="">{{ t.zertifikate }}
+  <section class="sektion zertsektion">
+    <h2 class="sektionstitel t-sektion-titel">
+      <img class="sektionstitel__icon" src="icon-zertifikat.svg" alt=""><span>{{ t.zertifikate }}</span>
     </h2>
 
-    {% for z in zertifikate %}
-    <div class="zertkarte">
-      <div class="zertkarte__kopf">
-        <div class="zertkarte__titel">{{ z.titel }}</div>
-        {% if z.jahr %}<span class="zertkarte__jahr">{{ z.jahr }}</span>{% endif %}
+    {% if zertifikate %}
+    <div class="zertkarten">
+      {% for z in zertifikate %}
+      <div class="zertkarte" data-schatten="zertkarte" id="schatten-zert-{{ loop.index }}">
+        {{ schatten_von('schatten-zert-' ~ loop.index) }}
+        <div class="zertkarte__kopf">
+          <div class="zertkarte__titel t-zert-titel">{{ z.titel }}</div>
+          {% if z.jahr %}<span class="jahr t-zert-jahr">{{ z.jahr }}</span>{% endif %}
+        </div>
+        {% if z.aussteller %}<div class="zertkarte__aussteller t-zert-aussteller">{{ t.aussteller }} {{ z.aussteller }}</div>{% endif %}
+        {% if z.beschreibung or z.tags %}
+        <div class="zertkarte__unten">
+          {% if z.beschreibung %}<p class="t-zert-beschreibung">{{ z.beschreibung }}</p>{% endif %}
+          {% if z.tags %}
+          <div class="zertkarte__tags">
+            {% for tag in z.tags %}<span class="zert-tag t-zert-tag">{{ tag }}</span>{% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
       </div>
-      {% if z.aussteller %}<div class="zertkarte__aussteller">{{ t.aussteller }} {{ z.aussteller }}</div>{% endif %}
-      {% if z.beschreibung %}<p class="zertkarte__beschreibung">{{ z.beschreibung }}</p>{% endif %}
-      {% if z.tags %}
-      <div class="zertkarte__tags">
-        {% for tag in z.tags %}<span class="chip">{{ tag }}</span>{% endfor %}
-      </div>
-      {% endif %}
+      {% endfor %}
     </div>
-    {% endfor %}
+    {% endif %}
 
-    {# Bilderraster: drei Kacheln je Zeile, mittig gefuellt. Die Zeilen baut
-       das Template selbst — feste Breiten statt Grid, damit jede Engine
-       dasselbe Raster setzt. #}
+    {# Bilderraster: drei Kacheln je Zeile, mittig gefuellt. #}
     {% if zertifikat_bilder %}
     <div class="zertbilder">
-      {% for zeile in zertifikat_bilder | batch(3) %}
+      {% for zeile in zertifikat_bilder | batch(raster_spalten) %}
       <div class="zertbilder__zeile">
         {% for bild in zeile %}
         <div class="zertbilder__kachel"><img src="{{ bild }}" alt=""></div>
@@ -87,68 +97,88 @@
   {% endif %}
 {% endmacro %}
 
+{# Kartenraster fuer Kernkompetenzen und Tools: dieselben Karten, dieselben
+   Abstaende. praefix macht die Karten-IDs fuer die Schattenbilder eindeutig. #}
+{% macro skillraster(skills, praefix) %}
+      <div class="skillraster">
+        {% for zeile in skills | batch(skill_spalten) %}
+        {% set z = loop.index %}
+        <div class="skillraster__zeile">
+          {% for s in zeile %}
+          {% set id = 'schatten-' ~ praefix ~ '-' ~ z ~ '-' ~ loop.index %}
+          <div class="skillkarte" data-schatten="skillkarte" id="{{ id }}">
+            {{ schatten_von(id) }}
+            <div class="skillkarte__kopf">
+              <div class="skillkarte__name t-karte-titel">{{ s.name }}</div>
+              <div class="punkte">
+                {% for i in range(punkte_anzahl) %}<i class="punkt{% if i < s.punkte %} punkt--voll{% endif %}"></i>{% endfor %}
+              </div>
+            </div>
+            <p class="skillkarte__beschreibung t-karte-beschreibung">{{ s.beschreibung }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+{% endmacro %}
+
+{# Rumpf in der Reihenfolge der Vorlage: Zertifikate -> Kernkompetenzen ->
+   Tools; mit "zertifikate_position": "ende" stehen die Zertifikate zuletzt.
+   Der graue Rumpf reicht bis an den Fuss (64 Innenabstand unten). #}
 <main class="rumpf">
-  <div class="container">
 
   {% if zertifikate_position != 'ende' %}{{ zertsektion() }}{% endif %}
 
   {% if kompetenzen %}
-  <section class="sektion">
-    <h2 class="sektion__titel">
-      <img class="sektion__icon" src="icon-kernkompetenzen.svg" alt="">{{ t.kernkompetenzen }}
+  <section class="sektion kompetenzen">
+    <h2 class="sektionstitel t-sektion-titel">
+      <img class="sektionstitel__icon" src="icon-kernkompetenzen.svg" alt=""><span>{{ t.kernkompetenzen }}</span>
     </h2>
 
     {% for kategorie in kompetenzen %}
     <div class="kategorie">
-      <div class="kategorie__label">{{ kategorie.kategorie }}</div>
-      {% for zeile in kategorie.skills | batch(3) %}
-      <div class="skills__zeile">
-        {% for s in zeile %}
-        <div class="skillkarte">
-          <div class="skillkarte__kopf">
-            <div class="skillkarte__name">{{ s.name }}</div>
-            <div class="punkte">
-              {% for i in range(5) %}<i class="punkt{% if i < s.punkte %} punkt--voll{% endif %}"></i>{% endfor %}
-            </div>
-          </div>
-          <p class="skillkarte__beschreibung">{{ s.beschreibung }}</p>
-        </div>
-        {% endfor %}
+      <div class="kategorie__kopf">
+        <div class="kategorie__label t-kategorie">{{ kategorie.kategorie }}</div>
       </div>
-      {% endfor %}
+      {{ skillraster(kategorie.skills, 'karte-' ~ loop.index) }}
     </div>
     {% endfor %}
   </section>
   {% endif %}
 
+  {# Tools: eigene Sektion ohne Kategorielabel, Karten wie oben. #}
+  {% if tools %}
+  <section class="sektion tools">
+    <h2 class="sektionstitel t-sektion-titel">
+      <img class="sektionstitel__icon" src="icon-tools.svg" alt=""><span>{{ t.tools }}</span>
+    </h2>
+    {{ skillraster(tools, 'tool') }}
+  </section>
+  {% endif %}
+
   {% if zertifikate_position == 'ende' %}{{ zertsektion() }}{% endif %}
 
-  </div>
 </main>
 
-{# Der Fuss schliesst die Matrix ab: die Frage in Weiss auf Teal, darunter der
-   Kontaktblock. Die Vorlagen-PDFs sind mitten im Fuss abgeschnitten — Frage
-   und Trennlinie stammen aus ihnen, der Kontaktblock folgt dem CV-Skill. #}
+{# Fuss: die Frage mit Linie, darunter Wortmarke und drei Kontaktspalten.
+   In der Kontaktspalte stehen Mail und Telefon als zwei Zeilen mit eigenem
+   Abstand — so ist es in der Figma-Vorlage gebaut. #}
 <footer class="fuss">
-  <div class="container">
-    <h2 class="fuss__frage">{{ t.footer_frage }}</h2>
-    <div class="fuss__linie"></div>
-    <div class="fuss__zeile">
-      <img class="fuss__logo" src="nm-logo-weiss.svg" alt="New Monday">
-      <div class="fuss__spalten">
-        <div>
-          <div class="fuss__label">{{ t.ansprechpartner }}</div>
-          <div class="fuss__wert">{{ kontakt.name }}<br>{{ kontakt.rolle }}</div>
-        </div>
-        <div>
-          <div class="fuss__label">{{ t.kontakt }}</div>
-          <div class="fuss__wert">{{ kontakt.mail }}<br>{{ kontakt.telefon }}</div>
-        </div>
-        <div>
-          <div class="fuss__label">{{ t.adresse }}</div>
-          <div class="fuss__wert">{{ kontakt.firma }}<br>{{ kontakt.strasse }}<br>{{ kontakt.ort }}</div>
-        </div>
-      </div>
+  <div class="fuss__frage"><h2 class="t-fuss-frage">{{ t.footer_frage }}</h2></div>
+  <div class="fuss__zeile">
+    <img class="fuss__logo" src="nm-logo-weiss.svg" alt="New Monday">
+    <div>
+      <div class="t-fuss-label">{{ t.ansprechpartner }}</div>
+      <div class="fuss__wert t-fuss-wert">{{ kontakt.name }}<br>{{ kontakt.rolle }}</div>
+    </div>
+    <div>
+      <div class="t-fuss-label">{{ t.kontakt }}</div>
+      <div class="fuss__wert t-fuss-wert">{{ kontakt.mail }}</div>
+      <div class="fuss__wert t-fuss-wert">{{ kontakt.telefon }}</div>
+    </div>
+    <div>
+      <div class="t-fuss-label">{{ t.adresse }}</div>
+      <div class="fuss__wert t-fuss-wert">{{ kontakt.firma }}<br>{{ kontakt.strasse }}<br>{{ kontakt.ort }}</div>
     </div>
   </div>
 </footer>

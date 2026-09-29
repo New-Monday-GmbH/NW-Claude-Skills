@@ -48,8 +48,14 @@ cd ~/.claude/skills/newmonday-skillmatrix/beispiel
 python3 ../scripts/render_skillmatrix.py skillmatrix.json /tmp/
 ```
 
-Läuft das durch und meldet `Seitenformat: 1440 x …pt`, funktioniert die
-ganze Kette: Template, Schriften, Bilder, Höhenmessung.
+Läuft das durch und meldet `Seitenformat: 1444 x 3631pt, 26 Kartenschatten` und
+zuletzt `Design System eingehalten`, funktioniert die ganze Kette:
+Template, Tokens, Schriften, Schatten, Bilder, Höhenmessung und Designprüfung.
+
+Die Schriften (Inter und Rethink Sans, Google Fonts, OFL) liegen in
+`assets/fonts/`. Fehlt dort eine Datei, die `assets/tokens.json` nennt, bricht
+das Rendern mit einem Hinweis ab — ohne sie entstünde das PDF in einer
+Ersatzschrift.
 
 ## Erster Lauf
 

@@ -7,9 +7,12 @@ description: Erstellt aus Lebenslauf, Portfolio und LinkedIn-Export eine Skill M
 
 Aus Lebenslauf, LinkedIn-Export und Portfolio wird eine Skill Matrix im
 New-Monday-Layout: eine einzige lange PDF-Seite mit Hero, Zertifikaten und
-bewerteten Kernkompetenzen. Das Layout liegt als HTML/CSS-Template im Skill
-und ist aus dem Vorlagen-PDF `Skill Matrix Wissem` nachgemessen. Das Template
-wird nicht neu erfunden und nicht "verbessert" – es wird befüllt.
+bewerteten Kernkompetenzen. Das Layout folgt dem New-Monday-Design-System der
+Figma-Masterdatei (Seite „Skillmatrix“). Farben, Abstände, Radien, Schatten und
+Schriften stehen einmal, in `assets/tokens.json` – gespiegelt aus der
+Figma-Library. PDF und Figma-Frame lesen beide von dort, und das Renderskript
+prüft jedes PDF dagegen. Das Template wird nicht neu erfunden und nicht
+"verbessert" – es wird befüllt.
 
 Bester Eingang sind **drei Quellen**: der Lebenslauf als PDF, der
 LinkedIn-PDF-Export und das Portfolio (Link oder PDF). Dazu, falls vorhanden,
@@ -22,6 +25,11 @@ steht nur dann in der Matrix, wenn Lebenslauf, LinkedIn, Portfolio oder ein
 Zertifikat ihn hergeben – eine Station, ein Projekt, ein Tool, ein Kurs.
 Nichts wird ergänzt, weil es "zum Profil passt" oder "sicher stimmt". Die
 Matrix geht an Kunden und behauptet Kompetenzen über einen echten Menschen.
+
+Die einzige Ausnahme sind **Tools, wenn der Eingang gar keine nennt**: Dann
+schlägt der Skill in der Freigabe (Schritt 2e) rollentypische Tools vor und
+fragt, ob sie ergänzt werden sollen. Ergänzt wird nur mit ausdrücklichem Ja,
+und in der Übergabe steht, welche Tools ohne Beleg auf Wunsch aufgenommen wurden.
 
 Zwei Dinge in diesem Dokument sind trotzdem Urteile und keine Zitate – die
 **Auswahl** der Attribute und ihre **Bewertung** (1–5 Punkte). Genau deshalb
@@ -166,7 +174,8 @@ Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
 5. **Ein Foto**, falls Lebenslauf, LinkedIn und Portfolio keins hergeben –
    erst nach Schritt 1a anfragen, nicht hier. Hier nur erwähnen, dass ein
    richtiges Foto in guter Auflösung willkommen ist: die Fotokarte im Hero
-   ist groß (433pt breit), das LinkedIn-Thumbnail ist dafür sichtbar weich.
+   ist groß und fast quadratisch, das LinkedIn-Thumbnail ist dafür sichtbar
+   weich.
 
 ### 1. Eingang auslesen
 
@@ -177,9 +186,16 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/extract_input.py <portfolio.pdf> arbeit/port
 ```
 
 Schreibt je Quelle `text.txt` und legt Porträtkandidaten in `fotos/` ab –
-bereits in Graustufen und auf das Kartenformat (433 × 390pt, oben bündig)
-beschnitten. Bei einem Portfolio-Link die Seite abrufen und die
+bereits in Graustufen, im Format der Fotokarte (laut `tokens.json`, fast
+quadratisch) und mit dem Kopf in der Mitte (siehe 1a); je Kandidat liegt ein
+Kontrollbild in `fotos/kontrolle/`. Bei einem Portfolio-Link die Seite abrufen und die
 Projektseiten dazu.
+
+**Bleibt `text.txt` leer, ist das PDF als Bild gesetzt** (häufig bei gestalteten
+Lebensläufen). Dann die Seiten als Bild lesen — das PDF direkt öffnen oder mit
+`pdftoppm -png -r 80` rendern — und die Inhalte von dort nehmen. Umgekehrt
+liefert ein PDF mit vielen Projektbildern Dutzende Porträtkandidaten: nach dem
+Motiv suchen, nicht den größten nehmen.
 
 Für das Zusammenführen der Quellen gelten die Regeln des CV-Skills
 unverändert: **Bei Widersprüchen gewinnt der Lebenslauf**, LinkedIn ergänzt
@@ -195,12 +211,13 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/zert_bilder.py <zert1.pdf> <zert2.png> … a
 ```
 
 Die Reihenfolge der Argumente ist die Reihenfolge im Raster. Das Skript
-meldet Formate, die von der Kachel (395 × 284pt) stark abweichen – solche
+meldet Formate, die vom Kachelformat (laut `tokens.json`) stark abweichen – solche
 Bilder werden im Raster mittig beschnitten, das vorher sagen, nicht danach.
 
 ### 1a. Das Foto — dieselbe Rangfolge wie im CV-Skill
 
-1. Foto aus dem **Lebenslauf** (oder separat geschickt),
+1. Foto aus dem **Lebenslauf**, oder separat geschickt – dann ebenfalls durch
+   den Zuschnitt: `python3 ${CLAUDE_SKILL_DIR}/scripts/extract_input.py <foto.jpg> arbeit/`,
 2. sonst **LinkedIn**: `python3 ${CLAUDE_SKILL_DIR}/scripts/linkedin_foto.py "<profil-url>" arbeit/`,
 3. sonst **Portfolio/Website**: `python3 ${CLAUDE_SKILL_DIR}/scripts/website_foto.py "<url>" arbeit/`,
 4. sonst **beim Kandidaten anfragen**.
@@ -208,11 +225,41 @@ Bilder werden im Raster mittig beschnitten, das vorher sagen, nicht danach.
 Alle Wege legen das Foto fertig beschnitten in `arbeit/fotos/` ab. Die
 Warnungen der Skripte ernst nehmen: die Fotokarte ist sechsmal so breit wie
 der Fotokasten im CV, **unter 100 dpi wird das Bild sichtbar weich** – das
-400px-Thumbnail von LinkedIn liegt bei ~65 dpi und taugt nur als Notlösung.
+400px-Thumbnail von LinkedIn kommt nach dem Kopfzuschnitt meist auf 40–60 dpi
+und taugt nur als Notlösung.
 Liegt im Lebenslauf oder Portfolio ein größeres Bild, das zu nehmen. Jedes
 automatisch gefundene Foto ansehen, bevor es ins Dokument geht (fremde
 Gesichter, siehe CV-Skill). Ohne Foto funktioniert das Layout – die Karte
 zeigt dann nur den Farbverlauf mit Name und Erfahrung – aber es wirkt leer.
+
+**Der Kopf steht in der Mitte.** Den Ausschnitt setzt
+`scripts/kopf_ausschnitt.py`, das alle Foto-Wege aufrufen. Es findet den Kopf
+(macOS Vision: Gesicht, Kinn und Personenmaske für Haaransatz und Kopfumriss)
+und schneidet so, dass die **Kopfmitte waagerecht in der Bildmitte** steht, der
+Haaransatz bei 5 % und das Kinn bei 70 % der Bildhöhe – wie im Figma-Master
+(`kopf-oben-anteil`, `kinn-anteil` in `tokens.json`). Damit steht der Kopf auch
+senkrecht mittig in der freien Fläche über dem Verlauf mit Name und Erfahrung.
+Je Foto meldet das Skript eine Zeile, etwa „Kopf bei 50 % der Breite, Haaransatz
+5 %, Kinn 70 %, 147 dpi“.
+
+- **Das Kontrollbild ansehen**, bevor das Foto in die JSON kommt:
+  `fotos/kontrolle/foto-<name>.png` zeigt das Foto so, wie es auf der Karte
+  sitzt – mit Verlauf, roter Mittellinie und orangem Kopfrahmen. Die Kopfmitte
+  liegt auf der roten Linie.
+- **„Kopf nicht mittig“** heißt: Das Original hat auf einer Seite zu wenig Rand.
+  Dann nicht von Hand schieben, sondern ein anderes Bild nehmen (größere Fassung
+  aus Lebenslauf, Portfolio oder Website) oder beim Kandidaten eins anfragen –
+  und in der Übergabe melden, falls es so bleibt.
+- **Mehrere Gesichter:** Das Skript nimmt das größte und sagt das. Prüfen, ob es
+  die richtige Person ist.
+- **Ohne Kopferkennung** (kein macOS, Kopf nicht gefunden) schneidet das Skript
+  waagerecht mittig und oben bündig und meldet das. Dann den Kopf im Original
+  ablesen – Pixel von Haaransatz bis Kinn und von Ohr zu Ohr – und neu
+  schneiden:
+
+  ```bash
+  python3 ${CLAUDE_SKILL_DIR}/scripts/kopf_ausschnitt.py <original> arbeit/fotos/ --kopf x0,y0,x1,y1
+  ```
 
 ### 2. Attribute auswählen und bewerten
 
@@ -237,14 +284,38 @@ zuerst. Ein Profil ohne KI-Belege bekommt keine AI-Kategorie; ein
 Barrierefreiheits-Schwerpunkt bekommt `Accessibility & Inclusive Design`.
 
 **`Tools` ist keine Kategorie, sondern eine eigene Sektion.** Sie bekommt eine
-eigene Überschrift mit Icon – genau wie „Kernkompetenzen" – und steht **vor**
-den Kernkompetenzen. Sie zählt nicht gegen die 24, weil sie Werkzeuge listet
-und keine Fähigkeiten. Ein Kategorielabel innerhalb der Sektion entfällt: Die
-Überschrift sagt bereits „Tools", ein zweites Label darunter wäre doppelt.
+eigene Überschrift mit dem Tools-Icon – genau wie „Kernkompetenzen" – und steht
+**nach** den Kernkompetenzen, so wie in der Figma-Vorlage. Sie zählt nicht gegen
+die 24, weil sie Werkzeuge listet und keine Fähigkeiten. Ein Kategorielabel
+innerhalb der Sektion entfällt: Die Überschrift sagt bereits „Tools", ein
+zweites Label darunter wäre doppelt. Die Karten sind dieselben wie bei den
+Kernkompetenzen – Name, fünf Punkte, Beschreibung –, im selben Raster.
 
-Damit trägt der Rumpf in dieser Reihenfolge: **Tools → Kernkompetenzen**
-(→ Zertifikate, falls belegt). Befüllt wird Tools aus dem Katalogabschnitt
-`Tools`, und auch hier gilt: nur was der Eingang belegt.
+Damit trägt der Rumpf in dieser Reihenfolge: **Zertifikate (falls belegt) →
+Kernkompetenzen → Tools**.
+
+**Befüllt wird Tools mit den Tools, die der Eingang nennt** – aus Tool-Listen,
+Projektsteckbriefen, Stationen, Icons im Lebenslauf. **Höchstens sechs** (eine
+Sektion, zwei Reihen), die meistgenutzten zuerst. Steht ein Tool im
+Katalogabschnitt `Tools`, gelten Name und Beschreibung wörtlich; sonst wird es
+im Katalogstil neu angelegt (Herstellerschreibweise, eine Zeile, was die Person
+damit tut). Bewertet wird wie jeder Skill, 3–5 Punkte, mit Beleg.
+
+**Ein Tool steht nur einmal im Dokument – in der Tools-Sektion.** Was dort
+steht, wird in den Kernkompetenzen nicht noch einmal als Skill geführt: nicht in
+einer Kategorie wie `Tools & Implementation` und nicht als Teil eines
+Sammelnamens (`Figma / FigJam` in den Tools schließt `Figma` in den
+Kernkompetenzen aus). Umgekehrt wird kein Skill der Kernkompetenzen zusätzlich
+als Tool gezeigt. Bleibt eine Kategorie dadurch mit zwei Skills zurück, wird sie
+mit einer verwandten zusammengelegt (siehe oben). Das Renderskript meldet
+Doppelungen.
+
+**Nennt der Eingang gar keine Tools**, wird nichts still ergänzt. Stattdessen
+kommen in Schritt 2e rollentypische Tools als Vorschlag in die Freigabe – bei
+UX/UI-Profilen zuerst aus dem Katalog (etwa `Figma / FigJam`) –, deutlich als
+„Vorschlag, nicht belegt" markiert und mit vorgeschlagenen Punkten (Kernwerkzeug
+der Rolle 4, sonst 3). Ob sie ins Dokument kommen, entscheidet die Tools-Frage
+in derselben Freigabe. Ohne Ja entfällt die Tools-Sektion.
 
 `Coding Skills` ist dagegen eine gewöhnliche Kategorie innerhalb der
 Kernkompetenzen und ersetzt dann eine der vier.
@@ -329,12 +400,24 @@ Urteil ist:
 3. Die **komplette Matrix als Tabelle**: Kategorie, Attribut, Punkte, Beleg
    (eine Zeile je Attribut, Beleg in Stichworten – "3 Jahre Design-System
    bei X", "CPUX-F 2021", "Portfolio-Case Y").
-4. Dazu **eine** `AskUserQuestion`:
+4. Die **Tools** als eigene kleine Tabelle: Tool, Punkte, Beleg. Nennt der
+   Eingang keine Tools, stehen hier die rollentypischen Vorschläge, jeder mit
+   „Vorschlag, nicht belegt" statt eines Belegs.
+5. Dazu **eine** `AskUserQuestion` mit der Freigabe:
 
    ```
    Frage:   Passen Auswahl und Bewertung so?
    Header:  Freigabe
    Optionen: Ja, so bauen (Empfohlen)  |  Ich möchte etwas ändern
+   ```
+
+   Nennt der Eingang keine Tools, trägt **derselbe Aufruf** eine zweite Frage:
+
+   ```
+   Frage:   In den Unterlagen stehen keine Tools. Sollen die vorgeschlagenen,
+            für <Rolle> typischen Tools ergänzt werden?
+   Header:  Tools
+   Optionen: Ja, Vorschläge ergänzen (Empfohlen)  |  Nein, ohne Tools-Sektion
    ```
 
    Bei "ändern" beschreibt der Nutzer die Änderungen als Text; danach die
@@ -347,9 +430,12 @@ Urteil ist:
 
 Aus den freigegebenen Inhalten eine `skillmatrix.json` bauen. Vollständiges
 Beispiel: `beispiel/skillmatrix.json` (das ist Wissems Matrix aus der
-Vorlage – einzige Abweichung ist die Hero-Beschreibung, die dort in die
-Ich-Perspektive gebracht wurde; das Vorlagen-PDF trägt sie noch in der
-dritten Person).
+Vorlage mit drei Abweichungen: Die Hero-Beschreibung steht in der
+Ich-Perspektive, das Vorlagen-PDF trägt sie noch in der dritten Person. Die
+Werkzeuge stehen nur in den Tools – `Figma / FigJam` und `Adobe CC` –, die
+Vorlage führt sie zusätzlich unter `Tools & Implementation`; die restliche
+Kategorie heißt deshalb nach dem Katalog `Coding Skills`. Und das Foto ist mit
+dem Kopf in der Mitte zugeschnitten, `material/foto-karte.png`).
 
 ```json
 {
@@ -360,12 +446,16 @@ dritten Person).
   },
   "zertifikate": [{ "titel", "aussteller", "jahr", "beschreibung", "tags": [] }],
   "zertifikat_bilder": [],
-  "kompetenzen": [{ "kategorie", "skills": [{ "name", "punkte", "beschreibung" }] }]
+  "kompetenzen": [{ "kategorie", "skills": [{ "name", "punkte", "beschreibung" }] }],
+  "tools": [{ "name", "punkte", "beschreibung" }]
 }
 ```
 
 Dazu:
 
+- **`tools`**: die Tools-Sektion nach den Kernkompetenzen, höchstens sechs
+  Einträge, gleicher Aufbau wie ein Skill. Fehlt der Schlüssel oder ist die
+  Liste leer, entfällt die Sektion (PDF und Figma).
 - **`zertifikate`**: je Zertifikat eine Karte, mit Ausstellungsjahr im
   Badge. Gehören mehrere Zertifikate erkennbar zu einem Weiterbildungsblock,
   dürfen sie wie in der Wissem-Vorlage zu einer Karte gebündelt werden
@@ -407,9 +497,20 @@ umbenannt.
 Das Skript rendert zweimal (Vorratshöhe, dann exakte Inhaltshöhe – die
 Matrix ist eine einzige lange Seite), sucht sich die Engine selbst und
 meldet Auffälligkeiten nach stderr: fehlende Felder, Punkte außerhalb der
-Skala, überlange Beschreibungen, mehr als drei Schwerpunkte, fehlende
-Bilddateien. Die Hinweise sind zu lesen und abzuarbeiten, nicht zu
+Skala, überlange Beschreibungen, Schwerpunkte breiter als die Textspalte,
+fehlende Bilddateien. Die Hinweise sind zu lesen und abzuarbeiten, nicht zu
 überfliegen.
+
+Dabei zeichnet es die Kartenschatten (WeasyPrint kennt kein `box-shadow`) und
+prüft zum Schluss das fertige PDF gegen `assets/tokens.json`: Seitenbreite,
+eingebettete Schriften, Schrift, Schnitt, Größe und Farbe jeder Textzeile,
+Flächen- und Linienfarben. **Endet es mit „FEHLER — das PDF weicht vom Design
+System ab" (Code 2), geht das PDF nicht raus.** Die Ursache ist fast immer ein
+Wert, der außerhalb von `tokens.json` gesetzt wurde, oder eine Ersatzschrift
+(etwa eine falsch geschriebene Schriftfamilie) – beheben, nicht übergehen.
+Fehlende Schriftdateien fängt das Skript schon vor dem Rendern ab; dann
+entsteht gar kein PDF. Die letzte Zeile eines sauberen Laufs lautet „Design
+System eingehalten".
 
 **Das Ergebnis ansehen, bevor es rausgeht** – immer, nicht nur bei
 Warnungen:
@@ -418,8 +519,9 @@ Warnungen:
 pdftoppm -png -r 40 "ausgabe/New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf" arbeit/vorschau
 ```
 
-Auf der Vorschau prüfen: Steht das Gesicht frei vom Farbverlauf? Brechen
-die Schwerpunkt-Buttons einzeilig? Läuft kein Kartentitel in die Punkte?
+Auf der Vorschau prüfen: Steht der Kopf mittig in der Fotokarte und das
+Gesicht frei vom Farbverlauf? Stehen die
+Schwerpunkt-Buttons in einer Zeile? Läuft kein Kartentitel in die Punkte?
 Sind die Zertifikatsbilder nicht unglücklich beschnitten? Wirkt eine
 Kategoriezeile halb leer (eine einzelne Karte in der letzten Zeile ist in
 Ordnung – die Vorlage hat das auch)?
@@ -433,7 +535,8 @@ dieser Stelle fertig** und geht so oder so raus.
 ob die Zieldatei die New-Monday-Komponenten führt:
 
 ```js
-figma.root.children.map(p => p.name)        // gibt es eine Seite "Components"?
+figma.root.children.map(p => p.name)   // beginnt eine Seite mit "Components"? (Master: "Components / Masterfile")
+await figma.getNodeByIdAsync("4158:4223")   // der Vorlagenframe "Skillmatrix"
 ```
 
 | Zieldatei | Weg | Rezept |
@@ -449,21 +552,25 @@ gebunden: Ändert jemand später `Skill Card`, ziehen alle Matrizen mit.
 
 #### Weg A — Vorlage klonen (Masterdatei)
 
-Kein Bauplan nötig. Die Vorlage `Nachbau` klonen, auf die Zielseite hängen,
-Texte über `characters` matchen und überschreiben, `Dots` über die Variante
-`Filled` setzen, Foto über den `imageHash` einsetzen. Vollständig mit allen
-Fallstricken in `references/figma-vorlage.md` — darunter die drei, die still
-danebengehen:
+Kein Bauplan nötig. Den Vorlagenframe `Skillmatrix` (Seite „Skillmatrix“,
+Knoten `4158:4223`) klonen, auf die Zielseite hängen, Texte über `characters`
+matchen und überschreiben, `Dots` über die Variante `Filled` setzen, Foto über
+den `imageHash` einsetzen. Vollständig mit allen Fallstricken in
+`references/figma-vorlage.md` — darunter die drei, die still danebengehen:
 
 - **Sektionen ohne Beleg entfernen**, nicht mit Vorlageninhalt stehen lassen.
   Ohne Zertifikate im Eingang fliegt die Zertifikatssektion raus; sonst
   behaupten die Zertifikatsbilder der Vorlage Qualifikationen, die der Kandidat
   nie erworben hat.
-- **`resetOverrides()` vor dem Befüllen** einer `Skill Section` — in der
-  Vorlage sind dort Kartenslots per Override gelöscht, und eine Schleife über
-  die vorhandenen Karten schluckt den Überhang wortlos.
-- **Der Frame ist 1444pt breit**, nicht 1440. Die 1440 aus `layout.md` stammen
-  aus dem PDF-Nachbau.
+- **Kategorien aus einer vollständigen `Skill Section` klonen**, nicht mit
+  `resetOverrides()` zurücksetzen — in der Vorlage sind Kartenslots per Override
+  gelöscht, und `resetOverrides()` holt sie zwar zurück, stellt aber das Raster
+  auf die Master-Komponente um (Abstände 16 statt 24). Danach die Kartenhöhen je
+  Zeile angleichen, mindestens 108.
+- **Kein Wert von Hand.** Überschrieben werden nur Inhalte — Texte,
+  `Dots`-Variante, Foto, Sichtbarkeit. Farben, Abstände, Schatten und Schriften
+  kommen aus den Komponenten und der Library; jede andere Überschreibung kappt
+  die Bindung ans Design System genau dort.
 
 #### Weg B — aus dem Bauplan zeichnen (fremde Datei)
 
@@ -474,15 +581,15 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py skillmatrix.json arbeit/ \
         --pdf "ausgabe/New-Monday - … - Skillmatrix.pdf"
 ```
 
-Das schreibt `arbeit/figma_plan.json`: **ein** Frame, darin die vier Bänder
-(Kopf, Hero, Rumpf, Fuß) in Lesereihenfolge, alle Werte fertig ausgerechnet.
-`--pdf` ist optional und trägt nur die gemessene Seitenhöhe als **Sollwert** in
-den Plan; am Ende wird die Frame-Höhe dagegen gehalten (±20pt sind normal, mehr
-ist ein Hinweis).
+Das schreibt `arbeit/figma_plan.json`: die Bauschritte mit fertigen
+Knotenbäumen, die den Aufbau der Vorlage nachbilden — alle Werte aus
+`assets/tokens.json`, dieselben wie im PDF. `--pdf` ist optional und trägt nur
+die gemessene Seitenhöhe als **Sollwert** in den Plan; am Ende wird die
+Frame-Höhe dagegen gehalten (±20pt sind normal, mehr ist ein Hinweis).
 
 Gebaut wird mit `use_figma` nach dem Rezept in `references/figma.md`. Dort stehen
-Linkauslesung, Zielseite, Schnittnamen, das Band-Rezept, der Weg für Logos, Foto
-und Zertifikatsbilder und die Aufteilung in rund zehn Aufrufe.
+Linkauslesung, Zielseite, Schnittnamen, der Baukasten für jeden Aufruf, die
+Bauschritte und der Weg für Foto und Zertifikatsbilder.
 
 ---
 
@@ -512,10 +619,13 @@ PDF ausgeben und in wenigen Zeilen berichten:
   geändert), mit Bitte um finalen Blick.
 - Welche Attribute **nicht** aus dem Katalog stammen und neu formuliert
   wurden.
+- Welche Tools **ohne Beleg** auf Wunsch ergänzt wurden (nur wenn der Eingang
+  keine nannte und die Tools-Frage mit Ja beantwortet wurde).
 - Wo Quellen einander widersprachen – mit beiden Werten; ins Dokument kam
   der Lebenslauf.
 - Woher das Foto stammt (falls automatisch geholt) und die dpi-Zahl, falls
-  unter 100.
+  unter 100. Steht der Kopf nicht mittig, weil das Original zu wenig Rand hat,
+  auch das – mit der Bitte um ein anderes Foto.
 - Was das Renderskript bemängelt hat und wie damit umgegangen wurde.
 - **Der Figma-Frame**, falls einer gewünscht war: der Link auf den Frame
   (`…?node-id=…`) und auf welcher Seite der Datei er liegt. Ist er nicht
@@ -542,17 +652,23 @@ Fehlt nichts, steht hier nichts.
   aussieht.
 - **Hero-Beschreibung in der Ich-Perspektive.** In der Skill Matrix spricht
   der Kandidat selbst.
-- **Sektionsreihenfolge**: Hero → Zertifikate → Kernkompetenzen → Fuß, wie
-  in der Wissem-Vorlage. Einzige zulässige Abweichung ist die
+- **Sektionsreihenfolge**: Hero → Zertifikate → Kernkompetenzen → Tools →
+  Fuß, wie in der Figma-Vorlage. Einzige zulässige Abweichung ist die
   Florian-Variante mit den Zertifikaten am Ende:
   `"zertifikate_position": "ende"` in der JSON. Nur auf Wunsch des Nutzers,
   Standard ist vorn.
+- **Der graue Rumpf reicht bis an den Fuß.** Zwischen der letzten Sektion und
+  dem Fuß liegen 64 Innenabstand im Rumpf, kein weißer Streifen.
 - **Bewertungsskala**: fünf Punkte, gefüllt in der Markenfarbe. Keine
   Prozente, keine Balken, keine Sterne.
-- **Schrift ist Inter**, liegt in `assets/fonts/`, wird eingebettet.
-- **Farben und Maße** stehen in `references/layout.md` und stammen aus der
-  Vorlage – kein Umbau, keine neuen Rubriken, keine anderen Farben ohne
-  ausdrückliche Ansage.
+- **Schriften: Rethink Sans für Name und Rolle, Inter für alles andere.** Die
+  Schnitte liegen in `assets/fonts/` und werden eingebettet; fehlt eine Datei,
+  bricht das Rendern ab, statt still eine Ersatzschrift zu setzen.
+- **Farben, Abstände, Radien, Schatten und Maße** stehen ausschließlich in
+  `assets/tokens.json` und stammen aus der Figma-Library der Masterdatei
+  (Überblick in `references/layout.md`). Kein Wert wird im CSS, im Template oder
+  im Figma-Plan von Hand gesetzt – kein Umbau, keine neuen Rubriken, keine
+  anderen Werte ohne ausdrückliche Ansage.
 - **Ansprechpartner im Fuß**: immer Manuel Klein, CCO. Steht als Vorgabe im
   Renderskript.
 - **Keine anonymisierte Variante.** Name und Foto gehören ins Dokument.
@@ -564,19 +680,22 @@ Fehlt nichts, steht hier nichts.
   ausgeliefert. Nach jedem Figma-Lauf wird der Frame gegen die Namen aus der
   Vorlage geprüft; ein Treffer ist ein Fehler, kein Schönheitsfehler.
 
-## Wenn das Layout doch angefasst werden muss
+## Wenn sich das Design System ändert
 
-Maße, Typo, Farben und die WeasyPrint-Eigenheiten (kein Grid, kein
-CSS-Filter, feste Kartenbreiten, warum `body` keinen Hintergrund haben darf)
-stehen in `references/layout.md` – vor jeder Änderung lesen, sonst bricht
-die Höhenmessung des Renderskripts.
+Einen Wert ändern heißt `assets/tokens.json` ändern – CSS, Figma-Plan und
+Zuschnitt-Skripte ziehen von selbst nach. Hat sich das Design System in Figma
+geändert, gilt der Abgleich in `references/layout.md`: Werte aus der
+Masterdatei auslesen, `tokens.json` nachziehen, die Beispielmatrix rendern. Die
+Designprüfung muss durchlaufen, und das Ergebnis wird neben den Figma-Frame
+gelegt.
 
-Wer dort etwas ändert, muss `scripts/figma_plan.py` mitziehen: Es trägt dieselben
-Abstände, Breiten und Schriftwerte ein zweites Mal, damit der gezeichnete
-Figma-Frame (Weg B) nicht vom PDF abweicht. Wie daraus ein Frame wird, steht in
-`references/figma.md`.
+Ändert sich der Aufbau (ein neues Element, eine andere Verschachtelung), ziehen
+`assets/template.html`, `assets/skillmatrix.css` und `scripts/figma_plan.py`
+gemeinsam nach. Die WeasyPrint-Eigenheiten (kein `box-shadow`, kein Grid, kein
+CSS-Filter, warum `body` keinen Hintergrund haben darf) stehen in
+`references/layout.md` – vor jeder Änderung lesen.
 
-**Weg A ist davon nicht betroffen** – der Klon holt seine Maße aus der Vorlage
-und nicht aus dem CSS. Umgekehrt gilt: Ändert sich die Vorlage in der
-Masterdatei, ist `references/figma-vorlage.md` nachzuziehen, insbesondere die
-Tabelle der Komponenten und die Liste der Hero-Ersetzungen.
+**Weg A ist davon nicht betroffen** – der Klon holt alles aus den Komponenten
+und der Library. Ändert sich die Vorlage in der Masterdatei (Knoten-IDs, Layer,
+Texte), ist `references/figma-vorlage.md` nachzuziehen, insbesondere die Tabelle
+der Komponenten und die Liste der Hero-Ersetzungen.

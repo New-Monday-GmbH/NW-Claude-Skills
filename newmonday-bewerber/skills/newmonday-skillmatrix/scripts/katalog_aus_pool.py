@@ -3,9 +3,10 @@
 
     python3 scripts/katalog_aus_pool.py arbeit/pool.json
 
-Die JSON ist die Rueckgabe des Lese-Skripts aus references/figma-vorlage.md —
-eine Liste [[Kategoriename, [[Attribut, Beschreibung], …]], …], gelesen aus dem
-Frame `Skill Matrix Pool Refactored`.
+Die JSON liefert ein lesender use_figma-Aufruf ueber den Frame
+`Skill Matrix Pool Refactored` der Masterdatei: je Kategorie-Abschnitt der Titel,
+je Skill Card Titel und Beschreibung - als Liste
+[[Kategoriename, [[Attribut, Beschreibung], …]], …], in Pool-Reihenfolge.
 
 Der Pool ist die Quelle, der Katalog die Kopie. Dieses Skript ist der einzige
 Weg, sie zu erzeugen: von Hand nachgepflegt laufen die beiden nach zwei
@@ -48,9 +49,12 @@ nachgepflegt.
   Kategorien zu je sechs Skills**, gesetzt als **drei Karten pro Reihe, zwei
   Reihen** je Kategorie.
 - **`Tools` ist eine eigene Sektion**, keine Kategorie. Sie bekommt eine eigene
-  Ueberschrift mit Icon wie „Kernkompetenzen" und steht **davor**; ein
-  Kategorielabel innerhalb der Sektion entfaellt. Sie zaehlt nicht gegen die
-  24. `Coding Skills` ist dagegen eine gewoehnliche Kategorie innerhalb der
+  Ueberschrift mit Tools-Icon wie „Kernkompetenzen" und steht **danach**; ein
+  Kategorielabel innerhalb der Sektion entfaellt. Sie traegt hoechstens sechs
+  Tools, die der Eingang nennt, und zaehlt nicht gegen die 24. Nennt der
+  Eingang keine, fragt der Skill in der Freigabe, ob rollentypische Tools
+  ergaenzt werden sollen. Ein Tool steht nur dort und nicht noch einmal
+  als Skill in den Kernkompetenzen. `Coding Skills` ist dagegen eine gewoehnliche Kategorie innerhalb der
   Kernkompetenzen und ersetzt dann eine der vier.
 - **Attributnamen sind englisch**, Beschreibungen deutsch. Eine Spalte, keine
   zweite. Fuer eine englische Matrix wird beim Bauen uebersetzt und in der

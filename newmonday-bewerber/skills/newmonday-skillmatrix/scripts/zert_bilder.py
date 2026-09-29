@@ -9,10 +9,10 @@ nach RGB gewandelt und auf maximal 1600px Breite gebracht. Die Reihenfolge der
 Argumente ist die Reihenfolge im Raster — die Dateinamen tragen deshalb eine
 laufende Nummer, damit sie sortiert bleiben.
 
-Die Kacheln im Layout sind 395 x 284pt und werden mittig gefuellt (cover):
-stark abweichende Formate verlieren an den Raendern etwas Bild. Das Skript
-meldet je Datei das Seitenverhaeltnis, damit Ausreisser auffallen, bevor sie
-beschnitten im Dokument stehen.
+Die Kacheln im Layout sind 380 x 278,05pt (assets/tokens.json) und werden mittig
+gefuellt (cover): stark abweichende Formate verlieren an den Raendern etwas
+Bild. Das Skript meldet je Datei das Seitenverhaeltnis, damit Ausreisser
+auffallen, bevor sie beschnitten im Dokument stehen.
 """
 import shutil
 import subprocess
@@ -20,8 +20,12 @@ import sys
 import tempfile
 from pathlib import Path
 
-# Seitenverhaeltnis der Kachel im Raster (Breite / Hoehe), siehe skillmatrix.css.
-KACHEL = 395 / 284
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import design_system  # noqa: E402  — nach sys.path.insert
+
+# Seitenverhaeltnis der Kachel im Raster (Breite / Hoehe), aus assets/tokens.json.
+_RASTER = design_system.laden()["komponenten"]["raster"]
+KACHEL = _RASTER["kachel-breite"] / _RASTER["kachel-hoehe"]
 MAX_BREITE = 1600
 
 

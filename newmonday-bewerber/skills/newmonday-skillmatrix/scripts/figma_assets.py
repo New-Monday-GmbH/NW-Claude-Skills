@@ -9,9 +9,8 @@ Sonderzeichen, die in der Kommandozeile leicht zerbrechen.
 
     [{"url": "https://…", "datei": "arbeit/fotos/01.png"}]
 
-Warum ein eigenes Skript und kein curl: Der Skill gibt in `allowed-tools` nur
-`Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*)` frei. So bleibt die Zeile, wie sie
-ist, und der Weg funktioniert auch dort, wo curl nicht freigegeben ist.
+Warum ein eigenes Skript und kein curl: Es prueft Groesse und Content-Type vor
+dem Senden und funktioniert auch dort, wo curl nicht freigegeben ist.
 
 Nur fuer Rasterbilder und dort, wo `upload_assets` gebraucht wird. SVG-Logos
 gehen nicht diesen Weg, sondern direkt ueber figma.createNodeFromSvg() —

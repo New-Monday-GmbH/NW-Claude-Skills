@@ -10,6 +10,10 @@ import importlib.util
 import platform
 import shutil
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import design_system  # noqa: E402  — nach sys.path.insert
 
 PY_PAKETE = [
     ("weasyprint", "Rendert das PDF. Ohne sie faellt der Skill auf Chrome zurueck."),
@@ -29,6 +33,7 @@ BEFEHLE = {
         "brew install python-pango pango libffi gdk-pixbuf   # fuer WeasyPrint",
         "brew install poppler",
         "pip3 install weasyprint jinja2 pypdf pillow pymupdf",
+        "xcode-select --install   # swiftc fuer die Kopferkennung beim Fotozuschnitt",
     ],
     "Linux": [
         "sudo apt install -y libpango-1.0-0 libpangoft2-1.0-0 poppler-utils",
@@ -70,6 +75,25 @@ def main():
         print(f"  {'ok ' if da else 'FEHLT'}  {name:12} {zweck}")
         if not da:
             (fehlt_hart if noetig else fehlt_weich).append(name)
+
+    print("\nSchriften (assets/tokens.json)")
+    design = design_system.laden()
+    fehlend = design_system.schriften_fehlen(design)
+    for datei in fehlend:
+        print(f"  FEHLT {datei.name:26} ohne sie rendert jede Engine still eine Ersatzschrift")
+    if fehlend:
+        fehlt_hart.append("Schriftdateien (Google Fonts, OFL — Namen in tokens.json)")
+    else:
+        print(f"  ok    {', '.join(design['schriften'])} liegen in assets/fonts/.")
+
+    print("\nKopferkennung fuer den Fotozuschnitt")
+    import kopf_ausschnitt
+    if kopf_ausschnitt.swift_da():
+        print("  ok    macOS Vision ueber swiftc - der Kopf wird automatisch zentriert.")
+    else:
+        fehlt_weich.append("Kopferkennung")
+        print("  FEHLT kein macOS mit Command Line Tools - Fotos werden mittig/oben buendig geschnitten;")
+        print("        den Kopf dann von Hand angeben: kopf_ausschnitt.py … --kopf x0,y0,x1,y1")
 
     print("\nRender-Engine")
     if importlib.util.find_spec("weasyprint"):
