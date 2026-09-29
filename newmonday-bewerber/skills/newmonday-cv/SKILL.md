@@ -229,8 +229,10 @@ Keine `cv.json`, keine Logos, nichts rendern.
 
 Stationen mit mehreren Marken (Schritt 3): ohne Rückfrage in einer Station, alle
 Logos als Liste in `logo`, und das unter „Ohne Rückfrage entschieden“. Die
-Übergabe aus Schritt 5 geht nach `uebergabe.md`: Kurzprofil unter „Zur
-Freigabe“, die Abweichungen aus `notizen.md` unter „Quellen weichen ab“, der
+Übergabe aus Schritt 5 geht nach `uebergabe.md`: unter „Zur Freigabe“ das
+Kurzprofil, die abgeleiteten Skillset-Einträge mit Beleg (Schritt 2) und was
+`anonymisieren.py` unter „Prüfen“ gemeldet hat, mit dem Satz drumherum
+(Schritt 5); die Abweichungen aus `notizen.md` unter „Quellen weichen ab“, der
 Hinweis auf den vollen Namen im Figma-File und alles Übrige unter „Hinweise“, die
 beiden Schlusszeilen wörtlich unter „Fehlt noch“.
 
