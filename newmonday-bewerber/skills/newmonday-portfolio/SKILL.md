@@ -1,7 +1,7 @@
 ---
 name: newmonday-portfolio
 allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*) Bash(pdftoppm *) Bash(pdfinfo *) WebSearch WebFetch AskUserQuestion Read Write Edit
-description: Wandelt die Unterlagen eines Kandidaten in ein fertiges Portfolio im New-Monday-Layout als PDF – 16:9-Folien mit Profilseite, Kundenwand, Design-Prozess, Projektstrecken und Kontaktseite. Eingang ist ein Portfolio als PDF, ein Link zu einer Portfolio-Website, ein LinkedIn-PDF-Export und/oder ein Lebenslauf. Nutze diesen Skill immer, wenn ein Portfolio, eine Arbeitsprobe, eine Projektstrecke oder eine Case-Sammlung aufbereitet, umformatiert, "ins New Monday Layout gebracht", vereinheitlicht oder für Kunden fertiggemacht werden soll – auch wenn nur eine PDF-Datei mit Projekten ohne weitere Erklärung geschickt wird, und auch dann, wenn das Wort "Layout" oder "New Monday" gar nicht fällt. Für Lebensläufe ist newmonday-cv zuständig, nicht dieser Skill.
+description: Wandelt die Unterlagen eines Kandidaten in ein fertiges Portfolio im New-Monday-Layout als PDF und als bearbeitbare Frames in Figma – 16:9-Folien mit Profilseite, Kundenwand, Design-Prozess, Projektstrecken und Kontaktseite. Eingang ist ein Portfolio als PDF, ein Link zu einer Portfolio-Website, ein LinkedIn-PDF-Export und/oder ein Lebenslauf. Nutze diesen Skill immer, wenn ein Portfolio, eine Arbeitsprobe, eine Projektstrecke oder eine Case-Sammlung aufbereitet, umformatiert, "ins New Monday Layout gebracht", vereinheitlicht oder für Kunden fertiggemacht werden soll – auch wenn nur eine PDF-Datei mit Projekten ohne weitere Erklärung geschickt wird, und auch dann, wenn das Wort "Layout" oder "New Monday" gar nicht fällt. Gilt auch, wenn das Portfolio in ein Figma-File, als Figma-Frames oder als bearbeitbare Folien für Designer soll. Für Lebensläufe ist newmonday-cv zuständig, nicht dieser Skill.
 ---
 
 # New Monday Portfolio
@@ -9,9 +9,13 @@ description: Wandelt die Unterlagen eines Kandidaten in ein fertiges Portfolio i
 Aus den Unterlagen eines Kandidaten wird ein Portfolio im New-Monday-Layout:
 23 bis 39 Folien im Format 1920 × 1080 pt – 14 feste plus drei bis fünf je
 Projekt; ohne `person.ki` entfällt die KI-Folie und es sind 13 feste.
-Das Layout ist aus den bestehenden
-Portfolios gemessen und liegt als HTML/CSS im Skill. Es wird nicht neu erfunden
-und nicht "verbessert" – es wird befüllt.
+Das Layout folgt der Figma-Seite »Portfolio« in `Portfolio - CV Master`
+(Design System v1.3) und liegt als HTML/CSS im Skill. Es wird nicht neu
+erfunden und nicht "verbessert" – es wird befüllt.
+
+**Am Ende stehen zwei Ergebnisse**: das PDF und dieselben Folien als
+bearbeitbare Frames in einem Figma-File (Schritt 7a). Gefragt wird nicht, *ob*
+etwas nach Figma soll, nur *wohin* – und nur, wenn kein Link mitkam.
 
 **Beste Eingangslage sind drei Quellen**: das Portfolio des Kandidaten als PDF
 oder Website, der Lebenslauf und der LinkedIn-PDF-Export. Bei Widersprüchen
@@ -58,7 +62,7 @@ oben, damit niemand sie erst auf halber Strecke findet:
   Wie recherchiert wird, steht in Schritt 0.
 - **Die Prozesstexte der Seiten 6–9** (`prozess[].kurztext` und `langtext`),
   wenn das Material keinen fertigen Prozess liefert. Dann gilt die Kaskade in
-  Schritt 4 unter „Der Design-Prozess sind genau drei Schritte": erst wörtlich
+  Schritt 4 unter „Der Design-Prozess sind drei oder vier Schritte": erst wörtlich
   übernehmen, dann aus CV, LinkedIn und Portfolio erweitern, zuletzt daraus
   ableiten – und immer in der Übergabe kennzeichnen.
 
@@ -127,6 +131,29 @@ liegt. Das Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    ist die dritte der fünf Ausnahmen oben und braucht eine ausdrückliche
    Ansage – von sich aus wird nie übersetzt.
 
+1a. **Wohin die Figma-Frames sollen.** Kam mit dem Auftrag schon ein
+   Figma-Link, entfällt die Frage – der Link ist die Antwort. Sonst als
+   `AskUserQuestion` direkt neben der Sprachfrage:
+
+   ```
+   Frage:   In welches Figma-File sollen die Portfolio-Folien?
+   Header:  Figma
+   Optionen: In ein bestehendes File – ich schicke den Link (Empfohlen)
+           | Leg ein neues File an
+   ```
+
+   Bei der ersten Option im Text derselben Nachricht, wörtlich so:
+
+   > Schick mir den Link zum Figma-File, in das die Folien sollen
+   > (figma.com/design/…). Zeigt der Link auf eine bestimmte Seite, lege ich sie
+   > dort ab, sonst auf einer neuen Seite. Ich brauche Bearbeitungsrechte auf der
+   > Datei.
+
+   Kommt der Link nicht, wird er einmal im Fließtext nachgefragt; bleibt er aus,
+   entsteht ein neues File. **Figma hält das PDF nicht auf**: Geht dort etwas
+   schief, geht das PDF trotzdem raus, und der Grund steht in der Übergabe.
+   Nur `figma.com/design/…` – `/board/`, `/slides/`, `/make/`, `/proto/` nicht.
+
 2. **Material**, als Text in derselben Nachricht, sinngemäß so:
 
    > Am besten schickst du mir drei Dinge: das Portfolio (PDF oder Link zur
@@ -152,27 +179,23 @@ liegt. Das Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
 
 4. **Einzelne Screenshots der Anwendung, pro Projekt drei bis acht.**
    Das ist der Materialposten, an dem die Projektstrecke hängt: Lösungs- und
-   Abschlussseite sind eine **diagonale Kaskade** – wenige, große Screens
-   auf satter, dunkler Markenfarbe, alle um denselben leichten Winkel
-   gekippt, diagonal versetzt und an den Kanten entschlossen angeschnitten,
-   wie in den Referenzportfolios. **Wie sie dort liegen, entscheidet der
+   Abschlussseite sind ein **gekipptes Raster** wie in den Figma-Vorlagen –
+   gleich breite Screens in versetzten Spalten auf der satten Markenfarbe,
+   gemeinsam gekippt, bis über die Ränder; Phones in schwarzer Fassung,
+   Desktop-Screens als Karten. **Wie sie dort liegen, entscheidet der
    Skill selbst**; die Regeln stehen in `references/layout.md`. Das Material
-   liefert die Screens, nicht ihre Anordnung; fest gesetzt sind nur die
-   Grundfläche und die HQ-Fotos. **Die Kaskade lebt von Größe, nicht von
-   Menge**: Eine Lösungsseite trägt 1–3 Desktop-Screens (bis 6 Mobile), die
-   Abschlussseite 2–6 (bis 8 Mobile) – jeder Screen liegt um die halbe
-   Folienbreite groß, wie in den Vorlagen. Mehr Screens zeigt die Fläche
-   nicht; die Reihenfolge in der JSON entscheidet, welche stehen, der erste
-   bekommt den Hero-Platz. Die Fläche wird mit 2 px je Punkt gerechnet:
-   ein Desktop-Screen liegt 1 450 bis 1 920 px breit, ein Phone 620 bis
-   780 px. Deshalb um Originalexporte in voller Auflösung bitten – ein
-   1 920er-Export trägt jede Lage ohne Hochrechnen. `screens.py` misst
-   jeden Screen gegen seine tatsächlich platzierte Größe und **platziert
-   nicht, was deutlich hochgerechnet würde**: Zu weiche Screens schrumpfen
-   erst in ihrem Platz, dann fliegen sie raus, und bleibt nichts Scharfes
-   übrig, steht auf der Seite die reine Grundfläche. Eine blanke Fläche ist
-   besser als eine unscharfe Kaskade. Die Meldungen dazu sind der Anlass,
-   schärfere Dateien anzufragen, nicht eine Fußnote.
+   liefert die Screens, nicht ihre Anordnung. **Am besten sind einzelne,
+   saubere Exporte** – ein Screen je Datei, ohne Mockup-Rahmen: Desktop ab
+   1 120 px Breite, Phone ab 520 px Breite des Displays. Mockups mit
+   mehreren Screens zerlegt das Skript selbst, helle Clay-Phones löst es aus
+   ihren Gehäusen; das Ergebnis ist aber nur so scharf wie das Display im
+   Mockup. Die Fläche wird mit 2 px je Punkt gerechnet. Liegt ein Screen
+   darunter, wird das ganze Raster bis auf 80 % kleiner, danach
+   hochgerechnet und gemeldet; unter 40 % fliegt er raus, und bleibt nichts
+   übrig, steht auf der Seite die reine Grundfläche. Die Meldungen dazu
+   sind der Anlass, schärfere Dateien anzufragen, nicht eine Fußnote.
+   Drei bis sechs verschiedene Screens je Fläche sind ideal; weniger kommen
+   im Raster reihum wieder.
 
    **Ein aus einem PDF geschnittenes Mosaik taugt dafür nicht.** Was dort
    herauskommt, ist ein Bild mit mehreren Screens darauf, komprimiert, mit
@@ -196,8 +219,8 @@ liegt. Das Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
 
 5. **Ein paar Sätze über jeden Kunden**, zwei bis drei Absätze: was die Firma
    macht, für wen, wie groß sie ist. Die rechte Spalte der Projekt-Kopfseite
-   trägt genau diesen Text (`kunde_text`), und sie ist 693 pt breit – ein gutes
-   Drittel der Folie. In den Referenzportfolios steht dort immer Text; eine
+   trägt genau diesen Text (`kunde_text`), und sie ist 570 pt breit – knapp
+   ein Drittel der Folie. In den Referenzportfolios steht dort immer Text; eine
    weiße Kundenspalte liest sich wie ein vergessenes Feld.
 
    Danach fragen, weil es sonst niemand mitschickt – aber **nicht darauf
@@ -336,7 +359,7 @@ Tabelle unten.
   "sprache": "de",
   "person": {
     "name", "rolle", "cover_titel", "jahr", "foto", "erfahrung_jahre",
-    "top_kenntnisse": [3], "kenntnisse": [7-8],
+    "top_kenntnisse": [3], "kenntnisse": [8],
     "sprachen": [{ "sprache", "niveau" }],
     "links":    [{ "titel", "url" }],
     "statement_rolle", "statement": { "text", "zitat": true },
@@ -384,33 +407,42 @@ Größenordnung zu bleiben:
 |---|---|
 | `cover_titel` | eine Zeile, bis ~30 Zeichen |
 | `rolle` | bis ~40 Zeichen |
-| `top_kenntnisse` | **genau 3**, je 1–4 Wörter |
-| `kenntnisse` | **6 bis 7** Einträge, je bis ~45 Zeichen – die Karte braucht Luft zur Top-Kenntnisse-Karte |
-| `sprachen` | **alle aus dem Material** – bei Platznot gleiche Niveaus zusammenfassen, siehe unten |
+| `top_kenntnisse` | **genau 3**, je 1–4 Wörter – zusammen **eine Zeile** (rund 70 Zeichen mit den „ • “) |
+| `kenntnisse` | **8** wie in der Vorlage (weniger nur bei dünnem Material), je bis ~60 Zeichen, jeder in einer Zeile – die Liste läuft mit Trennlinien im 63-pt-Takt und endet mit acht Einträgen genau am unteren Rand der Vorlage; mehr passt nicht |
+| `sprachen` | **Deutsch – Muttersprache und Englisch – Business Niveau stehen immer** (Vorgabe, auch ohne Angabe im Material), dazu alle weiteren Sprachen aus dem Material – bei Platznot gleiche Niveaus zusammenfassen, siehe unten |
 | `links` | alle beruflichen Auftritte – Portfolio-Website zuerst, siehe unten |
-| `statement.text` | 20–40 Wörter |
+| `statement.text` | 10–20 Wörter – das Zitat steht in 72 pt, mehr als neun Zeilen trägt die Fläche nicht |
 | `prozess[].titel` | 1–3 Wörter |
 | `prozess[].kurztext` | 12–25 Wörter |
-| `prozess[].langtext` | 60–110 Wörter, zwei Absätze – bei mehrzeiligem `titel` weniger |
-| `ki.text` | 50–80 Wörter, zwei Absätze, **ohne `**fett**`** – darunter steht die Werkzeugreihe |
+| `prozess[].langtext` | 60–100 Wörter, zwei Absätze – bei mehrzeiligem `titel` weniger |
+| `ki.text` | 50–70 Wörter, zwei Absätze, **ohne `**fett**`** – darunter steht die Werkzeugreihe |
 | `ki.tools` | bis 6 Logos – was darüber steht, zeigt die Seite nicht |
 | `projektname` | 1–3 Wörter, eine Zeile – nur aus dem Material, sonst weglassen |
-| `projekt` | 55–75 Wörter – die Spalte trägt darunter auch „Meine Rolle", siehe unten |
-| `kunde_text` | bis ~100 Wörter – volle Spaltenhöhe, siehe unten |
+| `projekt` | 50–65 Wörter – die Spalte trägt darunter auch „Meine Rolle", siehe unten |
+| `kunde_text` | bis ~90 Wörter – volle Spaltenhöhe, siehe unten |
 | `projekte[].rolle` | **1–3 Rollenbezeichnungen, keine Aufgaben** – siehe unten |
-| `summary.text` | 40–90 Wörter |
+| `summary.text` | 40–100 Wörter |
 | `loesungen[].titel` | 5–8 Wörter, höchstens zwei Zeilen – nur aus dem Material |
-| `loesungen[].text` | 50–130 Wörter, alternativ 2–4 `punkte` |
+| `loesungen[].text` | 50–140 Wörter, alternativ 2–4 `punkte` |
 | `loesungen[].screens` | 1 bis 3 Desktop-Screens, bei Mobile bis 6 – der erste ist der Hero |
 | `projekte[].screens` | 2 bis 6 Desktop-Screens, bei Mobile bis 8 – der erste ist der Hero |
 
-Jede weitere Zeile im `prozess[].titel` schiebt den Langtext um 115 pt nach
-unten – vier Zeilen, rund 30 Wörter. Gemessen trägt die Spalte unter „Analyse"
-gut 145 Wörter, unter dem zweizeiligen „Qualitative User Tests" 115 und unter
-einem dreizeiligen Titel 80. Auf der KI-Folie endet der Text über der
-Werkzeugreihe, nach rund 80 Wörtern; die Kacheln stehen fest bei 80 pt, egal
-wie viele es sind – eine frühere Fassung ließ wenige Kacheln wachsen, und
-genau das sah gegen die Referenz verrutscht aus.
+Jede weitere Zeile im `prozess[].titel` schiebt den Langtext um 104 pt nach
+unten – drei bis vier Zeilen, rund 20 Wörter. Gemessen trägt die Spalte unter
+„Analyse" gut 110 Wörter, unter dem zweizeiligen „Qualitative User Tests" rund
+90 und unter einem dreizeiligen Titel 70 (Fließtext in 24 pt, sechs Wörter je
+Zeile, jeder Absatzwechsel kostet eine Zeile). Auf der KI-Folie endet der Text
+über der Werkzeugreihe, nach rund 70 Wörtern; die Kacheln stehen fest bei
+80 pt, egal wie viele es sind – eine frühere Fassung ließ wenige Kacheln
+wachsen, und genau das sah gegen die Referenz verrutscht aus.
+
+**Deutsch und Englisch sind gesetzt.** New Monday geht bei jedem Kandidaten
+davon aus, dass Deutsch Muttersprache ist und Englisch auf Business-Niveau
+gesprochen wird (Vorgabe vom September 2026). Das Renderskript setzt beide
+Zeilen selbst (`sprachen_mit_vorgabe()`), auch wenn `sprachen` leer ist oder
+die Niveaus fehlen, und ersetzt ein anderes Niveau aus dem Material („Fließend“,
+„C1“) – mit einer Meldung, damit es in der Übergabe steht. Im englischen Deck
+heißen sie „German – Native speaker“ und „English – Business level“.
 
 **Keine Sprache fliegt raus.** `sprachen` führt jede Sprache, die im Material
 steht – eine gestrichene Sprache ist eine stille Kürzung des Profils, und
@@ -430,25 +462,24 @@ auch das kam als Rückmeldung zurück. Passwortgeschützte Portfolios stehen
 trotzdem drin: Der Kunde fragt das Passwort beim Kandidaten an.
 
 **Auf der Kopfseite trägt die linke Spalte zwei Blöcke.** `projekt` und
-`kunde_text` stehen in zwei gleich breiten 575-pt-Spalten wie in der Referenz
-(Paul Hecker, p-13/18/23). „Meine Rolle" folgt dem Textfluss der linken
-Spalte, direkt unter dem Projekttext – nicht mehr an der Blattkante: Der
+`kunde_text` stehen in zwei gleich breiten 570-pt-Spalten wie auf der
+Figma-Seite »Portfolio«. „Meine Rolle" folgt dem Textfluss der linken
+Spalte, 48 pt unter dem Projekttext – nicht an der Blattkante: Der
 Block, der von unten nach oben wuchs, klebte bei kurzen Texten sichtbar allein
 am Rand, und genau das kam als Rückmeldung zurück. Die rechte Spalte gehört
-ganz dem Kundentext. Gemessen, bei einzeiligem Projektnamen und drei Absätzen:
+ganz dem Kundentext. Gemessen, bei einzeiligem Projektnamen:
 
 | Feld | Platz |
 |---|---|
-| `kunde_text` | bis ~100 Wörter (volle Spalte) |
-| `projekt` bei 1 Rollen-Stichpunkt | bis ~75 Wörter |
-| `projekt` bei 2 Stichpunkten | bis ~65 Wörter |
-| `projekt` bei 3 Stichpunkten | bis ~60 Wörter |
+| `kunde_text` | bis ~90 Wörter (volle Spalte) |
+| `projekt` bei 1 Rollen-Stichpunkt | bis ~68 Wörter |
+| `projekt` bei 2 Stichpunkten | bis ~62 Wörter |
+| `projekt` bei 3 Stichpunkten | bis ~56 Wörter |
 
-Eine Zeile fasst sechs bis sieben Wörter, jede Leerzeile zwischen Absätzen
-belegt selbst eine. Bricht der Projektname auf zwei Zeilen um, gehen in beiden
-Spalten drei Zeilen ab; ein Stichpunkt, der selbst umbricht, kostet noch eine.
-In den Referenzportfolios tragen die Spalten 55 bis 80 Wörter – wer sich daran
-hält, bleibt automatisch im Maß.
+Die Spalten stehen in Subheadline 2 (Inter 24 pt): Eine Zeile fasst rund sechs
+Wörter, jede Leerzeile zwischen Absätzen belegt selbst eine. Bricht der
+Projektname auf zwei Zeilen um, gehen in beiden Spalten drei Zeilen ab; ein
+Stichpunkt, der selbst umbricht, kostet noch eine.
 
 **„Meine Rolle" nennt Rollen, keine Aufgaben – höchstens drei.** In den
 Referenzen steht dort eine Berufsbezeichnung („Lead UI/UX Designer",
@@ -496,8 +527,8 @@ In dieser Reihenfolge, ohne Ausnahme:
 
 Wer wenig Material hat, lässt die Lösungsseiten weg, nicht die Abschlussseite.
 Sie braucht nur Bilder, und Bilder sind das, was ein Portfolio ohnehin hat. Auch
-zwei Screens füllen die Folie – sie stehen in der Kaskade ohnehin groß und
-zeigen jede Unschärfe. Das mitgelieferte Beispiel ist genau dieser Fall.
+zwei Screens füllen die Folie – das Raster wiederholt sie reihum, und jede
+Unschärfe sieht man sofort. Das mitgelieferte Beispiel ist genau dieser Fall.
 
 #### Die Einleitungszeile der Lösungsseite steht im Material oder nirgends
 
@@ -563,11 +594,13 @@ Kommt keiner, bleibt die Fläche leer; das Layout trägt das.
 `statement_rolle` ist die große Rollenzeile links, mit `\n` von Hand umbrochen:
 `"User\nInterface &\nExperience\nDesigner"`.
 
-#### Der Design-Prozess sind genau drei Schritte
+#### Der Design-Prozess sind drei oder vier Schritte
 
-Seite 6 zeigt die drei Schritte nebeneinander, die Seiten 7 bis 9 je einen im
-Detail – dieselben Titel, in derselben Reihenfolge. Die Inhalte kommen aus dem
-Material des Kandidaten, in dieser Kaskade:
+Seite 6 zeigt die Schritte nebeneinander – drei oder vier, je nachdem, was das
+Material hergibt; die Figma-Seite »Portfolio« zeigt vier. Die Seiten 7 bis 9
+zeigen die **ersten drei** im Detail – dieselben Titel, in derselben
+Reihenfolge; ein vierter Schritt steht nur auf der Übersicht. Die Inhalte
+kommen aus dem Material des Kandidaten, in dieser Kaskade:
 
 1. **Übernehmen.** Steht im Material ein fertiger Prozess – ein Prozesskapitel
    im Portfolio, eine Selbstbeschreibung auf der Website, ein Über-mich-Teil –,
@@ -577,9 +610,9 @@ Material des Kandidaten, in dieser Kaskade:
    Arbeitsweise in CV oder LinkedIn –, werden Titel und Texte daraus
    aufgebaut: die wörtlichen Sätze zuerst, dann so viel eigene Verbindung wie
    nötig, bis Kurz- und Langtext die Maße aus der Tabelle tragen.
-3. **Ableiten.** Erst wenn auch das fehlt, leitet der Skill die drei Schritte
+3. **Ableiten.** Erst wenn auch das fehlt, leitet der Skill drei Schritte
    komplett selbst ab – aus dem, was Projekte und Werdegang über die
-   Arbeitsweise zeigen.
+   Arbeitsweise zeigen. Einen vierten erfindet er nicht dazu.
 
 Nie richtig ist ein PDF mit Platzhaltern auf den Prozessseiten, solange CV
 oder LinkedIn eine Selbstbeschreibung hergeben – genau so ein Deck ging einmal
@@ -589,12 +622,12 @@ Die drei Bilder dazu liegen fest im Skill und bleiben in jedem Portfolio
 gleich.
 
 Seite 10 („KI-Einsatz") hängt hinter den drei Detailseiten, ist aber **kein
-vierter Schritt** und gehört nicht in `prozess`: KI läuft in allen Phasen mit,
+Prozessschritt** und gehört nie in `prozess`: KI läuft in allen Phasen mit,
 und als letzte Station dargestellt sah sie aus wie eine Phase nach der
-Umsetzung – genau das kam als Rückmeldung zurück. Deshalb bleibt Seite 6
-**immer dreispaltig**, die Schrittleiste der Seiten 7–9 zählt drei Balken, und
-die KI-Seite trägt gar keine: Sie ist eine eigene Arbeitsweise-Seite, kein
-Prozessschritt.
+Umsetzung – genau das kam als Rückmeldung zurück. Ein vierter Schritt auf
+Seite 6 muss also aus dem Material kommen, nicht aus der KI-Folie. Die
+Schrittleiste der Seiten 7–9 zählt immer drei Balken, und die KI-Seite trägt
+gar keine: Sie ist eine eigene Arbeitsweise-Seite.
 
 ### 5. Logos zuordnen
 
@@ -809,21 +842,19 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/render_portfolio.py portfolio.json ausgabe/n
 Die Flächen mit den Screens entstehen dabei vorab als Bild –
 `scripts/screens.py` legt sie an, aus `loesungen[].screens` für die
 Lösungsseiten und aus `projekte[].screens` für die Abschlussseite. Die
-Anordnung ist die gestalterische Entscheidung des Skills: eine **diagonale
-Kaskade** wie in den Referenzportfolios – wenige, große Screens, alle um
-denselben leichten Winkel gekippt (die Kaskade wird als Ganzes genau einmal
-gedreht, kein Screen einzeln), diagonal versetzt und an den Kanten
-entschlossen angeschnitten: der obere Screen blutet über die obere Kante
-hinaus, der untere über die rechte und untere. Keine Browserfenster, keine
-Geräterahmen: nur Karten mit leicht gerundeten Ecken und flachem Schatten
-auf **satter, dunkler Markenfarbe** – zu helle Töne werden Richtung Schwarz
-gezogen, ohne Markenfarbe steht ein dunkles Petrol. Der Grund zeigt sich
-als Negativraum der Diagonale; das ist gewollt und keine Lücke. Wortmarke,
-Seitenzahl und NDA-Hinweis können auf Screens liegen; unter ihren Ecken
-liegt deshalb ein weicher dunkler Verlaufsschleier in der abgedunkelten
-Markenfarbe. Die Maße stehen in `references/layout.md`. Das Ergebnis ist
-deterministisch und ohne Zufall: derselbe Eingang ergibt dieselbe
-Anordnung, ein zweiter Lauf verschiebt also nichts.
+Anordnung folgt den sieben Figma-Folien, die der Nutzer im September 2026
+als Vorbild vorgegeben hat: ein **gekipptes Raster** – gleich breite Screens
+in versetzten Spalten, gemeinsam gekippt (Desktop 15°, Phone 10°), von Rand
+zu Rand, auf der **satten Markenfarbe, wie sie ist** (ohne Markenfarbe das
+New-Monday-Petrol). Desktop-Screens sind Karten mit gerundeten Ecken und
+feiner weißer Kontur, Phones stecken in einer schwarzen Fassung mit Dynamic
+Island. Kein Schatten, kein Schleier. Die Felder von Wortmarke, Seitenzahl
+und NDA-Hinweis bleiben frei: Kacheln, die hineinragen, entfallen, dort
+zeigt sich Markenfarbe. Die Abschlussseite trägt Desktop-Screens gerade in
+drei Spalten, rechts bleibt ein Streifen frei. Eine fertig gestaltete
+Showcase-Szene füllt die Fläche als Ganzes. Die Maße stehen in
+`references/layout.md`. Das Ergebnis ist deterministisch und ohne Zufall:
+derselbe Eingang ergibt dieselbe Anordnung.
 
 Das Skript sucht sich die Engine selbst und prüft danach das fertige PDF. Es
 meldet:
@@ -856,11 +887,11 @@ steht, ob es wie ein Foto aussieht und nicht wie ein Rendering und ob es
 freundlich wirkt statt grau und trist, ob die Markenfarbe zur Marke passt, ob
 das Kundenlogo lesbar ist – und ob auf den Lösungs- und Abschlussseiten von
 jedem Screen genug zu sehen ist und jeder scharf steht. Die Screens laufen
-über die Kanten und der dunkle Grund zeigt sich zwischen ihnen; beides ist
-gewollt – so stehen die Kaskaden in den Referenzen. Nicht gewollt wäre ein
-Screen, der klein und frei in der Mitte schwebt, statt an einer Kante zu
-hängen: Das ist der Blick, mit dem die alte Fläche als „random rumfliegend“
-zurückkam. Screens, die das Qualitäts-Gate ausgelassen hat, stehen in den
+über die Kanten, die Markenfarbe zeigt sich in den Fugen und in den freien
+Ecken unter Wortmarke und Seitenzahl; beides ist gewollt – so stehen die
+Raster in den Figma-Vorlagen. Nicht gewollt wären graue Mockup-Flächen im
+Raster (dann hat das Freistellen versagt) oder eine Wortmarke, die halb auf
+einem Screen steht. Screens, die das Qualitäts-Gate ausgelassen hat, stehen in den
 Meldungen: Sie gehören mit der Bitte um Originalexporte in die Übergabe.
 Eine Lösungs- oder Abschlussseite, die nur Markenfarbe zeigt, ist kein
 Fehler, sondern das Gate – dann fehlen scharfe Screens, und genau das steht
@@ -870,10 +901,28 @@ in der Übergabe unter „Folgende Bilder fehlen".
 pdftoppm -png -r 60 ausgabe/nachname-vorname-portfolio.pdf arbeit/blick
 ```
 
+### 7a. Die Figma-Frames ablegen
+
+Erst wenn das PDF fertig und angesehen ist. Die Frames entstehen aus demselben
+Layout wie das PDF – `figma_plan.py` liest die Rechnung von WeasyPrint aus und
+schreibt fertige `use_figma`-Skripte, eine zweite Maßtabelle gibt es nicht:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py portfolio.json arbeit/figma/ --knoten <node-id aus dem Link>
+```
+
+Dann der Reihe nach: `00-start.js` an `use_figma`, IDs mit `--einsetzen`
+eintragen, jedes `NN-folien.js` an `use_figma`, zum Schluss die Bilder über
+`99-bilder.js`, `upload_assets` und `figma_assets.py`. Das Rezept mit allen
+Fallstricken steht in `references/figma.md`; vor dem ersten Aufruf den Skill
+`figma-use` laden.
+
 ### 8. Übergeben
 
 PDF ausgeben und in wenigen Zeilen berichten:
 
+- **Den Figma-Link** auf den Sammelrahmen (`…?node-id=…`) und auf welcher Seite
+  er liegt – oder in einem Satz, warum die Frames nicht zustande kamen
 - Welche Projekte drin sind und in welcher Reihenfolge
 - Woher das Profilfoto stammt, falls nicht aus dem Lebenslauf
 - Wo die Quellen auseinandergehen – mit beiden Werten
@@ -949,8 +998,15 @@ der Kaskade in Schritt 5.
 - **Agenturzahlen**: 26 Teammitglieder, gegründet 2018, 100 % Zufriedenheit,
   UX-Design-Awards-Badge. Stehen als Konstanten in `render_portfolio.py` und
   werden dort gepflegt, nicht im Template.
-- **Schrift ist Inter**, liegt in `assets/fonts/` und wird eingebettet.
-- **Profilfoto immer in Graustufen.**
+- **Das Design System ist das der Figma-Seite »Portfolio«** ([NM] DESIGN
+  SYSTEM v1.3): Überschriften in **Rethink Sans**, Text in **Inter**, beide in
+  `assets/fonts/` und eingebettet. Farben, Textstile, Linien und Kartenmaße
+  stehen einmal, in `assets/tokens.json` – nirgends sonst.
+- **Profilfoto immer in Graustufen.** Das Renderskript entfärbt es selbst;
+  CSS-Filter setzt WeasyPrint nicht um.
+- **Keine Schatten auf den Folien.** Karten sind flach, wie in Figma. Die
+  beiden Karten links auf der Profilseite tragen stattdessen eine Kontur
+  (1 pt `neutral/20`), die Kenntnisse Trennlinien in derselben Farbe.
 - **Ein Projektblock hat drei bis fünf Seiten**: Kopf, Summary und Abschluss
   immer, dazu null bis zwei Lösungsseiten je nach Material.
 - **Auf den Projektseiten fest**: die Markenfläche (Lösungs- und
@@ -963,7 +1019,39 @@ der Kaskade in Schritt 5.
 
 ## Wenn das Layout doch angefasst werden muss
 
-Maße, Farben, Typoskala und die Begründungen dahinter stehen in
+**Farben und Schriften ändern sich nur in `assets/tokens.json`.**
+`portfolio.css` trägt keinen einzigen Farb- oder Schriftwert, jede Textstelle
+bekommt eine `.t-*`-Klasse aus den Tokens. Das Renderskript prüft das bei jedem
+Lauf und meldet unter „Design System:", was abweicht – ein Hex-Wert im CSS, eine
+Schriftgröße am Design System vorbei, ein Text im PDF in einem Schnitt, den die
+Tokens nicht kennen. Von Hand:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/design_tokens.py pruefe --pdf ausgabe/….pdf
+```
+
+Ändert sich das Design System in Figma, werden die Tokens gegen einen Auszug
+der Figma-Seite gehalten (`--figma auszug.json`); wie der Auszug entsteht,
+steht in `references/layout.md` unter „Tokens gegen Figma prüfen".
+
+**Nach jeder Änderung am Layout den Selbsttest laufen lassen:**
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/selbsttest.py
+```
+
+Er rendert die Vorlagen aus `assets/figma-soll/` mit ihrem eigenen Inhalt und
+vergleicht jede Fläche, Kontur, Trennlinie und Textzeile mit Figma – auf
+1,5 pt. Wird eine Vorlage in Figma angepasst, zuerst ihre Sollwerte neu lesen
+(`references/layout.md`, „Selbsttest gegen Figma"): Der Test muss dann rot
+werden, und erst die Änderung am Skill macht ihn wieder grün.
+
+Decks, die schon in Figma stehen, werden danach nicht neu aufgebaut: Nur die
+betroffenen Folien neu bauen (`figma_plan.py … --folien 2`), sie ersetzen die
+gleichnamigen Folien im vorhandenen Sammelrahmen – siehe
+`references/figma.md`, „Einzelne Folien in einem bestehenden Deck ersetzen".
+
+Positionen, Maße und die Begründungen dahinter stehen in
 `references/layout.md`. Dort steht auch, warum die Seiten absolut positioniert
 sind und welche Fallen WeasyPrint dabei stellt – diese Stelle bitte vor jeder
 Änderung lesen.

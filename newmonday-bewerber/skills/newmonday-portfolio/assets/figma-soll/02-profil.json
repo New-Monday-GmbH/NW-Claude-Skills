@@ -1,0 +1,511 @@
+{
+ "_zweck": "Sollwerte der Figma-Vorlage für den Selbsttest (scripts/selbsttest.py). Der Test rendert diese Folie mit genau dem Inhalt der Vorlage und vergleicht Flächen, Rahmen, Radien, Trennlinien, Bilder und Texte auf 1,5 pt. Neu lesen mit dem Skript in references/layout.md, Abschnitt »Selbsttest gegen Figma«.",
+ "quelle": {
+  "datei": "oezbaw261xDwxthPuX3ZpS",
+  "knoten": "4158:7033",
+  "frame": "02 NM Portfolio - Profile V2",
+  "seite": "Portfolio",
+  "gelesen": "2026-09-28"
+ },
+ "folie": 2,
+ "inhalt": {
+  "person": {
+   "name": "Daniel Fallack",
+   "rolle": "Senior UX Designer",
+   "foto": "material/foto.jpg",
+   "erfahrung_jahre": "14",
+   "top_kenntnisse": [
+    "User Interface Design",
+    "Human Centered Design",
+    "Design Systems"
+   ],
+   "kenntnisse": [
+    "User Interface Design",
+    "Barrierefreiheit (WCGA)",
+    "Human Centered Design",
+    "Conception",
+    "Design System (Variables, Tokens, Alignments u.v.m)",
+    "Prototyping (Figma)",
+    "Information Structure",
+    "AI Prompt Engineering / Automation"
+   ],
+   "sprachen": [
+    {
+     "sprache": "Deutsch",
+     "niveau": "Muttersprache"
+    },
+    {
+     "sprache": "Englisch",
+     "niveau": "Business Niveau"
+    }
+   ],
+   "links": [
+    {
+     "titel": "LinkedIn Profil",
+     "url": "https://www.linkedin.com/"
+    }
+   ]
+  }
+ },
+ "hintergrund": "#ffffff",
+ "flaechen": [
+  {
+   "name": "Rectangle 4",
+   "x": 1393,
+   "y": 0,
+   "w": 527,
+   "h": 1080,
+   "fill": "#009193"
+  },
+  {
+   "name": "Side Info",
+   "x": 1453,
+   "y": 229,
+   "w": 407,
+   "h": 246,
+   "fill": "#ffffff",
+   "r": 16
+  },
+  {
+   "name": "Side Info",
+   "x": 1453,
+   "y": 507,
+   "w": 407,
+   "h": 257,
+   "fill": "#ffffff",
+   "r": 16
+  },
+  {
+   "name": "Rectangle 2030",
+   "x": 1477,
+   "y": 663,
+   "w": 359,
+   "h": 1,
+   "fill": "#ffffff",
+   "pruefen": false,
+   "grund": "unsichtbare Linie (Farbe = Kartengrund)"
+  },
+  {
+   "name": "Side Info",
+   "x": 1453,
+   "y": 796,
+   "w": 407,
+   "h": 164,
+   "fill": "#ffffff",
+   "r": 16,
+   "nur": [
+    "x",
+    "y",
+    "w"
+   ],
+   "grund": "Connect-Karte: bleibt beim petrolfarbenen Pfeil-Link statt Titel + „Anzeigen“ (Entscheidung vom 2026-09-28) – die Karte ist deshalb niedriger"
+  },
+  {
+   "name": "Top Skills",
+   "x": 501,
+   "y": 292,
+   "w": 832,
+   "h": 138,
+   "fill": "#ffffff",
+   "stroke": "#c9cfd1",
+   "sw": 1,
+   "sa": "INSIDE",
+   "r": 16
+  },
+  {
+   "name": "Skills",
+   "x": 501,
+   "y": 462,
+   "w": 832,
+   "h": 579,
+   "fill": "#ffffff",
+   "stroke": "#c9cfd1",
+   "sw": 1,
+   "sa": "INSIDE",
+   "r": 16
+  },
+  {
+   "name": "Rectangle 2030",
+   "x": 525,
+   "y": 592,
+   "w": 784,
+   "h": 1,
+   "fill": "#c9cfd1"
+  },
+  {
+   "name": "Rectangle 2030",
+   "x": 525,
+   "y": 655,
+   "w": 784,
+   "h": 1,
+   "fill": "#c9cfd1"
+  },
+  {
+   "name": "Rectangle 2030",
+   "x": 525,
+   "y": 718,
+   "w": 784,
+   "h": 1,
+   "fill": "#c9cfd1"
+  },
+  {
+   "name": "Rectangle 2030",
+   "x": 525,
+   "y": 781,
+   "w": 784,
+   "h": 1,
+   "fill": "#c9cfd1"
+  },
+  {
+   "name": "Rectangle 2030",
+   "x": 525,
+   "y": 844,
+   "w": 784,
+   "h": 1,
+   "fill": "#c9cfd1"
+  },
+  {
+   "name": "Rectangle 2030",
+   "x": 525,
+   "y": 907,
+   "w": 784,
+   "h": 1,
+   "fill": "#c9cfd1"
+  },
+  {
+   "name": "Rectangle 2030",
+   "x": 525,
+   "y": 970,
+   "w": 784,
+   "h": 1,
+   "fill": "#c9cfd1"
+  }
+ ],
+ "texte": [
+  {
+   "text": "Arbeitserfahrung",
+   "x": 1477,
+   "y": 253,
+   "w": 359,
+   "h": 32,
+   "familie": "Inter",
+   "schnitt": "Semi Bold",
+   "groesse": 28,
+   "zeile": 32.2,
+   "farbe": "#111111"
+  },
+  {
+   "text": "14",
+   "x": 1477,
+   "y": 309,
+   "w": 113,
+   "h": 104,
+   "familie": "Rethink Sans",
+   "schnitt": "SemiBold",
+   "groesse": 96,
+   "zeile": 103.7,
+   "farbe": "#009193"
+  },
+  {
+   "text": "Jahre",
+   "x": 1477,
+   "y": 421,
+   "w": 359,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#48575a"
+  },
+  {
+   "text": "Sprachen",
+   "x": 1477,
+   "y": 531,
+   "w": 359,
+   "h": 32,
+   "familie": "Inter",
+   "schnitt": "Semi Bold",
+   "groesse": 28,
+   "zeile": 32.2,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Deutsch",
+   "x": 1477,
+   "y": 587,
+   "w": 359,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Semi Bold",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Muttersprache",
+   "x": 1477,
+   "y": 617,
+   "w": 359,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#48575a"
+  },
+  {
+   "text": "Englisch",
+   "x": 1477,
+   "y": 680,
+   "w": 359,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Semi Bold",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Business Niveau",
+   "x": 1477,
+   "y": 710,
+   "w": 359,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#48575a"
+  },
+  {
+   "text": "Connect",
+   "x": 1477,
+   "y": 820,
+   "w": 359,
+   "h": 32,
+   "familie": "Inter",
+   "schnitt": "Semi Bold",
+   "groesse": 28,
+   "zeile": 32.2,
+   "farbe": "#111111"
+  },
+  {
+   "text": "LinkedIn Profil",
+   "x": 1477,
+   "y": 876,
+   "w": 359,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Semi Bold",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#111111",
+   "pruefen": false,
+   "grund": "Connect-Karte: bleibt beim petrolfarbenen Pfeil-Link statt Titel + „Anzeigen“ (Entscheidung vom 2026-09-28)"
+  },
+  {
+   "text": "Anzeigen",
+   "x": 1477,
+   "y": 906,
+   "w": 359,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#009193",
+   "unterstrichen": true,
+   "pruefen": false,
+   "grund": "Connect-Karte: bleibt beim petrolfarbenen Pfeil-Link statt Titel + „Anzeigen“ (Entscheidung vom 2026-09-28)"
+  },
+  {
+   "text": "Daniel Fallack",
+   "x": 501,
+   "y": 120,
+   "w": 443,
+   "h": 79,
+   "familie": "Rethink Sans",
+   "schnitt": "SemiBold",
+   "groesse": 72,
+   "zeile": 79.2,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Senior UX Designer",
+   "x": 501,
+   "y": 207,
+   "w": 832,
+   "h": 53,
+   "familie": "Rethink Sans",
+   "schnitt": "Regular",
+   "groesse": 48,
+   "zeile": 52.8,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Top-Kenntnisse",
+   "x": 525,
+   "y": 316,
+   "w": 784,
+   "h": 36,
+   "familie": "Inter",
+   "schnitt": "Bold",
+   "groesse": 24,
+   "zeile": 36,
+   "farbe": "#111111"
+  },
+  {
+   "text": "User Interface Design • Human Centered Design • Design Systems",
+   "x": 525,
+   "y": 376,
+   "w": 784,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Kenntnisse",
+   "x": 525,
+   "y": 486,
+   "w": 784,
+   "h": 36,
+   "familie": "Inter",
+   "schnitt": "Bold",
+   "groesse": 24,
+   "zeile": 36,
+   "farbe": "#111111"
+  },
+  {
+   "text": "User Interface Design",
+   "x": 525,
+   "y": 546,
+   "w": 784,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Barrierefreiheit (WCGA)",
+   "x": 525,
+   "y": 609,
+   "w": 784,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Human Centered Design",
+   "x": 525,
+   "y": 672,
+   "w": 784,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Conception",
+   "x": 525,
+   "y": 735,
+   "w": 784,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Design System (Variables, Tokens, Alignments u.v.m)",
+   "x": 525,
+   "y": 798,
+   "w": 784,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Prototyping (Figma)",
+   "x": 525,
+   "y": 861,
+   "w": 784,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Information Structure",
+   "x": 525,
+   "y": 924,
+   "w": 784,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#111111"
+  },
+  {
+   "text": "AI Prompt Engineering / Automation",
+   "x": 525,
+   "y": 987,
+   "w": 784,
+   "h": 30,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 30,
+   "farbe": "#111111"
+  },
+  {
+   "text": "2",
+   "x": 1832,
+   "y": 1003,
+   "w": 66,
+   "h": 43,
+   "familie": "Inter",
+   "schnitt": "Bold",
+   "groesse": 21.8,
+   "zeile": 26.2,
+   "farbe": "#ffffff",
+   "vergleich": "mitte",
+   "grund": "Seitenzahl: Figma-Kasten 66 × 43, Text mittig – verglichen wird die Mitte"
+  }
+ ],
+ "bilder": [
+  {
+   "name": "Photo",
+   "x": 120,
+   "y": 120,
+   "w": 320,
+   "h": 429.4
+  }
+ ],
+ "logos": [
+  {
+   "name": "New Monday Logo-2025",
+   "x": 1712,
+   "y": 60,
+   "w": 148,
+   "h": 15
+  }
+ ]
+}

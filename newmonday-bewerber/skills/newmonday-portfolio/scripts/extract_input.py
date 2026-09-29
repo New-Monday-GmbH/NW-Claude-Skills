@@ -9,7 +9,7 @@ Schreibt nach <ziel>/:
     text.txt          der gesamte Text, seitenweise getrennt
     bilder/           alle brauchbaren Bilder in Originalaufloesung
     fotos/            Portraetkandidaten, in Graustufen und aufs Layoutformat
-                      (363 x 445pt) beschnitten
+                      (320 x 429pt) beschnitten
     bilder.txt        je Bild Groesse und wofuer die Aufloesung reicht
 
 Warum getrennte Ordner: Ein Portfolio-PDF enthaelt Logos, Screenshots, Fotos und
@@ -26,7 +26,7 @@ from pathlib import Path
 # Zielflaechen des Layouts in Punkt. Ein Bild sollte mindestens so viele Pixel
 # haben wie die Flaeche Punkte breit ist, sonst wirkt es auf der Folie weich.
 FLAECHEN = {"Arbeitsweise/Vollbild": 960, "Projektkopf": 760, "Lösung/Summary": 1020}
-FOTO_B, FOTO_H = 363, 445
+FOTO_B, FOTO_H = 320, 429  # Profilfoto wie in Figma (Profile V2)
 
 
 def bewertung(breite: int, hoehe: int) -> str:

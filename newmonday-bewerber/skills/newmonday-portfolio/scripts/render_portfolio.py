@@ -35,6 +35,7 @@ SKILL = Path(__file__).resolve().parent.parent
 ASSETS = SKILL / "assets"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import design_tokens as ds  # noqa: E402
 import screens  # noqa: E402
 from logo_lib import bibliothek  # noqa: E402
 from screens import baue_screens  # noqa: E402
@@ -133,14 +134,17 @@ def e(text) -> str:
     return html.escape(str(text or ""))
 
 
-def absaetze(text: str, klasse: str = "fliess", stil: str = "") -> str:
-    """Leerzeilen im Quelltext werden zu Absaetzen, **fett** zu <b>."""
+def absaetze(text: str, klasse: str = "fliess", stil: str = "",
+             ts: str = "subheadline-2-regular") -> str:
+    """Leerzeilen im Quelltext werden zu Absaetzen, **fett** zu <b>. `ts` ist
+    der Textstil aus tokens.json - ohne ihn stuende der Text in keiner Schrift
+    des Design Systems."""
     if not text:
         return ""
     teile = [t.strip() for t in re.split(r"\n\s*\n", text.strip()) if t.strip()]
     body = "".join(f"<p>{fett(t)}</p>" for t in teile)
     attr = f' style="{stil}"' if stil else ""
-    return f'<div class="{klasse}"{attr}>{body}</div>'
+    return f'<div class="{klasse} t-{ts}"{attr}>{body}</div>'
 
 
 def fett(text: str) -> str:
@@ -234,25 +238,35 @@ def hell(farbe: str) -> bool:
 # Die Folie in Punkt, und die Breite der Bildflaeche je Seitentyp. Alle
 # Flaechen stehen rechtsbuendig und ueber die volle Hoehe.
 SEITE_BREIT, SEITE_HOCH = 1920, 1080
-FLAECHENBREITE = {"bild--halb": 909, "bild--breit": 1020, "vollflaeche": 1920}
+# Bildkanten wie in Figma: Arbeitsweise 1122pt, Summary/Loesung 932pt.
+FLAECHENBREITE = {"bild--halb": 798, "bild--breit": 988, "vollflaeche": 1920}
+BILDKANTE_HALB = SEITE_BREIT - FLAECHENBREITE["bild--halb"]
+BILDKANTE_BREIT = SEITE_BREIT - FLAECHENBREITE["bild--breit"]
 
 # Ab dieser Helligkeit liest Schwarz besser als Weiss: bei 0,18 sind beide
 # WCAG-Kontraste gleich (rund 4,6:1). Die Schwelle von hell() taugt dafuer
 # nicht - zwischen 0,18 und 0,36 setzte sie Weiss auf Himmel und Glasfassaden,
 # und genau dort liegen die HQ-Fotos (0,20 bis 0,30).
 TINTENWECHSEL = 0.18
+# Auf den Screenflaechen liegen Wortmarke und Seitenzahl auf satter
+# Markenfarbe (screens.py haelt ihre Felder frei). Dort gilt die Regel der
+# Referenzen, nicht die WCAG-Mitte: Weiss auf Petrol, Blau, Magenta und selbst
+# auf Orange (#f07d00, Luminanz 0,36) - Schwarz erst auf hellen Toenen.
+MARKE_TINTENWECHSEL = 0.40
 
 # Wo Wortmarke und Seitenzahl auf der Folie liegen, in Folienpunkten und mit
-# etwas Luft: Wortmarke 148x15pt auf 1712/60, Seitenzahl rechtsbuendig auf
-# 60pt und 46pt ueber der Kante (so steht beides im CSS). Gemessen wird genau
-# dieses Feld - eine ganze Bildecke mittelt Himmel und Fassade zusammen und
-# entscheidet dann fuer eine Stelle, an der nichts steht.
-MOEBELFELD = {True: (1700, 48, 1872, 88), False: (1800, 1000, 1872, 1046)}
+# etwas Luft: Wortmarke 148x15pt auf 1712/60, Seitenzahl im 66x43pt-Feld der
+# Figma-Komponente slideNumber auf 1832/1003 (so steht beides im CSS).
+# Gemessen wird genau dieses Feld - eine ganze Bildecke mittelt Himmel und
+# Fassade zusammen und entscheidet dann fuer eine Stelle, an der nichts steht.
+MOEBELFELD = {True: (1700, 48, 1872, 88), False: (1832, 1003, 1898, 1046)}
 
-# Der Verlauf aus .bildschatten: 298pt hoch, unten 55 % Schwarz. Er liegt auf
-# den Arbeitsweise-Seiten ueber dem Motiv und macht die Seitenzahl-Ecke dunkel,
-# egal wie hell das Foto ist. Wer ihn nicht mitrechnet, misst das falsche Bild.
-SCHATTEN_HOCH, SCHATTEN_TIEF = 298, 0.55
+# Der Verlauf aus .bildschatten, Werte aus tokens.json (Figma: 298pt hoch,
+# unten 20 % Schwarz). Er liegt auf den Arbeitsweise-Seiten ueber dem Motiv
+# und macht die Seitenzahl-Ecke dunkler, egal wie hell das Foto ist. Wer ihn
+# nicht mitrechnet, misst das falsche Bild.
+_verlauf = ds.laden()["verlaeufe"]["bildschatten"]
+SCHATTEN_HOCH, SCHATTEN_TIEF = float(_verlauf["hoehe"]), float(_verlauf["bis"])
 
 # Ab welchem Anteil widersprechender Pixel das Moebelfeld als gescheckt gilt,
 # und ab welcher Helligkeit ein Pixel widerspricht. Das Feld ist breiter als die
@@ -263,7 +277,8 @@ FELD_UNRUHE, HELL_GRENZE, DUNKEL_GRENZE = 0.40, 150, 100
 
 
 def ecke_dunkel(uri: str | None, oben: bool, klasse: str = "bild--breit",
-                schatten: bool = False) -> bool | None:
+                schatten: bool = False,
+                schwelle: float = TINTENWECHSEL) -> bool | None:
     """Braucht die Wortmarke (oben) bzw. die Seitenzahl (unten) weisse Schrift?
     In den Vorlagen wechselt beides von Projektseite zu Projektseite mit dem
     Motiv. None heisst: nicht messbar - dann entscheidet der Aufrufer.
@@ -306,7 +321,7 @@ def ecke_dunkel(uri: str | None, oben: bool, klasse: str = "bild--breit",
             tiefe = SCHATTEN_TIEF * eng(
                 ((y0 + y1) / 2 - (SEITE_HOCH - SCHATTEN_HOCH)) / SCHATTEN_HOCH)
             mittel = [round(v * (1 - tiefe)) for v in mittel]
-        dunkel = helligkeit("#%02x%02x%02x" % tuple(mittel)) <= TINTENWECHSEL
+        dunkel = helligkeit("#%02x%02x%02x" % tuple(mittel)) <= schwelle
         # Der Mittelwert entscheidet richtig, verschweigt aber gescheckte Felder:
         # Liegt ein Teil des Motivs auf der falschen Seite, verschwindet dort ein
         # Stueck Wortmarke, ohne dass die Seite als Ganzes falsch aussieht. Das
@@ -331,16 +346,20 @@ def logo_block(hell_grund: bool) -> str:
     return f'<div class="logo"><img src="{(ASSETS / datei).as_uri()}"></div>'
 
 
+def seitenzahl(nr: int, hell_grund: bool = False) -> str:
+    """Die Seitenzahl in der Schrift der Figma-Komponente slideNumber."""
+    return (f'<div class="seitenzahl t-seitenzahl'
+            f'{" seitenzahl--hell" if hell_grund else ""}">{nr}</div>')
+
+
 def kopfzeile(bild, basis: Path, nr: int, klasse: str = "bild--breit",
               schatten: bool = False) -> str:
     """Wortmarke und Seitenzahl, je nach Motiv hell oder dunkel gesetzt.
     `klasse` und `schatten` beschreiben die Flaeche, in der das Motiv steht -
     erst damit misst ecke_dunkel das, was auf der Folie zu sehen ist."""
     uri = datei_uri(bild.get("datei") if isinstance(bild, dict) else bild, basis) if bild else None
-    zahl = ("seitenzahl seitenzahl--hell"
-            if ecke_dunkel(uri, False, klasse, schatten) else "seitenzahl")
     return (logo_block(ecke_dunkel(uri, True, klasse, schatten))
-            + f'<div class="{zahl}">{nr}</div>')
+            + seitenzahl(nr, bool(ecke_dunkel(uri, False, klasse, schatten))))
 
 
 def pruefe_aufloesung(uri: str, klasse: str, was: str) -> None:
@@ -367,52 +386,48 @@ def bildflaeche(bild, klasse: str, basis: Path, t: dict,
     stil = f' style="background:{farbe}"' if farbe else ""
     schicht = ('<div class="bildschatten" style="left:0;right:0"></div>'
                if schatten else "")
+    platzhalter = (f'<div class="bild {klasse} bild--platzhalter">'
+                   f'<div class="hinweis t-subheadline-2-regular"><b>{e(t["fehlt"])}</b>'
+                   f'{e(was)}</div></div>')
     if not bild:
         merke(f"Platzhalter gesetzt: {was}")
-        return (f'<div class="bild {klasse} bild--platzhalter">'
-                f'<div class="hinweis"><b>{e(t["fehlt"])}</b>{e(was)}</div></div>')
+        return platzhalter
     quelle = bild.get("datei") if isinstance(bild, dict) else bild
     passung = bild.get("passung", "cover") if isinstance(bild, dict) else "cover"
     uri = datei_uri(quelle, basis)
     if not uri:
-        return (f'<div class="bild {klasse} bild--platzhalter">'
-                f'<div class="hinweis"><b>{e(t["fehlt"])}</b>{e(was)}</div></div>')
+        return platzhalter
     pruefe_aufloesung(uri, klasse, was)
     return (f'<div class="bild {klasse}"{stil}>'
             f'<img src="{uri}" style="object-fit:{passung}">{schicht}</div>')
 
 
-def spalten_fuer(anzahl: int) -> int:
-    """Wie viele Logos nebeneinander. Wenige Logos duerfen gross stehen,
-    viele muessen enger - sonst wird die Wand entweder leer oder unlesbar.
-    Bis zu fuenf stehen in einer Reihe: p-03 zeigt vier Logos nebeneinander,
-    und eine Restzeile mit einem einzelnen Logo sieht nach Versehen aus."""
-    if anzahl <= 5:
-        return max(1, anzahl)
-    for grenze, spalten in ((6, 3), (12, 4), (15, 5), (24, 6), (28, 7)):
-        if anzahl <= grenze:
-            return spalten
-    return 8
-
-
 # Obergrenze fuer die Logogroesse auf der Kundenwand, in Punkt. Der Wert ist die
 # Hoehe eines quadratischen Logos; breite Schriftzuege stehen entsprechend
-# niedriger und breiter. Zwei Saetze von Grenzen:
+# niedriger und breiter. Bis fuenf Logos stehen in einer Reihe: p-03 zeigt vier
+# Logos nebeneinander, und eine Restzeile mit einem einzelnen Logo sieht nach
+# Versehen aus. Die Reihe steht exakt im Referenzmass von p-03 (Paul Hecker):
+# 160/128, Zellfaktor 0,46, Reihenmitte ~717pt - die Rueckmeldung dazu kam
+# ausdruecklich mit Paul als Massstab.
 #
-# - Das dichte Raster (ab 6 Logos) laeuft mit 132/104 und Zellfaktor 0,40 -
-#   eine Stufe unter den aus p-03 gemessenen Werten, weil ein volles Raster
-#   mit den Referenzwerten als zu wuchtig zurueckkam (Freia-Portfolio, S. 3,
-#   12 Logos).
-# - Die eine Reihe (bis 5 Logos) steht wieder exakt im Referenzmass von p-03
-#   (Paul Hecker): 160/128, Zellfaktor 0,46, Reihenmitte ~717pt statt 620pt.
-#   Die Rueckmeldung dazu kam ausdruecklich mit Paul als Massstab - die
-#   Verkleinerung von damals galt dem vollen Raster, nicht der Reihe.
-LOGO_MASS_MAX = 132
-LOGO_HOEHE_MAX = 104
+# Seit dem Abgleich mit der Figma-Seite »Portfolio« (September 2026) folgt das
+# dichte Raster deren Folie 3: Zeilen zu 100pt mit 60pt Luft ab y 471, 1579pt
+# breit ab x 196, je Zeile bis zu sieben Logos von Kante zu Kante verteilt.
+# Die Logogroessen dort entsprechen genau Mass 100 / Hoehe 80 / Breite 350
+# (Union Investment 142 x 64, Porsche 348 x 23, SCA 61 x 80).
+LOGO_MASS_MAX = 100
+LOGO_HOEHE_MAX = 80
+LOGO_BREITE_MAX = 350
+WAND_LINKS, WAND_OBEN, WAND_BREIT, WAND_HOCH = 196, 471, 1579, 420
+ZEILE_HOCH, ZEILE_LUFT, JE_ZEILE_MAX = 100, 60, 7
+LOGO_LUFT_MIN = 40
 LOGO_MASS_REIHE = 160
 LOGO_HOEHE_REIHE = 128
 # align-content: center setzt die Reihenmitte auf top + Hoehe/2. In p-03 liegt
 # sie bei ~717pt; bei 640pt Wandhoehe ergibt das eine Oberkante von 397pt.
+# Die eine Reihe (bis 5 Logos) steht bewusst weiter im Referenzmass von p-03 -
+# die Figma-Seite zeigt diesen Fall nicht, und die Rueckmeldung „wie bei Paul"
+# gilt fuer ihn.
 REIHE_OBEN = 397
 
 
@@ -430,72 +445,189 @@ def seite_cover(d, t, basis):
     p = d["person"]
     return f'''<section class="seite seite--cover">
   <img class="cover-logo" src="{(ASSETS / 'marke/nm-logo-weiss.svg').as_uri()}">
-  <div class="titel">{e(p.get("cover_titel"))}</div>
-  <div class="name">{e(p["name"])}</div>
-  <div class="rolle">{e(p.get("rolle"))}</div>
-  <div class="jahr">{e(p.get("jahr"))}</div>
+  <div class="kopf">
+    <div class="titel t-h1">{e(p.get("cover_titel"))}</div>
+    <div class="name t-h2">{e(p["name"])}</div>
+    <div class="rolle t-h4-regular">{e(p.get("rolle"))}</div>
+  </div>
+  <div class="jahr t-cover-jahr">{e(p.get("jahr"))}</div>
 </section>'''
 
 
-def seite_profil(d, t, basis, nr):
-    p = d["person"]
-    foto = datei_uri(p.get("foto"), basis)
+def graues_foto(pfad: Path | None, cache: Path) -> str | None:
+    """Das Profilfoto steht immer in Graustufen. Das CSS kann es nicht färben -
+    WeasyPrint kennt kein filter: grayscale(), ein farbiges Foto aus der JSON
+    kam deshalb farbig ins PDF. Entfärbt wird hier, einmal, in den
+    Zwischenspeicher neben der portfolio.json."""
+    if not pfad:
+        return None
+    try:
+        from PIL import Image
+        marke = hashlib.sha1(f"{pfad}:{pfad.stat().st_mtime_ns}".encode()).hexdigest()[:12]
+        ziel = cache / f"foto-grau-{marke}.jpg"
+        if not ziel.exists():
+            with Image.open(pfad) as im:
+                im.convert("L").convert("RGB").save(ziel, quality=92)
+        return ziel.resolve().as_uri()
+    except Exception as fehler:
+        merke(f"Profilfoto nicht entfärbt ({fehler}) – es steht wie geliefert im PDF.")
+        return pfad.as_uri()
+
+
+# Die linke Spalte der Profilseite ist in Figma ein Auto-Layout: Name (H2),
+# 8pt, Rolle (H4 Regular), 32pt, Top-Karte, 32pt, Kenntnisse-Karte. Jede Karte:
+# Rand, Titel, Abstand, Inhalt, Rand - die Masse aus tokens.json, wie im CSS.
+# Die Vorlage endet bei y 1041 - mit acht einzeiligen Kenntnissen und
+# einzeiligen Top-Kenntnissen. Die Kontur der Karten zieht diese Kante
+# sichtbar; was darunter laeuft, stoesst an den Folienrand, ohne dass Text
+# ueberlaeuft - deshalb hier gemessen.
+PROFIL_SPALTE_OBEN, PROFIL_SPALTE_UNTEN, PROFIL_ROLLE_ABSTAND = 120, 1041, 8
+PROFIL_TEXTBREITE = 832
+
+
+def profil_linke_spalte(p: dict) -> float:
+    tk = ds.laden()
+    masse, trenner = tk["masse"], tk["linien"]["trenner"]
+    rand, abstand, stapel = masse["karte-innen"], masse["karte-abstand"], masse["stapel-abstand"]
+    kartentext = PROFIL_TEXTBREITE - 2 * rand
+    luecke = 2 * masse["trenner-luft"] + trenner["staerke"]
+
+    def z(text, stil, breite):
+        # So, wie fett() den Text setzt: Umbrueche werden Leerzeichen.
+        text = str(text or "").replace("*", "").replace("\n", " ")
+        s = ds.stil(stil)
+        return zeilenzahl(text, breite, s["datei"], round(s["groesse"]),
+                          -s["laufweite"]) if text.strip() else 0
+    zeile = lambda stil: ds.stil(stil)["zeile"]
+    karte = lambda inhalt: rand + zeile("karten-titel") + abstand + inhalt + rand
+    unten = PROFIL_SPALTE_OBEN + z(p.get("name"), "h2", PROFIL_TEXTBREITE) * zeile("h2")
+    rolle = z(p.get("rolle"), "h4-regular", PROFIL_TEXTBREITE)
+    if rolle:   # eine leere Rolle ist ein leerer Block - sein Rand faellt weg
+        unten += PROFIL_ROLLE_ABSTAND + rolle * zeile("h4-regular")
+    unten += stapel
+    if p.get("top_kenntnisse"):
+        n = z(" • ".join(p["top_kenntnisse"]), "body-1-regular", kartentext)
+        unten += karte(n * zeile("body-1-regular")) + stapel
+        if n > 1:
+            merke(f"Top-Kenntnisse brechen auf der Profilseite in {n} Zeilen um – "
+                  "in der Vorlage stehen sie in einer (rund 70 Zeichen). Kürzere "
+                  "Begriffe wählen.")
+    liste = p.get("kenntnisse") or []
+    zeilen = sum(z(k, "body-1-regular", kartentext) for k in liste)
+    unten += karte(zeilen * zeile("body-1-regular") + luecke * max(0, len(liste) - 1))
+    if unten > PROFIL_SPALTE_UNTEN + 0.5:
+        merke(f"Profilseite: die Kenntnisse-Karte reicht bis y {unten:.0f}, in der "
+              f"Vorlage endet sie bei {PROFIL_SPALTE_UNTEN}. Höchstens acht "
+              "einzeilige Kenntnisse und die Top-Kenntnisse in einer Zeile – "
+              "Einträge kürzen oder die schwächsten streichen.")
+    return unten
+
+
+# Sprachen: Vorgabe von New Monday (September 2026) - Deutsch ist immer
+# Muttersprache, Englisch immer Business-Niveau, beide stehen immer auf der
+# Profilseite, auch wenn das Material nichts dazu sagt. Weitere Sprachen
+# kommen aus dem Material, mit ihrem eigenen Niveau.
+SPRACH_VORGABE = {
+    "de": [(("deutsch", "german"), "Deutsch", "Muttersprache"),
+           (("englisch", "english"), "Englisch", "Business Niveau")],
+    "en": [(("deutsch", "german"), "German", "Native speaker"),
+           (("englisch", "english"), "English", "Business level")],
+}
+
+
+def sprachen_mit_vorgabe(liste: list | None, sprache: str) -> list[dict]:
+    vorgabe = SPRACH_VORGABE.get(sprache, SPRACH_VORGABE["de"])
+    rest = [dict(s) for s in (liste or []) if isinstance(s, dict) and s.get("sprache")]
+    kopf = []
+    for namen, anzeige, niveau in vorgabe:
+        teile = lambda s: {t.strip().lower() for t in str(s["sprache"]).split(",")}
+        einzeln = [s for s in rest if teile(s) <= set(namen)]
+        # Eine zusammengefasste Zeile ("Deutsch, Italienisch" / "Muttersprache")
+        # traegt die Sprache schon - sie bleibt, wie sie ist, an ihrer Stelle.
+        gruppe = [s for s in rest if len(teile(s)) > 1 and teile(s) & set(namen)]
+        alt = str((einzeln[0].get("niveau") if einzeln else "") or "").strip()
+        if alt and alt.lower() != niveau.lower():
+            merke(f"Sprachen: {anzeige} steht als „{niveau}“ (Vorgabe) – im Material "
+                  f"stand „{alt}“.")
+        kopf.append(gruppe[0] if gruppe else {"sprache": anzeige, "niveau": niveau})
+        rest = [s for s in rest if s not in einzeln and s not in gruppe[:1]]
+    return kopf + rest
+
+
+def seite_profil(d, t, basis, nr, cache: Path):
+    p = dict(d["person"])
+    p["sprachen"] = sprachen_mit_vorgabe(p.get("sprachen"), d.get("sprache", "de"))
+    foto = graues_foto(datei_suchen(p.get("foto"), basis), cache)
     foto_html = f'<img src="{foto}">' if foto else ""
     if not foto:
         merke("Profilfoto fehlt - die Fotofläche bleibt leer.")
 
-    koennen = "".join(f"<li>{fett(k)}</li>" for k in p.get("kenntnisse", []))
+    koennen = "".join(f'<li class="t-body-1-regular">{fett(k)}</li>'
+                      for k in p.get("kenntnisse", []))
     sprachen = "".join(
-        f'<div class="paar"><b>{e(s["sprache"])}</b><span>{e(s.get("niveau"))}</span></div>'
+        f'<div class="paar"><b class="t-body-1-bold">{e(s["sprache"])}</b>'
+        f'<span class="t-body-1-regular">{e(s.get("niveau"))}</span></div>'
         for s in p.get("sprachen", []))
     # Connect wie in der Referenz (Paul Hecker, S. 2): der Titel selbst ist
     # der petrolfarbene Pfeil-Link - kein schwarzer Titel daruber, kein
-    # "Anzeigen", keine Trennlinie. Diese Karte bleibt immer in diesem Muster.
+    # "Anzeigen", keine Trennlinie. Diese Karte bleibt immer in diesem Muster,
+    # auch gegen Figma V2 (Entscheidung vom September 2026).
     links = "".join(
-        (f'<div class="paar paar--link"><a href="{e(l["url"])}">{e(l["titel"])}'
-         " →</a></div>") if l.get("url") else
-        f'<div class="paar paar--link"><span>{e(l["titel"])}</span></div>'
+        (f'<div class="paar paar--link"><a class="t-body-1-regular" href="{e(l["url"])}">'
+         f'{e(l["titel"])} →</a></div>') if l.get("url") else
+        f'<div class="paar paar--link"><span class="t-body-1-regular">{e(l["titel"])}</span></div>'
         for l in p.get("links", []))
 
-    karten = []
-    y = 223
+    # Die rechte Spalte ist ein Stapel wie das Auto-Layout in Figma: Karten mit
+    # 24pt Innenabstand, 32pt dazwischen, ab y 229. Die Hoehen folgen dem
+    # Inhalt; geschaetzt wird nur, ob der Stapel aus der Folie laeuft.
+    karten, hoehe = [], 0.0
+    titel = lambda s: f'<h3 class="t-subheadline-1-bold">{e(s)}</h3>'
     if p.get("erfahrung_jahre"):
-        karten.append(f'''<div class="pkarte" style="top:{y}pt">
-      <h3>{e(t["erfahrung"])}</h3>
-      <div class="zahl">{e(p["erfahrung_jahre"])}</div>
-      <div class="fuss">{e(t["jahre"])}</div></div>''')
-        y += 293
+        karten.append(f'''<div class="pkarte">{titel(t["erfahrung"])}
+      <div class="zahl t-h1">{e(p["erfahrung_jahre"])}</div>
+      <div class="fuss t-body-1-regular">{e(t["jahre"])}</div></div>''')
+        hoehe += 246
     if sprachen:
-        karten.append(f'<div class="pkarte" style="top:{y}pt">'
-                      f'<h3>{e(t["sprachen"])}</h3>{sprachen}</div>')
-        # Der Platz bis zur nächsten Karte ist für zwei Einträge vermessen;
-        # jeder weitere braucht rund 80 pt (zwei 20-pt-Zeilen + Abstand).
+        karten.append(f'<div class="pkarte">{titel(t["sprachen"])}{sprachen}</div>')
         # Sprachen werden nie gestrichen - bei Platznot gleiche Niveaus zu
         # einer Zeile zusammenfassen ("Deutsch, Italienisch" / "Muttersprache").
-        y += 276 + max(0, len(p.get("sprachen", [])) - 2) * 80
+        hoehe += 104 + len(p.get("sprachen", [])) * 93 - 33
     if links:
-        karten.append(f'<div class="pkarte" style="top:{y}pt">'
-                      f'<h3>{e(t["connect"])}</h3>{links}</div>')
-        connect_ende = y + 56 + len(p.get("links", [])) * 80
-        if connect_ende > 1040:
-            merke("Profilseite: die rechte Kartenspalte läuft unten aus der "
-                  "Folie. Keine Sprache streichen - gleiche Niveaus zu einer "
-                  "Zeile zusammenfassen (\"Deutsch, Italienisch\" / "
-                  "\"Muttersprache\").")
+        karten.append(f'<div class="pkarte">{titel(t["connect"])}{links}</div>')
+        hoehe += 104 + len(p.get("links", [])) * 46 - 16
+    hoehe += 32 * max(0, len(karten) - 1)
+    # Unter dem Stapel steht ab y 1003 das Feld der Seitenzahl (x 1832-1898),
+    # und die Karten reichen bis x 1860: Schluss ist deshalb 12pt darueber.
+    if 229 + hoehe > 990:
+        n_spr, n_link = len(p.get("sprachen", [])), len(p.get("links", []))
+        merke(f"Profilseite: die rechte Kartenspalte reicht bis y {229 + hoehe:.0f} "
+              f"und damit an die Seitenzahl (Schluss bei y 990) – "
+              f"{n_spr} Sprache(n), {n_link} Link(s). Keine Sprache streichen: "
+              "gleiche Niveaus zu einer Zeile zusammenfassen (\"Deutsch, "
+              "Italienisch\" / \"Muttersprache\"). Reicht das nicht, beim "
+              "Nutzer nachfragen, welcher Link entfallen darf (meist Xing).")
 
+    # Die Karten links tragen eigene Titel (Inter Bold 24/150 %, in Figma ohne
+    # Stil) und den Text in Body 1 - nicht die Titel der Panelkarten rechts.
+    ktitel = lambda s: f'<h3 class="t-karten-titel">{e(s)}</h3>'
     top = ""
     if p.get("top_kenntnisse"):
-        top = (f'<div class="karte karte--top"><h3>{e(t["top"])}</h3>'
-               f'<p>{"  •  ".join(fett(k) for k in p["top_kenntnisse"])}</p></div>')
+        top = (f'<div class="karte karte--top">{ktitel(t["top"])}'
+               f'<p class="t-body-1-regular">'
+               f'{" • ".join(fett(k) for k in p["top_kenntnisse"])}</p></div>')
+    profil_linke_spalte(p)
     return f'''<section class="seite seite--profil">
   <div class="foto">{foto_html}</div>
-  <div class="p-name">{e(p["name"])}</div>
-  <div class="p-rolle">{e(p.get("rolle"))}</div>
-  {top}
-  <div class="karte karte--koennen"><h3>{e(t["koennen"])}</h3>
-    <ul class="zeilen">{koennen}</ul></div>
-  <div class="panel"></div>{"".join(karten)}
-  {logo_block(True)}<div class="seitenzahl seitenzahl--hell">{nr}</div>
+  <div class="inhalt">
+    <div class="p-name t-h2">{e(p["name"])}</div>
+    <div class="p-rolle t-h4-regular">{e(p.get("rolle"))}</div>
+    <div class="skillset">{top}
+      <div class="karte karte--koennen">{ktitel(t["koennen"])}
+        <ul class="zeilen">{koennen}</ul></div></div>
+  </div>
+  <div class="panel"></div><div class="pstapel" style="top:229pt">{"".join(karten)}</div>
+  {logo_block(True)}{seitenzahl(nr, True)}
 </section>'''
 
 
@@ -539,46 +671,77 @@ def seite_kunden(d, t, basis, nr):
                 f'<div class="kachel" style="width:{b:.1f}pt;height:640pt;'
                 f'margin-left:{links:.1f}pt;padding-top:{(640 - h) / 2:.1f}pt">'
                 f'<img src="{uri}" style="width:{b:.0f}pt;height:{h:.0f}pt"></div>')
-    wand_stil = f' style="top:{REIHE_OBEN}pt"' if reihe else ""
-    sp = spalten_fuer(len(dateien)) or 1
-    zeilen = max(1, math.ceil(len(dateien) / sp))
-    # Abrunden: 4 x 401.8pt waeren 1607.2 und wuerden im 1607pt breiten
-    # Kasten auf drei Kacheln je Zeile umbrechen.
-    zelle_b, zelle_h = math.floor(1605 / sp * 10) / 10, 640 / zeilen
-    # Gleiche Flaeche statt gleicher Hoehe: ueber die Hoehe skaliert wirkt eine
-    # kompakte Bildmarke doppelt so schwer wie ein breiter Schriftzug.
-    frei_b, frei_h = zelle_b - 44, zelle_h - 48
-    # In der Referenz (p-03) steht ein Logo auf gut 0.46 der Zellbreite; das
-    # Raster liegt eine Stufe darunter, seit eine volle Wand als zu wuchtig
-    # zurueckkam. Nach oben deckelt LOGO_MASS_MAX, sonst wachsen wenige Logos
-    # ins Erschlagende.
-    flaeche = min(frei_b * 0.40, frei_h * 1.15, LOGO_MASS_MAX)
-    for uri in [] if reihe else dateien:
-        v = seitenverhaeltnis(uri)
-        b = min(frei_b, flaeche * math.sqrt(v))
-        h = b / v
-        # Der Flaechendeckel allein laesst quadratische Bildmarken auf volle
-        # LOGO_MASS_MAX Hoehe wachsen - in p-03 misst das hoechste Logo 128pt.
-        # Deshalb zusaetzlich die Hoehe deckeln und die Breite nachziehen.
-        if h > min(frei_h, LOGO_HOEHE_MAX):
-            h = min(frei_h, LOGO_HOEHE_MAX)
-            b = h * v
-        # Zentriert wird mit gerechnetem Padding, nicht mit Flexbox:
-        # WeasyPrint setzt justify-content nicht um, und die Logos hingen
-        # linksbuendig in ihren Zellen - die "verschobenen" Logos der
-        # Rueckmeldung. Padding ist deterministisch und rendert ueberall gleich.
-        kacheln.append(
-            f'<div class="kachel" style="width:{zelle_b:.1f}pt;height:{zelle_h:.1f}pt;'
-            f'padding:{(zelle_h - h) / 2:.1f}pt 0 0 {(zelle_b - b) / 2:.1f}pt">'
-            f'<img src="{uri}" style="width:{b:.0f}pt;height:{h:.0f}pt"></div>')
+    wand_stil = (f' style="left:193pt;top:{REIHE_OBEN}pt;width:1607pt;height:640pt"'
+                 if reihe else "")
+    if not reihe and dateien:
+        kacheln = logoraster(dateien)
     if not kacheln:
         merke("Logowand „Meine Kunden“ ist leer - keine Kundenlogos zugeordnet.")
     return f'''<section class="seite seite--kunden">
   <div class="streifen streifen--weiter"></div>
-  <div class="h1">{e(t["kunden"])}</div>
-  <div class="kundenwand"{wand_stil}>{"".join(kacheln)}</div>
-  {logo_block(False)}<div class="seitenzahl">{nr}</div>
+  <div class="h1 t-h1">{e(t["kunden"])}</div>
+  <div class="kundenwand{" kundenwand--reihe" if reihe else ""}"{wand_stil}>{"".join(kacheln)}</div>
+  {logo_block(False)}{seitenzahl(nr)}
 </section>'''
+
+
+def logoraster(dateien: list[str]) -> list[str]:
+    """Das dichte Raster der Kundenwand, wie auf Folie 3 der Figma-Seite
+    »Portfolio«: Zeilen zu 100pt mit 60pt Luft, je Zeile bis zu sieben Logos,
+    das erste an der linken, das letzte an der rechten Kante, die Luft
+    dazwischen gleich (SPACE_BETWEEN in Figma). Die vorderen Zeilen tragen bei
+    ungerader Menge eines mehr (19 Logos: 7 / 6 / 6 wie in Figma).
+
+    Gerechnet wird jede Position selbst - WeasyPrint setzt justify-content
+    nicht um, und die Logos hingen einmal linksbuendig in ihren Zellen: die
+    „verschobenen" Logos einer Rueckmeldung."""
+    n = len(dateien)
+    zeilen = max(1, min(4, math.ceil(n / JE_ZEILE_MAX)))
+    if zeilen == 4:
+        # Vier Zeilen passen nur enger in das Band: 80pt Zeile, 33pt Luft.
+        zeile_h, luft = 80.0, (WAND_HOCH - 4 * 80) / 3
+    else:
+        zeile_h, luft = float(ZEILE_HOCH), float(ZEILE_LUFT)
+    block = zeilen * zeile_h + (zeilen - 1) * luft
+    oben = (WAND_HOCH - block) / 2           # wenige Zeilen: mittig im Band
+    basis_n, rest = divmod(n, zeilen)
+    mengen = [basis_n + (1 if i < rest else 0) for i in range(zeilen)]
+    hoehe_max = min(LOGO_HOEHE_MAX, zeile_h - 20)
+    raus, start = [], 0
+    for z, k in enumerate(mengen):
+        masse = []
+        for uri in dateien[start:start + k]:
+            # Gleiche Flaeche statt gleicher Hoehe: ueber die Hoehe skaliert
+            # wirkt eine kompakte Bildmarke doppelt so schwer wie ein breiter
+            # Schriftzug. Hoehe und Breite zusaetzlich gedeckelt.
+            v = seitenverhaeltnis(uri)
+            b = LOGO_MASS_MAX * math.sqrt(v)
+            h = b / v
+            if h > hoehe_max:
+                h, b = hoehe_max, hoehe_max * v
+            if b > LOGO_BREITE_MAX:
+                b, h = LOGO_BREITE_MAX, LOGO_BREITE_MAX / v
+            masse.append([uri, b, h])
+        start += k
+        # Passt die Zeile nicht mit Mindestluft, schrumpfen alle Logos der
+        # Zeile gleichmaessig - lieber kleiner als uebereinander.
+        summe = sum(b for _, b, _ in masse)
+        platz = WAND_BREIT - (k - 1) * LOGO_LUFT_MIN
+        if summe > platz:
+            f = platz / summe
+            for m in masse:
+                m[1], m[2] = m[1] * f, m[2] * f
+            summe = platz
+        lucke = (WAND_BREIT - summe) / (k - 1) if k > 1 else 0
+        x = 0.0 if k > 1 else (WAND_BREIT - summe) / 2
+        bilder = []
+        for uri, b, h in masse:
+            bilder.append(f'<img src="{uri}" style="left:{x:.1f}pt;'
+                          f'top:{(zeile_h - h) / 2:.1f}pt;width:{b:.0f}pt;height:{h:.0f}pt">')
+            x += b + lucke
+        raus.append(f'<div class="logozeile" style="top:{oben + z * (zeile_h + luft):.1f}pt;'
+                    f'height:{zeile_h:.0f}pt">{"".join(bilder)}</div>')
+    return raus
 
 
 def seite_statement(d, t, basis, nr):
@@ -592,56 +755,64 @@ def seite_statement(d, t, basis, nr):
     rolle = e(p.get("statement_rolle") or p.get("rolle", "")).replace("\n", "<br>")
     return f'''<section class="seite seite--statement">
   <div class="streifen streifen--weiter"></div>
-  <div class="halb-rechts"><div class="aussage">{fett(text)}</div></div>
-  <div class="rolle">{rolle}</div>
-  {logo_block(False)}<div class="seitenzahl">{nr}</div>
+  <div class="halb-rechts"></div>
+  <div class="aussage t-h2-regular">{fett(text)}</div>
+  <div class="rolle h1 t-h1">{rolle}</div>
+  {logo_block(False)}{seitenzahl(nr)}
 </section>'''
 
 
 def seite_divider(titel):
     zeilen = e(titel).replace("\n", "<br>")
     return f'''<section class="seite seite--divider">
-  <div class="h1">{zeilen}</div>{logo_block(True)}
+  <div class="h1 t-h1">{zeilen}</div>{logo_block(True)}
 </section>'''
+
+
+# Die Prozessseite traegt drei oder vier Schritte (Entscheidung September 2026,
+# Figma zeigt vier): Spalten zu 350pt im 414-pt-Takt ab x 193.
+PROZESS_MIN, PROZESS_MAX, PROZESS_TAKT = 3, 4, 414
 
 
 def seite_prozess(d, t, basis, nr):
-    """Die Prozess-Uebersicht - immer drei Spalten, nie vier. Eine fruehere
-    Fassung haengte „KI-Einsatz" als vierte Spalte an, sobald die KI-Folie
-    existierte. Genau das kam zurueck: KI ist Teil jeder Phase, kein Schritt
-    nach der Umsetzung - als letzte Spalte sah sie aus wie einer. Die KI-Folie
-    (Seite 10) bleibt, aber als eigene Arbeitsweise-Seite, nicht als
-    Prozessschritt."""
+    """Die Prozess-Uebersicht mit drei oder vier Spalten im Raster der
+    Figma-Seite. „KI-Einsatz" ist nie eine davon: Eine fruehere Fassung haengte
+    ihn als Spalte an, sobald die KI-Folie existierte, und genau das kam
+    zurueck - KI ist Teil jeder Phase, kein Schritt nach der Umsetzung. Die
+    KI-Folie bleibt eine eigene Arbeitsweise-Seite, kein Prozessschritt."""
     eintraege = [(s["titel"], s.get("kurztext", ""))
-                 for s in d.get("prozess", [])[:3]]
+                 for s in d.get("prozess", [])[:PROZESS_MAX]]
     spalten = "".join(
-        f'<div class="prozess-spalte" style="left:{193 + i * 489}pt;">'
+        f'<div class="prozess-spalte" style="left:{193 + i * PROZESS_TAKT}pt;">'
         f'<div class="balken"></div>'
-        f'<h2>{e(titel).replace(chr(10), "<br>")}</h2>'
-        f'<p>{fett(kurztext)}</p></div>'
+        f'<h2 class="t-h4">{e(titel).replace(chr(10), "<br>")}</h2>'
+        f'<p class="t-body-1-regular">{fett(kurztext)}</p></div>'
         for i, (titel, kurztext) in enumerate(eintraege))
     return f'''<section class="seite seite--prozess">
   <div class="streifen streifen--start"></div>
-  <div class="eyebrow">{e(t["prozess"])}</div>
+  <div class="eyebrow t-eyebrow">{e(t["prozess"])}</div>
   {spalten}
-  {logo_block(False)}<div class="seitenzahl">{nr}</div>
+  {logo_block(False)}{seitenzahl(nr)}
 </section>'''
 
 
-# Die Ueberschrift der Arbeitsweise-Seiten steht auf 155pt und laeuft mit 96pt
-# bei 1.2 Zeilenabstand, also 115.2pt je Zeile. Ein fester Textbeginn kollidiert
-# deshalb ab zwei Zeilen mit ihr. Der Abstand ist aus p-07 (dreizeilig) und
-# p-10 (einzeilig) abgeleitet, die Breite steht so im CSS.
-KOPF_OBEN, KOPF_GRAD, KOPF_ABSTAND, KOPF_BREITE = 155, 96, 105, 800
-# Ab der vierten Zeile beginnt der Fliesstext unter 720pt und laeuft in die
-# Schrittleiste. Drei Zeilen sind die Grenze, die p-07 noch sauber zeigt.
+# Die Ueberschrift der Arbeitsweise-Seiten steht auf 181pt und laeuft im Stil
+# h1 (Rethink Sans SemiBold 96pt, Zeilenhoehe 108 %). Der Fliesstext beginnt
+# 80pt unter ihrer letzten Zeile - so steht es in Figma (Folien 7-9), und ein
+# fester Textbeginn kollidierte ab zwei Zeilen mit der Ueberschrift.
+KOPF_STIL = "h1"
+KOPF_OBEN, KOPF_ABSTAND, KOPF_BREITE = 181, 80, 807
+KOPF_GRAD = int(ds.stil(KOPF_STIL)["groesse"])
+KOPF_ZEILE = ds.stil(KOPF_STIL)["zeilenfaktor"]
+# Ab der vierten Zeile rueckt der Fliesstext zu tief und laeuft in die
+# Schrittleiste. Drei Zeilen sind die Grenze.
 KOPF_MAX_ZEILEN = 3
 # Unterkante der Textzone auf den Arbeitsweise-Seiten: darunter liegt die
-# Schrittleiste (Oberkante 942pt).
+# Schrittleiste (Balken bei 955pt).
 ARBEIT_UNTEN = 940
-# Die Kundenueberschrift der Projekt-Kopfseite hat seit dem Wegfall des
-# Aufmacherbildes die ganze Blattbreite; der Wert steht so im CSS.
-KOPF_PROJEKT = 1534
+# Die Projektueberschrift der Kopfseite: 1300pt breit ab y 243 wie in Figma
+# (32pt unter dem 91pt hohen Logofeld), die Spalten 80pt unter ihr.
+KOPF_PROJEKT, PROJEKT_KOPF_OBEN, PROJEKT_SPALTEN_ABSTAND = 1300, 243, 80
 _schriften: dict = {}
 
 
@@ -693,9 +864,11 @@ def zeilenzahl(text: str, breite: float, datei: str, grad: int,
 
 
 def kopfzeilen(titel: str, breite: float = KOPF_BREITE, grad: int = KOPF_GRAD) -> int:
-    """Zeilen der 96-pt-Ueberschrift. -2pt Laufweite je Zeichen steht so im CSS
-    und gilt als fester Punktwert auch fuer verkleinerte Grade."""
-    return zeilenzahl(titel, breite, "Inter-ExtraBold.ttf", grad, 2.0)
+    """Zeilen der Ueberschrift - gemessen mit derselben Schriftdatei und
+    Laufweite, die tokens.json fuer den Stil h1 fuehrt. Die Laufweite ist dort
+    ein Anteil des Grades (-0,3 %) und schrumpft mit verkleinerten Graden mit."""
+    s = ds.stil(KOPF_STIL)
+    return zeilenzahl(titel, breite, s["datei"], grad, -s["laufweite_anteil"] * grad)
 
 
 def kopfmass(titel: str) -> tuple[int, int]:
@@ -719,30 +892,35 @@ def kopfmass(titel: str) -> tuple[int, int]:
 
 
 def textkante(zeilen: int, grad: int = KOPF_GRAD) -> float:
-    return KOPF_OBEN + zeilen * grad * 1.2 + KOPF_ABSTAND
+    return KOPF_OBEN + zeilen * grad * KOPF_ZEILE + KOPF_ABSTAND
+
+
+# Die Schrittleiste der Arbeitsweise-Seiten: drei Balken zu 323pt bei
+# x 193 / 678 / 1162, wie in Figma (Folien 7-9).
+SCHRITT_LINKS, SCHRITT_BREIT = (193, 678, 1162), 323
 
 
 def schrittleiste(schritte, t, aktiv: int) -> str:
     """Die Leiste zeigt, an welcher Stelle des Prozesses die Seite steht. Sie
-    fuellt sich auf: p-07 hat einen Balken, p-09 alle drei. Nur den aktuellen
-    zu faerben erzaehlt keinen Fortschritt. Drei Balken, nicht vier: eine
-    fruehere Fassung zaehlte „KI-Einsatz" als vierten Schritt mit, und genau
-    das kam zurueck - KI laeuft in allen Phasen mit und ist kein Schritt nach
-    der Umsetzung. Die Balken stehen im Takt der Prozessseite (x 193 / 682 /
-    1171, 323 pt); der dritte liegt auf dem Bild und wird dort weiss - sonst
-    verschwindet er im Motiv."""
+    fuellt sich auf: die erste Seite hat einen Petrol-Balken, die dritte alle
+    drei - kommende Schritte stehen weiss, auf der weissen Seite also
+    unsichtbar, auf dem Bild sichtbar (so in Figma). Drei Balken, nicht vier,
+    auch wenn die Prozessseite vier Schritte traegt: die Arbeitsweise-Seiten
+    gibt es fuer die ersten drei. KI-Einsatz zaehlt nie als Schritt - eine
+    fruehere Fassung zaehlte ihn als vierten Balken, und genau das kam
+    zurueck. Der dritte Balken liegt auf dem Bild."""
     # Im Titel darf ein weicher Trenner stehen ("Konzept-\nentwicklung"),
     # damit die 96pt-Headline umbricht. In der Leiste steht das Wort ganz.
     namen = [e(s["titel"]).replace("-\n", "").replace(chr(10), " ")
              for s in schritte[:3]]
     balken = []
     for j, name in enumerate(namen):
-        links = 193 + j * 489
-        aufbild = links + 323 > 1011          # Bildkante der Arbeitsweise-Seiten
+        links = SCHRITT_LINKS[j]
+        aufbild = links + SCHRITT_BREIT > BILDKANTE_HALB
         klassen = ("schritt" + (" ist" if j <= aktiv else "")
                    + (" aufbild" if aufbild else ""))
         balken.append(f'<div class="{klassen}" style="left:{links}pt">'
-                      f'<div class="balken"></div><span>{name}</span></div>')
+                      f'<div class="balken"></div><span class="t-body-1-bold">{name}</span></div>')
     return f'<div class="schritte">{"".join(balken)}</div>'
 
 
@@ -751,12 +929,15 @@ def seite_arbeitsweise(d, t, basis, nr, i):
     s = schritte[i]
     bild = (ASSETS / f"bilder/arbeitsweise-{i + 1}.jpg").as_uri()
     grad, zeilen = kopfmass(s["titel"])
+    # Verkleinerte Grade laufen in derselben Schrift, nur der Grad wechselt -
+    # der Stil bleibt h1, die Zeilenhoehe wandert als Anteil mit.
+    gross = f' style="font-size:{grad}pt"' if grad != KOPF_GRAD else ""
     return f'''<section class="seite seite--arbeitsweise">
   <div class="streifen streifen--weiter"></div>
   <div class="bild bild--halb"><img src="{bild}">
     <div class="bildschatten" style="left:0;right:0"></div></div>
-  <div class="eyebrow">{e(t["arbeitsweise"])}</div>
-  <div class="h1" style="font-size:{grad}pt">{e(s["titel"]).replace(chr(10), "<br>")}</div>
+  <div class="eyebrow t-h6-regular">{e(t["arbeitsweise"])}</div>
+  <div class="h1 t-{KOPF_STIL}"{gross}>{e(s["titel"]).replace(chr(10), "<br>")}</div>
   {absaetze(s.get("langtext", ""), stil=f"top:{textkante(zeilen, grad):.1f}pt")}
   {schrittleiste(schritte, t, i)}
   {kopfzeile(ASSETS / f"bilder/arbeitsweise-{i + 1}.jpg", basis, nr, "bild--halb", True)}
@@ -826,8 +1007,8 @@ def seite_ki(d, t, basis, nr) -> tuple[str, float]:
   <div class="streifen streifen--weiter"></div>
   <div class="bild bild--halb"><img src="{bild}">
     <div class="bildschatten" style="left:0;right:0"></div></div>
-  <div class="eyebrow">{e(t["arbeitsweise"])}</div>
-  <div class="h1">{e(t["ki"])}</div>
+  <div class="eyebrow t-h6-regular">{e(t["arbeitsweise"])}</div>
+  <div class="h1 t-{KOPF_STIL}">{e(t["ki"])}</div>
   {absaetze(nuechtern(ki.get("text", "")), stil=f"top:{textkante(1):.1f}pt")}
   {werkzeuge}
   {kopfzeile(ASSETS / "bilder/arbeitsweise-4.jpg", basis, nr, "bild--halb", True)}
@@ -836,21 +1017,20 @@ def seite_ki(d, t, basis, nr) -> tuple[str, float]:
 
 def seite_agentur(d, t, basis, nr):
     b = AGENTUR["badge"]
+    karte = lambda titel, zahl: (f'<div class="pkarte"><h3 class="t-subheadline-2-bold">'
+                                 f'{e(titel)}</h3><div class="zahl t-h1">{zahl}</div></div>')
     return f'''<section class="seite seite--agentur">
   <div class="streifen streifen--weiter"></div>
-  <div class="h1">{e(t["agentur_h"]).replace(chr(10), "<br>")}</div>
-  <div class="subline">{e(t["agentur_sub"])}</div>
+  <div class="h1 t-h1">{e(t["agentur_h"]).replace(chr(10), "<br>")}</div>
+  <div class="subline t-subheadline-2-regular">{e(t["agentur_sub"])}</div>
   <div class="kunden"><img src="{(ASSETS / 'marke/nm-agentur-kunden.png').as_uri()}"></div>
   <div class="badge"><img src="{(ASSETS / 'marke/ux-awards-badge.png').as_uri()}"></div>
-  <div class="badge-text">{e(b[0])}<br>{e(b[1])}<br>{e(b[2])}</div>
+  <div class="badge-text t-badge-text">{e(b[0])}<br>{e(b[1])}<br>{e(b[2])}</div>
   <div class="panel"></div>
-  <div class="pkarte" style="top:227pt"><h3>{e(t["team"])}</h3>
-    <div class="zahl">{AGENTUR["teammitglieder"]}</div></div>
-  <div class="pkarte" style="top:482pt"><h3>{e(t["gegruendet"])}</h3>
-    <div class="zahl">{AGENTUR["gegruendet"]}</div></div>
-  <div class="pkarte" style="top:737pt"><h3>{e(t["zufriedenheit"])}</h3>
-    <div class="zahl">{AGENTUR["zufriedenheit"]}</div></div>
-  {logo_block(True)}<div class="seitenzahl seitenzahl--hell">{nr}</div>
+  <div class="pstapel" style="top:278pt">{karte(t["team"], AGENTUR["teammitglieder"])}
+    {karte(t["gegruendet"], AGENTUR["gegruendet"])}
+    {karte(t["zufriedenheit"], AGENTUR["zufriedenheit"])}</div>
+  {logo_block(True)}{seitenzahl(nr, True)}
 </section>'''
 
 
@@ -906,14 +1086,13 @@ def marken_moebel(pr, t, nr: int, bild: Path | None, farbe: str | None,
     Einen Verlauf traegt keine der beiden Screenseiten."""
     uri = bild.resolve().as_uri() if bild else None
     ersatz = bool(bild) and not hell(farbe or "#ffffff")
-    oben = ecke_dunkel(uri, True, klasse)
-    unten = ecke_dunkel(uri, False, klasse)
+    oben = ecke_dunkel(uri, True, klasse, schwelle=MARKE_TINTENWECHSEL)
+    unten = ecke_dunkel(uri, False, klasse, schwelle=MARKE_TINTENWECHSEL)
     oben = ersatz if oben is None else oben
     unten = ersatz if unten is None else unten
-    nda = (f'<div class="nda-hinweis nda-hinweis--{"hell" if unten else "dunkel"}">'
+    nda = (f'<div class="nda-hinweis nda-hinweis--{"hell" if unten else "dunkel"} t-hinweis">'
            f'{e(t["nda"])}</div>' if pr.get("nda") else "")
-    return (nda + logo_block(oben)
-            + f'<div class="seitenzahl{" seitenzahl--hell" if unten else ""}">{nr}</div>')
+    return nda + logo_block(oben) + seitenzahl(nr, bool(unten))
 
 
 def screens_meldungen() -> list[str]:
@@ -932,8 +1111,8 @@ def screens_meldungen() -> list[str]:
 
 
 def screenflaeche(bilder, farbe, variante: str, basis: Path, cache: Path,
-                  seed: int, was: str) -> Path | None:
-    """Die markenfarbene Flaeche mit den schraeg fliegenden Screens. Das Rechnen
+                  seed: int, was: str, nda: bool = False) -> Path | None:
+    """Die markenfarbene Flaeche mit dem gekippten Screen-Raster. Das Rechnen
     kostet Sekunden, das Ergebnis haengt aber nur an den Rohbildern, der Farbe
     und dem Seed - deshalb traegt die Datei den Fingerabdruck ihrer Eingabe im
     Namen und ein zweiter Lauf greift sie einfach wieder ab."""
@@ -949,7 +1128,7 @@ def screenflaeche(bilder, farbe, variante: str, basis: Path, cache: Path,
     # Anordnung weiter und spielt per Notiz auch deren alte Meldungen wieder ab.
     stand = str(getattr(screens, "LAYOUT_STAND", 1))
     marke = hashlib.sha1(
-        "|".join([stand, variante, str(farbe), str(seed)]
+        "|".join([stand, variante, str(farbe), str(seed), str(bool(nda))]
                  + [f"{p}:{p.stat().st_mtime_ns}" for p in pfade]
                  ).encode()).hexdigest()[:16]
     ziel = cache / f"{variante}-{marke}.png"
@@ -970,7 +1149,8 @@ def screenflaeche(bilder, farbe, variante: str, basis: Path, cache: Path,
                     merke(zeile)
         return fertig[0]
     try:
-        gebaut = Path(baue_screens(pfade, farbe, ziel, variante=variante, seed=seed))
+        gebaut = Path(baue_screens(pfade, farbe, ziel, variante=variante, seed=seed,
+                                   nda=bool(nda)))
     except Exception as fehler:
         screens_meldungen()      # Angefangenes nicht der naechsten Flaeche anhaengen
         merke(f"Screenfläche für {was} nicht gebaut ({fehler}) – Platzhalter gesetzt.")
@@ -1016,21 +1196,25 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
     # unterscheiden. Fehlt er, traegt der Kundenname die Seite wie bisher.
     titel = pr.get("projektname") or pr.get("kunde") or ""
     kzeilen = kopfzeilen(titel, KOPF_PROJEKT)
-    spalten_oben = 252 + kzeilen * KOPF_GRAD * 1.2 + (84 if kzeilen == 1 else 46)
+    # Die Spalten beginnen 80pt unter der letzten Zeile der Ueberschrift - in
+    # Figma ein Auto-Layout, ein zweizeiliger Projektname schiebt sie nach unten.
+    spalten_oben = (PROJEKT_KOPF_OBEN + kzeilen * KOPF_GRAD * KOPF_ZEILE
+                    + PROJEKT_SPALTEN_ABSTAND)
     # „Meine Rolle" steht im Fluss der Projekt-Spalte, direkt unter deren Text -
     # so sitzt der Block dort, wo der Text endet, wie in der Referenz
     # (p-13/18/23). Die alte Fassung liess ihn von der Blattkante nach oben
     # wachsen; bei kurzen Texten klebte er dann allein am unteren Rand.
-    rolle_html = (f'<div class="rolle-block"><div class="label">'
-                  f'{e(t["meine_rolle"])}</div><ul class="punkte">{rolle}</ul></div>'
+    label = lambda s: f'<div class="label t-subheadline-1-bold">{e(s)}</div>'
+    rolle_html = (f'<div class="rolle-block">{label(t["meine_rolle"])}'
+                  f'<ul class="punkte t-subheadline-2-regular">{rolle}</ul></div>'
                   if rolle else "")
     out.append((f'''<section class="seite seite--projekt">
   <div class="streifen streifen--start"></div>
   {kundenlogo(pr, basis)}
-  <div class="h1">{e(titel)}</div>
-  <div class="sp-projekt" style="top:{spalten_oben:.1f}pt"><div class="label">{e(t["projekt"])}</div>
+  <div class="h1 t-h1">{e(titel)}</div>
+  <div class="sp-projekt" style="top:{spalten_oben:.1f}pt">{label(t["projekt"])}
     {absaetze(pr.get("projekt", ""))}{rolle_html}</div>
-  <div class="sp-kunde" style="top:{spalten_oben:.1f}pt"><div class="label">{e(t["kunde"])}</div>
+  <div class="sp-kunde" style="top:{spalten_oben:.1f}pt">{label(t["kunde"])}
     {absaetze(pr.get("kunde_text", ""))}</div>
   {kopfzeile(None, basis, nr)}
 </section>''', Zone(PROJEKT_OBEN, 1010, 1920,
@@ -1052,34 +1236,36 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
   {bildflaeche(sm.get("bild"), "bild--breit", basis, t,
                was=f'{pr.get("kunde", "")} – {t["summary"]}')}
   {kundenlogo(pr, basis)}
-  <div class="h1">{e(t["summary"])}</div>
+  <div class="h1 t-h1">{e(t["summary"])}</div>
   {absaetze(sm.get("text", ""))}
   {kopfzeile(sm.get("bild"), basis, nr)}
-</section>''', Zone(PROJEKT_OBEN, 1010, 880, '„summary.text“ kürzen')))
+</section>''', Zone(PROJEKT_OBEN, 1010, BILDKANTE_BREIT - 12, '„summary.text“ kürzen')))
     nr += 1
 
     farbe = pr.get("markenfarbe")
     for k, lo in enumerate((pr.get("loesungen") or [])[:2]):
         was = f'{pr.get("kunde", "")} – {t["loesung"]}'
-        bild = screenflaeche(lo.get("screens"), farbe, "panel", basis, cache, k, was)
+        bild = screenflaeche(lo.get("screens"), farbe, "panel", basis, cache, k, was,
+                             nda=pr.get("nda"))
         punkte = "".join(f"<li>{fett(x)}</li>" for x in lo.get("punkte", []))
         out.append((f'''<section class="seite seite--loesung">
   <div class="streifen streifen--weiter"></div>
   {bildflaeche(bild, "bild--breit", basis, t, farbe=farbe, was=was)}
   {kundenlogo(pr, basis)}
   <div class="inhalt">
-    <div class="einleitung">{fett(lo.get("titel") or t["loesung"])}</div>
-    {absaetze(lo.get("text", ""))}
-    {f'<ul class="punkte" style="margin-top:26pt">{punkte}</ul>' if punkte else ""}</div>
+    <div class="einleitung t-subheadline-2-bold">{fett(lo.get("titel") or t["loesung"])}</div>
+    {absaetze(lo.get("text", ""), ts="body-1-regular")}
+    {f'<ul class="punkte t-body-1-regular" style="margin-top:30pt">{punkte}</ul>' if punkte else ""}</div>
   {marken_moebel(pr, t, nr, bild, farbe)}
-</section>''', Zone(PROJEKT_OBEN, 1010, 880,
+</section>''', Zone(PROJEKT_OBEN, 1010, BILDKANTE_BREIT - 12,
                      "kürzen oder auf eine weitere Lösungsseite verteilen")))
         nr += 1
 
     # Eigener Seed, damit die Abschlussseite die Anordnung der Lösungsseiten
     # nicht wiederholt - dieselben Screens liegen sonst gleich.
     was = f'{pr.get("kunde", "")} – {t["screens"]}'
-    voll = screenflaeche(pr.get("screens"), farbe, "voll", basis, cache, 9, was)
+    voll = screenflaeche(pr.get("screens"), farbe, "voll", basis, cache, 9, was,
+                         nda=pr.get("nda"))
     if voll:
         # Randlos und ohne Text - es bleiben Wortmarke, Seitenzahl und der
         # Hinweis, alle drei nach der Markenfarbe gesetzt.
@@ -1097,23 +1283,26 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
 def seite_kontakt(d, t, basis, nr):
     a = ANSPRECHPARTNER
     titel = a["titel_de"] if d.get("sprache", "de") == "de" else a["titel_en"]
+    # Die Box traegt wie in Figma nur Frage, E-Mail und Telefon - der fruehere
+    # Satz zum Ansprechpartner stand dort nicht mehr (Abgleich September 2026).
     return f'''<section class="seite seite--kontakt">
   <div class="band"></div>
-  <div class="adresse">{e(FIRMA["name"])}<br>{e(FIRMA["strasse"])}<br>{e(FIRMA["ort"])}
+  <div class="adresse t-subheadline-2-regular">{e(FIRMA["name"])}<br>{e(FIRMA["strasse"])}<br>{e(FIRMA["ort"])}
     <br><br><a href="mailto:{e(FIRMA["mail"])}">{e(FIRMA["mail"])}</a>
     <br><a href="https://{e(FIRMA["web"])}">{e(FIRMA["web"])}</a></div>
-  <div class="aufruf"><h2>{e(t["aufruf_h"])}</h2>
-    <p>{e(t["aufruf_p"].format(name=a["name"]))}</p></div>
-  <div class="box"><h3>{e(t["fragen_h"])}</h3><p>{e(t["fragen_p"])}</p>
+  <div class="aufruf"><h2 class="t-h5">{e(t["aufruf_h"])}</h2>
+    <p class="t-subheadline-2-regular">{e(t["aufruf_p"].format(name=a["name"]))}</p></div>
+  <div class="box"><h3 class="t-subheadline-1-bold">{e(t["fragen_h"])}</h3>
     <div class="felder">
-      <div><b>{e(t["mail"])}</b><a href="mailto:{e(a["mail"])}">{e(a["mail"])}</a></div>
-      <div><b>{e(t["telefon"])}</b>
-        <a href="tel:{re.sub(r"[^+0-9]", "", a["telefon"])}">{e(a["telefon"])}</a></div>
+      <div><b class="t-body-1-bold">{e(t["mail"])}</b>
+        <a class="t-body-1-regular" href="mailto:{e(a["mail"])}">{e(a["mail"])}</a></div>
+      <div><b class="t-body-1-bold">{e(t["telefon"])}</b>
+        <a class="t-body-1-regular" href="tel:{re.sub(r"[^+0-9]", "", a["telefon"])}">{e(a["telefon"])}</a></div>
     </div></div>
   <div class="person"><img src="{(ASSETS / a["foto"]).as_uri()}">
-    <div class="name"><b>{e(a["name"])}</b>
-      <span>{"<br>".join(e(x) for x in titel)}</span></div></div>
-  {logo_block(False)}<div class="seitenzahl">{nr}</div>
+    <div class="name"><b class="t-person-name">{e(a["name"])}</b>
+      <span class="t-person-rolle">{"<br>".join(e(x) for x in titel)}</span></div></div>
+  {logo_block(False)}{seitenzahl(nr)}
 </section>'''
 
 
@@ -1146,24 +1335,30 @@ def baue_html(d: dict, basis: Path, cache: Path) -> tuple[str, dict[int, Zone]]:
         seiten.append(seite[0])
         grenzen[len(seiten)] = seite[1]
 
-    lege_ab(seite_cover(d, t, basis), oben=430)
-    lege_ab(seite_profil(d, t, basis, len(seiten) + 1), 1060, oben=110,
+    # Farben und Schriften sind nur dann die des Design Systems, wenn
+    # portfolio.css sie nicht selbst setzt - das prueft design_tokens.py.
+    for befund in ds.pruefe():
+        merke(f"Design System: {befund}")
+
+    # Die oberen Kanten liegen gut 10pt ueber den Elementen: Rethink Sans hat
+    # einen hoeheren Schriftkasten (1,3 Grad) als ihre Zeilenhoehe (1,08) - die
+    # Glyphenbox einer 96-pt-Ueberschrift beginnt 10,6pt ueber ihrer Zeile.
+    lege_ab(seite_cover(d, t, basis), oben=340)
+    lege_ab(seite_profil(d, t, basis, len(seiten) + 1, cache), 1060, oben=100,
             rat="weniger „kenntnisse“ oder kürzere Einträge")
     lege_ab(seite_kunden(d, t, basis, len(seiten) + 1), 985, 1800, oben=135)
-    # Das Zitat steht mittig und waechst nach beiden Seiten: eine obere Grenze
-    # wuerde es faelschlich als Uebertrag der Vorseite melden. Zu lang ist es
-    # trotzdem nicht unbemerkt - dafuer sorgt die untere Kante.
-    lege_ab(seite_statement(d, t, basis, len(seiten) + 1), oben=None,
+    lege_ab(seite_statement(d, t, basis, len(seiten) + 1), oben=265,
             rat='„statement.text“ kürzen')
-    lege_ab(seite_divider(t["prozess"].replace(" Prozess", "\nProzess")
-                                      .replace(" Process", "\nProcess")), oben=340)
+    lege_ab(seite_divider(t["prozess"]), oben=330)
     lege_ab(seite_prozess(d, t, basis, len(seiten) + 1), 990, oben=112,
             rat='„prozess.kurztext“ kürzen')
 
     schritte = d.get("prozess", [])
-    if len(schritte) != 3:
-        merke(f"Der Design-Prozess hat {len(schritte)} Schritte statt 3 – "
-              "die Vorlage sieht genau drei vor.")
+    if not PROZESS_MIN <= len(schritte) <= PROZESS_MAX:
+        merke(f"Der Design-Prozess hat {len(schritte)} Schritte – die Prozessseite "
+              f"trägt {PROZESS_MIN} oder {PROZESS_MAX}"
+              + (f", gezeigt werden die ersten {PROZESS_MAX}." if len(schritte) > PROZESS_MAX
+                 else "."))
     ki = (d.get("person") or {}).get("ki") or {}
     if not ki.get("text"):
         merke("Ohne person.ki entfällt die Folie zum KI-Einsatz – "
@@ -1171,15 +1366,15 @@ def baue_html(d: dict, basis: Path, cache: Path) -> tuple[str, dict[int, Zone]]:
     for i in range(min(3, len(schritte))):
         # Unterhalb von 940pt liegt die Schrittleiste; Text darf da nicht hin.
         lege_ab(seite_arbeitsweise(d, t, basis, len(seiten) + 1, i),
-                ARBEIT_UNTEN, 1011, oben=112, rat='„prozess.langtext“ kürzen')
+                ARBEIT_UNTEN, BILDKANTE_HALB, oben=112, rat='„prozess.langtext“ kürzen')
     if ki.get("text"):
         # Mit Werkzeugreihe endet die Textzone schon über deren Oberkante -
         # wo genau, weiß nur die Seite selbst.
         aufbau, unten = seite_ki(d, t, basis, len(seiten) + 1)
-        lege_ab(aufbau, unten, 1011, oben=112, rat='„person.ki.text“ kürzen')
+        lege_ab(aufbau, unten, BILDKANTE_HALB, oben=112, rat='„person.ki.text“ kürzen')
 
-    lege_ab(seite_agentur(d, t, basis, len(seiten) + 1), oben=108)
-    lege_ab(seite_divider(t["projekte"]), oben=340)
+    lege_ab(seite_agentur(d, t, basis, len(seiten) + 1), oben=100)
+    lege_ab(seite_divider(t["projekte"]), oben=330)
 
     projekte = d.get("projekte", [])
     if not 3 <= len(projekte) <= 5:
@@ -1191,11 +1386,12 @@ def baue_html(d: dict, basis: Path, cache: Path) -> tuple[str, dict[int, Zone]]:
         for seite in block:
             lege_zone(seite)
 
-    lege_ab(seite_divider(t["kontakt"]), oben=340)
-    lege_ab(seite_kontakt(d, t, basis, len(seiten) + 1))
+    lege_ab(seite_divider(t["kontakt"]), oben=330)
+    lege_ab(seite_kontakt(d, t, basis, len(seiten) + 1), oben=85)
 
-    css = (ASSETS / "portfolio.css").read_text()
-    css = css.replace('url("fonts/', f'url("{(ASSETS / "fonts").as_uri()}/')
+    # Zuerst das Design System (Schriften, Farben, Textstile aus tokens.json),
+    # dann das Layout. portfolio.css traegt selbst keine Farb- und Schriftwerte.
+    css = ds.css() + (ASSETS / "portfolio.css").read_text()
     schablone = (ASSETS / "template.html").read_text()
     return (schablone.replace("{{css}}", css).replace("{{seiten}}", "\n".join(seiten)),
             grenzen)
@@ -1303,6 +1499,9 @@ def main() -> None:
     html_text, grenzen = baue_html(d, quelle.parent, zwischenlager(quelle))
     engine = rendere(html_text, ziel)
     pruefe_ueberlauf(ziel, grenzen)
+    # Jede Textstelle im PDF muss einen Schnitt und Grad aus tokens.json tragen.
+    for befund in ds.pruefe_pdf(ziel):
+        merke(f"Design System: {befund}")
     # Der Regelfall ist schon beim Bauen der Flaechen abgeholt; hier bleibt der
     # Rest - Meldungen, die screens.py ausserhalb eines Flaechenbaus abgelegt
     # hat. Ohne diesen Abruf verschwaenden sie stumm.

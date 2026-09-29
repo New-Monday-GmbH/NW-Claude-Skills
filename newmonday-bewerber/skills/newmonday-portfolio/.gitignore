@@ -5,3 +5,6 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# Renderlaeufe am Beispiel legen ihre Zwischenstaende neben die portfolio.json.
+beispiel/arbeit/
