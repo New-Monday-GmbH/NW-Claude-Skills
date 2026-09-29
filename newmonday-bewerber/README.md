@@ -1,10 +1,11 @@
 # newmonday-bewerber
 
-Drei Claude-Code-Skills der New Monday GmbH rund um Bewerber-Unterlagen:
+Vier Claude-Code-Skills der New Monday GmbH rund um Bewerber-Unterlagen:
 
 - `skills/newmonday-cv` — Lebenslauf im New-Monday-Layout als PDF und Figma-Frames, vollständig und anonymisiert
 - `skills/newmonday-skillmatrix` — Skill Matrix im New-Monday-Layout als PDF
 - `skills/newmonday-portfolio` — Portfolio im New-Monday-Layout als PDF
+- `skills/newmonday-bewerbermappe` — alle drei in einem Lauf: gemeinsame Fragen einmal, Lückencheck vorab, Entscheidungen gebündelt (braucht die drei anderen daneben)
 
 ## Installation
 
@@ -21,11 +22,12 @@ führe diese Schritte aus:
      zuerst einen eigenen SSH-Key bei GitHub hinterlegt
      (github.com/settings/keys) — kein Passwort-Login möglich.
 
-2. Die drei Skills per Symlink verlinken:
+2. Die vier Skills per Symlink verlinken:
    ```bash
    ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-cv ~/.claude/skills/newmonday-cv
    ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-skillmatrix ~/.claude/skills/newmonday-skillmatrix
    ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-portfolio ~/.claude/skills/newmonday-portfolio
+   ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-bewerbermappe ~/.claude/skills/newmonday-bewerbermappe
    ```
    (Symlink statt Kopie: ein `git pull` im Repo aktualisiert die Skills direkt.)
 

@@ -7,8 +7,8 @@
     {
       "name": "newmonday-bewerber",
       "source": "./newmonday-bewerber",
-      "description": "Lebenslauf, Skill Matrix und Portfolio im New-Monday-Layout – ein Paket, eine Versionsnummer.",
-      "version": "1.2.0"
+      "description": "Lebenslauf, Skill Matrix und Portfolio im New-Monday-Layout – einzeln oder als Bewerbermappe in einem Lauf. Ein Paket, eine Versionsnummer.",
+      "version": "1.3.0"
     }
   ]
 }

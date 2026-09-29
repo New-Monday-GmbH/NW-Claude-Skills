@@ -9,8 +9,9 @@ Ordner und ist für sich installierbar.
 | [`newmonday-cv`](newmonday-bewerber/skills/newmonday-cv/) | Macht aus einem fremden Lebenslauf einen im New-Monday-Layout – als PDF und als bearbeitbare Frames in Figma, jeweils vollständig und anonymisiert. Eingang: CV als PDF, LinkedIn-Export, LinkedIn-Profil-Link oder eingefügter Profiltext. |
 | [`newmonday-skillmatrix`](newmonday-bewerber/skills/newmonday-skillmatrix/) | Baut aus Lebenslauf, Portfolio und LinkedIn-Export eine Skill Matrix im New-Monday-Layout: eine lange Seite mit Hero, Zertifikaten und nach Kategorien gruppierten Kompetenzen mit 1–5-Punkte-Bewertung. |
 | [`newmonday-portfolio`](newmonday-bewerber/skills/newmonday-portfolio/) | Baut aus Portfolio, Lebenslauf und LinkedIn-Export ein fertiges Portfolio im New-Monday-Layout als PDF: 16:9-Folien mit Profilseite, Kundenwand, Design-Prozess, Projektstrecken und Kontaktseite. |
+| [`newmonday-bewerbermappe`](newmonday-bewerber/skills/newmonday-bewerbermappe/) | Baut alle drei Dokumente eines Kandidaten in einem Lauf: fragt Sprache, Figma und Material einmal, prüft vorab, was fehlt, bündelt alle Entscheidungen und lässt dann `newmonday-cv`, `newmonday-skillmatrix` und `newmonday-portfolio` nacheinander bauen – PDFs plus Frames auf einer Figma-Seite je Kandidat. |
 
-Die drei Dokument-Skills liegen zusammen im Ordner [`newmonday-bewerber`](newmonday-bewerber/) –
+Die drei Dokument-Skills und der Gesamtlauf liegen zusammen im Ordner [`newmonday-bewerber`](newmonday-bewerber/) –
 das ist organisatorisch ein Bundle (mit eigener `plugin.json`/`marketplace.json` für eine
 spätere Marketplace-Installation), installiert wird aber weiterhin jeder Skill einzeln per
 Symlink, siehe unten. Grund: Bei einer echten Marketplace-Installation würde
@@ -32,6 +33,7 @@ ln -s ~/NW-Claude-Skills/rapid-redesign ~/.claude/skills/rapid-redesign
 ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-cv ~/.claude/skills/newmonday-cv
 ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-skillmatrix ~/.claude/skills/newmonday-skillmatrix
 ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-portfolio ~/.claude/skills/newmonday-portfolio
+ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-bewerbermappe ~/.claude/skills/newmonday-bewerbermappe
 ```
 
 Ein Symlink statt einer Kopie sorgt dafür, dass ein `git pull` im Repo den
