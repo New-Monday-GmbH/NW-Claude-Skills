@@ -108,6 +108,7 @@ Skills vor; im Einzellauf gilt er nicht.
 | Figma-Ziel | `figma.link` – er trägt die `node-id` der Kandidatenseite: `figma_plan.py … --knoten <node-id>` (`references/figma.md`, „Die Zieldatei“). Ist `figma.aktiv` false, entfällt Schritt 7a. |
 | Portfolio, Lebenslauf, LinkedIn-Export | `material.portfolio_url` oder `material.portfolio_pdf`, `material.lebenslauf`, `material.linkedin_export` |
 | Logos, Screens, Kundentexte | `material.logos`, `material.screens` (je Projekt ein Unterordner, wenn so geliefert), `material.kundentexte` |
+| Foto | `material.foto` – ein geliefertes Foto zählt als „vom Kandidaten“ (Schritt 1, „Das Profilfoto“) |
 
 **Phase vorbereiten: Schritte 1 und 2.** Statt der Frage-Nachricht aus Schritt 3
 entsteht `fragen.json`:
@@ -128,7 +129,11 @@ entsteht `fragen.json`:
   - „Projektname <Kunde>“, wenn zwei Projekte beim selben Kunden keinen
     Projektnamen im Material haben (Schritt 4, `projektname`);
   - bei genau einem Projekt im Material: „Weitere Projekte“ (Sonderfälle, „Sehr
-    wenige Projekte“).
+    wenige Projekte“);
+  - „Profilfoto“, wenn weder Lebenslauf noch Portfolio noch `material.foto` ein
+    Foto hergeben – Folge: „die Fotofläche der Profilseite bleibt leer“, Form:
+    „Bilddatei, Porträt, gut aufgelöst“. Phase 4 legt sie mit der Lücke von
+    Lebenslauf und Skill Matrix zusammen.
 - `texte`: leer.
 
 In `notizen.md`:
@@ -149,7 +154,8 @@ Keine `portfolio.json`, keine Logos, keine Recherche, nichts rendern.
   Text über „Other“ eine andere Reihenfolge, gilt die.
 - `nda` → `"nda": true` bei den gewählten Projekten.
 - `statement` → „Ich gebe es ein: <Text>“: der Text als `statement.text`,
-  wörtlich; „Fläche leer lassen“: kein Statement.
+  wörtlich; „Fläche leer lassen“: kein Statement. Jede andere Antwort (über
+  „Other“) ist selbst der Statement-Text, wörtlich.
 - `ki_tools` → `person.ki.tools`.
 
 Gerendert wird nach `<laufordner>/ausgabe/<nachname>-<vorname>-portfolio.pdf`.
