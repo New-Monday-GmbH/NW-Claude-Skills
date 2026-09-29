@@ -422,3 +422,30 @@ das Material in den „fehlt noch“-Zeilen nennt.
 ## Offen
 
 - Kandidaten-Set und Test-Figma-Datei für Test 2–4 (vom Nutzer).
+
+## Nachträge aus der Planung (29.09.2026)
+
+Sie gehen den Abschnitten oben vor.
+
+- **Zwei kleine Skripte statt keinem.** `scripts/pruefe_lauf.py` prüft
+  `auftrag.json`, jede `fragen.json` und jede `uebergabe.md` – der Orchestrator
+  braucht das zur Laufzeit, weil eine fehlerhafte `fragen.json` den
+  `AskUserQuestion`-Aufruf scheitern ließe. `scripts/testmaterial.sh` rendert
+  den Beispiel-Lebenslauf aus `newmonday-cv` als Test-Eingang ohne echte
+  Kandidatendaten. Dazu `scripts/selbsttest.py` und ein erfundener Beispiel-Lauf
+  in `beispiel/lauf/`.
+- **Figma-Ziel als Link.** Der Orchestrator schreibt nach `figma.link` einen Link
+  mit der `node-id` der Kandidatenseite. Alle drei Skills legen ihre Frames schon
+  heute auf die Seite, auf die ein Link mit `node-id` zeigt, rechts neben das
+  Vorhandene – an ihrer Figma-Logik ändert sich dadurch nichts. `figma.seite_id`
+  bleibt als Kontrollwert und muss zur `node-id` passen.
+- **`uebergabe.md` hat sechs feste Abschnitte**: Dateien, Zur Freigabe, Quellen
+  weichen ab, Hinweise, Ohne Rückfrage entschieden, Fehlt noch. Der Orchestrator
+  setzt die Gesamtübergabe Abschnitt für Abschnitt daraus zusammen.
+- **Antworten wörtlich.** `entscheidungen.<skill>.<id>` hält die Antwort so, wie
+  `AskUserQuestion` sie liefert (bei mehreren Haken keine Liste). Eine Option mit
+  `"text_noetig": true` lässt den Orchestrator im Fließtext nach dem Text fragen;
+  gespeichert wird `<Label>: <Text>`.
+- **Einfügestelle** der Abschnitte „Im Gesamtlauf": direkt vor
+  `## Gefragt wird mit Klickboxen, nicht im Fließtext` – das ist in allen drei
+  Skills der Abschnitt nach „Umgebung".

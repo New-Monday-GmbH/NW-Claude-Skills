@@ -1,0 +1,32 @@
+{
+  "skill": "newmonday-portfolio",
+  "kandidat": "Timo Muster",
+  "texte": [],
+  "luecken": [
+    {"was": "Screens NMVS Core", "folge": "Lösungs- und Abschlussseite von NMVS Core zeigen nur die Markenfläche – die Screens im Portfolio sind 640 px breit.", "form": "Einzelne Exporte, ein Screen je Datei, Desktop ab 1 120 px Breite"}
+  ],
+  "fragen": [
+    {
+      "id": "projekte",
+      "question": "Welche Projekte sollen ins Portfolio, in dieser Reihenfolge?",
+      "header": "Projekte",
+      "multiSelect": true,
+      "options": [
+        {"label": "Samsung Circle (Empfohlen)", "description": "stärkste Beleglage: Case-Text und 7 Screens"},
+        {"label": "Prectavi", "description": "Case-Text und 5 Screens"},
+        {"label": "NMVS Core", "description": "Case-Text, Screens nur 640 px breit"},
+        {"label": "Relaunch Stadtwerke", "description": "nur zwei Sätze, keine Screens"}
+      ]
+    },
+    {
+      "id": "statement",
+      "question": "Im Material steht kein Statement für Seite 4 – wie soll es aussehen?",
+      "header": "Statement",
+      "multiSelect": false,
+      "options": [
+        {"label": "Ich gebe es ein", "description": "Ich frage danach nach dem Wortlaut", "text_noetig": true},
+        {"label": "Fläche leer lassen", "description": "Das Layout trägt eine leere Statement-Seite"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "laufordner": "/Users/beispiel/Desktop/Timo Muster",
+  "kandidat": "Timo Muster",
+  "sprache": "de",
+  "reihenfolge": ["newmonday-cv", "newmonday-skillmatrix", "newmonday-portfolio"],
+  "figma": {
+    "aktiv": true,
+    "link": "https://www.figma.com/design/AbCdEf123456/Bewerbermappen?node-id=12-34",
+    "file_key": "AbCdEf123456",
+    "seite_id": "12:34",
+    "neues_file": false
+  },
+  "material": {
+    "lebenslauf": "eingang/lebenslauf.pdf",
+    "linkedin_url": "https://www.linkedin.com/in/timo-muster",
+    "portfolio_url": "https://timo-muster.de",
+    "logos": "eingang/logos/",
+    "screens": "eingang/screens/"
+  },
+  "ohne": ["linkedin_export"],
+  "entscheidungen": {
+    "newmonday-cv": {
+      "nm_rolle": "User Experience Design Specialist",
+      "nm_start": "Oktober 2026",
+      "fachfremd": "Zivildienst, DRK Braunschweig (2013 – 2014)"
+    },
+    "newmonday-skillmatrix": {
+      "verfuegbar_ab": "sofort",
+      "freigabe": "Ich möchte etwas ändern: Figma / FigJam auf 5 Punkte, Service Design raus"
+    },
+    "newmonday-portfolio": {
+      "projekte": "Samsung Circle, Prectavi, NMVS Core",
+      "statement": "Fläche leer lassen"
+    }
+  },
+  "status": {
+    "newmonday-cv": {"vorbereiten": "fertig", "bauen": "fertig", "fehler": null},
+    "newmonday-skillmatrix": {"vorbereiten": "fertig", "bauen": "offen", "fehler": null},
+    "newmonday-portfolio": {"vorbereiten": "fertig", "bauen": "offen", "fehler": null}
+  }
+}

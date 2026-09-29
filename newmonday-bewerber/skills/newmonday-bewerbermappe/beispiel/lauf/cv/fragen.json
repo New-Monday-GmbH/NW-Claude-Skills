@@ -1,0 +1,38 @@
+{
+  "skill": "newmonday-cv",
+  "kandidat": "Timo Muster",
+  "texte": [],
+  "luecken": [],
+  "fragen": [
+    {
+      "id": "nm_rolle",
+      "question": "Wie heißt die Rolle bei New Monday?",
+      "header": "NM-Rolle",
+      "multiSelect": false,
+      "options": [
+        {"label": "User Experience Design Specialist (Empfohlen)", "description": "UX-Lebenslauf: Konzeption, Research, Prototyping in allen Stationen"},
+        {"label": "Software Development Specialist", "description": "Entwicklerrolle"}
+      ]
+    },
+    {
+      "id": "nm_start",
+      "question": "Ab wann ist Timo bei New Monday?",
+      "header": "NM-Start",
+      "multiSelect": false,
+      "options": [
+        {"label": "September 2026 (Empfohlen)", "description": "der laufende Monat"},
+        {"label": "Oktober 2026", "description": "der folgende Monat"}
+      ]
+    },
+    {
+      "id": "fachfremd",
+      "question": "Welche fachfremden Stationen sollen mit rein?",
+      "header": "Fachfremd",
+      "multiSelect": true,
+      "options": [
+        {"label": "Verkäufer, Media Markt (2014 – 2016)", "description": "Nebenjob im Studium; ohne ihn keine Lücke"},
+        {"label": "Zivildienst, DRK Braunschweig (2013 – 2014)", "description": "ohne ihn 12 Monate Lücke vor dem Studium"}
+      ]
+    }
+  ]
+}

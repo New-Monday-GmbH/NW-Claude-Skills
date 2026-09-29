@@ -1,0 +1,35 @@
+{
+  "skill": "newmonday-skillmatrix",
+  "kandidat": "Timo Muster",
+  "texte": [
+    "**Hero-Beschreibung** (generiert, bitte freigeben): „Ich gestalte digitale Produkte von der Research-Phase bis zur Umsetzung, zuletzt für Versicherer und Energieversorger.“\n\n**Schwerpunkte:** UX Research · Design Systems · Prototyping",
+    "| Kategorie | Attribut | Punkte | Beleg |\n|---|---|---|---|\n| Strategie & Research | User Interviews | 5 | 6 Jahre, 3 Stationen |\n| Strategie & Research | Service Design | 3 | ein Portfolio-Case |\n| Design Systems | Design Tokens | 4 | Design-System bei X |",
+    "| Tool | Punkte | Beleg |\n|---|---|---|\n| Figma / FigJam | 4 | alle Stationen seit 2019 |"
+  ],
+  "luecken": [
+    {"was": "Profilfoto", "folge": "Das beste Foto (LinkedIn) hat nach dem Kopfzuschnitt 48 dpi – die Fotokarte wirkt sichtbar weich.", "form": "Bilddatei, Porträt, mindestens 1 000 px breit"}
+  ],
+  "fragen": [
+    {
+      "id": "verfuegbar_ab",
+      "question": "Ab wann ist Timo verfügbar?",
+      "header": "Verfügbar",
+      "multiSelect": false,
+      "options": [
+        {"label": "ab sofort (Empfohlen)", "description": "Badge: VERFÜGBAR AB SOFORT"},
+        {"label": "Oktober 2026", "description": "Badge: VERFÜGBAR AB OKTOBER 2026"},
+        {"label": "November 2026", "description": "Badge: VERFÜGBAR AB NOVEMBER 2026"}
+      ]
+    },
+    {
+      "id": "freigabe",
+      "question": "Passen Auswahl und Bewertung der Skill Matrix so?",
+      "header": "Freigabe",
+      "multiSelect": false,
+      "options": [
+        {"label": "Ja, so bauen (Empfohlen)", "description": "Tabelle und Hero-Beschreibung wie oben"},
+        {"label": "Ich möchte etwas ändern", "description": "Ich frage danach, was anders sein soll", "text_noetig": true}
+      ]
+    }
+  ]
+}
