@@ -100,12 +100,32 @@ def eintraege(daten):
                 yield p, "kunde"
 
 
+def ganzer_alias(firma):
+    """Datei zu einem Alias, der genau den ganzen Namen trifft.
+
+    Geprueft vor jeder Zerlegung: "Paper & Coffee" ist eine Firma, keine zwei
+    Marken. Ohne diese Pruefung wurde am "&" getrennt und fuer "Coffee" das Logo
+    einer fremden Kaffeekette gesucht und in die Bibliothek gelegt.
+    """
+    aliase = ZIEL / "aliase.json"
+    if not aliase.exists():
+        return None
+    karte = json.loads(aliase.read_text(encoding="utf-8"))
+    for schluessel, datei in karte.items():
+        if schluessel.strip().lower() == firma.strip().lower() and (ZIEL / datei).exists():
+            return datei
+    return None
+
+
 def mehrere_marken(firma):
     """Stehen im Feld mehrere Firmen statt Firma plus Ort?
 
     "TEAM GmbH, Paderborn" ist Firma plus Ort — ein Komma, kein Und.
     "Deutsche Bank, Postbank, FYRST & Norisbank" sind vier Marken.
+    Ein Name, der als Ganzes in aliase.json steht, ist nie mehrere Marken.
     """
+    if ganzer_alias(firma):
+        return False
     return firma.count(",") >= 2 or " & " in firma
 
 

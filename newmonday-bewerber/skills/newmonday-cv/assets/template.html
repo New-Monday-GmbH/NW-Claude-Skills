@@ -3,7 +3,12 @@
 <head>
 <meta charset="utf-8">
 <title>{{ person.name }} — Lebenslauf</title>
-<link rel="stylesheet" href="cv.css">
+{# cv.css wird mitgerendert, nicht verlinkt: sie ist ein Template, das seine
+   Werte aus tokens.json bekommt. Schrift-URLs darin loesen sich gegen assets/
+   auf — render_cv.py gibt WeasyPrint und Chrome diese Basis mit. #}
+<style>
+{% include "cv.css" %}
+</style>
 </head>
 <body>
 
@@ -22,8 +27,8 @@
     {% if person.rolle %}<div class="role">{{ person.rolle }}</div>{% endif %}
     {% if person.erfahrung %}<div class="role">{{ person.erfahrung }}</div>{% endif %}
     {# Benannt statt als Adresse: "zum LinkedIn Profil" statt "linkedin.com/in/…".
-       Der Unterstrich in der Markenfarbe ist das einzige Signal, dass sie
-       anklickbar sind — mehr braucht es in einem Dokument nicht. #}
+       Die Linie in der Markenfarbe ist das einzige Signal, dass sie anklickbar
+       sind — mehr braucht es in einem Dokument nicht. #}
     {% if person.links %}
     <div class="intro__links">
       {% for l in person.links %}
@@ -50,7 +55,7 @@
       <div class="edu__degree">{{ b.abschluss }}</div>
       {% if b.institution %}<div class="edu__line">{{ b.institution }}</div>{% endif %}
       {% if b.zeitraum %}<div class="edu__line">{{ b.zeitraum }}</div>{% endif %}
-      {% if b.themen %}<ul class="tight">{% for t in b.themen %}<li>{{ t }}</li>{% endfor %}</ul>{% endif %}
+      {% if b.themen %}<ul class="tight">{% for thema in b.themen %}<li>{{ thema }}</li>{% endfor %}</ul>{% endif %}
     </div>
     {% endfor %}
   </div>
@@ -106,11 +111,13 @@
       {% for l in s.logos %}<img src="logos/{{ l.datei }}" alt="{{ s.firma }}"
         style="width:{{ l.breite }}pt;height:{{ l.hoehe }}pt">{% endfor %}
     </div>
+    {# Wie in Figma: Titel, Firma, darunter der Zeitraum als eigene Zeile. Die
+       Schlagwortzeile steht zusaetzlich darunter (in Figma nicht vorgesehen,
+       im Skill bewusst behalten). #}
     <div class="station__kopftext">
       <div class="station__title">{{ s.titel }}</div>
-      <div class="station__meta">
-        <span>{{ s.zeitraum }}</span>{% if s.firma %}<i></i><span>{{ s.firma }}</span>{% endif %}
-      </div>
+      {% if s.firma %}<div class="station__firma">{{ s.firma }}</div>{% endif %}
+      {% if s.zeitraum %}<div class="station__zeitraum">{{ s.zeitraum }}</div>{% endif %}
       {% if s.zusammenfassung %}<p class="station__summary">{{ s.zusammenfassung }}</p>{% endif %}
       {% if s.beschreibung %}<p class="station__text">{{ s.beschreibung }}</p>{% endif %}
     </div>
@@ -122,9 +129,12 @@
 
     {% for p in s.projekte %}
     <div class="project">
+      {# Nebeneinander in einer Reihe. Jedes Logo steckt in einer eigenen Huelle:
+         Ein <img> direkt als Flex-Element bekommt in WeasyPrint (66) die Breite
+         0 — alle Logos einer Reihe landeten uebereinander an derselben Stelle. #}
       {% if p.logos %}<div class="project__logos">
-        {% for l in p.logos %}<img class="project__logo" src="logos/{{ l.datei }}" alt="{{ p.kunde }}"
-          style="width:{{ l.breite }}pt;height:{{ l.hoehe }}pt">{% endfor %}
+        {% for l in p.logos %}<span class="project__logo"><img src="logos/{{ l.datei }}" alt="{{ p.kunde }}"
+          style="width:{{ l.breite }}pt;height:{{ l.hoehe }}pt"></span>{% endfor %}
       </div>{% endif %}
       <div class="project__client">{{ p.kunde }}</div>
       {% if p.zeitraum %}<div class="project__date">{{ p.zeitraum }}</div>{% endif %}
@@ -149,17 +159,18 @@
 <div class="footer">
   <div class="footer__divider"></div>
   <div class="footer__row">
-    <div class="footer__logo"><img src="logos/nm-logo.svg" alt="New Monday" style="width:79pt"></div>
+    <div class="footer__logo"><img src="logos/nm-logo.svg" alt="New Monday"></div>
     <div class="footer__cols">
-      <div>
+      <div class="footer__col">
         <div class="footer__label">{{ t.ansprechpartner }}</div>
-        <div class="footer__value">{{ kontakt.name }}<br>{{ kontakt.rolle }}</div>
+        <div class="footer__value"><strong>{{ kontakt.name }}</strong><br>{{ kontakt.rolle }}</div>
       </div>
-      <div>
+      <div class="footer__col">
         <div class="footer__label">{{ t.kontakt }}</div>
-        <div class="footer__value">{{ kontakt.mail }}<br>{{ kontakt.telefon }}</div>
+        <div class="footer__value">{{ kontakt.mail }}</div>
+        <div class="footer__value">{{ kontakt.telefon }}</div>
       </div>
-      <div>
+      <div class="footer__col">
         <div class="footer__label">{{ t.adresse }}</div>
         <div class="footer__value">{{ kontakt.firma }}<br>{{ kontakt.strasse }}<br>{{ kontakt.ort }}</div>
       </div>

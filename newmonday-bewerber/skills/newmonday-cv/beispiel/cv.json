@@ -43,7 +43,12 @@
           "zeitraum": "Oktober 2025 - März 2026",
           "logo": "green-planet-energy.svg",
           "beschreibung": "Green Planet Energy kam mit der Anforderung zu mir, ihre neu gestaltete Homepage zu testen, um Conversions zu erhöhen. In meiner Rolle als User Researcher gab ich anhand von 20 Interviews Feedback zur Verbesserung.",
-          "aufgaben": ["UX Research", "Wireframing", "Prototyping", "Ideation"]
+          "aufgaben": [
+            "UX Research",
+            "Wireframing",
+            "Prototyping",
+            "Ideation"
+          ]
         }
       ]
     },
@@ -78,39 +83,55 @@
       "abschluss": "Master UX-Design & Management",
       "institution": "PFH Göttingen",
       "zeitraum": "April 2022 - September 2023",
-      "themen": ["UI-Design", "User Research", "Usability-Testing", "Marktforschung", "Projektmanagement"]
+      "themen": [
+        "UI-Design",
+        "User Research",
+        "Usability-Testing",
+        "Marktforschung",
+        "Projektmanagement"
+      ]
     },
     {
       "abschluss": "Bachelor Medieninformatik",
       "institution": "FH Hof und MMU Malaysia",
       "zeitraum": "Oktober 2016 - September 2020",
-      "themen": ["UX-Design", "Frontend-Entwicklung", "Backend-Entwicklung", "Marketing"]
+      "themen": [
+        "UX-Design",
+        "Frontend-Entwicklung",
+        "Backend-Entwicklung",
+        "Marketing"
+      ]
+    },
+    {
+      "abschluss": "CPUX-F-Zertifikat"
+    },
+    {
+      "abschluss": "WCAG – Barrierefrei Lehren"
     }
   ],
   "skillset": {
-    "links": [
-      {
-        "titel": "Fähigkeiten",
-        "eintraege": ["UI-Design", "User Research", "Usability-Testing", "Barrierefreiheit", "Requirements Engineering"]
-      },
-      {
-        "titel": "Zertifizierungen",
-        "eintraege": ["CPUX-F-Zertifikat", "WCAG – Barrierefrei Lehren"]
-      },
-      {
-        "titel": "Branchenerfahrung",
-        "eintraege": ["Public Sector", "Datenverarbeitung", "Hotellerie", "Bankenumfeld und Finanzdienstleister", "Energieversorger"]
-      }
+    "faehigkeiten": [
+      "UI-Design",
+      "User Research",
+      "Usability-Testing",
+      "Barrierefreiheit",
+      "Requirements Engineering"
     ],
-    "rechts": [
-      {
-        "titel": "Tools",
-        "eintraege": ["Figma", "Miro", "Lighthouse, PAC 2024"]
-      },
-      {
-        "titel": "Sprachen",
-        "eintraege": ["Deutsch", "Englisch (verhandlungssicher)"]
-      }
+    "branchen": [
+      "Public Sector",
+      "Datenverarbeitung",
+      "Hotellerie",
+      "Bankenumfeld und Finanzdienstleister",
+      "Energieversorger"
+    ],
+    "tools": [
+      "Figma",
+      "Miro",
+      "Lighthouse, PAC 2024"
+    ],
+    "sprachen": [
+      "Deutsch",
+      "Englisch (verhandlungssicher)"
     ]
   }
 }

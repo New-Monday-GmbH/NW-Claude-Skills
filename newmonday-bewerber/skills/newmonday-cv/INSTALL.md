@@ -72,27 +72,33 @@ pip3 install weasyprint jinja2 pypdf pillow
 `pango` ist der Teil, an dem WeasyPrint auf macOS am häufigsten scheitert — ohne
 die Bibliothek startet der Import nicht.
 
-## Figma (optional)
+## Figma
 
-Der Skill kann den fertigen Lebenslauf zusätzlich als bearbeitbaren Frame in ein
-Figma-File legen. Das ist eine Zugabe: **ohne Figma läuft der Skill vollständig**,
-das PDF entsteht genauso.
+Der Skill legt den fertigen Lebenslauf zusätzlich als bearbeitbare Frames in ein
+Figma-File — beide Fassungen, die vollständige und die anonymisierte. Das gehört
+zum Regellauf, ist aber keine Bedingung: **ohne Figma läuft der Skill
+vollständig**, die PDFs entstehen genauso, und der Ausfall wird in der Übergabe
+benannt.
+
+Liegt kein Link zu einer Zieldatei vor, legt der Skill selbst ein neues Figma-File
+an. Danach gilt dasselbe wie unten.
 
 Gebraucht wird dafür:
 
 - **Die Figma-MCP-Anbindung**, verbunden und angemeldet. In Claude Code über
   `claude mcp` bzw. `/mcp` in einer interaktiven Sitzung, in den claude.ai-Apps
   über die Connector-Einstellungen. Ist sie nicht angemeldet, meldet der Skill das
-  und liefert nur das PDF.
+  und liefert nur die PDFs.
 - **Bearbeitungsrechte** auf der Zieldatei. Ein Betrachter-Link genügt nicht.
 - **Eine Design-Datei**, also ein Link der Form `figma.com/design/…`. FigJam
   (`/board/`), Slides (`/slides/`), Make (`/make/`) und Prototypen (`/proto/`)
-  lassen sich nicht beschreiben.
+  lassen sich nicht beschreiben. Wer keine hat, lässt den Skill eine anlegen.
 - **`pypdf`**, siehe Abhängigkeiten. Ohne es lässt sich die Seitenaufteilung nicht
   aus dem PDF lesen, und ohne die wird kein Frame gebaut.
 
-Gefragt wird gleich zu Beginn, zusammen mit der Sprache — mitschicken muss man nur
-den Link zur Datei.
+Gefragt wird gleich zu Beginn, zusammen mit der Sprache — und gefragt wird nur
+noch, **wohin**: in ein bestehendes File, dann mit Link, oder in ein neues, das der
+Skill anlegt.
 
 **Warum der Skill keine `allowed-tools`-Zeile mehr hat:** Sie zählte auf, welche
 Werkzeuge der Skill benutzen darf. Der Name des Figma-Servers steht aber nicht fest
@@ -109,8 +115,12 @@ python3 ~/.claude/skills/newmonday-cv/scripts/selbsttest.py
 ```
 
 Rendert den mitgelieferten Beispiel-Lebenslauf und prüft das Ergebnis: A4-Format,
-eingebettete Inter-Schnitte, Logos und Foto. Läuft der durch, funktioniert die
-ganze Kette. Das Installationsskript ruft ihn am Ende von selbst auf.
+eingebettete Schriften (Inter, Rethink Sans), Logos und Foto — und ob Schriften,
+Farben und Abstände den Designwerten aus `assets/tokens.json` entsprechen, also
+der Figma-Vorlage. Er baut ausserdem die anonymisierte
+Fassung und sieht nach, dass darin weder Name noch Verweise übrig sind. Läuft der
+Test durch, funktioniert die ganze Kette. Das Installationsskript ruft ihn am Ende
+von selbst auf.
 
 ## Ohne WeasyPrint
 
@@ -140,4 +150,6 @@ S=~/.claude/skills/newmonday-cv
 python3 $S/scripts/extract_input.py eingang.pdf arbeit/
 python3 $S/scripts/logos_ergaenzen.py cv.json
 python3 $S/scripts/render_cv.py cv.json ausgabe/
+python3 $S/scripts/anonymisieren.py cv.json cv-anonym.json
+python3 $S/scripts/render_cv.py cv-anonym.json ausgabe/
 ```

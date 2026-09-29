@@ -26,18 +26,56 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import tokens  # noqa: E402  — erst nach sys.path.insert moeglich
+
 BESCHRIFTUNG = {
     "de": {
         "bildung": "Bildung", "skillset": "Skillset", "links": "Weiterführende Links",
         "kurzprofil": "Kurzprofil",
         "ansprechpartner": "Ansprechpartner", "kontakt": "Kontakt", "adresse": "Adresse",
+        "faehigkeiten": "Fähigkeiten", "branchen": "Branchen", "tools": "Tools",
+        "sprachen": "Sprachen",
     },
     "en": {
         "bildung": "Education", "skillset": "Skillset", "links": "Further links",
         "kurzprofil": "Profile",
         "ansprechpartner": "Contact person", "kontakt": "Contact", "adresse": "Address",
+        "faehigkeiten": "Skills", "branchen": "Industries", "tools": "Tools",
+        "sprachen": "Languages",
     },
 }
+
+# Das Skillset hat in jedem Lebenslauf dieselben vier Gruppen in derselben
+# Anordnung, 2 x 2: links Faehigkeiten und Branchen, rechts Tools und Sprachen
+# (Vorgabe vom 29.09.2026 — vorher trug jeder Lebenslauf andere Gruppen). Die
+# Titel kommen aus BESCHRIFTUNG, nicht aus der cv.json; dort stehen nur die
+# Eintraege unter den vier festen Schluesseln.
+SKILLSET_SPALTEN = (("faehigkeiten", "branchen"), ("tools", "sprachen"))
+SKILLSET_GRUPPEN = tuple(k for spalte in SKILLSET_SPALTEN for k in spalte)
+
+# Aeltere cv.json-Dateien fuehren frei benannte Gruppen unter links/rechts. Nur
+# eindeutige Titel werden einer festen Gruppe zugeordnet; alles andere faellt
+# aus dem Skillset und wird gemeldet — geraten wird nicht.
+ALTE_GRUPPENTITEL = {
+    "faehigkeiten": ("fähigkeiten", "faehigkeiten", "skills", "kompetenzen",
+                     "kernkompetenzen", "schwerpunkte", "arbeitsweise", "methoden"),
+    "branchen": ("branchen", "branchenerfahrung", "industries", "industry experience"),
+    "tools": ("tools", "software", "werkzeuge"),
+    "sprachen": ("sprachen", "languages"),
+}
+
+# Deutsch und Englisch stehen in jedem Lebenslauf, mit festem Niveau — auch wenn
+# das Material keine Sprachen oder andere Niveaus nennt (Vorgabe vom 29.09.2026,
+# gleich wie im Portfolio-Skill). Weitere Sprachen kommen aus dem Material, mit
+# ihrem eigenen Niveau.
+SPRACH_VORGABE = {
+    "de": ((("deutsch", "german"), "Deutsch", "Muttersprache"),
+           (("englisch", "english"), "Englisch", "Business Niveau")),
+    "en": ((("deutsch", "german"), "German", "Native speaker"),
+           (("englisch", "english"), "English", "Business level")),
+}
+SPRACH_TRENNER = " – "
 
 # Die Verweise im Profilkopf werden benannt, nicht als Adresse gesetzt: "zum
 # LinkedIn Profil" statt "linkedin.com/in/timo-muster". In einem Dokument, das
@@ -60,25 +98,38 @@ VERWEISTEXT = {
     },
 }
 
+# Der Ansprechpartner im Footer steht als Vorgabe im Skill, nicht in der
+# cv.json. figma_plan.py liest ihn von hier, damit Frame und PDF gleich bleiben.
+KONTAKT_VORGABE = {
+    "name": "Manuel Klein", "rolle": "CCO",
+    "mail": "manuel.klein@newmonday.co", "telefon": "+49 (0) 155 1148 0130",
+    "firma": "New Monday GmbH", "strasse": "Stresemannstraße 32", "ort": "10963 Berlin",
+}
+
 # Optische Groesse in pt: die Kantenlaenge, die ein quadratisches Logo bekommt.
 # Jedes Logo wird auf dieselbe Flaeche gebracht (Breite x Hoehe = Groesse^2),
 # nicht auf dieselbe Hoehe. Ueber die Hoehe gesetzt wirkt eine kompakte
 # Bildmarke doppelt so schwer wie ein breiter Schriftzug: 3pc auf 58pt Hoehe
 # deckt 88 x 48pt, Cocomore in derselben Zeile nur 88 x 15pt.
-# Gestaffelt nach Anzahl der Marken — je mehr untereinander, desto kleiner,
-# damit die Logoreihe nicht laenger wird als der Text daneben. Entschieden wird
-# einmal fuers ganze Dokument, nicht je Station: sonst steht dieselbe Marke —
+# Stationslogos: gestaffelt nach Anzahl der Marken — sie stehen in der
+# Logospalte untereinander, und je mehr es sind, desto kleiner, damit die
+# Logoreihe nicht laenger wird als der Text daneben. Entschieden wird einmal
+# fuers ganze Dokument, nicht je Station: sonst steht dieselbe Marke —
 # Deutsche Bank etwa, einmal allein und einmal neben Postbank, FYRST und
 # Norisbank — an der einen Stelle doppelt so gross wie an der anderen.
 LOGO_GROESSE = {1: 42, 2: 37, 3: 33}
 LOGO_GROESSE_AB_4 = 29
-LOGO_PROJEKT_GROESSE = {1: 26}
-LOGO_PROJEKT_GROESSE_AB_2 = 19
+# Projektlogos: immer dieselbe Groesse, egal wie viele an einem Projekt stehen.
+# Sie stehen nebeneinander ueber dem Kundennamen (Design-Feedback 2026-09-28),
+# eine Reihe wird also nicht hoeher, wenn eine Marke dazukommt — der Grund fuer
+# die Staffelung faellt weg. Frueher standen sie untereinander und wurden ab
+# zwei Marken auf 19pt verkleinert.
+LOGO_PROJEKT_GROESSE = 26
 
-# Muss --rail in cv.css entsprechen. Die Spaltenbreite ist die harte Grenze:
-# ein Schriftzug, der breiter waere als 88pt, erreicht seine Sollflaeche nicht
-# und wird stattdessen auf volle Spaltenbreite gesetzt.
-RAIL_BREITE = 88
+# Die Logospalte aus tokens.json. Die Spaltenbreite ist die harte Grenze: ein
+# Schriftzug, der breiter waere, erreicht seine Sollflaeche nicht und wird
+# stattdessen auf volle Spaltenbreite gesetzt.
+RAIL_BREITE = tokens.laden()["raster"]["logospalte"]
 # Hochformatige Marken duerfen nicht beliebig hoch werden, sonst schiebt sich
 # die Logospalte ueber den Stationskopf hinaus.
 LOGO_HOCH_FAKTOR = 1.4
@@ -116,6 +167,135 @@ def logoliste(wert):
     if not wert:
         return []
     return [wert] if isinstance(wert, str) else list(wert)
+
+
+def _sprache_zerlegen(eintrag):
+    """(Sprachteil, Niveau) aus einem Sprach-Eintrag, so wie er in der cv.json steht.
+
+    Angenommen werden "Deutsch – Muttersprache", "Englisch (fließend)",
+    "Französisch: B2", {"sprache": "Französisch", "niveau": "B2"} und "Deutsch".
+    """
+    if isinstance(eintrag, dict):
+        return (" ".join(str(eintrag.get("sprache") or "").split()),
+                " ".join(str(eintrag.get("niveau") or "").split()))
+    text = " ".join(str(eintrag or "").split())
+    klammer = re.match(r"^(.*?)\s*\((.*)\)\s*$", text)
+    if klammer:
+        return klammer.group(1).strip(), klammer.group(2).strip()
+    teile = re.split(r"\s+[–—-]\s+|:\s*", text, maxsplit=1)
+    return teile[0].strip(), (teile[1].strip() if len(teile) > 1 else "")
+
+
+def _sprachnamen(teil):
+    """"Deutsch, Italienisch" -> {"deutsch", "italienisch"}."""
+    return {t.strip().lower() for t in re.split(r",|/|&|\bund\b|\band\b", teil) if t.strip()}
+
+
+def sprachen_mit_vorgabe(eintraege, sprache="de"):
+    """Die Sprachen fuers Skillset: Deutsch und Englisch immer, mit festem Niveau.
+
+    Gibt (Eintraege als Text, Hinweise) zurueck. Deutsch und Englisch stehen
+    vorn — ergaenzt, wenn das Material sie nicht nennt, und mit dem Niveau der
+    Vorgabe, wenn es ein anderes nennt ("fließend", "C1"). Beides wird gemeldet,
+    damit es in der Uebergabe steht. Eine zusammengefasste Zeile ("Deutsch,
+    Italienisch – Muttersprache") traegt die Sprache schon und bleibt, wie sie
+    ist. Alle weiteren Sprachen bleiben mit ihrem eigenen Niveau stehen.
+    """
+    rest = [(e, *_sprache_zerlegen(e)) for e in eintraege or []]
+    rest = [r for r in rest if r[1]]
+
+    def anzeige(r):
+        eintrag, teil, niveau = r
+        if isinstance(eintrag, dict):
+            return f"{teil}{SPRACH_TRENNER}{niveau}" if niveau else teil
+        return " ".join(str(eintrag).split())
+
+    kopf, hinweise = [], []
+    for namen, name, niveau in SPRACH_VORGABE.get(sprache, SPRACH_VORGABE["de"]):
+        einzeln = [r for r in rest if _sprachnamen(r[1]) <= set(namen)]
+        gruppe = [r for r in rest if len(_sprachnamen(r[1])) > 1
+                  and _sprachnamen(r[1]) & set(namen)]
+        if gruppe:
+            kopf.append(anzeige(gruppe[0]))
+            rest = [r for r in rest if r is not gruppe[0] and r not in einzeln]
+            continue
+        alt = einzeln[0][2] if einzeln else None
+        if alt is None:
+            hinweise.append(f"Sprachen: „{name}{SPRACH_TRENNER}{niveau}“ ergänzt — "
+                            "Vorgabe, im Material nicht genannt.")
+        elif alt.lower() != niveau.lower():
+            hinweise.append(f"Sprachen: {name} steht als „{niveau}“ (Vorgabe) — im "
+                            f"Material stand {f'„{alt}“' if alt else 'kein Niveau'}.")
+        kopf.append(f"{name}{SPRACH_TRENNER}{niveau}")
+        rest = [r for r in rest if r not in einzeln]
+    return kopf + [anzeige(r) for r in rest], hinweise
+
+
+def skillset_gruppen(daten):
+    """Das Skillset als zwei Spalten mit den vier festen Gruppen.
+
+    Gibt ({"links": [...], "rechts": [...]}, Hinweise) zurueck; jede Gruppe als
+    {"schluessel", "titel", "eintraege"}. Template, Figma-Plan und Selbsttest
+    lesen alle von hier — die Anordnung steht nur in SKILLSET_SPALTEN.
+
+    Eine leere Gruppe faellt weg und wird gemeldet: Faehigkeiten, Branchen und
+    Tools leitet der Skill aus den Stationen ab, wenn das Material nichts sagt
+    (SKILL.md, Schritt 2) — bleibt eine trotzdem leer, ist das eine Luecke fuer
+    die Uebergabe. Sprachen sind nie leer.
+    """
+    sprache = daten.get("sprache", "de")
+    labels = BESCHRIFTUNG.get(sprache, BESCHRIFTUNG["de"])
+    roh = daten.get("skillset") or {}
+    hinweise = []
+    gruppen = {k: [] for k in SKILLSET_GRUPPEN}
+    if "links" in roh or "rechts" in roh:
+        hinweise.append("Skillset im alten Format (links/rechts mit freien Titeln) — "
+                        "bitte auf die vier festen Gruppen umstellen, SKILL.md Schritt 2.")
+        for g in (roh.get("links") or []) + (roh.get("rechts") or []):
+            titel = " ".join(str(g.get("titel") or "").split())
+            ziel = next((k for k, titel_liste in ALTE_GRUPPENTITEL.items()
+                         if titel.lower() in titel_liste), None)
+            if ziel:
+                gruppen[ziel] += list(g.get("eintraege") or [])
+            else:
+                hinweise.append(f"Skillset: Gruppe „{titel}“ passt in keine der vier "
+                                "festen Gruppen und steht nicht im Dokument.")
+    else:
+        for k, wert in roh.items():
+            if k in gruppen:
+                gruppen[k] = list(wert or [])
+            else:
+                hinweise.append(f"Skillset: „{k}“ ist keine der vier Gruppen "
+                                f"({', '.join(SKILLSET_GRUPPEN)}) und steht nicht im Dokument.")
+
+    for k in ("faehigkeiten", "branchen", "tools"):
+        gesehen, eindeutig = set(), []
+        for e in gruppen[k]:
+            text = " ".join(str(e).split())
+            if not text:
+                continue
+            if text.lower() in gesehen:
+                hinweise.append(f"Skillset: „{text}“ stand doppelt unter {labels[k]} — "
+                                "einmal gestrichen.")
+                continue
+            gesehen.add(text.lower())
+            eindeutig.append(text)
+        gruppen[k] = eindeutig
+    gruppen["sprachen"], sprach_hinweise = sprachen_mit_vorgabe(gruppen["sprachen"], sprache)
+    hinweise += sprach_hinweise
+
+    spalten = {}
+    for seite, schluessel in zip(("links", "rechts"), SKILLSET_SPALTEN):
+        spalten[seite] = []
+        for k in schluessel:
+            if gruppen[k]:
+                spalten[seite].append({"schluessel": k, "titel": labels[k],
+                                       "eintraege": gruppen[k]})
+            else:
+                hinweise.append(f"Skillset: {labels[k]} ist leer und fehlt im Dokument — "
+                                "aus Stationen und Projekten ableiten und in der Übergabe "
+                                "zur Freigabe nennen (SKILL.md, Schritt 2).")
+    return spalten, hinweise
 
 
 def _svg_verhaeltnis(rohdaten):
@@ -206,18 +386,14 @@ def logo_masse(datei, groesse):
 def logo_groessen(daten):
     """(Stationsgroesse, Projektgroesse) in pt — einmal fuer das ganze Dokument.
 
-    Massgeblich ist die groesste Markenzahl, die irgendwo auftritt. Damit ist
-    jedes Logo an jeder Stelle gleich gross, auch wenn es einmal allein und
-    einmal in einer Markenreihe steht.
+    Fuer die Stationen ist die groesste Markenzahl massgeblich, die irgendwo
+    auftritt. Damit ist jedes Logo an jeder Stelle gleich gross, auch wenn es
+    einmal allein und einmal in einer Markenreihe steht. Projektlogos stehen
+    nebeneinander und haben deshalb immer dieselbe Groesse.
     """
     stationen = daten.get("stationen", [])
     st = max([len(logoliste(s.get("logo"))) for s in stationen] or [0])
-    pr = max([len(logoliste(p.get("logo")))
-              for s in stationen for p in s.get("projekte", [])] or [0])
-    return (
-        LOGO_GROESSE.get(max(st, 1), LOGO_GROESSE_AB_4),
-        LOGO_PROJEKT_GROESSE.get(max(pr, 1), LOGO_PROJEKT_GROESSE_AB_2),
-    )
+    return LOGO_GROESSE.get(max(st, 1), LOGO_GROESSE_AB_4), LOGO_PROJEKT_GROESSE
 
 
 def pruefe(daten):
@@ -265,6 +441,8 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
         loader=FileSystemLoader(str(ASSETS)),
         autoescape=select_autoescape(["html"]),
     )
+    # cv.css holt sich jeden Designwert ueber diese Namen aus tokens.json.
+    env.globals.update(tokens.jinja_globals())
     sprache = daten.get("sprache", "de")
     labels = BESCHRIFTUNG.get(sprache, BESCHRIFTUNG["de"])
     # Angezeigt wird der benannte Verweis, nicht die Adresse — verlinkt bleibt
@@ -273,11 +451,7 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
     for l in daten.get("person", {}).get("links") or []:
         titel = str(l.get("titel") or "").strip()
         l["anzeige"] = l.get("text") or verweise.get(titel.lower()) or titel
-    daten.setdefault("kontakt", {
-        "name": "Manuel Klein", "rolle": "CCO",
-        "mail": "manuel.klein@newmonday.co", "telefon": "+49 (0) 155 1148 0130",
-        "firma": "New Monday GmbH", "strasse": "Stresemannstraße 32", "ort": "10963 Berlin",
-    })
+    daten.setdefault("kontakt", dict(KONTAKT_VORGABE))
     # Jedes Logo bekommt sein eigenes Mass, ausgerechnet aus dem
     # Seitenverhaeltnis der Datei. Das Template setzt nur noch, was hier steht.
     groesse, projekt_groesse = logo_groessen(daten)
@@ -302,9 +476,14 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
             print(f"Warnung: Foto nicht gefunden: {p}", file=sys.stderr)
         daten["person"]["foto"] = p.as_uri()
 
+    # Das Skillset geht als die zwei festen Spalten ins Template, nicht so, wie
+    # es in der cv.json steht. Ueber eine Kopie: html_bauen laeuft je Dokument
+    # mehrmals, und die Rohdaten muessen fuer den naechsten Durchgang bleiben.
+    kontext = dict(daten)
+    kontext["skillset"] = skillset_gruppen(daten)[0]
     return env.get_template("template.html").render(
         stufe=stufe, fuss_abstand=fuss_abstand,
-        stationen_kompakt=stationen_kompakt, t=labels, **daten
+        stationen_kompakt=stationen_kompakt, t=labels, **kontext
     )
 
 
@@ -366,33 +545,37 @@ def rendern(html, ziel):
 
 
 def spalten_pruefen(daten):
-    """Steht das Skillset schief in den Spalten? Dann laesst sich Hoehe gewinnen.
+    """Laeuft Seite 1 ueber: wo sich Hoehe gewinnen laesst.
 
-    Der Block ist so hoch wie seine laengere Spalte. Eine halb leere zweite
-    Spalte kostet also Platz auf Seite 1 — und Umverteilen kostet im Gegensatz
-    zum Kuerzen keinen einzigen Eintrag.
+    Die vier Gruppen und ihre Anordnung stehen fest, verschieben geht nicht
+    mehr. Der Block ist so hoch wie seine laengere Spalte — gekuerzt wird also
+    in der laengsten Gruppe der laengeren Spalte, durch Weglassen der
+    schwaechsten Eintraege, nie durch Umformulieren.
     """
-    skillset = daten.get("skillset") or {}
+    spalten = skillset_gruppen(daten)[0]
+
     def zeilen(spalte):                       # Ueberschrift plus Eintraege
-        return sum(1 + len(g.get("eintraege") or []) for g in spalte or [])
-    links, rechts = zeilen(skillset.get("links")), zeilen(skillset.get("rechts"))
-    lang, kurz = max(links, rechts), min(links, rechts)
-    if kurz and lang > kurz * 1.5:
-        seite = "linke" if links > rechts else "rechte"
-        return [
-            f"Das Skillset steht schief: die {seite} Spalte traegt {lang} Zeilen, "
-            f"die andere {kurz}. Eine Gruppe hinueberschieben macht den Block "
-            "flacher, ohne dass ein Eintrag wegfaellt — das zuerst versuchen."
-        ]
-    return []
+        return sum(1 + len(g["eintraege"]) for g in spalte)
+    seite = max(spalten, key=lambda s: zeilen(spalten[s]))
+    if not spalten[seite]:
+        return []
+    laengste = max(spalten[seite], key=lambda g: len(g["eintraege"]))
+    return [
+        f"Die {'linke' if seite == 'links' else 'rechte'} Skillset-Spalte ist die "
+        f"laengere ({zeilen(spalten[seite])} Zeilen). Dort zuerst in "
+        f"{laengste['titel']} ({len(laengste['eintraege'])} Eintraege) die schwaechsten "
+        "Eintraege weglassen — Gruppen und Anordnung stehen fest."
+    ]
 
 
-# Wo die unterste Zeile des Footers stehen soll, in pt ueber der Blattunterkante.
-# Der Seitenrand liegt bei 32pt; gemessen wird die Schriftlinie, die ein Stueck
-# darueber sitzt. Der Rest ist Sicherheitsabstand: gemessen kippt der Footer auf
-# eine neue Seite, sobald die Fussluft die Restseite auf den Punkt ausfuellt, und
-# 12pt sind vier Millimeter — von buendig nicht zu unterscheiden.
-FUSS_ZIEL = 44
+# Wo die unterste Zeile des Footers stehen soll, in pt ueber der Blattunterkante:
+# so wie in Figma, wo der Footer mit seiner letzten Zeile auf dem unteren
+# Seitenrand aufsitzt. Gemessen wird die Schriftlinie, und die sitzt um die
+# Unterlaenge der Zeile ueber dem Rand. Fuellt die Fussluft die Restseite auf
+# den Punkt aus, kippt der Footer auf eine neue Seite — deshalb probiert
+# render_cv.py kleine Reserven durch, bevor es groessere nimmt.
+FUSS_ZIEL = round(tokens.laden()["seite"]["rand_unten"]
+                  + tokens.stil("fuss_wert")["zeile"] - tokens.grundlinie("fuss_wert"), 2)
 # Mindestabstand, wenn die Seite nicht mehr hergibt. Lieber eng als eine
 # zusaetzliche Seite, auf der nichts ausser dem Footer steht.
 FUSS_MIN = 12
@@ -460,8 +643,8 @@ def _schlussmarken(daten):
     oben auf Seite 1, egal wie weit das Skillset darunter ueberlaeuft.
     """
     marken = []
-    skillset = daten.get("skillset") or {}
-    for spalte in (skillset.get("links"), skillset.get("rechts")):
+    spalten = skillset_gruppen(daten)[0]
+    for spalte in (spalten["links"], spalten["rechts"]):
         if spalte:
             letzte = spalte[-1]
             eintraege = letzte.get("eintraege") or []
@@ -479,10 +662,9 @@ def deckblatt_seiten(ziel, daten):
     Gemessen am jeweils ersten Vorkommen der Schlussmarken — der Block steht vor
     den Stationen, ein spaeterer Treffer im Stationstext zaehlt also nicht.
     0 heisst: gibt hier nichts zu pruefen (kein pypdf, kein Bildung/Skillset).
-    -1 heisst: geprueft, aber keine Marke wiedergefunden.
+    -1 heisst: geprueft, aber keine Marke wiedergefunden. Ein Skillset gibt es
+    immer — mindestens die Sprachen stehen darin —, geprueft wird also immer.
     """
-    if not (daten.get("bildung") or daten.get("skillset")):
-        return 0
     try:
         from pypdf import PdfReader
     except ImportError:
@@ -514,7 +696,11 @@ def dateiname(daten):
     teile = ["New-Monday"]
     for feld in ("name", "rolle"):
         wert = re.sub(r'[/\\:*?"<>|]', "-", str(person.get(feld) or ""))
-        wert = re.sub(r"\s+", " ", wert).strip(" .")
+        # Nur Leerzeichen weg, Punkte bleiben: die anonyme Fassung traegt
+        # Initialen im Namensfeld, und "F. F" statt "F. F." saehe nach Panne
+        # aus. Ein Punkt am Ende des ganzen Dateinamens kann dadurch nicht
+        # entstehen — der ist immer ".pdf".
+        wert = re.sub(r"\s+", " ", wert).strip()
         if wert:
             teile.append(wert)
     teile.append("CV")
@@ -559,6 +745,9 @@ def main():
     daten = json.loads(quelle.read_text(encoding="utf-8"))
 
     hinweise = pruefe(daten)
+    # Was am Skillset gesetzt, ergaenzt oder weggelassen wurde (Sprachvorgabe,
+    # leere Gruppen, altes Format) — gehoert in die Uebergabe.
+    hinweise += skillset_gruppen(daten)[1]
     person = daten.get("person") or {}
     for feld in ("name", "rolle"):
         if not person.get(feld):
@@ -589,7 +778,7 @@ def main():
     # aber noch Zeilenrest, und der Umbruch braucht Reserve — wie viel, haengt
     # am Dokument, deshalb mehrere Zielhoehen von knapp bis gelassen. Was die
     # Seite sprengt, faellt durch.
-    ZIELE = (FUSS_ZIEL, FUSS_ZIEL + 20, FUSS_ZIEL + 45, FUSS_ZIEL + 75)
+    ZIELE = tuple(FUSS_ZIEL + reserve for reserve in (0.5, 2, 6, 20, 45, 75))
 
     # Eine letzte Seite, auf der nur der Footer steht, ist verschenktes Papier.
     # Dann werden die Abstaende zwischen Stationen, Projekten und Bullets enger

@@ -4,11 +4,12 @@
     python3 scripts/figma_plan.py cv.json "ausgabe/New-Monday - ... - CV.pdf" arbeit/
 
 Schreibt arbeit/figma_plan.json: je PDF-Seite ein Frame, darin die Bloecke in
-Lesereihenfolge — alle Werte fertig ausgerechnet (Schriftgroesse, Figma-Schnitt,
-Zeilenhoehe, Laufweite, Farbe, Einzug, Logomasse in pt). Das use_figma-Skript
-setzt nur noch, was hier steht; Layoutwerte werden dort nicht mehr gerechnet.
-Die Werte stammen aus assets/cv.css und references/layout.md, die Logomathematik
-aus render_cv.py — nichts davon wird hier ein zweites Mal erfunden.
+Lesereihenfolge — alle Werte fertig ausgerechnet (Schriftfamilie, Figma-Schnitt,
+Groesse, Zeilenhoehe, Laufweite, Farbe, Einzug, Logomasse in pt). Das
+use_figma-Skript setzt nur noch, was hier steht; Layoutwerte werden dort nicht
+mehr gerechnet. Die Werte kommen aus assets/tokens.json — derselben Quelle wie
+cv.css —, die Logomathematik aus render_cv.py. Nichts davon wird hier ein
+zweites Mal festgelegt, deshalb koennen Frame und PDF nicht auseinanderlaufen.
 
 Die Seitenaufteilung wird nicht geschaetzt, sondern aus dem gerenderten PDF
 gelesen: jeder Block bekommt eine unterscheidbare Textmarke, gesucht wird sie im
@@ -25,60 +26,15 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from render_cv import (  # noqa: E402  — erst nach sys.path.insert moeglich
-    BESCHRIFTUNG, VERWEISTEXT, dateiname, logo_groessen, logo_masse,
-    logoliste, seitenverhaeltnis,
+import tokens  # noqa: E402  — erst nach sys.path.insert moeglich
+from render_cv import (  # noqa: E402
+    BESCHRIFTUNG, KONTAKT_VORGABE, VERWEISTEXT, dateiname, logo_groessen,
+    logo_masse, logoliste, skillset_gruppen,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
-
-# --- Feste Masse, 1:1 aus assets/cv.css -------------------------------------
-# A4 in Punkt. In Figma gilt 1px = 1pt, die Zahlen wandern also unveraendert
-# in den Frame.
-RAHMEN = {"breite": 595, "hoehe": 842,
-          "oben": 60, "rechts": 107, "unten": 32, "links": 60, "inhalt": 428}
-RASTER = {"logospalte": 88, "abstand": 32, "inhaltsspalte": 308, "einzug": 120,
-          "fotospalte": 78, "fotoabstand": 40,
-          "spalte_halb": 198.5, "spalte_abstand": 31}
-FARBEN = {"black": "#111111", "muted": "#485758", "brand": "#009193"}
-
-# Inter heisst in Figma "Semi Bold" und "Extra Bold" — mit Leerzeichen. Ohne
-# Leerzeichen wirft loadFontAsync, und jeder Textknoten des Frames faellt aus.
-SCHNITT = {400: "Regular", 600: "Semi Bold", 700: "Bold", 800: "Extra Bold"}
-
-# Die Kopfzeilen-Wortmarke steht im CSS fest, nicht ueber logo_masse().
-KOPF_LOGO = {"breite": 133.231, "hoehe": 13.5}
-FUSS_LOGO_BREITE = 79
-
-# Verdichtungsstufen. render_cv.py setzt Deckblatt und Stationen enger, bevor
-# irgendwer Eintraege streicht; der Frame muss dieselben Abstaende bekommen,
-# sonst laeuft er ueber. Werte aus .deckblatt--* und .stationen--* in cv.css.
-DECKBLATT = {
-    "normal":  {"section": 31, "h2": 31, "h3": 17, "stack": 31, "reihe": 31,
-                "divider": 31, "edu_liste": 17},
-    "kompakt": {"section": 20, "h2": 20, "h3": 12, "stack": 20, "reihe": 20,
-                "divider": 20, "edu_liste": 17},
-    "eng":     {"section": 14, "h2": 12, "h3":  8, "stack": 14, "reihe": 14,
-                "divider": 14, "edu_liste":  8},
-}
-STATIONEN = {
-    "normal":  {"station": 32, "projekt": 32, "bullet": 10,
-                "profil_unten": 31, "profil_divider": 20, "profil_h2": 12},
-    "kompakt": {"station": 24, "projekt": 24, "bullet":  8,
-                "profil_unten": 24, "profil_divider": 16, "profil_h2": 12},
-    "eng":     {"station": 20, "projekt": 20, "bullet":  6,
-                "profil_unten": 20, "profil_divider": 14, "profil_h2": 10},
-}
-
-# Muss dem Vorgabewert in render_cv.html_bauen() entsprechen — der
-# Ansprechpartner im Footer steht als Vorgabe im Skill, nicht in der cv.json.
-KONTAKT_VORGABE = {
-    "name": "Manuel Klein", "rolle": "CCO",
-    "mail": "manuel.klein@newmonday.co", "telefon": "+49 (0) 155 1148 0130",
-    "firma": "New Monday GmbH", "strasse": "Stresemannstraße 32",
-    "ort": "10963 Berlin",
-}
+T = tokens.laden()
 
 
 def norm(text):
@@ -87,11 +43,20 @@ def norm(text):
     return " ".join(str(text or "").split())
 
 
-def typo(groesse, gewicht, zeilenhoehe=None, laufweite=0, farbe="black"):
-    """Ein fertiger Textstil. zeilenhoehe None heisst in Figma AUTO — das ist
-    das Gegenstueck zu `line-height: normal` im CSS."""
-    return {"groesse": groesse, "schnitt": SCHNITT[gewicht],
-            "zeilenhoehe": zeilenhoehe, "laufweite": laufweite, "farbe": farbe}
+def typo(name):
+    """Ein fertiger Textstil aus tokens.json, so wie Figma ihn braucht.
+
+    zeile ist die Zeilenhoehe in pt und wird in Figma als PIXELS gesetzt, nicht
+    als Prozent: Figma rundet Prozentwerte auf ganze Punkt, der feste Wert ist
+    genau das, was dabei herauskommt — und genau das, was das PDF setzt.
+    """
+    s = tokens.stil(name)
+    stil = {"familie": s["schrift"], "schnitt": s["figma_schnitt"],
+            "groesse": s["groesse"], "zeile": s["zeile"],
+            "laufweite": s["laufweite"], "farbe": s["farbe_hex"]}
+    if s.get("versalien"):
+        stil["versalien"] = True
+    return stil
 
 
 def logo_eintrag(datei, groesse):
@@ -101,6 +66,11 @@ def logo_eintrag(datei, groesse):
     breite, hoehe = logo_masse(datei, groesse)
     return {"datei": str(ASSETS / "logos" / datei),
             "typ": "svg" if datei.lower().endswith(".svg") else "raster",
+            "breite": breite, "hoehe": hoehe}
+
+
+def nm_logo(breite, hoehe):
+    return {"datei": str(ASSETS / "logos" / "nm-logo.svg"), "typ": "svg",
             "breite": breite, "hoehe": hoehe}
 
 
@@ -121,8 +91,9 @@ def bloecke_bauen(daten, deckblatt, stationen):
     stehen als seine Station, eine Bulletliste sogar auf beiden. Verschachtelt
     liesse sich das nicht auf Frames verteilen.
     """
-    d = DECKBLATT[deckblatt]
-    s = STATIONEN[stationen]
+    d = T["verdichtung"]["deckblatt"][deckblatt]
+    s = T["verdichtung"]["stationen"][stationen]
+    a, r, ab, farben = T["abstand"], T["raster"], T["abgeleitet"], T["farben"]
     sprache = daten.get("sprache", "de")
     labels = BESCHRIFTUNG.get(sprache, BESCHRIFTUNG["de"])
     person = daten.get("person") or {}
@@ -131,14 +102,13 @@ def bloecke_bauen(daten, deckblatt, stationen):
     # Kopfzeile — nur die Wortmarke.
     bloecke.append(block(
         "kopfzeile", anker="erste",
-        logo={"datei": str(ASSETS / "logos" / "nm-logo.svg"), "typ": "svg",
-              **KOPF_LOGO}))
+        logo=nm_logo(r["kopflogo_breite"], r["kopflogo_hoehe"])))
 
     # Profilkopf: Foto links, rechts Name, Rolle, Erfahrung, Verweise.
-    zeilen = [dict(text=norm(person.get(f)), **typo(10, 400))
+    zeilen = [dict(text=norm(person.get(f)), **typo("rolle"))
               for f in ("rolle", "erfahrung") if person.get(f)]
     for i, z in enumerate(zeilen):
-        z["abstand_oben"] = 4 if i else 0
+        z["abstand_oben"] = a["rolle_erfahrung"] if i else 0
     verweistexte = VERWEISTEXT.get(sprache, VERWEISTEXT["de"])
     verweise = []
     for l in person.get("links") or []:
@@ -146,154 +116,193 @@ def bloecke_bauen(daten, deckblatt, stationen):
         verweise.append({
             "text": l.get("text") or verweistexte.get(titel.lower()) or titel,
             "url": l.get("url") or None,
-            # Der Unterstrich in der Markenfarbe ist das einzige Signal, dass
-            # ein Verweis anklickbar ist. Ein Portfolio, das nur als PDF
-            # vorliegt, hat keine Adresse und steht deshalb ohne.
+            # Die Linie in der Markenfarbe ist das einzige Signal, dass ein
+            # Verweis anklickbar ist. Ein Portfolio, das nur als PDF vorliegt,
+            # hat keine Adresse und steht deshalb ohne.
             "unterstrichen": bool(l.get("url")),
         })
     bloecke.append(block(
-        "intro", abstand_oben=35.5, anker="erste",
-        fotospalte=RASTER["fotospalte"], fotoabstand=RASTER["fotoabstand"],
-        infospalte=RASTER["inhaltsspalte"],
+        "intro", abstand_oben=a["kopf_intro"], anker="erste",
+        fotospalte=r["fotospalte"], fotoabstand=r["fotoabstand"],
+        infospalte=ab["inhaltsspalte"],
+        # Die anonyme Fassung setzt statt des Fotos die Silhouette, und die ist
+        # ein SVG. In Figma fuehren die beiden zu verschiedenen Wegen — Markup
+        # im Code gegen Upload aufs Rechteck —, also steht der Typ hier im Plan,
+        # genau wie bei den Logos. Entschieden wird er nicht hier.
         foto=({"datei": str(Path(person["foto"]).expanduser().resolve()),
-               "breite": 79, "hoehe": 106, "oben": 7}
+               "typ": ("svg" if str(person["foto"]).lower().endswith(".svg")
+                       else "raster"),
+               "breite": r["foto_breite"], "hoehe": r["foto_hoehe"],
+               "oben": r["foto_oben"]}
               if person.get("foto") else None),
-        name=dict(text=norm(person.get("name")), abstand_unten=8,
-                  **typo(24, 800, 1.35, -1.08)),
+        name=dict(text=norm(person.get("name")), abstand_unten=a["name_rolle"],
+                  **typo("name")),
         zeilen=zeilen,
-        verweise=(dict(abstand_oben=10, abstand_rechts=16, eintraege=verweise,
-                       **typo(9, 400)) if verweise else None)))
+        verweise=(dict(abstand_oben=a["erfahrung_verweise"], abstand=a["verweise"],
+                       zeilenabstand=a["verweise_zeilen"],
+                       linie={"staerke": r["verweislinie"], "farbe": farben["marke"]},
+                       eintraege=verweise, **typo("verweis"))
+                  if verweise else None)))
 
     # --- Deckblatt: Bildung und Skillset, beide auf Seite 1 ---
     erste_rubrik = True
     if daten.get("bildung"):
-        bloecke.append(block("rubrik", abstand_oben=32, marke=labels["bildung"],
-                             text=labels["bildung"], **typo(14, 600)))
+        bloecke.append(block("rubrik", abstand_oben=a["intro_inhalt"],
+                             marke=labels["bildung"], text=labels["bildung"],
+                             **typo("rubrik")))
         erste_rubrik = False
         eintraege = []
         for b in daten["bildung"]:
             eintraege.append({
-                "abschluss": dict(text=norm(b.get("abschluss")), **typo(10, 600)),
-                "zeilen": [dict(text=norm(b[f]), abstand_oben=2, **typo(10, 400))
+                "abschluss": dict(text=norm(b.get("abschluss")), **typo("abschluss")),
+                "zeilen": [dict(text=norm(b[f]), abstand_oben=0, **typo("bildung"))
                            for f in ("institution", "zeitraum") if b.get(f)],
-                "themen": (dict(abstand_oben=d["edu_liste"], einzug=15, abstand=2,
-                                eintraege=[norm(t) for t in b["themen"]],
-                                **typo(10, 400)) if b.get("themen") else None),
+                "themen": (dict(abstand_oben=d["bildung_liste"], einzug=r["listeneinzug"],
+                                abstand=0, eintraege=[norm(t) for t in b["themen"]],
+                                **typo("liste")) if b.get("themen") else None),
             })
         bloecke.append(block(
-            "bildung", abstand_oben=d["h2"],
+            "bildung", abstand_oben=d["rubrik_inhalt"],
             marke=(daten["bildung"][0] or {}).get("abschluss"),
-            spaltenbreite=RASTER["spalte_halb"],
-            spaltenabstand=RASTER["spalte_abstand"], reihenabstand=d["reihe"],
-            eintraege=eintraege))
-        bloecke.append(block("trennlinie", abstand_oben=d["divider"],
-                             farbe="black", staerke=1))
+            spaltenbreite=ab["halbe_spalte"], spaltenabstand=r["spaltenabstand"],
+            reihenabstand=d["bildung_reihen"], eintraege=eintraege))
+        bloecke.append(block("trennlinie", abstand_oben=d["vor_linie"],
+                             farbe=farben["text"], staerke=r["linie"]))
 
-    if daten.get("skillset"):
+    # Das Skillset gibt es immer, mit den vier festen Gruppen 2 x 2 — dieselbe
+    # Aufbereitung wie im PDF (render_cv.skillset_gruppen), nicht die Rohdaten.
+    skillset = skillset_gruppen(daten)[0]
+    if skillset["links"] or skillset["rechts"]:
         bloecke.append(block(
-            "rubrik", abstand_oben=32 if erste_rubrik else d["section"],
-            marke=labels["skillset"], text=labels["skillset"], **typo(14, 600)))
-        skillset = daten["skillset"]
+            "rubrik", abstand_oben=a["intro_inhalt"] if erste_rubrik else d["nach_linie"],
+            marke=labels["skillset"], text=labels["skillset"], **typo("rubrik")))
 
         def gruppen(spalte):
             return [{
-                "titel": dict(text=norm(g.get("titel")), abstand_unten=d["h3"],
-                              **typo(10, 600)),
-                "eintraege": [norm(e) for e in g.get("eintraege") or []],
-            } for g in spalte or []]
+                "titel": dict(text=norm(g["titel"]), abstand_unten=d["gruppe_liste"],
+                              **typo("gruppe")),
+                "eintraege": [norm(e) for e in g["eintraege"]],
+            } for g in spalte]
 
-        erste = (skillset.get("links") or skillset.get("rechts") or [{}])[0]
+        erste = (skillset["links"] or skillset["rechts"])[0]
         bloecke.append(block(
-            "skillset", abstand_oben=d["h2"], marke=erste.get("titel"),
-            spaltenbreite=RASTER["spalte_halb"],
-            spaltenabstand=RASTER["spalte_abstand"], gruppenabstand=d["stack"],
-            liste=dict(einzug=15, abstand=2, **typo(10, 400)),
-            spalten=[gruppen(skillset.get("links")),
-                     gruppen(skillset.get("rechts"))]))
+            "skillset", abstand_oben=d["rubrik_inhalt"], marke=erste["titel"],
+            spaltenbreite=ab["halbe_spalte"], spaltenabstand=r["spaltenabstand"],
+            gruppenabstand=d["gruppen"],
+            liste=dict(einzug=r["listeneinzug"], abstand=0, **typo("liste")),
+            spalten=[gruppen(skillset["links"]), gruppen(skillset["rechts"])]))
 
     # --- Ab hier die Stationen, im PDF auf einer neuen Seite ---
     naechster_abstand = 0
     if person.get("kurzprofil"):
         bloecke.append(block("rubrik", abstand_oben=0, seitenanfang=True,
                              marke=labels["kurzprofil"], text=labels["kurzprofil"],
-                             **typo(14, 600)))
-        bloecke.append(block("profil", abstand_oben=s["profil_h2"],
+                             **typo("rubrik")))
+        bloecke.append(block("profil", abstand_oben=s["profil_rubrik"],
                              marke=" ".join(norm(person["kurzprofil"]).split()[:8]),
-                             text=norm(person["kurzprofil"]),
-                             **typo(10, 400, 1.35, -0.05)))
-        bloecke.append(block("trennlinie", abstand_oben=s["profil_divider"],
-                             farbe="black", staerke=1))
-        naechster_abstand = s["profil_unten"]
+                             text=norm(person["kurzprofil"]), **typo("profil")))
+        bloecke.append(block("trennlinie", abstand_oben=s["profil_linie"],
+                             farbe=farben["text"], staerke=r["linie"]))
+        naechster_abstand = s["profil_stationen"]
 
     st_groesse, pr_groesse = logo_groessen(daten)
     for nr, station in enumerate(daten.get("stationen") or []):
         if nr:
             naechster_abstand = s["station"]
+        # Der Kopf wie in Figma: Titel, Firma, Zeitraum als eigene Zeile. Die
+        # Schlagwortzeile steht zusaetzlich darunter (im Skill bewusst behalten).
         bloecke.append(block(
             "station", abstand_oben=naechster_abstand,
             seitenanfang=(nr == 0 and not person.get("kurzprofil")),
             marke=station.get("titel"),
-            rail={"breite": RASTER["logospalte"], "oben": 3, "abstand": 10,
+            rail={"breite": r["logospalte"], "oben": r["logo_oben"], "abstand": r["logo_stapel"],
                   "logos": [logo_eintrag(f, st_groesse)
                             for f in logoliste(station.get("logo"))]},
-            spaltenabstand=RASTER["abstand"], koerperbreite=RASTER["inhaltsspalte"],
-            titel=dict(text=norm(station.get("titel")), **typo(12, 700)),
-            meta=dict(abstand_oben=4, abstand=8, strich={"breite": 1, "hoehe": 10},
-                      zeitraum=norm(station.get("zeitraum")),
-                      firma=norm(station.get("firma")) or None, **typo(8, 400)),
-            absaetze=[dict(text=norm(station[f]), abstand_oben=8, **typo(10, 400, 1.35))
+            spaltenabstand=r["logoabstand"], koerperbreite=ab["inhaltsspalte"],
+            titel=dict(text=norm(station.get("titel")), **typo("titel")),
+            firma=(dict(text=norm(station["firma"]), abstand_oben=a["titel_firma"],
+                        **typo("firma")) if station.get("firma") else None),
+            zeitraum=(dict(text=norm(station["zeitraum"]), abstand_oben=a["firma_zeitraum"],
+                           **typo("zeitraum")) if station.get("zeitraum") else None),
+            absaetze=[dict(text=norm(station[f]), abstand_oben=a["zeitraum_text"],
+                           **typo("fliesstext"))
                       for f in ("zusammenfassung", "beschreibung") if station.get(f)]))
         if station.get("aufgaben"):
-            bloecke.append(aufgabenblock(station["aufgaben"], 8, s["bullet"]))
+            bloecke.append(aufgabenblock(station["aufgaben"], s["kopf_aufgaben"]))
         for projekt in station.get("projekte") or []:
+            # Die Marke ist Kunde, Zeitraum und Textanfang in der Reihenfolge, in
+            # der sie im PDF stehen. Der Kunde allein reicht nicht: Steht
+            # "Deutsche Bank" dreimal im Dokument, fand die Suche immer das
+            # erste Vorkommen, und das Projekt landete auf der falschen Seite.
+            marke = " ".join(filter(None, [
+                norm(projekt.get("kunde")), norm(projekt.get("zeitraum")),
+                " ".join(norm(projekt.get("beschreibung")).split()[:3])]))
             bloecke.append(block(
-                "projekt", abstand_oben=s["projekt"], einzug=RASTER["einzug"],
-                marke=projekt.get("kunde"), breite=RASTER["inhaltsspalte"],
-                logos=dict(abstand_unten=8, abstand=8,
+                "projekt", abstand_oben=s["projekt"], einzug=ab["einzug"],
+                marke=marke, breite=ab["inhaltsspalte"],
+                # Nebeneinander, auf der Mitte zueinander, linksbuendig an der
+                # Kundenzeile; bricht um, wenn die Reihe breiter als die Spalte
+                # wird — wie .project__logos in cv.css. Im Frame also eine
+                # HORIZONTAL-Autolayout-Reihe mit Umbruch, nicht VERTICAL.
+                logos=dict(abstand_unten=a["projektlogo_kunde"], richtung="nebeneinander",
+                           abstand=r["projektlogo_reihe"], zeilenabstand=r["projektlogo_reihe"],
+                           ausrichtung="mitte", breite=ab["inhaltsspalte"],
                            eintraege=[logo_eintrag(f, pr_groesse)
                                       for f in logoliste(projekt.get("logo"))]),
-                kunde=dict(text=norm(projekt.get("kunde")), **typo(10, 700)),
-                zeitraum=(dict(text=norm(projekt["zeitraum"]), abstand_oben=4,
-                               **typo(8, 400)) if projekt.get("zeitraum") else None),
-                absaetze=[dict(text=norm(projekt["beschreibung"]), abstand_oben=8,
-                               **typo(10, 400, 1.35))]
+                kunde=dict(text=norm(projekt.get("kunde")), **typo("kunde")),
+                zeitraum=(dict(text=norm(projekt["zeitraum"]), abstand_oben=a["kunde_zeitraum"],
+                               **typo("zeitraum")) if projekt.get("zeitraum") else None),
+                absaetze=[dict(text=norm(projekt["beschreibung"]), abstand_oben=a["projekt_text"],
+                               **typo("fliesstext"))]
                 if projekt.get("beschreibung") else []))
             if projekt.get("aufgaben"):
-                bloecke.append(aufgabenblock(projekt["aufgaben"], 8, s["bullet"]))
+                bloecke.append(aufgabenblock(projekt["aufgaben"], a["projekt_text"]))
 
-    # Footer — immer am unteren Rand der letzten Seite.
+    # Footer — immer am unteren Rand der letzten Seite, breiter als der
+    # Satzspiegel: von der linken bis zur gespiegelten rechten Randlinie.
     kontakt = daten.get("kontakt") or KONTAKT_VORGABE
-    fuss_hoehe = round(FUSS_LOGO_BREITE / seitenverhaeltnis(ASSETS / "logos" / "nm-logo.svg"), 2)
+
+    def wert(*zeilen):
+        """Ein Textblock im Footer; jede Zeile mit ihrem Stil."""
+        return [{"text": norm(text), "stil": stil} for text, stil in zeilen if text]
+
     bloecke.append(block(
-        "footer", anker="letzte",
-        trennlinie={"abstand_oben": 16, "farbe": "black", "staerke": 1},
-        abstand_zur_reihe=17, spaltenabstand=31, gruppenabstand=48,
-        logo={"datei": str(ASSETS / "logos" / "nm-logo.svg"), "typ": "svg",
-              "breite": FUSS_LOGO_BREITE, "hoehe": fuss_hoehe},
-        label=typo(7, 600, None, 0.4), wert=dict(abstand_oben=8, **typo(8, 400)),
-        versalien=True,
+        "footer", anker="letzte", breite=r["fuss_breite"],
+        trennlinie={"farbe": farben["text"], "staerke": r["linie"]},
+        abstand_zur_reihe=a["fuss_linie_reihe"],
+        logo=nm_logo(r["fusslogo_breite"], r["fusslogo_hoehe"]),
+        spaltenblock={"breite": r["fuss_block"], "spaltenbreite": ab["fuss_spalte"],
+                      "spaltenabstand": r["fuss_spaltenabstand"]},
+        label=typo("fuss_label"), wert_abstand=a["fuss_label_wert"],
+        werte_abstand=a["fuss_werte"],
+        stile={"fuss_name": typo("fuss_name"), "fuss_wert": typo("fuss_wert")},
         spalten=[
             {"label": labels["ansprechpartner"],
-             "zeilen": [kontakt.get("name"), kontakt.get("rolle")]},
+             "werte": [wert((kontakt.get("name"), "fuss_name"),
+                            (kontakt.get("rolle"), "fuss_wert"))]},
             {"label": labels["kontakt"],
-             "zeilen": [kontakt.get("mail"), kontakt.get("telefon")]},
+             "werte": [wert((kontakt.get("mail"), "fuss_wert")),
+                       wert((kontakt.get("telefon"), "fuss_wert"))]},
             {"label": labels["adresse"],
-             "zeilen": [kontakt.get("firma"), kontakt.get("strasse"), kontakt.get("ort")]},
+             "werte": [wert((kontakt.get("firma"), "fuss_wert"),
+                            (kontakt.get("strasse"), "fuss_wert"),
+                            (kontakt.get("ort"), "fuss_wert"))]},
         ]))
     return bloecke
 
 
-def aufgabenblock(aufgaben, abstand_oben, abstand):
+def aufgabenblock(aufgaben, abstand_oben):
     """Bulletliste einer Station oder eines Projekts.
 
     Eigener Block, nicht Teil der Station: Im PDF darf eine Liste ueber den
     Seitenumbruch laufen, und dann steht ein Teil davon auf dem naechsten Frame.
-    Geteilt wird spaeter in bulletlisten_teilen().
+    Geteilt wird spaeter in bulletlisten_teilen(). abstand ist der
+    Listenabstand zwischen den Punkten — 0, wie in Figma.
     """
-    return block("aufgaben", abstand_oben=abstand_oben, einzug=RASTER["einzug"],
-                 marke=aufgaben[0], breite=RASTER["inhaltsspalte"], einzug_liste=15,
-                 abstand=abstand, eintraege=[norm(a) for a in aufgaben],
-                 **typo(10, 400, 1.35, -0.05, "muted"))
+    return block("aufgaben", abstand_oben=abstand_oben, einzug=T["abgeleitet"]["einzug"],
+                 marke=aufgaben[0], breite=T["abgeleitet"]["inhaltsspalte"],
+                 einzug_liste=T["raster"]["listeneinzug"], abstand=0,
+                 eintraege=[norm(a) for a in aufgaben], **typo("aufgabe"))
 
 
 # --- Seiten zuordnen --------------------------------------------------------
@@ -397,9 +406,10 @@ def stufen_lesen(argv):
                 stationen = wert
             continue
         rest.append(a)
+    stufen = T["verdichtung"]["deckblatt"]
     for name, wert in (("--deckblatt", deckblatt), ("--stationen", stationen)):
-        if wert not in DECKBLATT:
-            raise SystemExit(f"{name}: normal, kompakt oder eng — nicht {wert!r}")
+        if wert not in stufen:
+            raise SystemExit(f"{name}: {', '.join(stufen)} — nicht {wert!r}")
     return deckblatt, stationen, rest
 
 
@@ -424,16 +434,33 @@ def main():
     for nummer in range(1, len(texte) + 1):
         eigene = [{k: v for k, v in b.items() if k not in ("seite", "marke", "anker")}
                   for b in bloecke if b["seite"] == nummer]
+        # Oben auf einer Folgeseite hat der erste Block keinen Abstand: Bricht
+        # die Seite zwischen zwei Bloecken um, verwirft das PDF den Rand davor.
+        # Ohne das stuende eine Station, die eine Seite eroeffnet, im Frame 32pt
+        # tiefer als im PDF.
+        if nummer > 1 and eigene and eigene[0]["art"] != "footer":
+            eigene[0]["abstand_oben"] = 0
         frames.append({"nr": nummer, "name": f"CV — {name} — Seite {nummer}",
                        "bloecke": eigene})
 
+    seite = T["seite"]
+    schriften = {}
+    for n in T["text"]:
+        stil = typo(n)
+        schriften.setdefault(stil["familie"], set()).add(stil["schnitt"])
     plan = {
         "pdf": str(pdf), "datei": dateiname(daten),
         "sprache": daten.get("sprache", "de"),
         "person": {"name": name, "rolle": norm((daten.get("person") or {}).get("rolle"))},
         "stufen": {"deckblatt": deckblatt, "stationen": stationen},
-        "rahmen": RAHMEN, "raster": RASTER, "farben": FARBEN,
-        "schrift": {"familie": "Inter", "schnitte": sorted(set(SCHNITT.values()))},
+        "quelle": T["quelle"],
+        "rahmen": {"breite": seite["breite"], "hoehe": seite["hoehe"],
+                   "oben": seite["rand_oben"], "rechts": seite["rand_rechts"],
+                   "unten": seite["rand_unten"], "links": seite["rand_links"],
+                   "inhalt": T["abgeleitet"]["inhaltsbreite"]},
+        "farben": {k: v for k, v in T["farben"].items()},
+        # Je Familie die Schnitte in Figma-Schreibweise — fuer den Vorflug.
+        "schrift": {familie: sorted(schnitte) for familie, schnitte in schriften.items()},
         "frames": frames,
     }
     ziel = ordner / "figma_plan.json"

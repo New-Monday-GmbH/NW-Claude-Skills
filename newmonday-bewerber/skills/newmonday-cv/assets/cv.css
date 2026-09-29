@@ -1,254 +1,256 @@
-/* New Monday CV — Tokens 1:1 aus Figma KoR4rzVSoMrvQot8z33gkv (Seite "CV").
-   Figma-Frames sind 595x842 = A4 in Punkt, daher gilt 1 Figma-px = 1pt.
-   Niemals px verwenden: 24px waeren in CSS nur 18pt. */
+/* New Monday CV — Gestaltung.
 
-@font-face { font-family: Inter; src: url(fonts/Inter-Regular.ttf);    font-weight: 400; }
-@font-face { font-family: Inter; src: url(fonts/Inter-SemiBold.ttf);   font-weight: 600; }
-@font-face { font-family: Inter; src: url(fonts/Inter-Bold.ttf);       font-weight: 700; }
-@font-face { font-family: Inter; src: url(fonts/Inter-ExtraBold.ttf);  font-weight: 800; }
+   Diese Datei ist ein Jinja-Template. Sie legt fest, WIE gesetzt wird; WAS
+   gesetzt wird — Groessen, Zeilenhoehen, Laufweiten, Abstaende, Farben,
+   Schriften — steht ausschliesslich in tokens.json und kommt ueber die Helfer
+   dort herein: css("rubrik") setzt einen ganzen Textstil, pt(a.name_rolle)
+   einen Abstand. Quelle der Werte ist die Figma-Datei, die in tokens.json unter
+   "quelle" steht.
 
-:root {
-  --brand:  #009193;
-  --black:  #111111;
-  --muted:  #485758;   /* Aufgaben-Bullets */
-  --rail:   88pt;      /* Logospalte */
-  --gap:    32pt;      /* Spaltenabstand */
-  --main:   308pt;     /* Inhaltsspalte */
-  --hairline: #111111;
-  /* Logomasse stehen nicht hier: render_cv.py rechnet Breite und Hoehe je
-     Logo aus dem Seitenverhaeltnis der Datei aus und schreibt sie ans <img>.
-     Nur so deckt jedes Logo dieselbe Flaeche. Siehe logo_masse(). */
-}
+   Keine Zahl mit Einheit und keine Farbe als Literal: selbsttest.py schlaegt
+   sonst an. Ein Literal laeuft beim naechsten Design-Update nicht mit — genau
+   so war der alte Stand hinter Figma zurueckgefallen.
 
+   Einheit ist pt: Figma-Frames sind 595 x 842 = A4 in Punkt, 1 Figma-px = 1pt.
+   Niemals px: 1px sind in CSS nur 0,75pt. */
+
+{% for familie, schrift in tok.schriften.items() %}{% for gewicht, datei in schrift.dateien.items() %}
+@font-face { font-family: "{{ familie }}"; src: url(fonts/{{ datei }}); font-weight: {{ gewicht }}; }
+{% endfor %}{% endfor %}
+
+/* Der Druckbereich ist so breit wie der Footer, nicht wie der Satzspiegel:
+   Ragte der Footer ueber den Seitenrand, verkleinerte Chrome die ganze Seite,
+   bis er passt (auf rund 90 %). Der Satzspiegel von Figma steht deshalb als
+   Breite an den Bloecken darunter — Kopf, Profilkopf, Deckblatt, Stationen. */
 @page {
   size: A4;
-  margin: 60pt 107pt 32pt 60pt;   /* Inhaltsbreite = 428pt */
+  margin: {{ pt(tok.seite.rand_oben) }} {{ pt(ab.rand_rechts_druck) }} {{ pt(tok.seite.rand_unten) }} {{ pt(tok.seite.rand_links) }};
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
-  font-family: Inter;
-  font-size: 10pt;
-  line-height: 1.35;
-  color: var(--black);
-}
+body { {{ css("fliesstext") }} }
+.header, .intro, .deckblatt, .stationen { width: {{ pt(ab.inhaltsbreite) }}; }
 
 /* ---------- Kopf ---------- */
 
-/* Kopfzeile: nur die Wortmarke, linksbuendig. Die Verweise standen frueher
-   rechts daneben — sie stehen jetzt im Profilkopf unter der Erfahrungszeile,
-   siehe .intro__links. */
-.header { margin-bottom: 35.5pt; }
-.header__logo { display: block; width: 133.231pt; height: 13.5pt; }
+/* Kopfzeile: nur die Wortmarke, linksbuendig. Die Verweise stehen im
+   Profilkopf unter der Erfahrungszeile, siehe .intro__links. */
+.header { margin-bottom: {{ pt(a.kopf_intro) }}; }
+.header__logo { display: block; width: {{ pt(r.kopflogo_breite) }}; height: {{ pt(r.kopflogo_hoehe) }}; }
 
-.intro { display: flex; gap: 40pt; margin-bottom: 32pt; }
-.intro__col { width: 78pt; padding-top: 7pt; flex: none; }
-.intro__photo { width: 79pt; height: 106pt; object-fit: cover; }
-.intro__info { width: var(--main); }
+.intro { display: flex; gap: {{ pt(r.fotoabstand) }}; margin-bottom: {{ pt(a.intro_inhalt) }}; }
+.intro__col { width: {{ pt(r.fotospalte) }}; padding-top: {{ pt(r.foto_oben) }}; flex: none; }
+/* display: block — als Inline-Bild saesse das Foto auf einer Textzeile und
+   braechte deren Unterlaenge mit: der ganze Block darunter rutschte um gut 3pt
+   tiefer als in Figma. */
+.intro__photo { display: block; width: {{ pt(r.foto_breite) }}; height: {{ pt(r.foto_hoehe) }}; object-fit: cover; }
+.intro__info { width: {{ pt(ab.inhaltsspalte) }}; }
 
-.name {
-  font-size: 24pt;
-  font-weight: 800;
-  letter-spacing: -1.08pt;
-  margin-bottom: 8pt;
-}
-.role { font-size: 10pt; line-height: normal; }
-.role + .role { margin-top: 4pt; }
+.name { {{ css("name") }} margin-bottom: {{ pt(a.name_rolle) }}; }
+.role { {{ css("rolle") }} }
+.role + .role { margin-top: {{ pt(a.rolle_erfahrung) }}; }
 
-/* Die Verweise (LinkedIn, Xing, Portfolio) stehen direkt unter der
-   Erfahrungszeile, in einer Zeile nebeneinander. 10pt Abstand statt der 4pt
-   zwischen Rolle und Erfahrung: die beiden Zeilen darueber gehoeren zusammen,
-   die Verweise sind etwas anderes. Benannt statt als Adresse — "zum LinkedIn
+/* Die Verweise (LinkedIn, Xing, Portfolio) stehen unter der Erfahrungszeile,
+   in einer Zeile nebeneinander. Benannt statt als Adresse — "zum LinkedIn
    Profil" liest sich in einem Dokument besser als eine nackte URL.
-   Anklickbar, aber dezent: schwarzer Text wie der Rest des Dokuments, nur der
-   Unterstrich steht in der Markenfarbe. Eine farbige Schrift waere im Papier-
-   ausdruck ein Fremdkoerper, ein grauer Unterstrich als Link nicht erkennbar. */
-.intro__links { margin-top: 10pt; font-size: 9pt; line-height: normal; }
-/* Abstand nach rechts, nicht nach links: bei vier Verweisen bricht die Zeile um,
-   und ein margin-left rueckte den ersten der zweiten Zeile ein. */
-.intro__link {
-  margin-right: 16pt;
-  color: var(--black); white-space: nowrap;
-  text-decoration: underline; text-decoration-color: var(--brand);
-  text-decoration-thickness: 0.5pt; text-underline-offset: 2pt;
+   Anklickbar, aber dezent: schwarzer Text wie der Rest des Dokuments, darunter
+   eine Linie in der Markenfarbe. In Figma ist das keine Unterstreichung,
+   sondern die Unterkante des Rahmens um den Text — deshalb border-bottom, und
+   deshalb sitzt die Linie direkt unter der Zeile statt an der Schriftlinie. */
+.intro__links {
+  display: flex; flex-wrap: wrap; column-gap: {{ pt(a.verweise) }}; row-gap: {{ pt(a.verweise_zeilen) }};
+  margin-top: {{ pt(a.erfahrung_verweise) }};
 }
-.intro__link:last-child { margin-right: 0; }
+.intro__link {
+  display: block; {{ css("verweis") }} white-space: nowrap; text-decoration: none;
+  border-bottom: {{ pt(r.verweislinie) }} solid {{ f.marke }};
+}
 /* Ein Portfolio, das nur als PDF vorliegt, hat keine Adresse — dann steht der
-   Hinweis ohne Unterstrich da, denn anklicken laesst er sich nicht. */
-.intro__link--ohne { text-decoration: none; }
+   Hinweis ohne Linie da, denn anklicken laesst er sich nicht. Die Linie wird
+   unsichtbar statt entfernt, damit die Zeile gleich hoch bleibt. */
+.intro__link--ohne { border-bottom-color: transparent; }
 
-/* Das Kurzprofil steht auf Seite 2 ueber den Stationen — als eigene Rubrik mit
-   Ueberschrift und Trennlinie, ueber die volle Inhaltsbreite. Beides trennt es
-   von den Stationen darunter, die bei 120pt einruecken: ohne diese Absetzung
-   liest sich der Absatz wie der Text der ersten Station. */
-.section--profil { margin-top: 0; }
-.section--profil h2 { margin-bottom: 12pt; }
-/* Trennlinie wie nach Bildung. Darunter voller Rasterabstand zur ersten
-   Station — dicht an der Linie wirkt die Station wie ein Teil des Kurzprofils. */
-.section--profil .divider { margin-top: 20pt; }
-.section--profil { margin-bottom: 31pt; }
-.profile { letter-spacing: -0.05pt; }
+/* ---------- Kurzprofil (Seite 2) ---------- */
+
+/* Eigene Rubrik mit Ueberschrift und Trennlinie, ueber die volle
+   Inhaltsbreite. Beides trennt es von den Stationen darunter, die bei
+   ab.einzug einruecken: ohne diese Absetzung liest sich der Absatz wie der
+   Text der ersten Station.
+   .section.section--profil statt .section--profil: .section und .section h2
+   setzen weiter unten die Abstaende von Seite 1, und bei gleicher Spezifitaet
+   gewinnt die spaetere Regel — das Kurzprofil stand dadurch oben auf Seite 2
+   zu tief und sein Text zu dicht an der Ueberschrift. */
+.section.section--profil { margin-top: 0; margin-bottom: {{ pt(sn.profil_stationen) }}; }
+.section.section--profil h2 { margin-bottom: {{ pt(sn.profil_rubrik) }}; }
+.section.section--profil .divider { margin-top: {{ pt(sn.profil_linie) }}; }
+.profile { {{ css("profil") }} }
 
 /* ---------- Stationen ---------- */
 
 /* Kein Flexbox: Flex-Container brechen nicht ueber Seiten um, dadurch wuerde
    eine lange Station komplett auf die naechste Seite springen. Float laesst
    den Text weiterlaufen und haelt das Logo am Anfang der Station. */
-.station { margin-bottom: 32pt; clear: both; }
-/* Nach der letzten Station kommt nur der Footer, und der bringt seinen Abstand
-   als .fussluft mit. Die 32pt obendrauf haben gereicht, um ihn auf eine sonst
-   leere Seite zu schieben. */
-.station:last-child { margin-bottom: 0; }
+.station { margin-bottom: {{ pt(sn.station) }}; clear: both; }
 .station::after { content: ""; display: table; clear: both; }
-.station__rail { float: left; width: var(--rail); padding-top: 3pt; }
-/* display: block — mehrere Marken stehen immer untereinander, nie nebeneinander.
+.station__rail { float: left; width: {{ pt(r.logospalte) }}; padding-top: {{ pt(r.logo_oben) }}; }
+/* display: block — mehrere Marken stehen in der Logospalte untereinander, nie
+   nebeneinander: nebeneinander wuerden sie in 88pt winzig. (Projektlogos stehen
+   dagegen in einer Reihe, siehe .project__logos.)
    margin-left: auto — jedes Logo steht rechtsbuendig in der Spalte, also an der
-   Kante zum Text. Die Logos sind verschieden breit; linksbuendig franst die
-   Spalte an der Innenkante aus und der Abstand zum Stationstext springt von
-   Station zu Station. Rechtsbuendig steht immer derselbe Abstand (--gap).
-   Breite und Hoehe setzt render_cv.py je Logo am Element, siehe template.html. */
-.station__rail img { display: block; margin-left: auto; max-width: var(--rail); }
-.station__rail img + img { margin-top: 10pt; }
-/* Literal statt calc(): WeasyPrint (66) wirft calc() im margin-left weg, der
-   Wert landet auf 0 und der Stationstext laeuft ueber das Logo. Muss von Hand
-   nachgezogen werden, wenn --rail oder --gap sich aendern (88pt + 32pt). */
-.station__body, .station__kopftext { margin-left: 120pt; }
+   Kante zum Text. Breite und Hoehe setzt render_cv.py je Logo am Element. */
+.station__rail img { display: block; margin-left: auto; max-width: {{ pt(r.logospalte) }}; }
+.station__rail img + img { margin-top: {{ pt(r.logo_stapel) }}; }
+/* ab.einzug ist Logospalte plus Abstand, fertig ausgerechnet: WeasyPrint wirft
+   calc() im margin-left weg, der Stationstext liefe sonst ueber das Logo. */
+.station__body, .station__kopftext { margin-left: {{ pt(ab.einzug) }}; }
 
-.station__title { font-size: 12pt; font-weight: 700; line-height: normal; }
-.station__meta {
-  display: flex; align-items: flex-start; gap: 8pt;
-  font-size: 8pt; line-height: normal; margin-top: 4pt;
-}
-/* Der Zeitraum bleibt einzeilig, der Firmenname darf umbrechen. Sonst reisst
-   eine lange Kundenliste den Trennstrich mitten in den Block. */
-.station__meta span:first-child { white-space: nowrap; }
-.station__meta i {
-  width: 1px; height: 10pt; background: var(--black);
-  font-style: normal; flex: none;
-}
-.station__summary { margin-top: 8pt; }
-/* Fliesstext auf Stationsebene — dieselbe Form wie bei Projekten. Manche
-   Lebenslaeufe beschreiben die Station als Absatz statt als Bulletliste. */
-.station__text { margin-top: 8pt; }
+/* Der Stationskopf wie in Figma: Titel, darunter die Firma, darunter der
+   Zeitraum als eigene Zeile. Die Schlagwortzeile (zusammenfassung) steht
+   zusaetzlich darunter — in der Figma-Vorlage gibt es sie nicht, im Skill
+   bleibt sie bewusst (siehe layout.md). */
+.station__title { {{ css("titel") }} }
+.station__firma { {{ css("firma") }} margin-top: {{ pt(a.titel_firma) }}; }
+.station__zeitraum { {{ css("zeitraum") }} margin-top: {{ pt(a.firma_zeitraum) }}; }
+.station__summary, .station__text { {{ css("fliesstext") }} margin-top: {{ pt(a.zeitraum_text) }}; }
+.station__body > ul.tasks { margin-top: {{ pt(sn.kopf_aufgaben) }}; }
 
-.project { margin-top: 32pt; }
-.project__logos { margin-bottom: 8pt; }
-/* Gleiche Regel wie im Rail, eine Stufe kleiner: untereinander, gleiche Flaeche.
-   Nicht rechtsbuendig — Projektlogos stehen nicht in der Logospalte, sondern
-   ueber dem Kundennamen und richten sich an dessen linker Textkante aus. */
-.project__logo { display: block; max-width: var(--rail); }
-.project__logo + .project__logo { margin-top: 8pt; }
-.project__client { font-size: 10pt; font-weight: 700; }
-.project__date { font-size: 8pt; margin-top: 4pt; }
-.project__text { margin-top: 8pt; }
-
-/* Aufgaben-Bullets: locker gesetzt, gedecktes Grau */
-ul.tasks {
-  margin-top: 8pt; padding-left: 15pt;
-  color: var(--muted); letter-spacing: -0.05pt; list-style: disc;
+/* Projekte kommen in der Figma-Vorlage nicht vor. Sie tragen dieselben Stile
+   wie der Stationskopf: Kunde wie ein Titel, Zeitraum wie ein Zeitraum. */
+.project { margin-top: {{ pt(sn.projekt) }}; }
+/* Mehrere Kunden an einem Projekt ("Opel, Peugeot, Citroën"): die Logos stehen
+   NEBENEINANDER in einer Reihe, auf der Mitte zueinander ausgerichtet — anders
+   als in der Logospalte der Station, wo sie untereinander stehen. Ueber dem
+   Kundennamen ist die ganze Textspalte breit Platz, gestapelt wurden sie nur
+   hoeher als der Kundenblock daneben (Design-Feedback 2026-09-28).
+   Linksbuendig an der Textkante des Kundennamens, nicht rechtsbuendig — sie
+   stehen nicht in der Logospalte. Reicht die Zeile nicht, bricht die Reihe um.
+   Flex statt Inline-Bilder: inline saesse jedes Logo auf einer Textzeile und
+   braechte deren Unterlaenge mit, der Kundenname rutschte tiefer.
+   Flex-Element ist die Huelle .project__logo, nicht das <img>: ein Bild direkt
+   in der Flex-Reihe bekommt in WeasyPrint (66) die Breite 0, alle Logos lagen
+   uebereinander. */
+.project__logos {
+  display: flex; flex-wrap: wrap; align-items: center; gap: {{ pt(r.projektlogo_reihe) }};
+  margin-bottom: {{ pt(a.projektlogo_kunde) }};
 }
-ul.tasks li { margin-bottom: 10pt; }
-ul.tasks li:last-child { margin-bottom: 0; }
+.project__logo { display: block; flex: none; }
+.project__logo img { display: block; max-width: {{ pt(r.logospalte) }}; }
+.project__client { {{ css("kunde") }} }
+.project__date { {{ css("zeitraum") }} margin-top: {{ pt(a.kunde_zeitraum) }}; }
+.project__text { {{ css("fliesstext") }} margin-top: {{ pt(a.projekt_text) }}; }
+.project ul.tasks { margin-top: {{ pt(a.projekt_text) }}; }
+
+/* Aufgaben-Bullets: gedecktes Grau, ohne Zwischenraum — jeder Punkt beginnt
+   eine Zeilenhoehe unter dem vorigen, wie in Figma. */
+ul.tasks { padding-left: {{ pt(r.listeneinzug) }}; {{ css("aufgabe") }} list-style: disc; }
 
 /* Notstufen, damit der Footer nicht allein auf einer sonst leeren Seite landet:
    greifen nur, wenn genau das droht, und holen die fehlenden Punkte aus den
-   Abstaenden zwischen Stationen, Projekten und Bullets. Setzt render_cv.py. */
-.stationen--kompakt .station { margin-bottom: 24pt; }
-.stationen--kompakt .project { margin-top: 24pt; }
-.stationen--kompakt ul.tasks li { margin-bottom: 8pt; }
-.stationen--kompakt .section--profil { margin-bottom: 24pt; }
-.stationen--kompakt .section--profil .divider { margin-top: 16pt; }
-
-.stationen--eng .station { margin-bottom: 20pt; }
-.stationen--eng .project { margin-top: 20pt; }
-.stationen--eng ul.tasks li { margin-bottom: 6pt; }
-.stationen--eng .section--profil { margin-bottom: 20pt; }
-.stationen--eng .section--profil .divider { margin-top: 14pt; }
-.stationen--eng .section--profil h2 { margin-bottom: 10pt; }
+   Abstaenden zwischen Stationen, Projekten und Kurzprofil. Setzt render_cv.py;
+   die Werte stehen in tokens.json unter verdichtung.stationen. */
+{% for stufe, w in tok.verdichtung.stationen.items() if stufe != "normal" %}
+.stationen--{{ stufe }} .station { margin-bottom: {{ pt(w.station) }}; }
+.stationen--{{ stufe }} .station__body > ul.tasks { margin-top: {{ pt(w.kopf_aufgaben) }}; }
+.stationen--{{ stufe }} .project { margin-top: {{ pt(w.projekt) }}; }
+.stationen--{{ stufe }} .section.section--profil { margin-bottom: {{ pt(w.profil_stationen) }}; }
+.stationen--{{ stufe }} .section.section--profil h2 { margin-bottom: {{ pt(w.profil_rubrik) }}; }
+.stationen--{{ stufe }} .section.section--profil .divider { margin-top: {{ pt(w.profil_linie) }}; }
+{% endfor %}
+/* Nach der letzten Station kommt nur der Footer, und der bringt seinen Abstand
+   als .fussluft mit. Steht hinter den Notstufen, damit keine davon der letzten
+   Station wieder einen Abstand gibt — der schob den Footer auf eine leere Seite. */
+.stationen .station:last-child { margin-bottom: 0; }
 
 /* ---------- Bildung / Skillset ---------- */
 
-/* Bildung und Skillset stehen auf Seite 1, unter dem Profilkopf. Sie sind das
-   Erste, was ein Kunde sieht. Die Stationen beginnen danach auf einer neuen
-   Seite; der Abstand zum Profilkopf kommt aus dessen margin-bottom, der erste
-   .section darin bringt sonst noch seinen eigenen mit. */
+/* Bildung und Skillset stehen auf Seite 1, unter dem Profilkopf. Die Stationen
+   beginnen danach auf einer neuen Seite; der Abstand zum Profilkopf kommt aus
+   dessen margin-bottom, der erste .section darin bringt sonst noch seinen
+   eigenen mit. */
 .deckblatt > .section:first-child { margin-top: 0; }
 .stationen--neue-seite { break-before: page; }
 
-/* Enger setzen statt Eintraege streichen: reicht Seite 1 nicht, geht das
-   Renderskript die beiden Stufen der Reihe nach durch (siehe render_cv.py).
-   Gekuerzt wird erst, wenn auch --eng nicht reicht. Angefasst werden nur
-   Abstaende, nie Schriftgroessen — der Block soll nicht kleiner aussehen als
-   der Rest des Dokuments. */
-.deckblatt--kompakt .section { margin-top: 20pt; }
-.deckblatt--kompakt .section h2 { margin-bottom: 20pt; }
-.deckblatt--kompakt .section h3 { margin-bottom: 12pt; }
-.deckblatt--kompakt .stack > * + * { margin-top: 20pt; }
-.deckblatt--kompakt .cols--wrap { row-gap: 20pt; }
-.deckblatt--kompakt .divider { margin-top: 20pt; }
+.section { margin-top: {{ pt(dn.nach_linie) }}; }
+.section h2 { {{ css("rubrik") }} margin-bottom: {{ pt(dn.rubrik_inhalt) }}; }
+.section h3 { {{ css("gruppe") }} margin-bottom: {{ pt(dn.gruppe_liste) }}; }
 
-.deckblatt--eng .section { margin-top: 14pt; }
-.deckblatt--eng .section h2 { margin-bottom: 12pt; }
-.deckblatt--eng .section h3 { margin-bottom: 8pt; }
-.deckblatt--eng .stack > * + * { margin-top: 14pt; }
-.deckblatt--eng .cols--wrap { row-gap: 14pt; }
-.deckblatt--eng .divider { margin-top: 14pt; }
-.deckblatt--eng .edu ul { margin-top: 8pt; }
-
-.section { margin-top: 31pt; }
-.section h2 { font-size: 14pt; font-weight: 600; line-height: normal; margin-bottom: 31pt; }
-.section h3 { font-size: 10pt; font-weight: 600; line-height: normal; margin-bottom: 17pt; }
-
-.cols { display: flex; gap: 31pt; }
+.cols { display: flex; gap: {{ pt(r.spaltenabstand) }}; }
 /* Skillset als Float-Spalten: ein Flex-Container laesst sich nicht ueber
    Seiten auftrennen und springt als Ganzes weiter. */
 .cols--fliessend { display: block; }
 .cols--fliessend::after { content: ""; display: table; clear: both; }
-.cols--fliessend > * { float: left; width: 198.5pt; }
-.cols--fliessend > * + * { margin-left: 31pt; }
+.cols--fliessend > * { float: left; width: {{ pt(ab.halbe_spalte) }}; }
+.cols--fliessend > * + * { margin-left: {{ pt(r.spaltenabstand) }}; }
 .cols > * { flex: 1 0 0; min-width: 0; }
 /* Bildung kann mehr als zwei Eintraege haben: zweispaltig umbrechen statt
-   immer schmaler werden. */
-.cols--wrap { flex-wrap: wrap; row-gap: 31pt; }
-/* 198.5pt = (428pt Inhaltsbreite - 31pt Spaltenabstand) / 2. Fest gesetzt:
-   WeasyPrint stolpert ueber calc() mit Variablen in der flex-Kurzschreibweise. */
-.cols--wrap > * { flex: 0 0 198.5pt; }
-.stack > * + * { margin-top: 31pt; }
+   immer schmaler werden. Floats statt Flex: mit negativer Laufweite rechnet
+   WeasyPrint (66) einen Flex-Eintrag eine Zeile zu hoch — die Trennlinie
+   darunter stand 14pt zu tief. Jede ungerade Spalte beginnt eine neue Reihe. */
+.cols--wrap { display: block; }
+.cols--wrap::after { content: ""; display: table; clear: both; }
+.cols--wrap > * { float: left; width: {{ pt(ab.halbe_spalte) }}; }
+.cols--wrap > *:nth-child(2n) { margin-left: {{ pt(r.spaltenabstand) }}; }
+.cols--wrap > *:nth-child(2n+1) { clear: left; }
+.cols--wrap > *:nth-child(n+3) { margin-top: {{ pt(dn.bildung_reihen) }}; }
+.stack > * + * { margin-top: {{ pt(dn.gruppen) }}; }
 
-.edu__degree { font-weight: 600; line-height: normal; }
-.edu__line { line-height: normal; margin-top: 2pt; }
-.edu ul { margin-top: 17pt; }
+.edu__degree { {{ css("abschluss") }} }
+.edu__line { {{ css("bildung") }} }
+.edu ul { margin-top: {{ pt(dn.bildung_liste) }}; }
 
-/* Kompakte Listen (Bildung, Skillset) — im Gegensatz zu ul.tasks ohne Abstand */
-ul.tight { padding-left: 15pt; list-style: disc; line-height: normal; }
-ul.tight li + li { margin-top: 2pt; }
+/* Kompakte Listen (Bildung, Skillset): 13pt-Takt ohne Zwischenraum. Figma
+   erreicht denselben Takt ueber 25 % Zeilenhoehe plus 10pt Listenabstand;
+   nachgebaut liefen hier umbrochene Eintraege ineinander. Die Abstaende zu
+   Gruppentitel und naechster Gruppe sind deshalb auf die Schriftlinie
+   umgerechnet (gruppe_liste, gruppen) — siehe layout.md. */
+ul.tight { padding-left: {{ pt(r.listeneinzug) }}; list-style: disc; {{ css("liste") }} }
 
-.divider { border-top: 1px solid var(--hairline); margin-top: 31pt; }
+.divider { border-top: {{ pt(r.linie) }} solid {{ f.text }}; margin-top: {{ pt(dn.vor_linie) }}; }
+
+/* Enger setzen statt Eintraege streichen: reicht Seite 1 nicht, geht das
+   Renderskript die Stufen der Reihe nach durch (siehe render_cv.py). Angefasst
+   werden nur Abstaende, nie Schriftgroessen — der Block soll nicht kleiner
+   aussehen als der Rest des Dokuments. */
+{% for stufe, w in tok.verdichtung.deckblatt.items() if stufe != "normal" %}
+.deckblatt--{{ stufe }} .section { margin-top: {{ pt(w.nach_linie) }}; }
+.deckblatt--{{ stufe }} .section h2 { margin-bottom: {{ pt(w.rubrik_inhalt) }}; }
+.deckblatt--{{ stufe }} .section h3 { margin-bottom: {{ pt(w.gruppe_liste) }}; }
+.deckblatt--{{ stufe }} .stack > * + * { margin-top: {{ pt(w.gruppen) }}; }
+.deckblatt--{{ stufe }} .cols--wrap > *:nth-child(n+3) { margin-top: {{ pt(w.bildung_reihen) }}; }
+.deckblatt--{{ stufe }} .divider { margin-top: {{ pt(w.vor_linie) }}; }
+.deckblatt--{{ stufe }} .edu ul { margin-top: {{ pt(w.bildung_liste) }}; }
+{% endfor %}
 
 /* ---------- Footer ---------- */
 
 /* Der Footer schliesst das Dokument am unteren Rand der letzten Seite ab, wie
-   in Figma. Den Abstand dorthin setzt render_cv.py als margin-top am
-   .fussluft davor — gemessen am ersten Durchgang, siehe footer_tiefe(). Ein
-   Flex-Anker ginge nicht: er laesst sich nicht auftrennen und wuerde den Footer
-   auf eine eigene Seite zwingen. */
-/* Der Abstand vor dem Footer steckt komplett in .fussluft, nicht in einem
-   margin: ein margin am Seitenanfang wirft WeasyPrint weg, ein Element mit
-   Hoehe nicht. Nur so misst der erste Durchgang dieselbe Ausgangslage, die der
-   zweite verschiebt. */
+   in Figma. Den Abstand dorthin setzt render_cv.py als Hoehe von .fussluft —
+   gemessen am ersten Durchgang. Ein Flex-Anker ginge nicht: er laesst sich
+   nicht auftrennen und wuerde den Footer auf eine eigene Seite zwingen. Ein
+   margin taugt auch nicht: am Seitenanfang wirft WeasyPrint ihn weg. */
 .fussluft { width: 100%; }
-.footer { break-inside: avoid; }
-.footer__note { font-size: 10pt; }
-.footer__divider { border-top: 1px solid var(--hairline); margin-top: 16pt; }
-.footer__row { display: flex; gap: 31pt; margin-top: 17pt; align-items: flex-start; }
-.footer__logo { width: 79pt; flex: none; }
-.footer__cols { display: flex; gap: 48pt; flex: 1 0 0; }
-.footer__label {
-  font-size: 7pt; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.4pt; line-height: normal;
+/* Breiter als der Satzspiegel, wie in Figma: der Footer laeuft von der linken
+   bis zur gespiegelten rechten Randlinie, also ueber den ganzen Druckbereich.
+   Logo links, die drei Spalten buendig an der rechten Kante. */
+.footer { break-inside: avoid; width: {{ pt(r.fuss_breite) }}; }
+.footer__divider { border-top: {{ pt(r.linie) }} solid {{ f.text }}; }
+.footer__row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-top: {{ pt(a.fuss_linie_reihe) }};
 }
-.footer__value { font-size: 8pt; line-height: 1.4; margin-top: 8pt; }
+.footer__logo { flex: none; }
+.footer__logo img { display: block; width: {{ pt(r.fusslogo_breite) }}; height: {{ pt(r.fusslogo_hoehe) }}; }
+.footer__cols { display: flex; gap: {{ pt(r.fuss_spaltenabstand) }}; width: {{ pt(r.fuss_block) }}; flex: none; }
+/* Feste Spaltenbreite wie in Figma; die Mailadresse ist breiter und ragt in
+   den Zwischenraum — umbrechen darf sie nicht. */
+.footer__col { width: {{ pt(ab.fuss_spalte) }}; flex: none; }
+.footer__label { {{ css("fuss_label") }} }
+.footer__value { {{ css("fuss_wert") }} white-space: nowrap; margin-top: {{ pt(a.fuss_label_wert) }}; }
+/* Mail und Telefon sind in Figma zwei Textbloecke mit Abstand, Name/Rolle und
+   Adresse je einer. */
+.footer__value + .footer__value { margin-top: {{ pt(a.fuss_werte) }}; }
+.footer__value strong { {{ css("fuss_name") }} }
 
 /* ---------- Umbruchverhalten ---------- */
 

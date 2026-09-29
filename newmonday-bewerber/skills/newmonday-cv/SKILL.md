@@ -1,6 +1,6 @@
 ---
 name: newmonday-cv
-description: Wandelt einen eingehenden Lebenslauf in einen Lebenslauf im New-Monday-Layout als PDF um. Eingang ist ein CV als PDF, ein LinkedIn-PDF-Export, ein LinkedIn-Profil-Link (daraus wird das Profilfoto automatisch geholt) oder eingefügter Profiltext, Ausgang ein fertiges PDF im Agenturlayout. Nutze diesen Skill immer, wenn ein Lebenslauf, CV, Kandidatenprofil oder Bewerberprofil aufbereitet, umformatiert, "ins New Monday Layout gebracht", vereinheitlicht oder für Kunden aufbereitet werden soll – auch wenn nur eine PDF-Datei mit einem Lebenslauf ohne weitere Erklärung geschickt wird, und auch dann, wenn das Wort "Layout" oder "New Monday" gar nicht fällt. Gilt auch, wenn der Lebenslauf zusätzlich in ein Figma-File, als Figma-Frame oder als bearbeitbare Datei für Designer abgelegt werden soll.
+description: Wandelt einen eingehenden Lebenslauf in einen Lebenslauf im New-Monday-Layout um – als PDF und als bearbeitbaren Frame in Figma, jeweils in zwei Fassungen: der vollständigen und einer anonymisierten (Silhouette statt Foto, Name nur als Initialen, keine Links). Eingang ist ein CV als PDF, ein LinkedIn-PDF-Export, ein LinkedIn-Profil-Link (daraus wird das Profilfoto automatisch geholt) oder eingefügter Profiltext. Nutze diesen Skill immer, wenn ein Lebenslauf, CV, Kandidatenprofil oder Bewerberprofil aufbereitet, umformatiert, "ins New Monday Layout gebracht", vereinheitlicht oder für Kunden aufbereitet werden soll – auch wenn nur eine PDF-Datei mit einem Lebenslauf ohne weitere Erklärung geschickt wird, und auch dann, wenn das Wort "Layout" oder "New Monday" gar nicht fällt. Gilt ebenso, wenn ein anonymisiertes, neutralisiertes oder geschwärztes Kandidatenprofil, ein Blindprofil, ein Profil "ohne Namen" oder eine Fassung "ohne Foto" verlangt wird, und wenn der Lebenslauf in einem Figma-File, als Figma-Frame oder als bearbeitbare Datei für Designer landen soll.
 ---
 
 # New Monday CV
@@ -8,8 +8,14 @@ description: Wandelt einen eingehenden Lebenslauf in einen Lebenslauf im New-Mon
 Aus einem fremden Lebenslauf wird ein Lebenslauf im New-Monday-Layout. Bester
 Eingang sind zwei Quellen: der Lebenslauf als PDF **und** der LinkedIn-PDF-Export. Das Layout
 liegt als HTML/CSS-Template im Skill und stammt 1:1 aus der Figma-Datei
-`KoR4rzVSoMrvQot8z33gkv` (Seite "CV"). Das Template wird nicht neu erfunden und
+`oezbaw261xDwxthPuX3ZpS` ("Portfolio - CV Master", Seite "CV"). Jeder Designwert –
+Schriften, Größen, Abstände, Farben – steht einmal in `assets/tokens.json`; PDF
+und Figma-Frame lesen beide von dort. Das Template wird nicht neu erfunden und
 nicht "verbessert" – es wird befüllt.
+
+**Am Ende stehen vier Dateien, nicht eine**: das PDF und der Figma-Frame, jeweils
+in der vollständigen und in einer anonymisierten Fassung. Alle vier entstehen in
+jedem Lauf. Gefragt wird nicht mehr, *ob* etwas nach Figma soll, nur noch *wohin*.
 
 ## Die eine Regel, die alles andere schlägt
 
@@ -29,6 +35,12 @@ verantworten muss.
 Zwei Stellen sind davon ausgenommen, und nur diese beiden: das **Kurzprofil**
 (gleich unten) und die **erste Station bei New Monday** (Schritt 2). Beide stehen
 nicht im Eingang, weil sie nicht aus ihm stammen können.
+
+Die anonymisierte Fassung ist **keine dritte Ausnahme**, sondern ein zweites
+Dokument: Sie entsteht aus derselben `cv.json` und lässt nur weg, was auf die
+Person zeigt. Jeder Satz in ihr steht wörtlich auch in der vollständigen Fassung.
+Der einzige Eingriff in fremden Text ist die Namensnennung im Fließtext – und die
+wird gemeldet, siehe "Die anonymisierte Fassung".
 
 ### Die erste Ausnahme: das Kurzprofil
 
@@ -57,6 +69,88 @@ nicht aus dem Eingang, sondern von New Monday selbst – und ist deshalb
 vorgegeben, nicht frei formuliert. Wortlaut und Regeln stehen in Schritt 2 unter
 "Die erste Station ist immer New Monday".
 
+## Die anonymisierte Fassung
+
+Jeder Lauf liefert den Lebenslauf zweimal: einmal vollständig, einmal
+anonymisiert. Die anonyme Fassung ist für die Runde gedacht, in der ein Kunde ein
+Profil bewertet, bevor er den Menschen dahinter kennt. Sie soll ihn dieselbe
+Entscheidung treffen lassen wie die vollständige – nur ohne die Person zu
+erkennen.
+
+Deshalb ist sie **keine geschwärzte Version des Dokuments, sondern dasselbe
+Dokument mit weniger Person darin**. Layout, Stationen, Logos, Bildung und
+Skillset stehen unverändert. Was verschwindet, ist eng umrissen:
+
+- **Das Foto** wird zum Platzhalterbild aus dem Design (`assets/silhouette.svg`,
+  eingesetzt aus `assets/silhouette-vorlage.svg`, Vorgabe vom 29.09.2026) –
+  gleiche Maße, gleiche Stelle wie das Foto. Es kommt auch dann, wenn die Person
+  gar kein Foto hatte: eine leere Fotospalte sieht in dieser Fassung nach Panne
+  aus, nicht nach Absicht.
+- **Der Name** wird zu Initialen: aus "Timo Muster" wird "T. M.". Akademische
+  Titel bleiben stehen ("Dr. T. M."), Namenspartikel wie "von" fallen weg.
+- **Die Verweise** unter der Erfahrungszeile entfallen ganz. LinkedIn, Xing und
+  Portfolio führen alle in einem Klick zum Namen.
+- **Namensnennungen im Fließtext** werden mitgezogen, falls das Kurzprofil oder
+  eine Stationsbeschreibung die Person beim Namen nennt. Der **volle** Name immer;
+  ein **einzelner** Namensteil nur, wenn nichts im Dokument dagegenspricht. Heißt
+  jemand "Mai" oder war er bei der "Feiler GmbH", bleibt das einzelne Wort stehen
+  und wird gemeldet – der Skill zerschießt lieber keinen Satz, als einen zu raten.
+  **Diese Meldungen müssen gelesen werden**: Darunter kann eine echte
+  Namensnennung sein, die dann von Hand in die `cv.json` gehört.
+
+Drei Stellen kommen dazu, die im Dokument selbst nicht zu sehen sind und genau
+deshalb übersehen werden:
+
+- **Der Dateiname.** `New-Monday - T. M. - UX Designer - CV.pdf`. Ein Anhang, der
+  im Namen den Kandidaten trägt, macht das Dokument darin sinnlos.
+- **Der PDF-Titel in den Metadaten.** Er steht in der Fensterleiste jedes
+  PDF-Betrachters, noch bevor jemand die erste Seite gelesen hat.
+- **Die Frame- und Seitennamen in Figma.**
+
+Alle drei stammen aus `person.name`. Deshalb wird nicht im Renderer
+anonymisiert, sondern eine Stufe davor: `anonymisieren.py` schreibt eine zweite
+`cv.json`, und **dieselbe** Kette läuft ein zweites Mal darüber (Schritt 4). Es
+gibt keinen anonymen Modus im Renderer und keine zweite Vorlage – beide Fassungen
+sind derselbe Skill über andere Daten, und deshalb können sie nicht
+auseinanderlaufen.
+
+### Was bewusst stehen bleibt
+
+**Arbeitgeber, Kunden, Logos, Bildungseinrichtungen und die monatsgenauen
+Zeiträume bleiben drin.** Sie sind der Grund, warum jemand das Profil überhaupt
+liest – ein Lebenslauf ohne Firmen ist kein anonymer Lebenslauf, sondern keiner.
+Die Fassung schützt davor, dass jemand die Person **erkennt**; sie schützt nicht
+davor, dass jemand sie **ermittelt**, der es darauf anlegt. Wer das zweite
+braucht, sagt es, und dann gelten die Stufen unten.
+
+**Der Footer bleibt vollständig.** Manuel Klein steht dort mit Mail und Telefon.
+Das ist die einzige Adresse, unter der ein Kunde nach diesem Profil fragen kann –
+und genau dafür ist die Fassung gemacht.
+
+**Anonym ist das PDF, nicht das Figma-File.** In der Figma-Datei liegen beide
+Fassungen nebeneinander, und ihr Dateiname trägt den vollen Namen – anders ginge
+es nicht, sie ist ja die Arbeitsdatei. Wer den Figma-Link weitergibt, gibt damit
+die vollständige Fassung weiter. **Das gehört in die Übergabe**, jedes Mal: Der
+Unterschied ist niemandem anzusehen, der nur den Link bekommt.
+
+### Wenn mehr weg soll
+
+Vier Stufen, die es gibt, aber nur auf ausdrückliche Ansage. **Von selbst wird
+keine davon gezogen**: Jede kostet Aussagekraft, und wie viel davon vertretbar
+ist, entscheidet nicht der Skill.
+
+| Stufe | Wie |
+|---|---|
+| **Zeiträume nur als Jahre** | `--jahre` am Skript. Monatsgenaue Daten machen den Abgleich mit einem LinkedIn-Profil zur Fingerübung – das ist die wirksamste der vier Stufen. |
+| **Firmen und Kunden generisch** | Eine Zuordnung `{"Cocomore": "Digitalagentur"}` schreiben und mit `--firmen-map` übergeben. Das Skript entfernt die Logos der ersetzten Firmen gleich mit; ein Logo neben "Digitalagentur" hebt die Anonymisierung sofort wieder auf. Die Oberbegriffe erfindet es nicht. |
+| **Bildungseinrichtungen generisch** | Handarbeit in der `cv.json`, vor dem Anonymisieren: aus "TU Braunschweig" wird "Technische Universität". Abschluss und Fach bleiben stehen. |
+| **Sprachen im Skillset** | Handarbeit in der `cv.json`, nur für Sprachen über Deutsch und Englisch hinaus – die beiden setzt das Renderskript ohnehin gleich für alle. "Armenisch – Muttersprache" verrät regelmäßig die Herkunft und steht selten in einem Zusammenhang mit der Stelle. |
+
+Die beiden unteren Zeilen sind bewusst kein Schalter: Welcher Oberbegriff für eine
+Hochschule noch stimmt und welcher Skillset-Eintrag eine Muttersprache ist, kann
+ein Skript nicht entscheiden, ohne zu raten – und geraten wird in diesem Skill
+nirgends.
+
 ## Umgebung
 
 Der Skill läuft überall gleich, aber die Umgebungen unterscheiden sich in drei
@@ -71,7 +165,7 @@ System. Meldet es Lücken, dem Nutzer den Befehl weiterreichen statt zu raten.
 
 - **Render-Engine**: Das Layout ist auf WeasyPrint abgestimmt. Fehlt sie, weicht
   das Skript auf Chrome aus und sagt das auch – dann Seitenumbrüche und
-  Skillset-Spalten gegenprüfen, bevor das PDF rausgeht.
+  Skillset-Spalten gegenprüfen, bevor die PDFs rausgehen.
 - **Netz**: Lokal und in Claude Desktop ist es offen, im Browser-Chat blockt der
   Proxy fremde Domains. Das betrifft nur die Logosuche, siehe Schritt 3.
 - **Ausgabeort**: In Claude Code ins Arbeitsverzeichnis des Nutzers schreiben,
@@ -86,7 +180,7 @@ nicht für dich, und kann bei Einrichtungsfragen weitergereicht werden.
 
 **Jede Frage, deren Antwort aus einer überschaubaren Menge stammt, läuft über
 `AskUserQuestion`** – die klickbaren Kästchen in Claude Code. Das gilt für jede
-Rückfrage in diesem Skill: Sprache, Figma-Ablage, Rolle bei New Monday,
+Rückfrage in diesem Skill: Sprache, Figma-Ziel, Rolle bei New Monday,
 Startmonat, fachfremde Stationen, Weiterbildungen. Auch dann, wenn die Frage kurz ist und im Fließtext
 schneller getippt wäre. Der Nutzer soll klicken, nicht tippen.
 
@@ -140,35 +234,37 @@ nacheinander: der Nutzer soll alles auf einmal beantworten und liefern können.
    ist eine bewusste Ausnahme von der Regel oben und braucht eine ausdrückliche
    Ansage – von sich aus wird nie übersetzt.
 
-2. **Zusätzlich als Figma-Frame?** Ebenfalls als `AskUserQuestion`, direkt neben
-   der Sprachfrage:
+2. **Wohin der Figma-Frame soll.** Nicht mehr *ob*: Der bearbeitbare Frame
+   entsteht in jedem Lauf, genau wie das PDF. Gefragt wird nur nach dem Ziel,
+   ebenfalls als `AskUserQuestion`, direkt neben der Sprachfrage:
 
    ```
-   Frage:   Soll der Lebenslauf zusätzlich als bearbeitbarer Frame in einem
-            Figma-File landen?
+   Frage:   In welches Figma-File soll der Lebenslauf?
    Header:  Figma
-   Optionen: Ja, zusätzlich ins Figma-File (Empfohlen)
-           | Nein, nur das PDF
+   Optionen: In ein bestehendes File – ich schicke den Link (Empfohlen)
+           | Leg ein neues File an
    ```
 
-   Bei „Ja" braucht es den Link – Material, also im Text derselben Nachricht,
-   wörtlich so:
+   Bei der ersten Option braucht es den Link – Material, also im Text derselben
+   Nachricht, wörtlich so:
 
    > Schick mir den Link zum Figma-File, in das der Lebenslauf soll
    > (figma.com/design/…). Zeigt der Link auf eine bestimmte Seite, lege ich ihn
    > dort ab, sonst auf einer neuen Seite. Ich brauche Bearbeitungsrechte auf
    > der Datei.
 
-   Der Frame entsteht erst nach dem Rendern, siehe Schritt 4a. Drei Regeln dazu:
+   Die Frames entstehen erst nach dem Rendern, siehe Schritt 4a. Drei Regeln dazu:
 
-   - **Kommt „Ja" ohne Link**, wird er einmal im Fließtext nachgefragt – nicht
-     über eine dritte `AskUserQuestion`-Nachricht.
-   - **Der Link blockiert nichts.** Bleibt er aus, entsteht trotzdem das PDF,
-     und der Figma-Teil entfällt mit einem Satz in der Übergabe. Ein Lebenslauf
-     ohne Figma-Frame ist vollständig.
+   - **Kommt der Link nicht**, wird er einmal im Fließtext nachgefragt – nicht
+     über eine dritte `AskUserQuestion`-Nachricht. Bleibt er weiter aus, wird ein
+     neues File angelegt, als wäre die zweite Option gewählt worden. Ein fehlender
+     Link ist kein Grund, die bearbeitbare Fassung ausfallen zu lassen.
+   - **Figma hält die PDFs nicht auf.** Geht dort etwas schief, gehen die PDFs
+     trotzdem raus und der Grund steht in der Übergabe. Ein Lebenslauf ohne
+     Figma-Frame ist vollständig.
    - **Nur Design-Dateien.** `figma.com/design/…` ja; `/board/` (FigJam),
      `/slides/`, `/make/` und `/proto/` nein. Dann sagen, was gebraucht wird,
-     statt es zu versuchen.
+     statt es zu versuchen – oder das neue File anlegen.
 
 3. **Firmenlogos als SVG.** Die Logodatenbanken der Skripte führen globale
    Marken zuverlässig, deutsche Agenturen und Mittelständler dagegen fast nie.
@@ -531,8 +627,7 @@ Aus dem Text eine `cv.json` bauen. Vollständiges Beispiel: `beispiel/cv.json`.
   }],
   "bildung": [{ "abschluss", "institution", "zeitraum", "themen": [] }],
   "skillset": {
-    "links":  [{ "titel", "eintraege": [] }],
-    "rechts": [{ "titel", "eintraege": [] }]
+    "faehigkeiten": [], "branchen": [], "tools": [], "sprachen": []
   }
 }
 ```
@@ -665,7 +760,9 @@ Zum Modell:
 - **`zusammenfassung`** ist eine Schlagwortzeile mit zwei bis drei Begriffen, die
   die Tätigkeit der Station benennen – etwa `"Frontend-Entwicklung, Code-Reviews,
   Mentoring"`. Die Begriffe müssen sich aus den darunterliegenden Aufgaben
-  ergeben. Kein Fließtext.
+  ergeben. Kein Fließtext. Im Dokument steht sie im Stationskopf unter Titel,
+  Firma und Zeitraum. Die Figma-Vorlage kennt diese Zeile nicht; sie bleibt
+  trotzdem, das ist so entschieden.
 - **`firma`** enthält nur den Firmennamen. Angaben zur Beschäftigungsform gehören
   nicht ins Dokument: keine Befristungen, keine Kündigungsfristen, keine Gehälter,
   und auch keine Hinweise wie "(freiberuflich in Vollauslastung, 40h/Woche)".
@@ -682,31 +779,63 @@ Zum Modell:
   keinen Abschluss, sondern nur Jahr und Haus (etwa "2008 // Media Design
   Hochschule"), zählt sie zum Schulweg: sie belegt eine Station, keinen Titel.
   Was wegfällt, wird in der Übergabe genannt.
-- **`skillset.links`** trägt üblicherweise Fähigkeiten, Zertifizierungen und
-  Branchenerfahrung, **`rechts`** Tools und Sprachen. Die Aufteilung ist frei,
-  aber **die beiden Spalten sollen etwa gleich lang sein**. Der Block ist so hoch
-  wie seine längere Spalte; eine halb leere zweite Spalte verschenkt Platz, den
-  sonst jemand durch Streichen hereinholen muss. Zählt man Gruppentitel und
-  Einträge zusammen, sollten beide Spalten auf ungefähr dieselbe Zeilenzahl
-  kommen. Das Renderskript meldet es, wenn sie deutlich auseinanderliegen.
+- **`skillset` hat in jedem Lebenslauf dieselben vier Gruppen**: `faehigkeiten`,
+  `branchen`, `tools`, `sprachen` (Vorgabe vom 29.09.2026 – vorher trug jeder
+  Lebenslauf andere Gruppen, und genau das kam als Rückmeldung zurück). In der
+  `cv.json` stehen nur die Einträge. Titel und Anordnung setzt `render_cv.py`,
+  immer 2 × 2: links Fähigkeiten und Branchen, rechts Tools und Sprachen; im
+  englischen Lebenslauf "Skills", "Industries", "Tools", "Languages". Keine
+  weiteren Gruppen, keine eigenen Titel.
+
+  - **Einsortieren, was passt.** Der Eingang benennt seine Gruppen frei.
+    Schwerpunkte, Kernkompetenzen, Methoden, Arbeitsweise, Soft Skills →
+    `faehigkeiten`; Branchen, Branchenerfahrung, Industrien → `branchen`;
+    Software, Tools, Werkzeuge → `tools`. Zertifikate sind Weiterbildungen und
+    gehen den Weg aus Schritt 1d – drin bleiben heißt: unter `bildung`. Der
+    Wortlaut der Einträge bleibt. Doppelte fallen weg, auch fast gleiche ("UI/UX"
+    neben "UI/UX Design": das genauere bleibt).
+  - **Was nirgends passt, fällt aus dem Skillset** – eine Kundenliste etwa (die
+    Kunden stehen ohnehin in Stationen und Projekten) oder Produktarten wie
+    "Plattformen" und "Web und App". Nicht in eine Gruppe biegen, sondern
+    weglassen und in der Übergabe nennen, mit allen Einträgen.
+  - **Gibt der Eingang für eine Gruppe nichts her, wird abgeleitet** – nur aus
+    dem, was Stationen und Projekte belegen. Branchen aus den Sektoren der
+    Arbeitgeber und Kunden, für die jemand nachweislich gearbeitet hat (Deutsche
+    Bank, Postbank, Norisbank → "Banking"; eine Energie-App → "Energie";
+    Kampagnen einer Werbeagentur → "Werbung und Kampagnen"); Tools aus den
+    Aufgaben ("Prototypen in Figma" → "Figma"); Fähigkeiten aus den Aufgaben.
+    Der Firmentyp allein belegt nichts: Wer bei einer Agentur war, hat damit noch
+    keine Branche. **Abgeleitetes steht in der Übergabe zur Freigabe**, mit Beleg
+    – es ist dieselbe Art Behauptung wie ein generiertes Kurzprofil.
+  - **Sprachen setzt das Renderskript.** Deutsch – Muttersprache und Englisch –
+    Business Niveau stehen in jedem Lebenslauf, auch wenn der Eingang keine
+    Sprachen oder andere Niveaus nennt (Vorgabe vom 29.09.2026, gleich wie im
+    Portfolio). In `sprachen` gehören die weiteren Sprachen mit ihrem Niveau
+    ("Französisch – Grundkenntnisse"). Steht dort Deutsch oder Englisch mit
+    anderem Niveau, ersetzt die Vorgabe es und `render_cv.py` meldet das.
+  - **Keine Gruppe fehlt still.** Findet sich auch durch Ableiten nichts, fehlt
+    die Gruppe im Dokument, und das Renderskript meldet es – das gehört in die
+    Übergabe.
 
   **Bildung und Skillset stehen auf Seite 1**, direkt unter dem Profilkopf, und
   müssen dort zusammen Platz finden – die Stationen beginnen danach auf Seite 2.
   Kopfzeile und Profilkopf nehmen zusammen rund 200pt, es bleiben also
-  etwa 550pt statt einer ganzen Seite (mit Verweisen unter der Erfahrungszeile
-  gut 20pt weniger). Als Richtwert trägt **jede der beiden
-  Skillset-Spalten etwa 20 Zeilen**, Gruppentitel mitgezählt, bei zwei
-  Bildungseinträgen daneben. Das Kurzprofil zählt hier nicht mit – es steht auf
+  etwa 550pt statt einer ganzen Seite; die Verweise unter der Erfahrungszeile
+  kosten nichts, die Fotospalte ist ohnehin höher. Als Richtwert trägt **jede der
+  beiden Skillset-Spalten etwa 17 Zeilen**, Gruppentitel mitgezählt, bei zwei
+  Bildungseinträgen samt Themen daneben – mit den beiden engeren Stufen des
+  Renderskripts bis etwa 23. Das Kurzprofil zählt hier nicht mit – es steht auf
   Seite 2 und nimmt Seite 1 keinen Platz weg.
 
   Bringt der Eingang mehr mit – Senior-Profile haben oft 40 Kompetenzen und mehr
-  –, ist die Reihenfolge: erst die Spalten ausgleichen, dann das Renderskript
-  enger setzen lassen (das macht es von selbst, in zwei Stufen), **und erst dann
-  kürzen**. Gekürzt wird durch Zusammenlegen verwandter Gruppen und Weglassen der
-  schwächsten Einträge. **Der Wortlaut der übernommenen Einträge bleibt
-  unverändert**, gekürzt wird durch Weglassen, nicht durch Umformulieren. Was
-  wegfällt, wird am Ende gemeldet. Das Renderskript sagt, wenn der Block trotz
-  aller Stufen überläuft.
+  –, ist die Reihenfolge: erst das Renderskript enger setzen lassen (das macht
+  es von selbst, in zwei Stufen), **und erst dann kürzen** – in der längsten
+  Gruppe der längeren Spalte, durch Weglassen der schwächsten Einträge. Gruppen
+  verschieben oder zusammenlegen geht nicht mehr, die vier stehen fest. **Der
+  Wortlaut der übernommenen Einträge bleibt unverändert**, gekürzt wird durch
+  Weglassen, nicht durch Umformulieren. Was wegfällt, wird am Ende gemeldet. Das
+  Renderskript sagt, wenn der Block trotz aller Stufen überläuft, und nennt die
+  Gruppe, in der gekürzt werden sollte.
 - **`projekte[].zeitraum`** weglassen, wenn er mit dem der Station identisch ist.
 - **Reihenfolge**: New Monday zuerst, danach die eigenen Stationen, neueste
   zuerst.
@@ -819,6 +948,10 @@ gegen eine schwarze getauscht, damit die Spalte einheitlicher wirkt: Ein
 Lebenslauf mit gelbem Postbank-Logo neben schwarzem Peugeot-Logo ist korrekt,
 weil beide Marken so auftreten.
 
+Die Figma-Vorlage zeigt die Firmenlogos entfärbt. Das ist dort Darstellung, keine
+Vorgabe: Im Skill bleiben die Originalfarben, so ist es entschieden. Wer das
+Dokument mit Figma vergleicht, gleicht die Logos nicht an.
+
 Einzelne Logos von Hand nachlegen, wenn das Skript sie nicht findet:
 
 ```bash
@@ -857,14 +990,22 @@ nichts zu setzen und im CSS nichts nachzujustieren:
 
 **Dieselbe Marke ist überall gleich groß.** Führt eine Station mehrere Marken in
 einer Zeile ("Deutsche Bank, Postbank, FYRST & Norisbank"), stehen deren Logos
-**immer untereinander**, nie nebeneinander. Und ein Logo, das an einer Stelle in
-so einer Markenreihe steht und an einer anderen allein, erscheint an beiden
-Stellen im selben Maß: die Logogröße wird einmal fürs ganze Dokument bestimmt,
-nach der größten Markenzahl, die irgendwo vorkommt.
+in der Logospalte **untereinander** – nebeneinander wären sie in 88pt winzig.
+Ein Logo, das an einer Stelle in so einer Markenreihe steht und an einer anderen
+allein, erscheint an beiden Stellen im selben Maß: die Logogröße wird einmal
+fürs ganze Dokument bestimmt, nach der größten Markenzahl, die irgendwo vorkommt.
 
-Nur zwischen den beiden Ebenen bleibt ein Unterschied: Projektlogos sind
-bewusst die kleinere Stufe. Steht dieselbe Datei einmal als Stationslogo und
-einmal als Projektlogo, sagt das Renderskript das in seinen Prüfhinweisen.
+**Projektlogos stehen nebeneinander.** Hat ein Projekt mehrere Kunden ("Opel,
+Peugeot, Citroën"), stehen deren Logos in einer Reihe über dem Kundennamen,
+auf der Mitte zueinander, 16pt auseinander – nicht gestapelt (Design-Feedback
+vom 28.09.2026). Weil eine Reihe nicht höher wird, wenn eine Marke dazukommt,
+sind Projektlogos **immer 26pt**, allein wie in der Reihe. Das macht
+`render_cv.py` selbst; in der `cv.json` steht wie bisher nur die Liste der
+Dateinamen.
+
+Zwischen den beiden Ebenen bleibt ein Unterschied: Projektlogos sind bewusst
+die kleinere Stufe. Steht dieselbe Datei einmal als Stationslogo und einmal als
+Projektlogo, sagt das Renderskript das in seinen Prüfhinweisen.
 
 **Zu kleine Logos bessert `add_logo.py` selbst auf.** Unter 242px Höhe (58pt bei
 300 dpi) prüft es, ob das Bild zweifarbig ist – typisch für Wort- und
@@ -884,16 +1025,26 @@ technisch fehlerfrei eingebettet und trotzdem unlesbar sein – im Test war ein
 Schriftzug in einem zweiten Rotton statt in Weiß gelandet und in der Übersicht
 nicht aufgefallen. Ein Blick auf die Miniatur reicht dafür nicht.
 
-### 4. Rendern
+### 4. Rendern — beide Fassungen
+
+Erst die anonyme Datenfassung schreiben, dann beide rendern:
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/scripts/render_cv.py cv.json ausgabe/
+python3 ${CLAUDE_SKILL_DIR}/scripts/anonymisieren.py cv.json cv-anonym.json
+python3 ${CLAUDE_SKILL_DIR}/scripts/render_cv.py cv.json        ausgabe/ --stufen-json arbeit/stufen.json
+python3 ${CLAUDE_SKILL_DIR}/scripts/render_cv.py cv-anonym.json ausgabe/ --stufen-json arbeit/stufen-anonym.json
 ```
 
-Ist ein Figma-Frame gewünscht (Schritt 0), kommt `--stufen-json arbeit/stufen.json`
-dazu. Das schreibt nebenbei mit, welche Verdichtungsstufen gegriffen haben — ohne
-sie setzt der Frame andere Abstände als das PDF und läuft über. Ohne die Option
-ändert sich nichts.
+`anonymisieren.py` meldet, was es geändert hat. **Was es an Fließtextstellen
+ersetzt hat, gehört in die Übergabe** – das ist die einzige Stelle, an der der
+Skill fremden Text anfasst, ohne dass jemand es angeordnet hat. Welche Schalter es
+darüber hinaus gibt, steht unter "Die anonymisierte Fassung".
+
+`--stufen-json` schreibt mit, welche Verdichtungsstufen gegriffen haben. Das
+braucht Schritt 4a: ohne die Datei setzen die Frames andere Abstände als die PDFs
+und laufen über. **Je Fassung eine eigene Datei** – der anonymen fehlt die
+Verweiszeile im Profilkopf, sie kann deshalb in einer anderen Stufe landen als die
+vollständige.
 
 **Den Dateinamen setzt das Skript**, nicht der Aufruf: es baut ihn aus
 `person.name` und `person.rolle` zusammen und legt die Datei im angegebenen
@@ -901,7 +1052,13 @@ Ordner ab.
 
 ```
 New-Monday - Vorname Nachname - Jobtitel - CV.pdf
+New-Monday - V. N. - Jobtitel - CV.pdf
 ```
+
+**Die beiden Fassungen unterscheiden sich damit von selbst** und dürfen in
+denselben Ordner. Ein zusätzliches "anonym" im Dateinamen braucht es nicht – und
+es wäre auch keine gute Idee: Die anonyme Fassung ist die, die beim Kunden
+ankommt, und sie soll nicht wie ein Zwischenstand aussehen.
 
 Steht im Aufruf trotzdem ein Dateiname, gilt davon nur der Ordner – das Skript
 meldet die Umbenennung. Der Name im Bericht an den Nutzer ist der, den das
@@ -925,48 +1082,66 @@ Seite – ein Jobtitel mit einem einzelnen Bullet an der Blattkante liest sich w
 zwei angefangene Stationen. In der `cv.json` ist dafür nichts einzutragen und im
 CSS nichts nachzujustieren; Hintergrund in `references/layout.md`.
 
-### 4a. Den Figma-Frame ablegen — nur wenn danach gefragt wurde
+### 4a. Die Figma-Frames ablegen
 
-Entfällt, wenn in Schritt 0 „Nein" kam oder kein Link vorliegt. **Das PDF ist an
-dieser Stelle fertig** und geht so oder so raus.
+**Beide Fassungen kommen nach Figma**, nicht nur die vollständige, und nicht nur
+auf Nachfrage. **Die PDFs sind an dieser Stelle fertig** und gehen so oder so raus.
 
-Erst den Bauplan, dann bauen:
+Erst die Baupläne, dann bauen – je Fassung einer:
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py cv.json "<pfad/zum.pdf>" arbeit/ \
         --stufen arbeit/stufen.json
+python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py cv-anonym.json "<pfad/zum-anonymen.pdf>" arbeit/anonym/ \
+        --stufen arbeit/stufen-anonym.json
 ```
 
-Das schreibt `arbeit/figma_plan.json`: je PDF-Seite ein Frame, darin die Blöcke in
+Jeder schreibt ein `figma_plan.json`: je PDF-Seite ein Frame, darin die Blöcke in
 Lesereihenfolge, alle Werte fertig ausgerechnet. **Die Seitenaufteilung wird aus dem
 gerenderten PDF gelesen, nicht geschätzt** — deshalb steht dieser Schritt nach dem
-Rendern und nicht davor. Ohne `pypdf` bricht das Skript ab; dann entfällt der Frame
-mit einem Satz in der Übergabe.
+Rendern und nicht davor, und deshalb braucht jede Fassung ihren eigenen Plan aus
+ihrem eigenen PDF. Ohne `pypdf` bricht das Skript ab; dann entfallen die Frames mit
+einem Satz in der Übergabe.
 
 Gebaut wird mit `use_figma` nach dem Rezept in `references/figma.md`. Dort stehen
-Linkauslesung, Zielseite, Schnittnamen, das Frame-Rezept und der Weg für Logos und
-Foto. **Vor dem ersten Aufruf den Skill `figma-use` laden** — ohne ihn sind die
-Fallstricke des Plugin-API nicht zu umgehen.
+Linkauslesung, Zielseite, Schnittnamen, das Frame-Rezept, der Weg für Logos und Foto
+und wie die beiden Reihen zueinander stehen. **Vor dem ersten Aufruf den Skill
+`figma-use` laden** — ohne ihn sind die Fallstricke des Plugin-API nicht zu umgehen.
 
-Vier Dinge stehen fest:
+Liegt kein Link vor, wird mit `create_new_file` eine Datei
+`New Monday CV — Vorname Nachname` angelegt und beides dort hineingebaut. Der Link
+darauf geht in die Übergabe.
 
-- **Figma hält das PDF nicht auf.** Schlägt irgendetwas fehl — Werkzeug nicht
+Fünf Dinge stehen fest:
+
+- **Erst die vollständige Fassung, dann die anonyme.** Bricht der zweite Lauf ab,
+  steht wenigstens die vollständige in der Datei. Andersherum läge dort ein
+  Lebenslauf ohne Namen, und niemand wüsste mehr, von wem.
+- **Figma hält die PDFs nicht auf.** Schlägt irgendetwas fehl — Werkzeug nicht
   verbunden, nicht angemeldet, keine Bearbeitungsrechte, falscher Dateityp, Proxy
-  blockt —, wird das PDF trotzdem übergeben und der Grund genannt. Nicht abbrechen,
-  nicht nachträglich am PDF drehen, und keinen zweiten Anlauf mit anderen Daten.
+  blockt —, werden die PDFs trotzdem übergeben und der Grund genannt. Nicht
+  abbrechen, nicht nachträglich am PDF drehen, und keinen zweiten Anlauf mit
+  anderen Daten.
 - **In eine fremde Datei kommt nichts Globales.** Keine Text-Styles, keine
-  Variablen, keine Komponenten. Der Frame trägt rohe Werte. Was schon in der Datei
-  liegt, wird nicht umbenannt, nicht verschoben und nicht gelöscht.
+  Variablen, keine Komponenten. Die Frames tragen rohe Werte. Was schon in der
+  Datei liegt, wird nicht umbenannt, nicht verschoben und nicht gelöscht.
 - **Nichts überschreiben.** Steht dort schon ein Frame gleichen Namens, kommt der
   neue daneben, nicht darüber.
 - **Kein Ersatz-Layout.** Reicht es nicht für den Frame, wird kein vereinfachter
   gebaut. Entweder das Dokument oder nichts.
 
+
 ### 5. Übergeben
 
-PDF ausgeben und dazu in wenigen Zeilen berichten:
+Beide PDFs ausgeben – die vollständige Fassung zuerst – und dazu in wenigen
+Zeilen berichten:
 
 - Das Kurzprofil im Wortlaut, falls es generiert wurde, mit der Bitte um Freigabe
+- **Das Skillset**: was abgeleitet wurde (Branchen, Tools, Fähigkeiten, die der
+  Eingang nicht nannte) mit Beleg aus Stationen oder Projekten und der Bitte um
+  Freigabe; was aus dem Skillset gefallen ist, weil es in keine der vier Gruppen
+  passt, mit allen Einträgen; und was `render_cv.py` zu Sprachen gemeldet hat
+  (ergänzt oder Niveau ersetzt).
 - Wo Lebenslauf und LinkedIn auseinandergehen – mit beiden Werten, damit
   Tippfehler auffallen. Ins Dokument kam der Lebenslauf.
 - Was das Skript an Zeiträumen bemängelt hat
@@ -986,12 +1161,21 @@ PDF ausgeben und dazu in wenigen Zeilen berichten:
 - Welche Rechtschreibfehler korrigiert wurden
 - Was im Eingang unklar war und geraten werden müsste – als Frage, nicht als
   stille Annahme
-- **Der Figma-Frame**, falls einer gewünscht war: der Link auf den ersten Frame
-  (`…?node-id=…`) und auf welcher Seite der Datei er liegt. Ist er nicht zustande
-  gekommen, steht hier stattdessen der Grund in einem Satz. Hat `figma_plan.py`
-  gemeldet, dass eine Textmarke im PDF nicht wiederzufinden war, gehört auch das
-  hierher: An dieser Stelle ist die Seitenkante im Frame geraten und sollte
-  nachgesehen werden.
+- **Die anonyme Fassung**: in welcher Form der Name jetzt dasteht, und –
+  falls `anonymisieren.py` welche gemeldet hat – an welchen Stellen im Fließtext
+  ein Name ersetzt wurde, mit Feld und altem Wortlaut. **Was das Skript unter
+  "Prüfen" als mehrdeutig stehen gelassen hat, gehört immer hierher**, mit dem
+  Satz drumherum: Dort steht möglicherweise noch der Name im Dokument, und die
+  Entscheidung darüber trifft nicht der Skill. Wurde eine der Stufen aus
+  "Wenn mehr weg soll" gezogen, steht hier auch, welche. Ist keine gezogen worden,
+  steht hier nichts dazu: Der Normalfall braucht keine Erklärung.
+- **Die Figma-Frames**: der Link auf den ersten Frame jeder Fassung
+  (`…?node-id=…`) und auf welcher Seite der Datei sie liegen. Wurde ein neues File
+  angelegt, der Link darauf. Ist eine der beiden Reihen nicht zustande gekommen,
+  steht hier stattdessen der Grund in einem Satz. Hat `figma_plan.py` gemeldet,
+  dass eine Textmarke im PDF nicht wiederzufinden war, gehört auch das hierher: An
+  dieser Stelle ist die Seitenkante im Frame geraten und sollte nachgesehen
+  werden.
 
 #### Ganz zum Schluss: was zur Vollständigkeit fehlt
 
@@ -1028,22 +1212,56 @@ Regeln dazu:
   vorn, nicht hinten – daran wird nicht getauscht.
 - **Erste Station ist New Monday**, immer – und **nur sie läuft auf "Heute"**.
   Siehe Schritt 2.
+- **Das Skillset hat immer dieselben vier Gruppen**, 2 × 2: links Fähigkeiten und
+  Branchen, rechts Tools und Sprachen. Deutsch – Muttersprache und Englisch –
+  Business Niveau stehen immer drin. Siehe Schritt 2.
 - **Ansprechpartner im Footer**: immer Manuel Klein, CCO. Steht als Vorgabe im
   Renderskript.
-- **Keine anonymisierte Variante.** Name und Foto gehören ins Dokument.
-- **Schrift ist Inter**, liegt in `assets/fonts/` und wird ins PDF eingebettet.
-  Nicht durch Systemschriften ersetzen.
+- **Zwei Fassungen, immer.** Die vollständige und die anonymisierte, jeweils als
+  PDF und als Figma-Frame. Die anonyme ersetzt die vollständige nie und wird nie
+  allein übergeben: Wer sie bekommt, bekommt beide.
+- **In der vollständigen Fassung gehören Name und Foto ins Dokument.**
+  Anonymisiert wird ausschließlich in der zweiten, und dort nach den Regeln unter
+  "Die anonymisierte Fassung" – nicht nach Gefühl und nicht auf halbem Weg.
+- **Schriften sind Inter** (Regular, Bold) **und Rethink Sans SemiBold** für den
+  Namen. Beide liegen in `assets/fonts/` und werden ins PDF eingebettet. Nicht
+  durch Systemschriften ersetzen.
+- **Keine Schatten, keine Rundungen.** Die Figma-Vorlage hat keine, das Dokument
+  auch nicht.
 - **Kein Umbau des Layouts.** Neue Rubriken, andere Farben, zusätzliche Spalten:
   nur nach ausdrücklicher Ansage.
-- **Das PDF ist der Ausgang**, der Figma-Frame die Zugabe. Er wird nie statt des
-  PDF gebaut, und sein Ausfall hält das PDF nicht auf.
+- **Die PDFs sind der Ausgang**, die Figma-Frames die bearbeitbare Zweitschrift.
+  Sie entstehen in jedem Lauf, aber nie statt der PDFs, und ihr Ausfall hält die
+  PDFs nicht auf.
 
 ## Wenn das Layout doch angefasst werden muss
 
-Maße, Typo und Farben stehen in `references/layout.md`. Dort steht auch, warum die
-Stationen mit Float statt Flexbox gebaut sind – diese Stelle bitte vor jeder
-Änderung lesen, sonst brechen die Seitenumbrüche.
+**Designwerte stehen nur in `assets/tokens.json`** – Schriften, Größen,
+Zeilenhöhen, Laufweiten, Abstände, Farben, abgelesen aus der Figma-Datei, die dort
+unter `quelle` steht. `assets/cv.css` und `scripts/figma_plan.py` tragen keine
+eigenen Zahlen, sie lesen von dort; deshalb setzen PDF und Figma-Frame immer
+dieselben Werte. Einen Wert ändern heißt: ihn in `tokens.json` ändern, sonst
+nirgends. Das Platzhalterbild der anonymen Fassung ist eine Datei aus dem Design:
+eine neue Fassung als `assets/silhouette-vorlage.svg` ablegen und
+`python3 ${CLAUDE_SKILL_DIR}/scripts/silhouette.py` laufen lassen – das setzt sie
+in den Fotoplatz aus `tokens.json` ein und schreibt `silhouette.svg` und `.png`.
+Dasselbe nach einer Änderung von `raster.foto_breite` oder `foto_hoehe`.
 
-Wer dort etwas ändert, muss `scripts/figma_plan.py` mitziehen: Es trägt dieselben
-Abstände und Schriftwerte ein zweites Mal, damit der Figma-Frame nicht vom PDF
-abweicht. Wie daraus ein Frame wird, steht in `references/figma.md`.
+Danach immer:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/selbsttest.py
+```
+
+Er misst am gerenderten PDF nach, ob Schrift, Größe und Farbe jeder Zeile und die
+Abstände von Schriftlinie zu Schriftlinie den Tokens entsprechen, und schlägt an,
+sobald in `cv.css` ein Wert als Literal steht oder Schatten und Rundungen
+auftauchen.
+
+**Hat sich das Design-System in Figma geändert**, gilt
+`references/figma-abgleich.md`: Figma-Seite auslesen, mit `tokens.json`
+vergleichen, die bewussten Abweichungen stehen lassen. Warum einige Tokens nicht
+dem Figma-Eintrag entsprechen (gerundete Zeilenhöhen, 13pt-Takt der Listen) und
+warum die Stationen mit Float statt Flexbox gebaut sind, steht in
+`references/layout.md` – vor jeder Änderung lesen, sonst brechen Abstände oder
+Seitenumbrüche. Wie aus dem Plan Frames werden: `references/figma.md`.
