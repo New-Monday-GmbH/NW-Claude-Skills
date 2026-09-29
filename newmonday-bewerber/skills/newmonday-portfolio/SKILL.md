@@ -90,6 +90,74 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/pruefe_umgebung.py
 - **Logobibliothek**: gemeinsam mit `newmonday-cv`. Liegt dieser Skill daneben,
   nutzen beide denselben Ordner – siehe `scripts/logo_lib.py`.
 
+## Im Gesamtlauf
+
+Dieser Abschnitt gilt nur, wenn der Auftrag mit „Gesamtlauf
+newmonday-bewerbermappe“ beginnt. Dann läuft dieser Skill als Subagent in einer
+von zwei Phasen, und der Auftrag bringt die allgemeinen Regeln mit: keine
+Rückfragen, Laufordner, `auftrag.json`, die Formate in
+`newmonday-bewerbermappe/references/formate.md`. Hier steht nur, was für das
+Portfolio dazukommt. Wo dieser Abschnitt etwas regelt, geht er dem Rest des
+Skills vor; im Einzellauf gilt er nicht.
+
+**Schritt 0 entfällt.** Was er einholt, steht in `auftrag.json`:
+
+| Schritt 0 | aus `auftrag.json` |
+|---|---|
+| Sprache | `sprache` |
+| Figma-Ziel | `figma.link` – er trägt die `node-id` der Kandidatenseite: `figma_plan.py … --knoten <node-id>` (`references/figma.md`, „Die Zieldatei“). Ist `figma.aktiv` false, entfällt Schritt 7a. |
+| Portfolio, Lebenslauf, LinkedIn-Export | `material.portfolio_url` oder `material.portfolio_pdf`, `material.lebenslauf`, `material.linkedin_export` |
+| Logos, Screens, Kundentexte | `material.logos`, `material.screens` (je Projekt ein Unterordner, wenn so geliefert), `material.kundentexte` |
+
+**Phase vorbereiten: Schritte 1 und 2.** Statt der Frage-Nachricht aus Schritt 3
+entsteht `fragen.json`:
+
+- `fragen`: `projekte` immer, `nda`, `statement` und `ki_tools` unter denselben
+  Bedingungen wie in Schritt 3, mit demselben Wortlaut. `projekte` führt die
+  Vorschläge nach Stärke, das stärkste zuerst mit „(Empfohlen)“; die
+  `description` nennt die Beleglage (Text, Zahl und Schärfe der Screens). Mehr
+  als vier Projekte: die vier stärksten als Optionen, die übrigen in der
+  `description` der vierten („weitere über Other: …“). `statement` hat die
+  Optionen „Ich gebe es ein“ mit `"text_noetig": true` und „Fläche leer lassen“.
+- `luecken`:
+  - je vorgeschlagenem Projekt ohne scharfe Screens ein Posten „Screens
+    <Projekt>“ – gemessen an `bilder.txt` und den Grenzen aus Schritt 0,
+    Punkt 4 (Desktop ab 1 120 px, Phone ab 520 px Displaybreite); Folge: „Lösungs-
+    und Abschlussseite zeigen nur die Markenfläche“ bzw. „… werden hochgerechnet“;
+  - „Lebenslauf“, wenn er fehlt (Schritt 0, Punkt 2);
+  - „Projektname <Kunde>“, wenn zwei Projekte beim selben Kunden keinen
+    Projektnamen im Material haben (Schritt 4, `projektname`);
+  - bei genau einem Projekt im Material: „Weitere Projekte“ (Sonderfälle, „Sehr
+    wenige Projekte“).
+- `texte`: leer.
+
+In `notizen.md`:
+
+- je Projekt: Quelle der Texte, zugeordnete Bilder aus `arbeit/bilder/` mit
+  Seitenzahl, Beleglage, Markenfarbe falls schon erkennbar;
+- die Profilfoto-Quelle;
+- jede Abweichung zwischen den Quellen mit beiden Werten (Portfolio vor
+  Lebenslauf vor LinkedIn, Schritt 2) und anonymisierte Kunden;
+- bei einer Figma-Datei als Quelle: die Knoten-IDs der Screens.
+
+Keine `portfolio.json`, keine Logos, keine Recherche, nichts rendern.
+
+**Phase bauen: Schritte 4 bis 8.** Die Antworten stehen in
+`entscheidungen.newmonday-portfolio`:
+
+- `projekte` → die gewählten Projekte in der Reihenfolge der Optionen; nennt der
+  Text über „Other“ eine andere Reihenfolge, gilt die.
+- `nda` → `"nda": true` bei den gewählten Projekten.
+- `statement` → „Ich gebe es ein: <Text>“: der Text als `statement.text`,
+  wörtlich; „Fläche leer lassen“: kein Statement.
+- `ki_tools` → `person.ki.tools`.
+
+Gerendert wird nach `<laufordner>/ausgabe/<nachname>-<vorname>-portfolio.pdf`.
+Die Übergabe aus Schritt 8 geht nach `uebergabe.md`: Cover-Titel, KI- und
+Prozesstexte, Kundentexte mit Quellen und KI-generierte Gebäude unter „Zur
+Freigabe“, Abweichungen unter „Quellen weichen ab“, Bildnachweis und alles
+Übrige unter „Hinweise“, die Schlusszeilen wörtlich unter „Fehlt noch“.
+
 ## Gefragt wird mit Klickboxen, nicht im Fließtext
 
 **Jede Frage, deren Antwort aus einer überschaubaren Menge stammt, läuft über
