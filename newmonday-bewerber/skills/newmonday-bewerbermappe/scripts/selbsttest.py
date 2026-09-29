@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import copy
 import json
+import os
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -18,6 +20,7 @@ sys.path.insert(0, str(HIER))
 import pruefe_lauf as pl  # noqa: E402
 
 BEISPIEL = HIER.parent / "beispiel" / "lauf"
+SKRIPT = HIER / "pruefe_lauf.py"
 
 FRAGEN = {
     "skill": "newmonday-cv",
@@ -64,6 +67,16 @@ def geaendert(basis: dict, aenderung) -> dict:
 def zweite_frage(d):
     q = copy.deepcopy(d["fragen"][0])
     d["fragen"].append(q)
+
+
+def status(skill: str, **werte):
+    """Änderung für geaendert(): status.<skill> bekommt diese Werte."""
+    return lambda d: d["status"][skill].update(werte)
+
+
+def antworten(skill: str, **werte):
+    """Änderung für geaendert(): entscheidungen.<skill> sind genau diese Antworten."""
+    return lambda d: d["entscheidungen"].update({skill: werte})
 
 
 # (Name, Prüffunktion, Daten, erwarteter Fehlertext oder None, erwartete Warnung oder None)
@@ -136,11 +149,81 @@ FAELLE = [
      geaendert(AUFTRAG, lambda d: d.update(ohne=5)), "ohne: muss eine Liste sein", None),
     ("entscheidungen ist Liste statt dict", pl.pruefe_auftrag,
      geaendert(AUFTRAG, lambda d: d.update(entscheidungen=[])), "entscheidungen: muss ein Objekt sein", None),
+    # Schluss-Review I1: Nicht-Strings vor Mengen- und Dict-Tests, jeder Typ geprüft
+    ("skill ist Liste", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d.update(skill=["newmonday-cv"])),
+     "skill: muss ein String sein", None),
+    ("skill ist Objekt", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d.update(skill={})),
+     "skill: muss ein String sein", None),
+    ("ohne-Eintrag ist Liste", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d.update(ohne=[["x"]])),
+     "ohne[0]: muss ein String sein", None),
+    ("ohne-Eintrag ist Objekt", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d.update(ohne=["linkedin_export", {}])),
+     "ohne[1]: muss ein String sein", None),
+    ("Status ist Liste", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, status("newmonday-cv", vorbereiten=[])),
+     "status.newmonday-cv.vorbereiten: [] ist keiner von", None),
+    ("Status ist Objekt", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, status("newmonday-portfolio", bauen={})),
+     "status.newmonday-portfolio.bauen: {} ist keiner von", None),
+    ("status ist Liste", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d.update(status=[])),
+     "status: muss ein Objekt sein", None),
+    ("Fehlergrund ist Zahl", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, status("newmonday-cv", vorbereiten="fehler", fehler=3)),
+     "status.newmonday-cv.fehler: muss ein String oder null sein", None),
+    ("Materialpfad ist Liste", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d["material"].update(lebenslauf=["eingang/lebenslauf.pdf"])),
+     "material.lebenslauf: muss ein String oder null sein", None),
+    ("figma.neues_file kein bool", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d["figma"].update(neues_file="nein")),
+     "figma.neues_file: muss true oder false sein", None),
+    ("Antworten eines Skills sind Liste", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d.update(entscheidungen={"newmonday-cv": []})),
+     "entscheidungen.newmonday-cv: muss ein Objekt sein", None),
+    ("Antwort ist Liste", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, antworten("newmonday-cv", fachfremd=["Verkäufer", "Zivildienst"])),
+     "entscheidungen.newmonday-cv.fachfremd: muss ein String sein", None),
+    ("leere Mehrfachauswahl", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, antworten("newmonday-cv", fachfremd="")), None, None),
+    # Schluss-Review M6: Prüfungen, die bisher keinen Test hatten
+    ("Fragetext doppelt", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d["fragen"].append(
+         dict(copy.deepcopy(d["fragen"][0]), id="nm_rolle_neu"))),
+     "question: doppelt", None),
+    ("zweimal Empfohlen", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d["fragen"][0]["options"][1].update(
+         label="Software Development Specialist (Empfohlen)")),
+     "mehr als eine Option (Empfohlen)", None),
+    ("Labels doppelt", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d["fragen"][0]["options"][0].update(
+         label="Software Development Specialist")),
+     "Labels doppelt", None),
+    ("multiSelect kein bool", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d["fragen"][0].update(multiSelect="nein")),
+     "multiSelect: muss true oder false sein", None),
+    ("ohne mit Lücke ohne Materialschlüssel", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d.update(ohne=["Weitere Projekte"])),
+     None, "kein Materialschlüssel"),
+    ("ohne und material zugleich", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d.update(ohne=["lebenslauf"])),
+     None, "steht auch unter material"),
+    ("ungültiger Statuswert", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, status("newmonday-skillmatrix", bauen="erledigt")),
+     "status.newmonday-skillmatrix.bauen: 'erledigt' ist keiner von", None),
+    ("file_key passt nicht zum Link", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d["figma"].update(file_key="XyZ789")),
+     None, "figma.file_key"),
 ]
 
 
 def pruefe_fall(name, funktion, daten, fehler_text, warn_text) -> str | None:
-    fehler, warnungen = funktion(daten)
+    try:
+        fehler, warnungen = funktion(daten)
+    except Exception as e:  # jede Ausnahme ist ein Befund, kein Abbruch des Tests
+        return f"{name}: Ausnahme {type(e).__name__}: {e}"
     if fehler_text is None and fehler:
         return f"{name}: unerwartete Fehler {fehler}"
     if fehler_text is not None and not any(fehler_text in x for x in fehler):
@@ -157,6 +240,11 @@ def pruefe_uebergaben() -> list[str]:
     ohne = UEBERGABE.replace("## Fehlt noch\n", "")
     if not any("Fehlt noch" in x for x in pl.pruefe_uebergabe(ohne)):
         probleme.append("uebergabe ohne 'Fehlt noch' wird nicht bemängelt")
+    vertauscht = (UEBERGABE.replace("## Hinweise\n", "## X\n")
+                  .replace("## Zur Freigabe\n", "## Hinweise\n")
+                  .replace("## X\n", "## Zur Freigabe\n"))
+    if not any("nicht in der Reihenfolge" in x for x in pl.pruefe_uebergabe(vertauscht)):
+        probleme.append("uebergabe mit vertauschten Abschnitten wird nicht bemängelt")
     return probleme
 
 
@@ -195,10 +283,175 @@ def pruefe_ordner_faelle() -> list[str]:
     return probleme
 
 
+def schreibe(lauf: Path, pfad: str, inhalt) -> None:
+    """Legt eine Datei im Laufordner an – str als Rohtext, alles andere als JSON."""
+    datei = lauf / pfad
+    datei.parent.mkdir(parents=True, exist_ok=True)
+    text = inhalt if isinstance(inhalt, str) else json.dumps(inhalt)
+    datei.write_text(text, encoding="utf-8")
+
+
+# (Name, Dateien im Laufordner, erwarteter Fehlertext oder None, erwartete Warnung oder None);
+# geprüft mit pruefe_ordner(..., dateien=False). Fehlertext None heißt: kein Fehler.
+ORDNER = [
+    ("auftrag.json fehlt", {"cv/fragen.json": FRAGEN}, "auftrag.json: fehlt", None),
+    ("auftrag.json ist null", {"auftrag.json": "null"},
+     "auftrag.json: oberste Ebene muss ein JSON-Objekt sein", None),
+    ("auftrag.json mit Syntaxfehler", {"auftrag.json": '{"version": 1,'},
+     "auftrag.json: nicht lesbar", None),
+    ("fragen.json ist null", {"auftrag.json": AUFTRAG, "cv/fragen.json": "null"},
+     "cv/fragen.json: oberste Ebene muss ein JSON-Objekt sein", None),
+    ("fragen.json mit Syntaxfehler",
+     {"auftrag.json": AUFTRAG, "cv/fragen.json": '{"skill": "newmonday-cv",'},
+     "cv/fragen.json: nicht lesbar", None),
+    ("skill in fragen.json ist Liste",
+     {"auftrag.json": AUFTRAG,
+      "cv/fragen.json": geaendert(FRAGEN, lambda d: d.update(skill=["newmonday-cv"]))},
+     "cv/fragen.json: skill: muss ein String sein", None),
+    ("Antwort-id ohne Frage",
+     {"auftrag.json": geaendert(AUFTRAG, antworten(
+         "newmonday-cv", nm_rolle="Software Development Specialist", nm_start="Oktober 2026")),
+      "cv/fragen.json": FRAGEN},
+     "entscheidungen.newmonday-cv.nm_start", None),
+    ("Antwort-ids passen",
+     {"auftrag.json": geaendert(AUFTRAG, antworten(
+         "newmonday-cv", nm_rolle="Software Development Specialist")),
+      "cv/fragen.json": FRAGEN},
+     None, None),
+    ("vorbereiten fehler: fragen.json übersprungen",
+     {"auftrag.json": geaendert(AUFTRAG, status(
+         "newmonday-skillmatrix", vorbereiten="fehler", fehler="Subagent abgebrochen")),
+      "skillmatrix/fragen.json": "{kaputt"},
+     None, "skillmatrix/fragen.json: nicht geprüft"),
+    ("ausgelassen: uebergabe.md übersprungen",
+     {"auftrag.json": geaendert(AUFTRAG, status(
+         "newmonday-portfolio", vorbereiten="ausgelassen", bauen="ausgelassen")),
+      "portfolio/uebergabe.md": "# Übergabe newmonday-portfolio\n"},
+     None, "portfolio/uebergabe.md: nicht geprüft"),
+    ("bauen offen: uebergabe.md geprüft",
+     {"auftrag.json": AUFTRAG, "portfolio/uebergabe.md": "# Übergabe newmonday-portfolio\n"},
+     "portfolio/uebergabe.md: Abschnitt fehlt", None),
+]
+
+
+def ordner_fall(name, dateien, fehler_text, warn_text) -> str | None:
+    with tempfile.TemporaryDirectory() as tmp:
+        lauf = Path(tmp)
+        for pfad, inhalt in dateien.items():
+            schreibe(lauf, pfad, inhalt)
+        try:
+            fehler, warnungen = pl.pruefe_ordner(lauf, dateien=False)
+        except Exception as e:
+            return f"{name}: Ausnahme {type(e).__name__}: {e}"
+    return pruefe_fall(name, lambda _: (fehler, warnungen), None, fehler_text, warn_text)
+
+
+def pruefe_laufordner() -> list[str]:
+    """laufordner in auftrag.json gegen den geprüften Ordner: nur eine Warnung."""
+    probleme = []
+    with tempfile.TemporaryDirectory() as tmp:
+        lauf = Path(tmp)
+        for pfad, erwartet in ((str(lauf), False), (str(lauf / "anderer Ordner"), True)):
+            schreibe(lauf, "auftrag.json", geaendert(AUFTRAG, lambda d: d.update(laufordner=pfad)))
+            fehler, warnungen = pl.pruefe_ordner(lauf, dateien=False)
+            if any("laufordner" in x for x in fehler + warnungen) != erwartet:
+                probleme.append(f"laufordner {pfad!r}: erwartet Warnung {erwartet}, "
+                                f"bekommen {fehler + warnungen}")
+    return probleme
+
+
+# Werte, die an jeder Stelle einer JSON-Datei stehen könnten
+SONDERWERTE = [None, True, 0, 2.5, "", "x", "\ud800", "a\x00b",
+               [], {}, [None], [[]], [{}], {"x": []}]
+
+
+def schluesselpfade(wert, pfad: tuple = ()):
+    """Jeder Pfad zu einem Wert im JSON-Baum, die Wurzel eingeschlossen."""
+    yield pfad
+    if isinstance(wert, dict):
+        for k, v in wert.items():
+            yield from schluesselpfade(v, pfad + (k,))
+    elif isinstance(wert, list):
+        for i, v in enumerate(wert):
+            yield from schluesselpfade(v, pfad + (i,))
+
+
+def ersetzt(basis, pfad: tuple, wert):
+    if not pfad:
+        return copy.deepcopy(wert)
+    d = copy.deepcopy(basis)
+    ziel = d
+    for k in pfad[:-1]:
+        ziel = ziel[k]
+    ziel[pfad[-1]] = copy.deepcopy(wert)
+    return d
+
+
+def pruefe_robustheit() -> list[str]:
+    """Kein JSON-Wert an keiner Stelle darf pruefe_ordner eine Ausnahme entlocken."""
+    auftrag = geaendert(AUFTRAG, antworten("newmonday-cv", nm_rolle="Software Development Specialist"))
+    befunde: dict = {}
+    with tempfile.TemporaryDirectory() as tmp:
+        lauf = Path(tmp)
+        schreibe(lauf, "cv/uebergabe.md", UEBERGABE)
+        for datei, basis in (("auftrag.json", auftrag), ("cv/fragen.json", FRAGEN)):
+            schreibe(lauf, "auftrag.json", auftrag)
+            schreibe(lauf, "cv/fragen.json", FRAGEN)
+            for pfad in schluesselpfade(basis):
+                for wert in SONDERWERTE:
+                    schreibe(lauf, datei, json.dumps(ersetzt(basis, pfad, wert)))
+                    try:
+                        pl.pruefe_ordner(lauf)
+                    except Exception as e:
+                        stelle = f"{datei} {'.'.join(map(str, pfad)) or '(ganze Datei)'}"
+                        befunde.setdefault(stelle, [f"{type(e).__name__}: {e}"]).append(wert)
+    return [f"Robustheit {stelle}: {werte[0]} bei {werte[1:]!r}"
+            for stelle, werte in befunde.items()]
+
+
+def cli(*args: str, seed: str = "0") -> subprocess.CompletedProcess:
+    umgebung = dict(os.environ, PYTHONHASHSEED=seed)
+    return subprocess.run([sys.executable, str(SKRIPT), *args],
+                          capture_output=True, text=True, env=umgebung)
+
+
+def pruefe_cli() -> list[str]:
+    """pruefe_lauf.py als Befehl: Rückgabewerte, feste Reihenfolge, kein Traceback."""
+    probleme = []
+    r = cli(str(BEISPIEL), "--ohne-dateien")
+    if r.returncode != 0 or not r.stdout.rstrip().endswith("Lauf in Ordnung"):
+        probleme.append(f"CLI Beispiel: Rückgabe {r.returncode} statt 0: {r.stdout}{r.stderr}")
+    r = cli()
+    if r.returncode != 2:
+        probleme.append(f"CLI ohne Laufordner: Rückgabe {r.returncode} statt 2")
+    with tempfile.TemporaryDirectory() as tmp:
+        lauf = Path(tmp)
+        schreibe(lauf, "auftrag.json", geaendert(AUFTRAG, lambda d: d["material"].update(
+            foto="eingang/foto.jpg", logos="eingang/logos/", screens="eingang/screens/",
+            zertifikate="eingang/zertifikate/")))
+        r = cli(str(lauf))
+        if r.returncode != 1 or "FEHLER —" not in r.stdout or "Traceback" in r.stderr:
+            probleme.append(f"CLI mit Fehlern: Rückgabe {r.returncode} statt 1: {r.stdout}{r.stderr}")
+        ausgaben = {cli(str(lauf), seed=str(s)).stdout for s in range(8)}
+        if len(ausgaben) != 1:
+            probleme.append(f"CLI: Ausgabe hängt vom Hash-Seed ab – {len(ausgaben)} Fassungen "
+                            "bei 8 Läufen, Reihenfolge nicht fest")
+        schreibe(lauf, "auftrag.json", '{"version": 1, "material": {"\\ud800": "x"}}')
+        r = cli(str(lauf))
+        if r.returncode != 1 or "Traceback" in r.stderr:
+            letzte = (r.stderr.strip().splitlines() or [""])[-1]
+            probleme.append(f"CLI mit einzelnem Surrogat im Schlüssel: Rückgabe {r.returncode}, {letzte}")
+    return probleme
+
+
 def main() -> int:
     probleme = [p for p in (pruefe_fall(*fall) for fall in FAELLE) if p]
     probleme += pruefe_uebergaben()
     probleme += pruefe_ordner_faelle()
+    probleme += [p for p in (ordner_fall(*fall) for fall in ORDNER) if p]
+    probleme += pruefe_laufordner()
+    probleme += pruefe_robustheit()
+    probleme += pruefe_cli()
     if BEISPIEL.exists():
         f, _ = pl.pruefe_ordner(BEISPIEL, dateien=False)
         probleme += [f"beispiel/lauf: {x}" for x in f]
@@ -208,7 +461,8 @@ def main() -> int:
         print(f"FEHLER: {p}")
     if probleme:
         return 1
-    print(f"Selbsttest bestanden ({len(FAELLE)} Fälle, Übergabe, Laufordner, Beispiel)")
+    print(f"Selbsttest bestanden ({len(FAELLE)} Fälle, {len(ORDNER)} Laufordner-Fälle, "
+          "Übergabe, Robustheit, Befehl, Beispiel)")
     return 0
 
 

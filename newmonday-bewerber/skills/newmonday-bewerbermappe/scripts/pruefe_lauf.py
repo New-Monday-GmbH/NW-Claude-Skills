@@ -5,12 +5,15 @@
     python3 pruefe_lauf.py <laufordner> --ohne-dateien   # Materialpfade nicht prüfen
 
 Geprüft werden auftrag.json, jede <skill>/fragen.json und jede
-<skill>/uebergabe.md, die es gibt. Rückgabe 1, wenn etwas nicht stimmt – die
-Ausgabe nennt jede Stelle. Warnungen halten nichts auf. Nur Standardbibliothek.
+<skill>/uebergabe.md, die es gibt – außer bei einem Skill, dessen vorbereiten
+bzw. bauen auf fehler oder ausgelassen steht: dann nur eine Warnung. Rückgabe 1,
+wenn etwas nicht stimmt – die Ausgabe nennt jede Stelle, in fester Reihenfolge.
+Warnungen halten nichts auf. Nur Standardbibliothek.
 """
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -27,13 +30,16 @@ MATERIAL = {"lebenslauf", "linkedin_export", "linkedin_url", "xing_url",
 PFADE = {"lebenslauf", "linkedin_export", "portfolio_pdf", "foto", "logos",
          "screens", "zertifikate"}
 STATUS = {"offen", "fertig", "fehler", "ausgelassen"}
+UEBERSPRINGEN = {"fehler", "ausgelassen"}  # Phase so: deren Datei nur mit Warnung
 UEBERGABE = ["## Dateien", "## Zur Freigabe", "## Quellen weichen ab",
              "## Hinweise", "## Ohne Rückfrage entschieden", "## Fehlt noch"]
 EMPFOHLEN = "(Empfohlen)"
 ID = re.compile(r"^[a-z][a-z0-9_]*$")
 FIGMA_LINK = re.compile(
-    r"^https://www\.figma\.com/design/[A-Za-z0-9]+/[^?]*\?(?:.*&)?node-id=(\d+)-(\d+)")
+    r"^https://www\.figma\.com/design/(?P<key>[A-Za-z0-9]+)/[^?]*\?(?:.*&)?"
+    r"node-id=(?P<a>\d+)-(?P<b>\d+)")
 SEITE = re.compile(r"^\d+:\d+$")
+_FEHLT = object()  # Rückgabe von _lade für eine nicht ladbare Datei (JSON null ist None)
 
 
 def _text(wert) -> bool:
@@ -46,8 +52,11 @@ def pruefe_fragen(d: dict) -> tuple[list[str], list[str]]:
     w: list[str] = []
     if not isinstance(d, dict):
         return ["oberste Ebene muss ein JSON-Objekt sein"], w
-    if d.get("skill") not in SKILLS:
-        f.append(f"skill: {d.get('skill')!r} ist keiner von {sorted(SKILLS)}")
+    skill = d.get("skill")
+    if not isinstance(skill, str):
+        f.append("skill: muss ein String sein")
+    elif skill not in SKILLS:
+        f.append(f"skill: {skill!r} ist keiner von {sorted(SKILLS)}")
     if not _text(d.get("kandidat")):
         f.append("kandidat: fehlt")
     texte = d.get("texte", [])
@@ -141,51 +150,76 @@ def pruefe_auftrag(d: dict) -> tuple[list[str], list[str]]:
         f.append(f"reihenfolge: {reihe!r} – erlaubt sind {list(SKILLS)} in dieser Reihenfolge")
         reihe = []
     fig = d.get("figma", {})
+    if isinstance(fig, dict) and "neues_file" in fig and not isinstance(fig["neues_file"], bool):
+        f.append("figma.neues_file: muss true oder false sein")
     if not isinstance(fig, dict) or not isinstance(fig.get("aktiv"), bool):
         f.append("figma.aktiv: muss true oder false sein")
     elif fig["aktiv"]:
         m = FIGMA_LINK.match(str(fig.get("link") or ""))
         if not m:
             f.append("figma.link: kein figma.com/design-Link mit node-id der Zielseite")
+        elif fig.get("file_key") != m.group("key"):
+            w.append(f"figma.file_key: {fig.get('file_key')!r} passt nicht zum Link "
+                     f"({m.group('key')!r})")
         seite = str(fig.get("seite_id") or "")
         if not SEITE.match(seite):
             f.append("figma.seite_id: fehlt (Form 12:34)")
-        elif m and seite != f"{m.group(1)}:{m.group(2)}":
+        elif m and seite != f"{m.group('a')}:{m.group('b')}":
             f.append("figma.seite_id: passt nicht zur node-id im Link")
     mat = d.get("material", {})
     if not isinstance(mat, dict):
         f.append("material: muss ein Objekt sein")
         mat = {}
-    for k in mat:
+    for k, v in mat.items():
         if k not in MATERIAL:
             f.append(f"material.{k}: unbekannt")
+        elif v is not None and not isinstance(v, str):
+            f.append(f"material.{k}: muss ein String oder null sein")
     if not (mat.get("lebenslauf") or mat.get("linkedin_export")):
         f.append("material: weder lebenslauf noch linkedin_export – ohne eins von beiden kein Lauf")
     ohne = d.get("ohne", [])
     if not isinstance(ohne, list):
         f.append("ohne: muss eine Liste sein")
     else:
-        for k in ohne:
-            if k not in MATERIAL:
-                f.append(f"ohne: {k!r} ist kein Materialposten")
+        for i, k in enumerate(ohne):
+            if not isinstance(k, str):
+                f.append(f"ohne[{i}]: muss ein String sein")
+            elif k not in MATERIAL:
+                w.append(f"ohne: {k!r} ist kein Materialschlüssel – richtig nur für eine "
+                         "Lücke ohne Schlüssel (references/formate.md)")
             elif mat.get(k):
                 w.append(f"ohne: {k!r} steht auch unter material")
     entscheidungen = d.get("entscheidungen", {})
     if not isinstance(entscheidungen, dict):
         f.append("entscheidungen: muss ein Objekt sein")
     else:
-        for s in entscheidungen:
+        for s, antworten in entscheidungen.items():
             if s not in SKILLS:
                 f.append(f"entscheidungen.{s}: unbekannter Skill")
+            elif not isinstance(antworten, dict):
+                f.append(f"entscheidungen.{s}: muss ein Objekt sein")
+            else:
+                for qid, antwort in antworten.items():
+                    if not isinstance(antwort, str):
+                        f.append(f"entscheidungen.{s}.{qid}: muss ein String sein, "
+                                 "auch bei mehreren Haken")
     status = d.get("status", {})
+    if not isinstance(status, dict):
+        return f + ["status: muss ein Objekt sein"], w
     for s in reihe:
-        st = status.get(s) if isinstance(status, dict) else None
-        if not isinstance(st, dict):
+        st = status.get(s)
+        if st is None:
             f.append(f"status.{s}: fehlt")
             continue
+        if not isinstance(st, dict):
+            f.append(f"status.{s}: muss ein Objekt sein")
+            continue
         for phase in ("vorbereiten", "bauen"):
-            if st.get(phase) not in STATUS:
-                f.append(f"status.{s}.{phase}: {st.get(phase)!r} ist keiner von {sorted(STATUS)}")
+            wert = st.get(phase)
+            if not isinstance(wert, str) or wert not in STATUS:
+                f.append(f"status.{s}.{phase}: {wert!r} ist keiner von {sorted(STATUS)}")
+        if st.get("fehler") is not None and not isinstance(st.get("fehler"), str):
+            f.append(f"status.{s}.fehler: muss ein String oder null sein")
         if st.get("bauen") == "fertig" and st.get("vorbereiten") != "fertig":
             f.append(f"status.{s}: gebaut, aber nicht vorbereitet")
     return f, w
@@ -202,12 +236,40 @@ def pruefe_uebergabe(text: str) -> list[str]:
     return []
 
 
-def _lade(datei: Path, f: list[str]):
+def _lade(datei: Path, name: str, f: list[str]):
+    """Inhalt einer JSON-Datei. Ist sie nicht ladbar: _FEHLT und eine FEHLER-Zeile
+    mit dem Pfad relativ zum Laufordner. Der Inhalt null kommt als None zurück."""
     try:
         return json.loads(datei.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError, UnicodeDecodeError) as e:
-        f.append(f"{datei.name}: nicht lesbar – {e}")
-        return None
+    except (OSError, ValueError, RecursionError) as e:
+        f.append(f"{name}: nicht lesbar – {e}")
+        return _FEHLT
+
+
+def _phase(auftrag, skill: str, phase: str):
+    """status.<skill>.<phase> aus auftrag.json, sonst None."""
+    status = auftrag.get("status") if isinstance(auftrag, dict) else None
+    st = status.get(skill) if isinstance(status, dict) else None
+    return st.get(phase) if isinstance(st, dict) else None
+
+
+def _gleicher_ordner(pfad: str, lauf: Path) -> bool:
+    try:
+        return os.path.samefile(pfad, lauf)
+    except (OSError, ValueError):
+        return False
+
+
+def _unbekannte_antworten(auftrag, skill: str, kurz: str, fragen) -> list[str]:
+    """Antwort-ids in entscheidungen.<skill>, zu denen <kurz>/fragen.json keine Frage hat."""
+    alle = auftrag.get("entscheidungen") if isinstance(auftrag, dict) else None
+    antworten = alle.get(skill) if isinstance(alle, dict) else None
+    liste = fragen.get("fragen", []) if isinstance(fragen, dict) else None
+    if not isinstance(antworten, dict) or not isinstance(liste, list):
+        return []
+    ids = {q.get("id") for q in liste if isinstance(q, dict) and isinstance(q.get("id"), str)}
+    return [f"auftrag.json: entscheidungen.{skill}.{qid}: keine Frage mit dieser id "
+            f"in {kurz}/fragen.json" for qid in antworten if qid not in ids]
 
 
 def pruefe_ordner(lauf: Path, dateien: bool = True) -> tuple[list[str], list[str]]:
@@ -217,30 +279,42 @@ def pruefe_ordner(lauf: Path, dateien: bool = True) -> tuple[list[str], list[str
     datei = lauf / "auftrag.json"
     if not datei.exists():
         return [f"{datei}: fehlt"], w
-    auftrag = _lade(datei, f)
-    if auftrag is not None:
+    auftrag = _lade(datei, "auftrag.json", f)
+    if auftrag is not _FEHLT:
         fa, wa = pruefe_auftrag(auftrag)
         f += [f"auftrag.json: {x}" for x in fa]
         w += [f"auftrag.json: {x}" for x in wa]
-        if dateien and isinstance(auftrag, dict):
-            mat = auftrag.get("material", {})
-            if isinstance(mat, dict):
-                for k in PFADE:
-                    v = mat.get(k)
-                    if _text(v) and not (lauf / v).exists():
-                        f.append(f"auftrag.json: material.{k}: {v} gibt es im Laufordner nicht")
+    if isinstance(auftrag, dict):
+        lf = auftrag.get("laufordner")
+        if isinstance(lf, str) and lf.startswith("/") and not _gleicher_ordner(lf, lauf):
+            w.append(f"auftrag.json: laufordner {lf!r} ist nicht der geprüfte Ordner {str(lauf)!r}")
+        mat = auftrag.get("material", {})
+        if dateien and isinstance(mat, dict):
+            for k in sorted(PFADE):
+                v = mat.get(k)
+                if _text(v) and not (lauf / v).exists():
+                    f.append(f"auftrag.json: material.{k}: {v} gibt es im Laufordner nicht")
     for skill, kurz in SKILLS.items():
         fr = lauf / kurz / "fragen.json"
-        if fr.exists():
-            d = _lade(fr, f)
-            if d is not None:
+        vorbereiten = _phase(auftrag, skill, "vorbereiten")
+        if fr.exists() and isinstance(vorbereiten, str) and vorbereiten in UEBERSPRINGEN:
+            w.append(f"{kurz}/fragen.json: nicht geprüft – status.{skill}.vorbereiten "
+                     f"ist {vorbereiten!r}")
+        elif fr.exists():
+            d = _lade(fr, f"{kurz}/fragen.json", f)
+            if d is not _FEHLT:
                 ff, ww = pruefe_fragen(d)
-                if isinstance(d, dict) and d.get("skill") in SKILLS and d.get("skill") != skill:
-                    ff.append(f"skill: {d.get('skill')!r}, erwartet {skill!r}")
+                gemeldet = d.get("skill") if isinstance(d, dict) else None
+                if isinstance(gemeldet, str) and gemeldet in SKILLS and gemeldet != skill:
+                    ff.append(f"skill: {gemeldet!r}, erwartet {skill!r}")
                 f += [f"{kurz}/fragen.json: {x}" for x in ff]
                 w += [f"{kurz}/fragen.json: {x}" for x in ww]
+                f += _unbekannte_antworten(auftrag, skill, kurz, d)
         ue = lauf / kurz / "uebergabe.md"
-        if ue.exists():
+        bauen = _phase(auftrag, skill, "bauen")
+        if ue.exists() and isinstance(bauen, str) and bauen in UEBERSPRINGEN:
+            w.append(f"{kurz}/uebergabe.md: nicht geprüft – status.{skill}.bauen ist {bauen!r}")
+        elif ue.exists():
             try:
                 text = ue.read_text(encoding="utf-8")
                 f += [f"{kurz}/uebergabe.md: {x}"
@@ -251,6 +325,8 @@ def pruefe_ordner(lauf: Path, dateien: bool = True) -> tuple[list[str], list[str
 
 
 def main(args: list[str]) -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="backslashreplace")  # kein Absturz an einem Zeichen
     pfade = [a for a in args if not a.startswith("--")]
     if len(pfade) != 1:
         print(__doc__)
