@@ -62,6 +62,70 @@ und ein angemeldetes Konto mit **Bearbeitungsrechten** auf der Zieldatei.
 `whoami` sagt, welches Konto verbunden ist – das ist bei Zugriffsfehlern die
 erste Frage, nicht die letzte. Fehlt das Werkzeug, entfällt nur der Frame.
 
+## Im Gesamtlauf
+
+Dieser Abschnitt gilt nur, wenn der Auftrag mit „Gesamtlauf
+newmonday-bewerbermappe" beginnt. Dann läuft dieser Skill als Subagent in einer
+von zwei Phasen, und der Auftrag bringt die allgemeinen Regeln mit: keine
+Rückfragen, Laufordner, `auftrag.json`, die Formate in
+`newmonday-bewerbermappe/references/formate.md`. Hier steht nur, was für die
+Skill Matrix dazukommt. Wo dieser Abschnitt etwas regelt, geht er dem Rest des
+Skills vor; im Einzellauf gilt er nicht.
+
+**Schritt 0 entfällt.** Was er einholt, steht in `auftrag.json`:
+
+| Schritt 0 | aus `auftrag.json` |
+|---|---|
+| Sprache | `sprache` |
+| Figma | Der Frame entsteht, wenn `figma.aktiv` true ist – eine eigene Frage danach gibt es nicht. `figma.link` trägt die `node-id` der Kandidatenseite, also gilt „Zielseite" mit `node-id` (`references/figma.md` bzw. `figma-vorlage.md`). |
+| Material | `material` – Zertifikate aus dem Ordner `material.zertifikate`, in der Reihenfolge der Dateinamen |
+| Verfügbarkeit | wandert in die Fragen der Phase *vorbereiten* |
+
+**Phase vorbereiten: Schritte 1 bis 2d.** Statt der Freigabe-Nachricht aus 2e
+entsteht `fragen.json`:
+
+- `texte`: was 2e dem Nutzer zeigt, ein Markdown-Block je Punkt – die
+  Hero-Beschreibung im Wortlaut (als generiert gekennzeichnet) mit den drei
+  Schwerpunkten, die Matrix-Tabelle (Kategorie, Attribut, Punkte, Beleg), die
+  Tools-Tabelle (Tool, Punkte, Beleg bzw. „Vorschlag, nicht belegt"). Sollen
+  Zertifikate zu einer Karte gebündelt werden, steht der Vorschlag dabei.
+- `fragen`:
+  - `verfuegbar_ab` – Wortlaut und Optionen wie in Schritt 0, Punkt 2.
+  - `freigabe` – wie in 2e; die Option „Ich möchte etwas ändern" trägt
+    `"text_noetig": true`.
+  - `tools` – nur, wenn der Eingang keine Tools nennt, wie in 2e.
+- `luecken`: „Profilfoto", wenn Schritt 1a bei „beim Kandidaten anfragen" endet
+  oder das beste Foto unter 100 dpi liegt (Folge mit dpi-Zahl); „Zertifikate",
+  wenn Lebenslauf, LinkedIn oder Portfolio Zertifikate nennen, aber keine
+  Dateien dazu im Eingang liegen (Folge: die Zertifikatssektion zeigt kein
+  Bilderraster).
+
+In `notizen.md`:
+
+- der vollständige Entwurf als JSON-Block im Aufbau der `skillmatrix.json`
+  (Schritt 3), mit dem Beleg je Skill und Tool als zusätzlichem Feld `beleg`;
+- die Fotoquelle mit Datei, dpi und Kontrollbild, und ob der Kopf mittig steht;
+- jede Abweichung zwischen den Quellen mit beiden Werten.
+
+Keine `skillmatrix.json`, nichts rendern.
+
+**Phase bauen: Schritte 3 bis 5**, aus dem Entwurf in `notizen.md` (das Feld
+`beleg` fällt dabei weg). Die Antworten stehen in
+`entscheidungen.newmonday-skillmatrix`:
+
+- `verfuegbar_ab` → `person.verfuegbar_ab`: `"sofort"` bei „ab sofort", sonst
+  der Monat, wie er dasteht.
+- `freigabe`: „Ja, so bauen" → der Entwurf unverändert. Alles andere ist
+  „Ich möchte etwas ändern: <Text>" – den Text umsetzen, nach denselben Regeln
+  wie Änderungen in 2e.
+- `tools`: wie in 2e.
+
+Schritt 4a läuft, wenn `figma.aktiv` true ist. Die Übergabe aus Schritt 5 geht
+nach `uebergabe.md`: Hero-Beschreibung und die **endgültige** Matrix-Tabelle
+unter „Zur Freigabe" – nach einer Änderung ist das die einzige Stelle, an der der
+Nutzer sie sieht –, Abweichungen unter „Quellen weichen ab", der Rest unter
+„Hinweise", die Schlusszeilen wörtlich unter „Fehlt noch".
+
 ## Gefragt wird mit Klickboxen, nicht im Fließtext
 
 Wie im CV-Skill: **Jede Frage mit überschaubarer Antwortmenge läuft über
