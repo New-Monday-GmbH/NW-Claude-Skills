@@ -44,6 +44,8 @@ def pruefe_fragen(d: dict) -> tuple[list[str], list[str]]:
     """Fehler und Warnungen für den Inhalt einer fragen.json."""
     f: list[str] = []
     w: list[str] = []
+    if not isinstance(d, dict):
+        return ["oberste Ebene muss ein JSON-Objekt sein"], w
     if d.get("skill") not in SKILLS:
         f.append(f"skill: {d.get('skill')!r} ist keiner von {sorted(SKILLS)}")
     if not _text(d.get("kandidat")):
@@ -68,6 +70,9 @@ def pruefe_fragen(d: dict) -> tuple[list[str], list[str]]:
     fragetexte: set = set()
     for i, q in enumerate(fragen):
         o = f"fragen[{i}]"
+        if not isinstance(q, dict):
+            f.append(f"{o}: muss ein Objekt sein")
+            continue
         qid = str(q.get("id", ""))
         if not ID.match(qid):
             f.append(f"{o}.id: {qid!r} ist kein snake_case")
@@ -77,9 +82,10 @@ def pruefe_fragen(d: dict) -> tuple[list[str], list[str]]:
         text = q.get("question")
         if not _text(text) or not text.strip().endswith("?"):
             f.append(f"{o}.question: muss mit '?' enden")
-        elif text in fragetexte:
+        elif isinstance(text, str) and text in fragetexte:
             f.append(f"{o}.question: doppelt – Antworten kommen nach Fragetext zurück")
-        fragetexte.add(text)
+        if isinstance(text, str):
+            fragetexte.add(text)
         header = q.get("header")
         if not _text(header):
             f.append(f"{o}.header: fehlt")
@@ -95,6 +101,10 @@ def pruefe_fragen(d: dict) -> tuple[list[str], list[str]]:
             continue
         labels = []
         for j, p in enumerate(opts):
+            if not isinstance(p, dict):
+                f.append(f"{o}.options[{j}]: muss ein Objekt sein")
+                labels.append("")
+                continue
             if not _text(p.get("label")):
                 f.append(f"{o}.options[{j}].label: fehlt")
             if not isinstance(p.get("description"), str):
@@ -116,6 +126,8 @@ def pruefe_auftrag(d: dict) -> tuple[list[str], list[str]]:
     """Fehler und Warnungen für den Inhalt einer auftrag.json."""
     f: list[str] = []
     w: list[str] = []
+    if not isinstance(d, dict):
+        return ["oberste Ebene muss ein JSON-Objekt sein"], w
     if d.get("version") != 1:
         f.append(f"version: {d.get('version')!r} statt 1")
     if not str(d.get("laufordner", "")).startswith("/"):
@@ -149,14 +161,22 @@ def pruefe_auftrag(d: dict) -> tuple[list[str], list[str]]:
             f.append(f"material.{k}: unbekannt")
     if not (mat.get("lebenslauf") or mat.get("linkedin_export")):
         f.append("material: weder lebenslauf noch linkedin_export – ohne eins von beiden kein Lauf")
-    for k in d.get("ohne", []):
-        if k not in MATERIAL:
-            f.append(f"ohne: {k!r} ist kein Materialposten")
-        elif mat.get(k):
-            w.append(f"ohne: {k!r} steht auch unter material")
-    for s in d.get("entscheidungen", {}):
-        if s not in SKILLS:
-            f.append(f"entscheidungen.{s}: unbekannter Skill")
+    ohne = d.get("ohne", [])
+    if not isinstance(ohne, list):
+        f.append("ohne: muss eine Liste sein")
+    else:
+        for k in ohne:
+            if k not in MATERIAL:
+                f.append(f"ohne: {k!r} ist kein Materialposten")
+            elif mat.get(k):
+                w.append(f"ohne: {k!r} steht auch unter material")
+    entscheidungen = d.get("entscheidungen", {})
+    if not isinstance(entscheidungen, dict):
+        f.append("entscheidungen: muss ein Objekt sein")
+    else:
+        for s in entscheidungen:
+            if s not in SKILLS:
+                f.append(f"entscheidungen.{s}: unbekannter Skill")
     status = d.get("status", {})
     for s in reihe:
         st = status.get(s) if isinstance(status, dict) else None
@@ -185,7 +205,7 @@ def pruefe_uebergabe(text: str) -> list[str]:
 def _lade(datei: Path, f: list[str]):
     try:
         return json.loads(datei.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as e:
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError) as e:
         f.append(f"{datei.name}: nicht lesbar – {e}")
         return None
 
@@ -202,25 +222,31 @@ def pruefe_ordner(lauf: Path, dateien: bool = True) -> tuple[list[str], list[str
         fa, wa = pruefe_auftrag(auftrag)
         f += [f"auftrag.json: {x}" for x in fa]
         w += [f"auftrag.json: {x}" for x in wa]
-        if dateien:
-            for k in PFADE:
-                v = auftrag.get("material", {}).get(k)
-                if _text(v) and not (lauf / v).exists():
-                    f.append(f"auftrag.json: material.{k}: {v} gibt es im Laufordner nicht")
+        if dateien and isinstance(auftrag, dict):
+            mat = auftrag.get("material", {})
+            if isinstance(mat, dict):
+                for k in PFADE:
+                    v = mat.get(k)
+                    if _text(v) and not (lauf / v).exists():
+                        f.append(f"auftrag.json: material.{k}: {v} gibt es im Laufordner nicht")
     for skill, kurz in SKILLS.items():
         fr = lauf / kurz / "fragen.json"
         if fr.exists():
             d = _lade(fr, f)
             if d is not None:
                 ff, ww = pruefe_fragen(d)
-                if d.get("skill") in SKILLS and d.get("skill") != skill:
+                if isinstance(d, dict) and d.get("skill") in SKILLS and d.get("skill") != skill:
                     ff.append(f"skill: {d.get('skill')!r}, erwartet {skill!r}")
                 f += [f"{kurz}/fragen.json: {x}" for x in ff]
                 w += [f"{kurz}/fragen.json: {x}" for x in ww]
         ue = lauf / kurz / "uebergabe.md"
         if ue.exists():
-            f += [f"{kurz}/uebergabe.md: {x}"
-                  for x in pruefe_uebergabe("\n" + ue.read_text(encoding="utf-8") + "\n")]
+            try:
+                text = ue.read_text(encoding="utf-8")
+                f += [f"{kurz}/uebergabe.md: {x}"
+                      for x in pruefe_uebergabe("\n" + text + "\n")]
+            except (OSError, UnicodeDecodeError) as e:
+                f.append(f"{kurz}/uebergabe.md: nicht lesbar – {e}")
     return f, w
 
 

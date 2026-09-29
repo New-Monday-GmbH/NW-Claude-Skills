@@ -121,6 +121,21 @@ FAELLE = [
     ("unbekanntes Material", pl.pruefe_auftrag,
      geaendert(AUFTRAG, lambda d: d["material"].update(website="x")),
      "material.website: unbekannt", None),
+    ("fragen mit [] statt dict", pl.pruefe_fragen, [], "oberste Ebene", None),
+    ("fragen[0] ist String statt dict", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d.update(fragen=["oops"])),
+     "fragen[0]: muss ein Objekt sein", None),
+    ("question ist Liste statt String", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d["fragen"][0].update(question=["a", "b"])),
+     "muss mit '?' enden", None),
+    ("options[0] ist String statt dict", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d["fragen"][0].update(options=["x", {"label": "y", "description": "z"}])),
+     "options[0]: muss ein Objekt sein", None),
+    ("auftrag ist String statt dict", pl.pruefe_auftrag, "x", "oberste Ebene", None),
+    ("ohne ist int statt Liste", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d.update(ohne=5)), "ohne: muss eine Liste sein", None),
+    ("entscheidungen ist Liste statt dict", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d.update(entscheidungen=[])), "entscheidungen: muss ein Objekt sein", None),
 ]
 
 
@@ -160,6 +175,23 @@ def pruefe_ordner_faelle() -> list[str]:
         f, _ = pl.pruefe_ordner(lauf)
         if not any("erwartet 'newmonday-skillmatrix'" in x for x in f):
             probleme.append(f"fragen.json im falschen Ordner nicht bemerkt: {f}")
+        # Test: auftrag.json with non-dict material
+        (lauf / "auftrag.json").write_text(json.dumps({**AUFTRAG, "material": []}), encoding="utf-8")
+        f, _ = pl.pruefe_ordner(lauf)
+        if not any("material: muss ein Objekt sein" in x for x in f):
+            probleme.append(f"material als Liste nicht bemerkt: {f}")
+        # Test: skillmatrix/fragen.json as JSON list instead of dict
+        (lauf / "auftrag.json").write_text(json.dumps(AUFTRAG), encoding="utf-8")
+        (lauf / "skillmatrix" / "fragen.json").write_text(json.dumps([]), encoding="utf-8")
+        f, _ = pl.pruefe_ordner(lauf)
+        if not any("skillmatrix/fragen.json: oberste Ebene" in x for x in f):
+            probleme.append(f"fragen.json als Liste nicht bemerkt: {f}")
+        # Test: cv/uebergabe.md with invalid UTF-8
+        (lauf / "cv").mkdir()
+        (lauf / "cv" / "uebergabe.md").write_bytes(b"\xff\xfe")
+        f, _ = pl.pruefe_ordner(lauf)
+        if not any("cv/uebergabe.md: nicht lesbar" in x for x in f):
+            probleme.append(f"UTF-8 Fehler nicht bemerkt: {f}")
     return probleme
 
 

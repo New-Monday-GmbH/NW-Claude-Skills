@@ -446,6 +446,6 @@ Sie gehen den Abschnitten oben vor.
   `AskUserQuestion` sie liefert (bei mehreren Haken keine Liste). Eine Option mit
   `"text_noetig": true` lässt den Orchestrator im Fließtext nach dem Text fragen;
   gespeichert wird `<Label>: <Text>`.
-- **Einfügestelle** der Abschnitte „Im Gesamtlauf": direkt vor
+- **Einfügestelle** der Abschnitte „Im Gesamtlauf”: direkt vor
   `## Gefragt wird mit Klickboxen, nicht im Fließtext` – das ist in allen drei
-  Skills der Abschnitt nach „Umgebung".
+  Skills der Abschnitt nach „Umgebung”.
