@@ -23,7 +23,7 @@
     },
     {
       "id": "freigabe",
-      "question": "Passen Auswahl und Bewertung der Skill Matrix so?",
+      "question": "Passen Auswahl und Bewertung so?",
       "header": "Freigabe",
       "multiSelect": false,
       "options": [

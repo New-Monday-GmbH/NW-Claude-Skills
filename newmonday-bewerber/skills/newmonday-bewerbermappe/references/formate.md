@@ -3,7 +3,10 @@
 Über diese vier Dateien reden Orchestrator und Subagenten miteinander. Ein
 vollständiger Beispiel-Lauf (Kandidat „Timo Muster“, erfunden) liegt in
 `beispiel/lauf/`. `scripts/pruefe_lauf.py <laufordner>` prüft jede dieser
-Dateien, die es im Laufordner gibt; `scripts/selbsttest.py` prüft das Beispiel.
+Dateien, die es im Laufordner gibt – außer `fragen.json` bzw. `uebergabe.md`
+eines Skills, dessen `vorbereiten` bzw. `bauen` auf `fehler` oder `ausgelassen`
+steht; die übergeht es mit einer Warnung. `scripts/selbsttest.py` prüft das
+Beispiel.
 
 ```
 <Vorname Nachname>/
@@ -35,7 +38,7 @@ Beispiel: `beispiel/lauf/auftrag.json`.
 | `figma.file_key`, `figma.seite_id` | Teil nach `/design/`; Seiten-ID `12:34` (passt zur `node-id`) |
 | `figma.neues_file` | `true`, wenn der Orchestrator das File angelegt hat |
 | `material.*` | `lebenslauf`, `linkedin_export`, `portfolio_pdf`, `foto`: Dateien; `logos`, `screens`, `zertifikate`: Ordner; `linkedin_url`, `xing_url`, `portfolio_url`: Adressen; `kundentexte`: Datei oder Text. Pfade relativ zum Laufordner. Nicht Vorhandenes fehlt oder ist `null`. |
-| `ohne` | Materialposten, die der Nutzer bewusst nicht liefert – werden nicht mehr erbeten |
+| `ohne` | Posten, die der Nutzer bewusst nicht liefert – Materialschlüssel wie unter `material`, bei Lücken ohne Schlüssel deren `was`-Text (Tabelle unten); werden nicht mehr erbeten und nicht mehr als Lücke gemeldet |
 | `entscheidungen.<skill>.<id>` | Antwort auf die Frage mit dieser `id` aus `<skill>/fragen.json`, wörtlich (siehe unten) |
 | `status.<skill>` | `vorbereiten` und `bauen`: `offen`, `fertig`, `fehler` oder `ausgelassen`; `fehler`: Grund oder `null` |
 
@@ -43,7 +46,24 @@ Beispiel: `beispiel/lauf/auftrag.json`.
 „ (Empfohlen)“; bei mehreren Haken alle gewählten Labels, wie das Werkzeug sie
 liefert; bei „Other“ der eingegebene Text. Hat die gewählte Option
 `"text_noetig": true`, steht dort `<Label>: <Text>`. Fehlt eine `id`, wurde die
-Frage nicht gestellt.
+Frage nicht gestellt – eine Mehrfachauswahl ohne Haken steht deshalb als `""`
+da, nie weggelassen. Eine Antwort mit mehreren Haken wird gegen die Labels in
+`fragen.json` abgeglichen, nie an Kommas getrennt: Labels enthalten selbst
+welche („Verkäufer, Media Markt (2014 – 2016)“).
+
+**`ohne`** hält Materialschlüssel. Eine Lücke aus `fragen.json`, die der Nutzer
+nicht liefert, kommt so hinein:
+
+| `luecken[].was` | unter `ohne` |
+|---|---|
+| „Profilfoto“ | `foto` |
+| „Lebenslauf“ | `lebenslauf` |
+| „Zertifikate“ | `zertifikate` |
+| „Screens <Projekt>“ | `screens` |
+| ohne Materialschlüssel, etwa „Projektname <Kunde>“, „Weitere Projekte“ | der `was`-Text selbst |
+
+`ohne` heißt: keine Lücke mehr melden, nicht mehr erbitten. Die Zeilen unter
+„Fehlt noch“ in `uebergabe.md` bleiben trotzdem wörtlich.
 
 ## `fragen.json` — schreibt der Subagent beim Vorbereiten
 
@@ -78,9 +98,10 @@ Beispiele: `beispiel/lauf/cv/fragen.json`, `…/skillmatrix/fragen.json`,
 - **`luecken`**: Material, nach dem der Skill im Einzellauf fragen würde. `was`
   ist der Posten; gleiche Posten heißen in allen Skills gleich, damit der
   Orchestrator sie zusammenlegen kann: „Profilfoto“, „Lebenslauf“,
-  „LinkedIn-Export“, „Zertifikate“, „Screens <Projekt>“, „Logo <Firma>“.
-  `folge` sagt, was im Dokument passiert, wenn es nicht kommt; `form`, in
-  welcher Form es kommen soll. Nichts, was unter `ohne` steht.
+  „Zertifikate“, „Screens <Projekt>“, „Projektname <Kunde>“,
+  „Weitere Projekte“. `folge` sagt, was im Dokument passiert, wenn es nicht
+  kommt; `form`, in welcher Form es kommen soll. Nichts, was unter `ohne` steht
+  (Schlüssel: Tabelle zu `ohne` oben).
 
 ## `notizen.md` — schreibt der Subagent beim Vorbereiten
 

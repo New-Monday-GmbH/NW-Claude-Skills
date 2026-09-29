@@ -143,7 +143,8 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
    - Datei lesbar: `get_metadata` mit dem `fileKey` (der Teil nach `/design/`).
    - Bei „neues File“: den Plan aus `whoami` nehmen, dessen Seat nicht „View“ ist.
      Gibt es mehrere, kommt eine Klickbox mit den Plannamen in die
-     Lücken-Nachricht.
+     Lücken-Nachricht – auch dann, wenn bei „bestehendes File“ der Link fehlt und
+     die Lücken-Nachricht deshalb ein neues File ankündigt (Punkt 7).
 6. **Die Lücken-Nachricht** – nur, wenn etwas fehlt. Jeder fehlende Posten mit
    seiner Folge, in diesem Wortlaut:
 
@@ -187,6 +188,9 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
      return { seite: n ? n.id : null };
      ```
 
+     Kommt `seite: null` zurück, gibt es den Knoten nicht mehr (gelöscht oder
+     veraltet): weiter wie bei einem Link ohne `node-id`.
+
    - sonst die Seite „Vorname Nachname“ – vorhanden (früherer Lauf) oder neu:
 
      ```js
@@ -200,7 +204,9 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
    - „neues File“: zuerst den Skill `figma:figma-create-new-file` laden, das File
      `Bewerbermappe — Vorname Nachname` mit `create_new_file` im Plan aus Punkt 5
      anlegen und dessen erste, leere Seite in „Vorname Nachname“ umbenennen,
-     statt eine zweite anzulegen.
+     statt eine zweite anzulegen. Genauso, wenn „bestehendes File“ mangels Link
+     auf ein neues File zurückfällt: Die Planwahl aus Punkt 5 gilt dann auch,
+     ihre Klickbox stand in der Lücken-Nachricht.
 
    Aus der Seiten-ID `12:34` wird der Link, den alle drei Skills bekommen:
    `https://www.figma.com/design/<fileKey>/<Name aus dem Link oder "Bewerbermappe">?node-id=12-34`.
@@ -230,7 +236,8 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
 
 Je Skill in der Reihenfolge aus `auftrag.json` (`newmonday-cv`,
 `newmonday-skillmatrix`, `newmonday-portfolio`) ein Subagent mit Phase
-*vorbereiten* – Auftrag siehe unten, im Vordergrund, einer nach dem anderen.
+*vorbereiten* – Auftrag siehe unten, im Vordergrund
+(`run_in_background: false`), einer nach dem anderen.
 Nach jedem:
 
 1. `pruefe_lauf.py` laufen lassen. Meldet es Fehler in der `fragen.json` dieses
@@ -241,6 +248,12 @@ Nach jedem:
 3. Eine Statuszeile an den Nutzer: „Lebenslauf gelesen – 3 Fragen, 1 Lücke.“
 
 Ein gescheiterter Skill hält die anderen nicht auf.
+
+**Neu vorbereiten heißt neu fragen.** Wird ein Skill ein weiteres Mal
+vorbereitet – nach einer Nachlieferung in Phase 4 oder nach der Übergabe, bei
+einer Wiederaufnahme mit offenem `vorbereiten` –, zuerst `entscheidungen.<skill>`
+ganz aus `auftrag.json` löschen. Die alten Antworten gehören zu den alten Fragen;
+Phase 4 stellt seine Fragen dann neu.
 
 ### Phase 4 — Entscheidungen
 
@@ -255,11 +268,13 @@ Eine Sitzung, in dieser Reihenfolge:
    - je gescheitertem Skill: *Ohne <Dokument> weiter (Empfohlen)* | *Abbrechen*
 
    Wird nachgeliefert: Dateien nach `eingang/`, `material` ergänzen, bei den
-   Skills, die die Lücke gemeldet haben, `vorbereiten` auf `offen` und Phase 3
-   für sie wiederholen – neues Material kann ihre Fragen ändern. Dann zurück an
-   den Anfang dieser Phase; Lücken, die schon beantwortet sind, kommen nicht
-   wieder. „Ohne weitermachen“: die Posten unter `ohne`. „Ohne <Dokument>“:
-   dessen Status auf `ausgelassen`.
+   Skills, die die Lücke gemeldet haben, `entscheidungen.<skill>` löschen,
+   `vorbereiten` auf `offen` und Phase 3 für sie wiederholen – neues Material
+   kann ihre Fragen ändern. Dann zurück an den Anfang dieser Phase; Lücken, die
+   schon beantwortet sind, kommen nicht wieder. „Ohne weitermachen“: die Posten
+   unter `ohne` – als Materialschlüssel nach der Tabelle zu `ohne` in
+   `references/formate.md`, Posten ohne Schlüssel mit ihrem `was`-Text.
+   „Ohne <Dokument>“: dessen `vorbereiten` und `bauen` auf `ausgelassen`.
 2. **Texte.** Alle `texte` in Bau-Reihenfolge, je Skill unter einer
    Zwischenzeile („**Skill Matrix**“). Vor allem Hero-Beschreibung, Schwerpunkte,
    Matrix- und Tools-Tabelle mit Belegen – der Nutzer braucht sie, um die
@@ -267,7 +282,8 @@ Eine Sitzung, in dieser Reihenfolge:
 3. **Fragen.** Je Skill ein `AskUserQuestion`-Aufruf mit seinen `fragen`, in
    Bau-Reihenfolge. Übergeben werden `question`, `header`, `multiSelect` und
    `options` mit `label` und `description`; `id` und `text_noetig` bleiben
-   draußen. Skills ohne Fragen werden übersprungen.
+   draußen. Übersprungen werden Skills ohne Fragen und Skills, deren
+   `vorbereiten` nicht auf `fertig` steht.
 4. **Antworten ablegen** in `auftrag.json` unter
    `entscheidungen.<skill>.<id>`. Die Antworten kommen nach Fragetext zurück;
    die `id` ist die der Frage mit diesem Text. Gespeichert wird wörtlich, was
@@ -284,27 +300,37 @@ Eine Sitzung, in dieser Reihenfolge:
 Je Skill, dessen `vorbereiten` auf `fertig` und `bauen` auf `offen` steht, in
 Bau-Reihenfolge ein Subagent mit Phase *bauen*. Nie zwei gleichzeitig: Alle drei
 schreiben in dieselbe Figma-Seite und dieselbe Logobibliothek. Nach jedem:
-`pruefe_lauf.py`, Status setzen, die gemeldeten PDFs in `ausgabe/` nachsehen,
-eine Statuszeile („Lebenslauf fertig – 2 PDFs, 4 Frames“). Scheitert einer, geht
-es mit dem nächsten weiter; nachgefragt wird nicht.
+
+1. `pruefe_lauf.py` laufen lassen. Meldet es Fehler in der `uebergabe.md` dieses
+   Skills, einmal nachfassen wie in Phase 3 – derselbe Auftrag mit der Zeile
+   `Nur uebergabe.md korrigieren. Fehler: <Zeilen aus pruefe_lauf>`. Bleibt sie
+   falsch, gilt trotzdem die Rückgabe; Phase 6 nimmt die Datei, wie sie ist.
+2. Status in `auftrag.json` setzen und die gemeldeten PDFs in `ausgabe/`
+   nachsehen.
+3. Eine Statuszeile: „Lebenslauf fertig – 2 PDFs, Figma auf der Seite.“
+
+Scheitert einer, geht es mit dem nächsten weiter; nachgefragt wird nicht.
 
 ### Phase 6 — Gesamtübergabe
 
 Die drei `uebergabe.md` ganz lesen. Sie haben dieselben sechs Abschnitte
-(`references/formate.md`), und die Übergabe setzt sich Abschnitt für Abschnitt
-daraus zusammen, in einer Nachricht:
+(`references/formate.md`); aus ihnen setzen sich die Punkte 1–5 und 7 Abschnitt
+für Abschnitt zusammen, Punkt 6 kommt aus `status` in `auftrag.json`. Alles in
+einer Nachricht:
 
 1. **Fertig: Vorname Nachname** – die Dateien aus `ausgabe/` und der Link auf die
    Figma-Seite. Ist Figma bei einem Dokument gescheitert, steht hier der Grund –
    die PDFs sind trotzdem da.
 2. **Zur Freigabe** – je Dokument, was dort steht, im Wortlaut: Kurzprofil,
+   abgeleitete Skillset-Einträge mit Beleg und die Prüf-Meldungen von
+   `anonymisieren.py` (dort steht womöglich noch der Name im anonymen PDF),
    Hero-Beschreibung und die endgültige Matrix, Cover-Titel, KI- und
    Prozesstexte, Kundentexte mit Quellen, KI-generierte Gebäude.
 3. **Quellen weichen ab** – jede Abweichung einmal. Nennen zwei Skills dasselbe
    Feld mit denselben Werten, wird daraus eine Zeile mit der Fassung je
    Dokument. Die Regeln unterscheiden sich: Im Lebenslauf und in der Skill Matrix
    gewinnt der Lebenslauf, im Portfolio das Portfolio.
-4. **Hinweise** – je Dokument der Rest, knapp.
+4. **Hinweise** – je Dokument der Rest, **vollständig, nur ohne Wiederholungen**.
 5. **Ohne Rückfrage entschieden** – aus allen drei, mit Dokument und Stelle.
    Leer: Abschnitt weglassen.
 6. **Nicht gebaut** – Dokumente mit `fehler` oder `ausgelassen`, mit Grund.
@@ -319,7 +345,8 @@ Hinweisen: Die alten bleiben stehen, bis jemand sie löscht.
 
 ## Der Auftrag an die Subagenten
 
-`Agent` mit `subagent_type: general-purpose`, im Vordergrund. Die spitzen
+`Agent` mit `subagent_type: general-purpose`, im Vordergrund –
+`run_in_background: false`, denn die Reihenfolge ist strikt. Die spitzen
 Klammern füllt dieser Skill, alles andere steht wörtlich so im Auftrag:
 
 ```
@@ -346,14 +373,25 @@ Skill-Ordner: <laufordner>/<cv|skillmatrix|portfolio>/
    - Arbeitsordner ist der Skill-Ordner: arbeit/, die JSON des Skills,
      fragen.json, notizen.md und uebergabe.md liegen dort. PDFs nach
      <laufordner>/ausgabe/.
+   - Arbeite mit absoluten Pfaden – das Arbeitsverzeichnis der Sitzung ist
+     nicht der Laufordner.
    - Figma, wenn figma.aktiv true ist – dann immer, auch bei der Skill Matrix;
      sonst gar nicht. figma.link zeigt mit node-id auf die Seite, auf die alles
      kommt. Keine eigene Seite anlegen, nichts Vorhandenes anfassen. Scheitert
      Figma, gehen die PDFs trotzdem raus, und der Grund steht in uebergabe.md.
-   - Was in auftrag.json unter „ohne“ steht, nicht noch einmal erbitten.
+   - Was in auftrag.json unter „ohne“ steht (Materialschlüssel oder der
+     was-Text einer Lücke, Tabelle in formate.md), nicht mehr als Lücke melden
+     und nicht noch einmal erbitten. Die Zeilen unter „Fehlt noch“ in
+     uebergabe.md bleiben trotzdem wörtlich.
    - Antworten: auftrag.json → entscheidungen.<skill>.<id>, wörtlich, wie der
-     Nutzer sie gegeben hat; die Optionen dazu stehen in fragen.json.
+     Nutzer sie gegeben hat; die Optionen dazu stehen in fragen.json. Eine
+     Antwort mit mehreren Haken gegen die Labels dort abgleichen, nie an Kommas
+     trennen – Labels enthalten selbst Kommas.
    - Beim Bauen zuerst notizen.md lesen; was dort steht, nicht neu herleiten.
+     Steht in diesem Auftrag „Nachgeliefert: …“, gilt dieses Material vor dem,
+     was notizen.md sagt; was es an Aufbereitung braucht (etwa den Fotozuschnitt
+     aus Schritt 1a oder die Zuordnung neuer Screens zu Projekten), gehört dann
+     zum Bauen.
    - Zum Schluss: python3 <skills>/newmonday-bewerbermappe/scripts/pruefe_lauf.py
      "<laufordner>" – Fehler in deinen Dateien beheben.
 4. Rückgabe, eine Zeile:
@@ -362,18 +400,25 @@ Skill-Ordner: <laufordner>/<cv|skillmatrix|portfolio>/
            oder „fehler: <Grund>“
 ```
 
-Bei einem Änderungswunsch nach der Übergabe (siehe unten) kommt als letzte Zeile
-dazu: `Änderung des Nutzers: <Text, wörtlich>`.
+Ans Ende des Auftrags kommen, wenn es sie gibt:
+
+- bei einem Änderungswunsch nach der Übergabe (siehe unten) die Zeile
+  `Änderung des Nutzers: <Text, wörtlich>`;
+- beim Neu-Bauen nach einer Nachlieferung je Posten eine Zeile
+  `Nachgeliefert: <Posten> → <Pfad relativ zum Laufordner>`, etwa
+  `Nachgeliefert: Foto → eingang/foto.jpg`.
 
 ## Wiederaufnahme, Nachlieferung, Änderungen
 
 **Wiederaufnahme.** Liegt ein Laufordner mit `auftrag.json` vor und soll es
 weitergehen („mach den Lauf Timo Muster weiter“, auch in einer neuen Sitzung):
 `pruefe_lauf.py`, dann `status` lesen und an der ersten offenen Stelle ansetzen –
-`vorbereiten` offen → Phase 3 für diese Skills; vorbereitet, aber Antworten zu
-Fragen aus `fragen.json` fehlen → Phase 4, nur für die fehlenden; `bauen` offen →
-Phase 5; alles fertig → Phase 6 noch einmal. Beantwortetes wird nicht erneut
-gefragt.
+`vorbereiten` offen → Phase 3 für diese Skills, ihre Antworten vorher gelöscht
+(„Neu vorbereiten heißt neu fragen“); vorbereitet, aber Antworten zu Fragen aus
+`fragen.json` fehlen → Phase 4, nur für die fehlenden; `bauen` offen → Phase 5;
+alles fertig → Phase 6 noch einmal. Beantwortetes wird nicht erneut gefragt –
+außer die Fragen eines Skills, der neu vorbereitet wird: Seine Antworten sind
+gelöscht, Phase 4 stellt sie neu.
 
 **Nachlieferung nach der Übergabe.** Dateien nach `eingang/`, `material`
 ergänzen, den Posten aus `ohne` streichen. Neu gebaut werden die Dokumente,
@@ -383,13 +428,16 @@ vorbereitet werden muss – und welche Dokumente es trifft, wenn keine
 
 | Nachgeliefert | neu vorbereiten | neu bauen |
 |---|---|---|
-| Lebenslauf, LinkedIn-Export, Portfolio | alle drei (dann Phase 4 für neue Fragen) | alle drei |
+| Lebenslauf, LinkedIn-Export, Portfolio | alle drei (dann Phase 4) | alle drei |
 | Zertifikate | Skill Matrix (dann Phase 4) | Skill Matrix |
 | Foto | – | alle drei |
 | Logos | – | Lebenslauf, Portfolio |
 | Screens | – | Portfolio |
 
-„Neu bauen“ heißt `bauen` auf `offen` und Phase 5 – ohne Rückfragen. Die
+„Neu vorbereiten“ heißt `entscheidungen.<skill>` löschen, `vorbereiten` auf
+`offen`, Phase 3 und danach Phase 4 mit allen Fragen dieses Skills. „Neu bauen“
+heißt `bauen` auf `offen` und Phase 5 – ohne Rückfragen; der Bauen-Auftrag trägt
+je nachgeliefertem Posten die Zeile `Nachgeliefert: <Posten> → <Pfad>`. Die
 Frames kommen neben die alten, die Übergabe sagt das.
 
 **Änderungswünsche nach der Übergabe** („Kurzprofil kürzer“, „Projekt X raus“):

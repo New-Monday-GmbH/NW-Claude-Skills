@@ -449,3 +449,8 @@ Sie gehen den Abschnitten oben vor.
 - **Einfügestelle** der Abschnitte „Im Gesamtlauf“: direkt vor
   `## Gefragt wird mit Klickboxen, nicht im Fließtext` – das ist in allen drei
   Skills der Abschnitt nach „Umgebung“.
+- **Schreibtest nach der Lücken-Nachricht.** Die Figma-Zielseite anzulegen – das
+  ist der Schreibtest – kommt in Phase 2 erst nach der Lücken-Nachricht (Punkt 7
+  der SKILL.md), wenn feststeht, ob Figma bleibt. Scheitert das Schreiben, kommt
+  genau eine weitere Klickbox: *Ich richte es ein* | *Ohne Figma weiter*
+  (→ `figma.aktiv = false`).

@@ -12,7 +12,7 @@ Kurzprofil (generiert): „Ich arbeite seit 2019 als UX Designer …“
 - Zeitraum Cocomore AG: Lebenslauf „11/2021 – 04/2022“ / Portfolio „2021“ → im Dokument: Lebenslauf
 
 ## Hinweise
-- Letzte eigene Station endet jetzt im August 2026 (Monat vor dem NM-Start) – bitte bestätigen.
+- Letzte eigene Station endet jetzt im September 2026 (Monat vor dem NM-Start) – bitte bestätigen.
 - Weggefallen: Realschulabschluss (nur der neueste Schulabschluss steht drin).
 
 ## Ohne Rückfrage entschieden
