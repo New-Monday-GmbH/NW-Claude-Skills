@@ -16,7 +16,10 @@
    Skill zeichnet und die Vorlage nicht kennt.
 4. Sprachen: Deutsch – Muttersprache und Englisch – Business Niveau stehen
    immer auf der Profilseite, auch ohne Angabe im Material.
-5. Screen-Stil: Mit künstlichen Screens entstehen eine Desktop-, eine Phone-
+5. Arbeitsjahre: Die Zahl auf der Karte „Arbeitserfahrung“ trägt immer ein
+   „+“ – aus „10“, 10, „ 10 “ und „10 +“ wird „10+“, „25+“ bleibt, „über 10“
+   und „10+ Jahre“ bleiben und werden gemeldet.
+6. Screen-Stil: Mit künstlichen Screens entstehen eine Desktop-, eine Phone-
    und eine Szenenfläche. Geprüft wird, was die Figma-Vorlagen vorgeben: ein
    Raster (15° Desktop, 10° Phone, mehr Kacheln als Screens), Wortmarken-
    und Seitenzahlfeld in reiner Markenfarbe (kein Schleier, kein Schatten),
@@ -134,13 +137,17 @@ def abgleich(soll: dict, folie: fp.Folie) -> list[str]:
     for t in soll.get("texte", []):
         if t.get("pruefen") is False:
             continue
-        treffer = [e for e in ist_x if _norm(e["text"]) == _norm(t["text"])]
+        # „erwartet“: Der Skill setzt aus dem Inhalt der Vorlage nach einer
+        # eigenen Regel einen anderen Text (Arbeitsjahre „14“ -> „14+“). Lage,
+        # Schnitt, Grad und Farbe zählen weiter wie in der Vorlage.
+        text = t.get("erwartet", t["text"])
+        treffer = [e for e in ist_x if _norm(e["text"]) == _norm(text)]
         if not treffer:
-            befunde.append(f"Text »{t['text'][:50]}« fehlt")
+            befunde.append(f"Text »{text[:50]}« fehlt")
             continue
         e = min(treffer, key=lambda e: abs(e["y"] - t["y"]) + abs(e["x"] - t["x"]))
         g = e["seg"][0]
-        name = f"Text »{t['text'][:40]}«"
+        name = f"Text »{text[:40]}«"
         if (g["familie"], g["schnitt"]) != (t["familie"], t["schnitt"]):
             befunde.append(f"{name}: {g['familie']} {g['schnitt']}, "
                            f"Vorlage {t['familie']} {t['schnitt']}")
@@ -198,6 +205,25 @@ def sprachen_pruefen() -> list[str]:
     mit = rp.sprachen_mit_vorgabe([{"sprache": "Französisch", "niveau": "Gut"}], "de")
     if [s["sprache"] for s in mit] != ["Deutsch", "Englisch", "Französisch"]:
         befunde.append(f"weitere Sprachen gehen verloren oder stehen falsch: {mit!r}")
+    rp.hinweise.clear()
+    return befunde
+
+
+def erfahrung_pruefen() -> list[str]:
+    """Die Arbeitsjahre tragen immer ein „+“ – genau eines."""
+    befunde = []
+    rp.hinweise.clear()
+    for eingang, soll in (("10", "10+"), (10, "10+"), (" 10 ", "10+"), (10.0, "10+"),
+                          ("10 +", "10+"), ("25+", "25+"), ("über 10", "über 10"),
+                          ("10+ Jahre", "10+ Jahre")):
+        ist = rp.erfahrung_anzeige(eingang)
+        if ist != soll:
+            befunde.append(f"aus {eingang!r} wird {ist!r}, erwartet {soll!r}")
+    gemeldet = [h for h in rp.hinweise if "Arbeitserfahrung" in h]
+    if (len(gemeldet) != 2 or not any("„über 10“" in h for h in gemeldet)
+            or not any("„10+ Jahre“" in h for h in gemeldet)):
+        befunde.append("nur „über 10“ und „10+ Jahre“ gehören in die Prüfhinweise, "
+                       f"gemeldet: {gemeldet!r}")
     rp.hinweise.clear()
     return befunde
 
@@ -307,6 +333,7 @@ def main() -> None:
 
     fehler += [f"Figma-Abgleich {b}" for b in figma_abgleich()]
     fehler += [f"Sprachen: {b}" for b in sprachen_pruefen()]
+    fehler += [f"Arbeitsjahre: {b}" for b in erfahrung_pruefen()]
     fehler += [f"Screen-Stil: {b}" for b in screens_pruefen()]
 
     if fehler:
@@ -315,8 +342,8 @@ def main() -> None:
             print(f"  - {f}")
         raise SystemExit(1)
     print("Selbsttest bestanden: Tokens, Beispiel-PDF, Figma-Abgleich "
-          f"({len(list(SOLL.glob('*.json')))} Vorlage(n)), Sprachen und "
-          "Screen-Stil ohne Abweichung.")
+          f"({len(list(SOLL.glob('*.json')))} Vorlage(n)), Sprachen, Arbeitsjahre "
+          "und Screen-Stil ohne Abweichung.")
 
 
 if __name__ == "__main__":

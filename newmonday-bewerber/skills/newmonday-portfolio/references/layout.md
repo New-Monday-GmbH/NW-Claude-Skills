@@ -105,9 +105,10 @@ Markierungen in der Soll-Datei, jeweils mit `grund`:
 |---|---|---|
 | `"pruefen": false` | Eintrag wird nicht verglichen | Connect-Texte „LinkedIn Profil“/„Anzeigen“, unsichtbare weiße Linie in der Sprachen-Karte |
 | `"nur": ["x", "y", "w"]` | nur diese Maße zählen | Connect-Karte (niedriger, weil Pfeil-Links) |
+| `"erwartet": "…"` | der Text wird mit diesem Wert statt mit dem der Vorlage verglichen – für Texte, die der Skill nach einer eigenen Regel setzt; Lage, Schnitt, Grad und Farbe zählen weiter | Arbeitsjahre „14“ → „14+“ |
 | `"vergleich": "mitte"` | verglichen wird die Mitte statt der linken oberen Ecke – für zentrierte Texte in einem größeren Kasten | Seitenzahl (setzt das Leseskript selbst) |
 
-Die ersten beiden sind gewollte Abweichungen und werden nach dem Neulesen von
+Die ersten drei sind gewollte Abweichungen und werden nach dem Neulesen von
 Hand wieder gesetzt; `vergleich` setzt das Leseskript bei zentrierten Texten.
 
 Dazu prüft er die Tokens (`pruefe()`) und rendert das Beispiel-Deck
@@ -292,6 +293,11 @@ Kenntnisse-Karte bei y 1041 wie in Figma; mehr passt nicht, und
 Rechtes Petrol-Panel x 1393, 527 breit; darin der Kartenstapel
 x 1453, 407 breit, ab y 229, 32 pt zwischen den Karten, jede Karte hugt ihren
 Inhalt. Sprachen stehen im 93-pt-Takt (zwei Zeilen plus 33 pt Luft).
+
+Die Karte „Arbeitserfahrung“ zeigt die Zahl aus `person.erfahrung_jahre` immer
+mit „+“ dahinter („14+“), darunter „Jahre“. Das „+“ setzt
+`render_portfolio.erfahrung_anzeige` – aus „10“ wird „10+“, „25+“ bleibt;
+andere Formen („über 10“) setzt es wie geliefert und meldet sie.
 
 Die Connect-Karte führt ihre Einträge **als petrolfarbene Pfeil-Links**
 („LinkedIn Profil →“) – ohne schwarzen Titel, ohne „Anzeigen“-Link, ohne

@@ -204,7 +204,9 @@
    "schnitt": "SemiBold",
    "groesse": 96,
    "zeile": 103.7,
-   "farbe": "#009193"
+   "farbe": "#009193",
+   "erwartet": "14+",
+   "grund": "Arbeitsjahre stehen immer mit „+“ hinter der Zahl (Vorgabe vom 2026-09-30) – die Vorlage zeigt „14“, der Skill setzt aus demselben Inhalt „14+“; Breite wird bei Texten nicht verglichen"
   },
   {
    "text": "Jahre",

@@ -554,6 +554,28 @@ def sprachen_mit_vorgabe(liste: list | None, sprache: str) -> list[dict]:
     return kopf + rest
 
 
+def erfahrung_anzeige(wert) -> str:
+    """Die Zahl auf der Karte „Arbeitserfahrung“ steht immer mit „+“ dahinter
+    (Vorgabe von New Monday, September 2026 – wie im Beispiel „25+“). Eine
+    reine Zahl bekommt es angehängt, ob als Text („10“, „ 10 “) oder als
+    JSON-Zahl (10); aus „N+“ und „N +“ wird „N+“. Alle anderen Formen
+    („über 10“, „10 Jahre“, „10+ Jahre“, „+10“) setzt das Skript wie
+    geliefert – welche Zahl gemeint ist, kann es nicht entscheiden – und
+    meldet sie. `erfahrung_jahre` sind volle Jahre, abgerundet."""
+    if isinstance(wert, float) and wert.is_integer():
+        wert = int(wert)
+    text = str(wert if wert is not None else "").strip()
+    if not text:
+        return text
+    m = re.fullmatch(r"([0-9]+)\s*\+?", text)
+    if m:
+        return f"{m.group(1)}+"
+    merke(f"Profilseite: Arbeitserfahrung „{text}“ ist keine reine Zahl – gesetzt "
+          "wie geliefert, ohne eigenes „+“. Als Zahl eintragen – volle Jahre, "
+          "abgerundet (z. B. „10“) –, das „+“ ergänzt das Skript.")
+    return text
+
+
 def seite_profil(d, t, basis, nr, cache: Path):
     p = dict(d["person"])
     p["sprachen"] = sprachen_mit_vorgabe(p.get("sprachen"), d.get("sprache", "de"))
@@ -583,9 +605,10 @@ def seite_profil(d, t, basis, nr, cache: Path):
     # Inhalt; geschaetzt wird nur, ob der Stapel aus der Folie laeuft.
     karten, hoehe = [], 0.0
     titel = lambda s: f'<h3 class="t-subheadline-1-bold">{e(s)}</h3>'
-    if p.get("erfahrung_jahre"):
+    jahre = erfahrung_anzeige(p["erfahrung_jahre"]) if p.get("erfahrung_jahre") else ""
+    if jahre:
         karten.append(f'''<div class="pkarte">{titel(t["erfahrung"])}
-      <div class="zahl t-h1">{e(p["erfahrung_jahre"])}</div>
+      <div class="zahl t-h1">{e(jahre)}</div>
       <div class="fuss t-body-1-regular">{e(t["jahre"])}</div></div>''')
         hoehe += 246
     if sprachen:
