@@ -107,6 +107,11 @@ In `notizen.md`:
 - die Fotoquelle mit Datei, dpi und Kontrollbild, und ob der Kopf mittig steht;
 - jede Abweichung zwischen den Quellen mit beiden Werten.
 
+Jeder Widerspruch zwischen den Quellen kommt außerdem als Eintrag unter
+`abweichungen` in `fragen.json` (Aufbau in `formate.md`) – daraus fragt der
+Orchestrator einmal, welche Quelle die aktuellere ist. Der Entwurf nimmt bis
+dahin die Fassung des Lebenslaufs.
+
 Keine `skillmatrix.json`, nichts rendern.
 
 **Phase bauen: Schritte 3 bis 5**, aus dem Entwurf in `notizen.md` (das Feld
@@ -119,6 +124,13 @@ Keine `skillmatrix.json`, nichts rendern.
   „Ich möchte etwas ändern: <Text>“ – den Text umsetzen, nach denselben Regeln
   wie Änderungen in 2e.
 - `tools`: wie in 2e.
+
+Widersprechen sich die Quellen, gilt statt „Bei Widersprüchen gewinnt der
+Lebenslauf“ (Schritt 1) die Quelle aus `vorrang` in `auftrag.json`, danach
+Lebenslauf, Portfolio, LinkedIn – in allen drei Dokumenten gleich; fehlt
+`vorrang`, der Lebenslauf. Weicht der Entwurf dadurch ab (etwa Rolle oder
+Erfahrung im Hero), wird er angepasst und die Änderung unter „Zur Freigabe“
+genannt.
 
 Schritt 4a läuft, wenn `figma.aktiv` true ist. Die Übergabe aus Schritt 5 geht
 nach `uebergabe.md`: Hero-Beschreibung und die **endgültige** Matrix-Tabelle

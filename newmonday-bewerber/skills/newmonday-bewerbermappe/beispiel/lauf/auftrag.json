@@ -19,6 +19,7 @@
     "screens": "eingang/screens/"
   },
   "ohne": ["linkedin_export"],
+  "vorrang": "portfolio",
   "entscheidungen": {
     "newmonday-cv": {
       "nm_rolle": "User Experience Design Specialist",

@@ -52,7 +52,9 @@ steht als Text in derselben Nachricht. Gefragt wird nur in Phase 1, 2 und 4.
 
 ### Phase 1 — Eingang
 
-Eine Nachricht. Zwei Klickboxen in einem `AskUserQuestion`-Aufruf:
+Eine Nachricht. Vorher prüfen, ob das Arbeitsverzeichnis zum Skill-Repo gehört
+(Phase 2, Punkt 3) – dann kommt die Ablage-Frage mit in denselben Aufruf. Bis
+zu drei Klickboxen in einem `AskUserQuestion`-Aufruf:
 
 ```
 Frage:    Sollen Lebenslauf, Skill Matrix und Portfolio auf Deutsch oder Englisch sein?
@@ -94,6 +96,10 @@ Links, die schon im Chat liegen, fallen aus der Liste; eine genannte Sprache
 („auf Englisch“) ersetzt die Sprachfrage, ein mitgeschickter Figma-Link die
 Figma-Frage. Ist dann nichts mehr offen, entfällt die Nachricht ganz.
 
+Die Ablage-Frage aus Phase 2, Punkt 3 steht, wenn nötig, als dritte Klickbox in
+diesem Aufruf. Liegen die Unterlagen schon im Chat, den Namen vorher nach
+Phase 2, Punkt 2 lesen; sonst heißt es in der Frage „für den Kandidaten“.
+
 ### Phase 2 — Lückencheck vor dem Lesen
 
 Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
@@ -114,8 +120,8 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
    top=$(git rev-parse --show-toplevel 2>/dev/null) && [ -d "$top/newmonday-bewerber/skills" ] && echo "Skill-Repo"
    ```
 
-   Dann kommen Kandidatendaten nicht dorthin, und die Lücken-Nachricht trägt
-   eine Klickbox mehr – allein gestellt, wenn sonst nichts fehlt:
+   Dann kommen Kandidatendaten nicht dorthin. Die Frage dazu steht schon im
+   Aufruf aus Phase 1:
 
    ```
    Frage:    Wohin soll der Laufordner für <Vorname Nachname>?
@@ -180,12 +186,18 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
    gebaut“. Das optionale Material aus Phase 1 ist nie eine Lücke.
 7. **Figma-Zielseite anlegen – zugleich der Schreibtest.** Nur wenn Figma
    bleibt. Erst den Skill `figma:figma-use` laden, dann per `use_figma`:
-   - Link mit `node-id` → die Seite dieses Knotens:
+   - Link mit `node-id` → die Seite dieses Knotens, dazu ein Schreibtest (ein
+     winziger Frame weit außerhalb, sofort wieder entfernt):
 
      ```js
      let n = await figma.getNodeByIdAsync("<node-id mit Doppelpunkt, z. B. 12:34>");
      while (n && n.type !== "PAGE") n = n.parent;
-     return { seite: n ? n.id : null };
+     if (!n) return { seite: null };
+     await figma.setCurrentPageAsync(n);
+     const t = figma.createFrame();
+     t.resize(1, 1); t.x = -100000; t.y = -100000;
+     n.appendChild(t); t.remove();
+     return { seite: n.id, schreibtest: "ok" };
      ```
 
      Kommt `seite: null` zurück, gibt es den Knoten nicht mehr (gelöscht oder
@@ -238,6 +250,25 @@ Je Skill in der Reihenfolge aus `auftrag.json` (`newmonday-cv`,
 `newmonday-skillmatrix`, `newmonday-portfolio`) ein Subagent mit Phase
 *vorbereiten* – Auftrag siehe unten, im Vordergrund
 (`run_in_background: false`), einer nach dem anderen.
+
+**Das Skill-Repo bleibt sauber.** Vor jedem Subagenten – hier und in Phase 5 –
+den Stand des Repos festhalten, danach vergleichen:
+
+```bash
+# vorher
+repo=$(cd "<skills>/newmonday-cv" && cd "$(pwd -P)" && git rev-parse --show-toplevel); git -C "$repo" status --porcelain --untracked-files=all | sort > "<laufordner>/repo-vorher.txt"
+# nachher – was neu dazugekommen ist
+repo=$(cd "<skills>/newmonday-cv" && cd "$(pwd -P)" && git rev-parse --show-toplevel); git -C "$repo" status --porcelain --untracked-files=all | sort | comm -13 "<laufordner>/repo-vorher.txt" -
+```
+
+Neu aufgetauchte, nicht versionierte Dateien (`??`) außerhalb der
+Logobibliothek (`newmonday-cv/assets/logos/`) und der Fotobibliothek der
+Firmenzentralen (`newmonday-cv/assets/hq/`) hat der Subagent dort liegen
+lassen: nach `<laufordner>/<kurz>/arbeit/aus-dem-repo/` verschieben und in der
+Statuszeile nennen. Geänderte versionierte Dateien außerhalb der Bibliotheken
+nicht anfassen – das kann Arbeit des Nutzers sein –, sondern unter „Hinweise“
+der Gesamtübergabe nennen.
+
 Nach jedem:
 
 1. `pruefe_lauf.py` laufen lassen. Meldet es Fehler in der `fragen.json` dieses
@@ -245,7 +276,8 @@ Nach jedem:
    `Nur fragen.json korrigieren. Fehler: <Zeilen aus pruefe_lauf>`. Bleibt es
    falsch, gilt die Vorbereitung als gescheitert.
 2. Status in `auftrag.json` setzen: `fertig` oder `fehler` (Grund nach `fehler`).
-3. Eine Statuszeile an den Nutzer: „Lebenslauf gelesen – 3 Fragen, 1 Lücke.“
+3. Eine Statuszeile an den Nutzer: „Lebenslauf gelesen – 3 Fragen, 1 Lücke,
+   2 Abweichungen.“
 
 Ein gescheiterter Skill hält die anderen nicht auf.
 
@@ -253,18 +285,38 @@ Ein gescheiterter Skill hält die anderen nicht auf.
 vorbereitet – nach einer Nachlieferung in Phase 4 oder nach der Übergabe, bei
 einer Wiederaufnahme mit offenem `vorbereiten` –, zuerst `entscheidungen.<skill>`
 ganz aus `auftrag.json` löschen. Die alten Antworten gehören zu den alten Fragen;
-Phase 4 stellt seine Fragen dann neu.
+Phase 4 stellt seine Fragen dann neu. Meldet er dabei Abweichungen, die bei der
+letzten Quellen-Frage noch nicht vorlagen, wird auch `vorrang` gelöscht und neu
+gefragt.
 
 ### Phase 4 — Entscheidungen
 
 Eine Sitzung, in dieser Reihenfolge:
 
-1. **Lücken.** Die `luecken` aller drei `fragen.json`, zusammengeführt:
-   Gleiches `was` erscheint einmal, mit der Folge je Dokument („Profilfoto –
-   Lebenslauf: die Fotospalte bleibt leer; Skill Matrix: die Karte zeigt nur den
-   Verlauf“). Dazu gescheiterte Vorbereitungen mit Grund. Ein
-   `AskUserQuestion`-Aufruf:
+1. **Lücken und Quelle.** Die `luecken` aller drei `fragen.json`,
+   zusammengeführt: Gleiches `was` erscheint einmal, mit der Folge je Dokument
+   („Profilfoto – Lebenslauf: die Fotospalte bleibt leer; Skill Matrix: die Karte
+   zeigt nur den Verlauf“). Dazu gescheiterte Vorbereitungen mit Grund. Und, wenn
+   eine `fragen.json` `abweichungen` meldet, eine Tabelle aller Widersprüche –
+   gleiches Feld aus mehreren Skills einmal:
+
+   | Feld | Lebenslauf | LinkedIn-Export | Portfolio |
+   |---|---|---|---|
+
+   Ein `AskUserQuestion`-Aufruf mit höchstens vier Fragen:
    - bei Lücken: *Ich liefere nach (Empfohlen)* | *Ohne weitermachen*
+   - bei Abweichungen die Quellen-Frage:
+
+     ```
+     Frage:    Die Unterlagen widersprechen sich (siehe oben). Welche Quelle ist die aktuellere – sie gilt dann für alle drei Dokumente?
+     Header:   Quelle
+     Optionen: die Quellen, die in der Tabelle vorkommen: Lebenslauf | Portfolio | LinkedIn-Export
+     ```
+
+     „(Empfohlen)“ trägt die Quelle, die in den `abweichungen` am häufigsten als
+     `neuer` belegt ist, sonst der Lebenslauf. Die Antwort kommt als `vorrang` in
+     `auftrag.json` (`lebenslauf`, `portfolio`, `linkedin_export`; über „Other“
+     `Anweisung: <Text>`). Ohne Abweichungen gibt es die Frage nicht.
    - je gescheitertem Skill: *Ohne <Dokument> weiter (Empfohlen)* | *Abbrechen*
 
    Wird nachgeliefert: Dateien nach `eingang/`, `material` ergänzen, bei den
@@ -279,18 +331,25 @@ Eine Sitzung, in dieser Reihenfolge:
    Zwischenzeile („**Skill Matrix**“). Vor allem Hero-Beschreibung, Schwerpunkte,
    Matrix- und Tools-Tabelle mit Belegen – der Nutzer braucht sie, um die
    Freigabe-Frage zu beantworten.
-3. **Fragen.** Je Skill ein `AskUserQuestion`-Aufruf mit seinen `fragen`, in
-   Bau-Reihenfolge. Übergeben werden `question`, `header`, `multiSelect` und
-   `options` mit `label` und `description`; `id` und `text_noetig` bleiben
-   draußen. Übersprungen werden Skills ohne Fragen und Skills, deren
-   `vorbereiten` nicht auf `fertig` steht.
+3. **Fragen.** Die `fragen` aller Skills in möglichst wenigen
+   `AskUserQuestion`-Aufrufen – höchstens vier Fragen je Aufruf, in
+   Bau-Reihenfolge, die Fragen eines Skills möglichst beisammen. Übergeben werden
+   `question`, `header`, `multiSelect` und `options` mit `label` und
+   `description`; `id` und `text_noetig` bleiben draußen. Innerhalb eines Aufrufs
+   müssen die Fragetexte verschieden sein, denn die Antworten kommen nach
+   Fragetext zurück; bei gleichem Text hängt der Orchestrator „ (<Dokument>)“ an.
+   Übersprungen werden Skills ohne Fragen und Skills, deren `vorbereiten` nicht
+   auf `fertig` steht.
 4. **Antworten ablegen** in `auftrag.json` unter
    `entscheidungen.<skill>.<id>`. Die Antworten kommen nach Fragetext zurück;
    die `id` ist die der Frage mit diesem Text. Gespeichert wird wörtlich, was
    zurückkommt – ohne „ (Empfohlen)“, bei mehreren Haken so, wie das Werkzeug
-   sie liefert, bei „Other“ der eingegebene Text. Hat die gewählte Option
-   `"text_noetig": true`, im Fließtext nach dem Text fragen und
-   `<Label>: <Text>` speichern. Danach `pruefe_lauf.py`.
+   sie liefert, bei „Other“ der eingegebene Text. Ist der Text über „Other“
+   keine Antwort, sondern eine Anweisung an den Skill („erfinde du was
+   Passendes“, „nimm den Titel aus LinkedIn“), wird `Anweisung: <Text wörtlich>`
+   gespeichert. Hat die gewählte Option `"text_noetig": true`, im Fließtext nach
+   dem Text fragen und `<Label>: <Text>` speichern – auch dieser Text wird zu
+   `Anweisung: …`, wenn er eine Anweisung ist. Danach `pruefe_lauf.py`.
 5. **Ansage:** „Ab hier läuft alles ohne Rückfrage – erst der Lebenslauf, dann
    die Skill Matrix, dann das Portfolio. Das dauert eine Weile; am Ende kommt
    eine Übergabe.“
@@ -299,7 +358,8 @@ Eine Sitzung, in dieser Reihenfolge:
 
 Je Skill, dessen `vorbereiten` auf `fertig` und `bauen` auf `offen` steht, in
 Bau-Reihenfolge ein Subagent mit Phase *bauen*. Nie zwei gleichzeitig: Alle drei
-schreiben in dieselbe Figma-Seite und dieselbe Logobibliothek. Nach jedem:
+schreiben in dieselbe Figma-Seite und dieselbe Logobibliothek. Den Stand des
+Skill-Repos vorher festhalten und danach vergleichen wie in Phase 3. Nach jedem:
 
 1. `pruefe_lauf.py` laufen lassen. Meldet es Fehler in der `uebergabe.md` dieses
    Skills, einmal nachfassen wie in Phase 3 – derselbe Auftrag mit der Zeile
@@ -325,11 +385,11 @@ einer Nachricht:
    abgeleitete Skillset-Einträge mit Beleg und die Prüf-Meldungen von
    `anonymisieren.py` (dort steht womöglich noch der Name im anonymen PDF),
    Hero-Beschreibung und die endgültige Matrix, Cover-Titel, KI- und
-   Prozesstexte, Kundentexte mit Quellen, KI-generierte Gebäude.
-3. **Quellen weichen ab** – jede Abweichung einmal. Nennen zwei Skills dasselbe
-   Feld mit denselben Werten, wird daraus eine Zeile mit der Fassung je
-   Dokument. Die Regeln unterscheiden sich: Im Lebenslauf und in der Skill Matrix
-   gewinnt der Lebenslauf, im Portfolio das Portfolio.
+   Prozesstexte, Kundentexte mit Quellen, KI-generierte Gebäude und alles, was
+   ein Skill auf eine `Anweisung: …` hin selbst formuliert hat.
+3. **Quellen weichen ab** – jede Abweichung einmal, mit den Werten je Quelle und
+   der Fassung, die drinsteht. Es gilt in allen drei Dokumenten dieselbe Quelle:
+   die aus `vorrang`, sonst der Lebenslauf.
 4. **Hinweise** – je Dokument der Rest, **vollständig, nur ohne Wiederholungen**.
 5. **Ohne Rückfrage entschieden** – aus allen drei, mit Dokument und Stelle.
    Leer: Abschnitt weglassen.
@@ -356,8 +416,8 @@ Skill-Ordner: <laufordner>/<cv|skillmatrix|portfolio>/
 
 1. Lade den Skill <skill> mit dem Skill-Werkzeug – genau diesen Namen, ohne
    Präfix (nicht anthropic-skills:<skill>, das ist eine andere Fassung). Steht
-   das Werkzeug nicht zur Verfügung: lies <skills>/<skill>/SKILL.md und setze
-   ${CLAUDE_SKILL_DIR} = <skills>/<skill>.
+   das Werkzeug nicht zur Verfügung: lies <skills>/<skill>/SKILL.md; wo dort die
+   Variable CLAUDE_SKILL_DIR steht, gilt <skills>/<skill>.
 2. Lies dort den Abschnitt „Im Gesamtlauf“. Er sagt, welche Schritte zu dieser
    Phase gehören, und geht jeder anderen Anweisung des Skills vor.
 3. Allgemeine Regeln:
@@ -373,8 +433,10 @@ Skill-Ordner: <laufordner>/<cv|skillmatrix|portfolio>/
    - Arbeitsordner ist der Skill-Ordner: arbeit/, die JSON des Skills,
      fragen.json, notizen.md und uebergabe.md liegen dort. PDFs nach
      <laufordner>/ausgabe/.
-   - Arbeite mit absoluten Pfaden – das Arbeitsverzeichnis der Sitzung ist
-     nicht der Laufordner.
+   - Arbeite mit absoluten Pfaden und beginne jeden Shell-Befehl mit
+     cd "<laufordner>/<cv|skillmatrix|portfolio>" – manche Skripte legen Dateien
+     im aktuellen Verzeichnis ab, und das Arbeitsverzeichnis der Sitzung ist das
+     Skill-Repo oder ein anderer Ordner.
    - Figma, wenn figma.aktiv true ist – dann immer, auch bei der Skill Matrix;
      sonst gar nicht. figma.link zeigt mit node-id auf die Seite, auf die alles
      kommt. Keine eigene Seite anlegen, nichts Vorhandenes anfassen. Scheitert
@@ -386,7 +448,19 @@ Skill-Ordner: <laufordner>/<cv|skillmatrix|portfolio>/
    - Antworten: auftrag.json → entscheidungen.<skill>.<id>, wörtlich, wie der
      Nutzer sie gegeben hat; die Optionen dazu stehen in fragen.json. Eine
      Antwort mit mehreren Haken gegen die Labels dort abgleichen, nie an Kommas
-     trennen – Labels enthalten selbst Kommas.
+     trennen – Labels enthalten selbst Kommas. Beginnt eine Antwort mit
+     „Anweisung:“, ist sie kein Wert, sondern eine Anweisung: ihr innerhalb der
+     Regeln des Skills folgen; was du dabei selbst formulierst, steht in
+     uebergabe.md unter „Zur Freigabe“ mit dem Vermerk „selbst formuliert, auf
+     Anweisung“.
+   - Widersprechen sich Lebenslauf, LinkedIn-Export und Portfolio: Vorbereiten
+     meldet jeden Widerspruch in fragen.json unter „abweichungen“ (formate.md).
+     Beim Bauen gilt die Quelle aus auftrag.json → vorrang, danach Lebenslauf,
+     Portfolio, LinkedIn-Export; fehlt vorrang, der Lebenslauf. Das gilt in allen
+     drei Dokumenten gleich und ersetzt im Gesamtlauf die Rangfolge des Skills.
+     Die Ergänzungsregeln des Skills bleiben: Eine andere Quelle füllt Lücken,
+     die Firmierung kommt vollständig aus LinkedIn, die feinere Angabe gilt,
+     solange sie der gröberen nicht widerspricht.
    - Beim Bauen zuerst notizen.md lesen; was dort steht, nicht neu herleiten.
      Steht in diesem Auftrag „Nachgeliefert: …“, gilt dieses Material vor dem,
      was notizen.md sagt; was es an Aufbereitung braucht (etwa den Fotozuschnitt
@@ -395,7 +469,8 @@ Skill-Ordner: <laufordner>/<cv|skillmatrix|portfolio>/
    - Zum Schluss: python3 <skills>/newmonday-bewerbermappe/scripts/pruefe_lauf.py
      "<laufordner>" – Fehler in deinen Dateien beheben.
 4. Rückgabe, eine Zeile:
-   vorbereiten → „fertig: <n> Fragen, <m> Lücken“ oder „fehler: <Grund>“
+   vorbereiten → „fertig: <n> Fragen, <m> Lücken, <k> Abweichungen“ oder
+                 „fehler: <Grund>“
    bauen → „fertig: <PDF-Dateien>; Figma: <node-id | aus | gescheitert – Grund>“
            oder „fehler: <Grund>“
 ```
@@ -415,7 +490,8 @@ weitergehen („mach den Lauf Timo Muster weiter“, auch in einer neuen Sitzung
 `pruefe_lauf.py`, dann `status` lesen und an der ersten offenen Stelle ansetzen –
 `vorbereiten` offen → Phase 3 für diese Skills, ihre Antworten vorher gelöscht
 („Neu vorbereiten heißt neu fragen“); vorbereitet, aber Antworten zu Fragen aus
-`fragen.json` fehlen → Phase 4, nur für die fehlenden; `bauen` offen → Phase 5;
+`fragen.json` fehlen – oder `vorrang`, obwohl `abweichungen` vorliegen → Phase 4,
+nur für die fehlenden; `bauen` offen → Phase 5;
 alles fertig → Phase 6 noch einmal. Beantwortetes wird nicht erneut gefragt –
 außer die Fragen eines Skills, der neu vorbereitet wird: Seine Antworten sind
 gelöscht, Phase 4 stellt sie neu.
@@ -450,6 +526,9 @@ dieser.
 - **Reihenfolge**: Lebenslauf → Skill Matrix → Portfolio, nacheinander, nie
   parallel.
 - **Eine Sprache** für alle drei Dokumente.
+- **Eine Quelle bei Widersprüchen** für alle drei Dokumente – die, die der Nutzer
+  als die aktuellere wählt; gefragt wird nur, wenn sich die Unterlagen
+  widersprechen.
 - **Eine Figma-Seite je Kandidat**, alle Frames darauf. Figma hält kein PDF auf.
 - **Kandidatendaten nie ins Skill-Repo** – nicht in den Skill-Ordnern, nicht im
   Repo-Arbeitsverzeichnis.

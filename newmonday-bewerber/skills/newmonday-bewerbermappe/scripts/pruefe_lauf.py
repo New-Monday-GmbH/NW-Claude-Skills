@@ -30,6 +30,10 @@ MATERIAL = {"lebenslauf", "linkedin_export", "linkedin_url", "xing_url",
 PFADE = {"lebenslauf", "linkedin_export", "portfolio_pdf", "foto", "logos",
          "screens", "zertifikate"}
 STATUS = {"offen", "fertig", "fehler", "ausgelassen"}
+QUELLEN = ("lebenslauf", "portfolio", "linkedin_export")  # Reihe nach vorrang
+ANWEISUNG = "Anweisung:"  # Antwort über Other, die eine Anweisung an den Skill ist
+LEER = {"", "-", "–", "—"}  # kein Wert: eine Quelle, die schweigt, fehlt in werte
+STRICH = re.compile(r"\s*[-‐‑‒–—−]\s*")
 UEBERSPRINGEN = {"fehler", "ausgelassen"}  # Phase so: deren Datei nur mit Warnung
 UEBERGABE = ["## Dateien", "## Zur Freigabe", "## Quellen weichen ab",
              "## Hinweise", "## Ohne Rückfrage entschieden", "## Fehlt noch"]
@@ -44,6 +48,54 @@ _FEHLT = object()  # Rückgabe von _lade für eine nicht ladbare Datei (JSON nul
 
 def _text(wert) -> bool:
     return isinstance(wert, str) and bool(wert.strip())
+
+
+def _vergleichsform(wert: str) -> str:
+    """Ein Wert, wie er für „alle gleich“ zählt: Groß- und Kleinschreibung,
+    Leerraum und Strichart („2017 - 2024“, „2017 – 2024“) machen keinen
+    Widerspruch."""
+    return " ".join(STRICH.sub("-", wert.strip()).split()).casefold()
+
+
+def pruefe_abweichungen(abw) -> tuple[list[str], list[str]]:
+    """Fehler und Warnungen für abweichungen in einer fragen.json."""
+    f: list[str] = []
+    w: list[str] = []
+    if not isinstance(abw, list):
+        return ["abweichungen: muss eine Liste sein"], w
+    for i, a in enumerate(abw):
+        o = f"abweichungen[{i}]"
+        if not isinstance(a, dict):
+            f.append(f"{o}: muss ein Objekt sein")
+            continue
+        if not _text(a.get("feld")):
+            f.append(f"{o}.feld: fehlt")
+        werte = a.get("werte")
+        if not isinstance(werte, dict):
+            f.append(f"{o}.werte: muss ein Objekt sein")
+            werte = None
+        else:
+            if len(werte) < 2:
+                f.append(f"{o}.werte: {len(werte)} Quelle(n) statt mindestens 2")
+            for k, v in werte.items():
+                if k not in QUELLEN:
+                    f.append(f"{o}.werte.{k}: unbekannte Quelle – erlaubt sind {list(QUELLEN)}")
+                elif not isinstance(v, str):
+                    f.append(f"{o}.werte.{k}: muss ein String sein")
+                elif v.strip() in LEER:
+                    f.append(f"{o}.werte.{k}: leer – eine Quelle ohne Angabe gehört "
+                             "nicht in werte")
+            gefuellt = [v for k, v in werte.items()
+                        if k in QUELLEN and isinstance(v, str) and v.strip() not in LEER]
+            if len(gefuellt) >= 2 and len({_vergleichsform(v) for v in gefuellt}) == 1:
+                f.append(f"{o}.werte: alle gleich – keine Abweichung")
+        if "neuer" in a:
+            neuer = a["neuer"]
+            if not isinstance(neuer, str):
+                f.append(f"{o}.neuer: muss ein String sein")
+            elif neuer not in (werte if werte is not None else QUELLEN):
+                f.append(f"{o}.neuer: {neuer!r} ist keine Quelle aus werte")
+    return f, w
 
 
 def pruefe_fragen(d: dict) -> tuple[list[str], list[str]]:
@@ -70,6 +122,9 @@ def pruefe_fragen(d: dict) -> tuple[list[str], list[str]]:
         for k in ("was", "folge", "form"):
             if not _text(l.get(k) if isinstance(l, dict) else None):
                 f.append(f"luecken[{i}].{k}: fehlt")
+    fa, wa = pruefe_abweichungen(d.get("abweichungen", []))
+    f += fa
+    w += wa
     fragen = d.get("fragen", [])
     if not isinstance(fragen, list):
         return f + ["fragen: muss eine Liste sein"], w
@@ -189,6 +244,14 @@ def pruefe_auftrag(d: dict) -> tuple[list[str], list[str]]:
                          "Lücke ohne Schlüssel (references/formate.md)")
             elif mat.get(k):
                 w.append(f"ohne: {k!r} steht auch unter material")
+    if "vorrang" in d:
+        v = d["vorrang"]
+        if isinstance(v, str) and v.startswith(ANWEISUNG):
+            if not _text(v[len(ANWEISUNG):]):
+                f.append("vorrang: Anweisung ohne Text")
+        elif v is not None and not (isinstance(v, str) and v in QUELLEN):
+            f.append(f"vorrang: {v!r} ist keiner von {list(QUELLEN)}, nicht null und "
+                     f"beginnt nicht mit {ANWEISUNG!r}")
     entscheidungen = d.get("entscheidungen", {})
     if not isinstance(entscheidungen, dict):
         f.append("entscheidungen: muss ein Objekt sein")

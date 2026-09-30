@@ -141,9 +141,13 @@ In `notizen.md`:
 - je Projekt: Quelle der Texte, zugeordnete Bilder aus `arbeit/bilder/` mit
   Seitenzahl, Beleglage, Markenfarbe falls schon erkennbar;
 - die Profilfoto-Quelle;
-- jede Abweichung zwischen den Quellen mit beiden Werten (Portfolio vor
-  Lebenslauf vor LinkedIn, Schritt 2) und anonymisierte Kunden;
+- jede Abweichung zwischen den Quellen mit beiden Werten und anonymisierte
+  Kunden; welche Fassung gilt, entscheidet beim Bauen `vorrang`;
 - bei einer Figma-Datei als Quelle: die Knoten-IDs der Screens.
+
+Jeder Widerspruch zwischen den Quellen kommt außerdem als Eintrag unter
+`abweichungen` in `fragen.json` (Aufbau in `formate.md`) – daraus fragt der
+Orchestrator einmal, welche Quelle die aktuellere ist.
 
 Keine `portfolio.json`, keine Logos, keine Recherche, nichts rendern.
 
@@ -155,8 +159,17 @@ Keine `portfolio.json`, keine Logos, keine Recherche, nichts rendern.
 - `nda` → `"nda": true` bei den gewählten Projekten.
 - `statement` → „Ich gebe es ein: <Text>“: der Text als `statement.text`,
   wörtlich; „Fläche leer lassen“: kein Statement. Jede andere Antwort (über
-  „Other“) ist selbst der Statement-Text, wörtlich.
+  „Other“) ist selbst der Statement-Text, wörtlich – außer sie beginnt mit
+  „Anweisung:“: Dann formulierst du das Statement aus dem Material (vor allem
+  Über-mich-Texten), in der Dokumentsprache, in der Ich-Perspektive, ohne
+  erfundene Fakten, und stellst es unter „Zur Freigabe“ mit dem Vermerk
+  „selbst formuliert, auf Anweisung“.
 - `ki_tools` → `person.ki.tools`.
+
+Widersprechen sich die Quellen, gilt statt „Bei Widersprüchen gewinnt das
+Portfolio“ (Schritt 2) die Quelle aus `vorrang` in `auftrag.json`, danach
+Lebenslauf, Portfolio, LinkedIn – in allen drei Dokumenten gleich; fehlt
+`vorrang`, der Lebenslauf. Die vollständige Firmierung aus LinkedIn bleibt.
 
 Gerendert wird nach `<laufordner>/ausgabe/<nachname>-<vorname>-portfolio.pdf`.
 Die Übergabe aus Schritt 8 geht nach `uebergabe.md`: Cover-Titel, KI- und

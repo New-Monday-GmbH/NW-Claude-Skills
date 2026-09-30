@@ -3,6 +3,10 @@
   "kandidat": "Timo Muster",
   "texte": [],
   "luecken": [],
+  "abweichungen": [
+    {"feld": "Zeitraum Cocomore AG", "werte": {"lebenslauf": "11/2021 – 04/2022", "portfolio": "2020 – 2021"}},
+    {"feld": "Jobtitel TEAM GmbH", "werte": {"lebenslauf": "UX Designer", "portfolio": "Senior UX Designer"}, "neuer": "portfolio"}
+  ],
   "fragen": [
     {
       "id": "nm_rolle",

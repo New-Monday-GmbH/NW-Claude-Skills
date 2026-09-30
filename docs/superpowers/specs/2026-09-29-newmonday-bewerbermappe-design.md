@@ -454,3 +454,33 @@ Sie gehen den Abschnitten oben vor.
   der SKILL.md), wenn feststeht, ob Figma bleibt. Scheitert das Schreiben, kommt
   genau eine weitere Klickbox: *Ich richte es ein* | *Ohne Figma weiter*
   (→ `figma.aktiv = false`).
+
+## Nachträge aus dem ersten echten Lauf (30.09.2026)
+
+Erster Gesamtlauf mit echten Unterlagen (Kandidat Enrico Meermeier, Figma-Seite
+„Test 2“). Die Punkte gehen den Abschnitten oben vor.
+
+- **Eine Quelle für alle drei Dokumente.** Widersprechen sich Lebenslauf,
+  LinkedIn-Export und Portfolio, fragt der Orchestrator in Phase 4 einmal, welche
+  Quelle die aktuellere ist – nur wenn es Widersprüche gibt. Die Vorbereitungen
+  melden sie in `fragen.json` unter `abweichungen`; die Antwort steht als
+  `vorrang` in `auftrag.json` und gilt beim Bauen in allen drei Dokumenten gleich
+  (danach Lebenslauf, Portfolio, LinkedIn; ohne `vorrang` der Lebenslauf). Das
+  ersetzt im Gesamtlauf die getrennten Rangfolgen der Skills; deren
+  Ergänzungsregeln bleiben. Im Einzellauf ändert sich nichts.
+- **Anweisungen statt Antworten.** Ist ein Text über „Other“ eine Anweisung an
+  den Skill („erfinde du was Passendes“), speichert der Orchestrator
+  `Anweisung: <Text>`; der Skill folgt ihr und legt Selbstformuliertes zur
+  Freigabe vor.
+- **Weniger Klickrunden.** Die Ablage-Frage steht im ersten Aufruf; Phase 4
+  bündelt Lücken und Quellen-Frage und packt die Skill-Fragen in möglichst wenige
+  Aufrufe.
+- **Figma-Schreibtest auch bei einem Link mit `node-id`.**
+- **Skill-Repo bleibt sauber.** Subagenten wechseln vor jedem Shell-Befehl in
+  ihren Skill-Ordner; der Orchestrator vergleicht den Repo-Stand vor und nach
+  jedem Subagenten und verschiebt neue, nicht versionierte Dateien außerhalb der
+  Bibliotheken in den Laufordner.
+- **Ausweich-Anweisung ohne `CLAUDE_SKILL_DIR`-Token**, weil Claude Code es beim
+  Laden der SKILL.md durch den Pfad des Orchestrators ersetzt.
+- **Portfolio: Arbeitsjahre mit „+“.** Die Karte auf Seite 2 zeigt die Zahl
+  immer mit „+“ („10+“) – auch im Einzellauf des Portfolio-Skills.

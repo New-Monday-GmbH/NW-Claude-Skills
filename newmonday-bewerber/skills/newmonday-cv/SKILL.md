@@ -210,10 +210,15 @@ In `notizen.md`:
 
 - die gewählte Fotoquelle mit Datei, dpi und – bei Website-Fotos – Bildadresse;
 - jede Abweichung zwischen Lebenslauf, LinkedIn und Portfolio mit beiden Werten
-  (Schritte 1b und 1c) und welche Fassung ins Dokument kommt;
+  (Schritte 1b und 1c); welche Fassung ins Dokument kommt, entscheidet beim
+  Bauen `vorrang`;
 - Kunden, die der Lebenslauf anonymisiert und das Portfolio beim Namen nennt;
 - was aus dem Portfolio ergänzt werden soll, Feld für Feld;
 - die Pfade der Auszüge (`arbeit/…/text.txt`).
+
+Jeder Widerspruch aus den Schritten 1b und 1c kommt außerdem als Eintrag unter
+`abweichungen` in `fragen.json` (Aufbau in `formate.md`) – daraus fragt der
+Orchestrator einmal, welche Quelle die aktuellere ist.
 
 Keine `cv.json`, keine Logos, nichts rendern.
 
@@ -226,6 +231,13 @@ Keine `cv.json`, keine Logos, nichts rendern.
 - `fachfremd`, `weiterbildung` → die angehakten Einträge bleiben drin, alle
   anderen aus der Frage fallen weg. Fehlt die `id`, gab es nichts zu entscheiden
   – dann bleibt alles drin.
+
+Widersprechen sich Lebenslauf, LinkedIn und Portfolio, gilt statt der Regel aus
+Schritt 1b die Quelle aus `vorrang` in `auftrag.json`, danach Lebenslauf,
+Portfolio, LinkedIn – in allen drei Dokumenten gleich; fehlt `vorrang`, der
+Lebenslauf. Die Ergänzungsregeln aus Schritt 1b bleiben (LinkedIn füllt Lücken,
+vollständige Firmierung aus LinkedIn, die feinere Angabe, solange sie nicht
+widerspricht).
 
 Stationen mit mehreren Marken (Schritt 3): ohne Rückfrage in einer Station, alle
 Logos als Liste in `logo`, und das unter „Ohne Rückfrage entschieden“. Die

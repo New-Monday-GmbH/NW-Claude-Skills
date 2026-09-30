@@ -28,6 +28,9 @@ FRAGEN = {
     "texte": [],
     "luecken": [{"was": "Profilfoto", "folge": "Fotospalte bleibt leer",
                  "form": "Bilddatei, Porträt"}],
+    "abweichungen": [{"feld": "Zeitraum Cocomore AG",
+                      "werte": {"lebenslauf": "11/2021 – 04/2022", "portfolio": "2020 – 2021"},
+                      "neuer": "lebenslauf"}],
     "fragen": [
         {"id": "nm_rolle", "question": "Wie heißt die Rolle bei New Monday?",
          "header": "NM-Rolle", "multiSelect": False,
@@ -49,6 +52,7 @@ AUFTRAG = {
               "file_key": "AbC123", "seite_id": "12:34", "neues_file": False},
     "material": {"lebenslauf": "eingang/lebenslauf.pdf"},
     "ohne": ["linkedin_export"],
+    "vorrang": "portfolio",
     "entscheidungen": {},
     "status": {s: {"vorbereiten": "offen", "bauen": "offen", "fehler": None}
                for s in pl.SKILLS},
@@ -77,6 +81,16 @@ def status(skill: str, **werte):
 def antworten(skill: str, **werte):
     """Änderung für geaendert(): entscheidungen.<skill> sind genau diese Antworten."""
     return lambda d: d["entscheidungen"].update({skill: werte})
+
+
+def abweichung(**felder):
+    """Änderung für geaendert(): abweichungen[0] bekommt diese Felder."""
+    return lambda d: d["abweichungen"][0].update(felder)
+
+
+def vorrang(wert):
+    """Änderung für geaendert(): vorrang bekommt diesen Wert."""
+    return lambda d: d.update(vorrang=wert)
 
 
 # (Name, Prüffunktion, Daten, erwarteter Fehlertext oder None, erwartete Warnung oder None)
@@ -149,7 +163,7 @@ FAELLE = [
      geaendert(AUFTRAG, lambda d: d.update(ohne=5)), "ohne: muss eine Liste sein", None),
     ("entscheidungen ist Liste statt dict", pl.pruefe_auftrag,
      geaendert(AUFTRAG, lambda d: d.update(entscheidungen=[])), "entscheidungen: muss ein Objekt sein", None),
-    # Schluss-Review I1: Nicht-Strings vor Mengen- und Dict-Tests, jeder Typ geprüft
+    # Nicht-Strings vor Mengen- und Dict-Tests, jeder Typ geprüft
     ("skill ist Liste", pl.pruefe_fragen,
      geaendert(FRAGEN, lambda d: d.update(skill=["newmonday-cv"])),
      "skill: muss ein String sein", None),
@@ -188,7 +202,7 @@ FAELLE = [
      "entscheidungen.newmonday-cv.fachfremd: muss ein String sein", None),
     ("leere Mehrfachauswahl", pl.pruefe_auftrag,
      geaendert(AUFTRAG, antworten("newmonday-cv", fachfremd="")), None, None),
-    # Schluss-Review M6: Prüfungen, die bisher keinen Test hatten
+    # weitere Einzelprüfungen
     ("Fragetext doppelt", pl.pruefe_fragen,
      geaendert(FRAGEN, lambda d: d["fragen"].append(
          dict(copy.deepcopy(d["fragen"][0]), id="nm_rolle_neu"))),
@@ -216,6 +230,102 @@ FAELLE = [
     ("file_key passt nicht zum Link", pl.pruefe_auftrag,
      geaendert(AUFTRAG, lambda d: d["figma"].update(file_key="XyZ789")),
      None, "figma.file_key"),
+    # Eine Quelle für alle: abweichungen in fragen.json
+    ("abweichungen fehlen", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d.pop("abweichungen")), None, None),
+    ("abweichungen leer", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d.update(abweichungen=[])), None, None),
+    ("abweichungen ist Objekt", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d.update(abweichungen={})),
+     "abweichungen: muss eine Liste sein", None),
+    ("Abweichung ist String", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d.update(abweichungen=["Zeitraum Cocomore AG"])),
+     "abweichungen[0]: muss ein Objekt sein", None),
+    ("Abweichung mit leerem feld", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(feld=" ")), "abweichungen[0].feld: fehlt", None),
+    ("Abweichung ohne feld", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d["abweichungen"][0].pop("feld")),
+     "abweichungen[0].feld: fehlt", None),
+    ("werte ist Liste", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(werte=["11/2021 – 04/2022", "2020 – 2021"])),
+     "abweichungen[0].werte: muss ein Objekt sein", None),
+    ("werte mit einer Quelle", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(werte={"lebenslauf": "11/2021 – 04/2022"})),
+     "abweichungen[0].werte: 1 Quelle(n) statt mindestens 2", None),
+    ("werte mit drei Quellen", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(werte={"lebenslauf": "UX Designer",
+                                         "linkedin_export": "Senior UX Designer",
+                                         "portfolio": "Lead UX Designer"},
+                                  neuer="linkedin_export")), None, None),
+    ("werte mit unbekannter Quelle", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(werte={"lebenslauf": "2021", "xing": "2020"}, neuer="lebenslauf")),
+     "abweichungen[0].werte.xing: unbekannte Quelle", None),
+    ("Wert ist Zahl", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(werte={"lebenslauf": "2021", "portfolio": 2020})),
+     "abweichungen[0].werte.portfolio: muss ein String sein", None),
+    ("werte alle gleich", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(werte={"lebenslauf": "2021", "portfolio": "2021 "})),
+     "abweichungen[0].werte: alle gleich – keine Abweichung", None),
+    ("werte gleich bis auf Großschreibung", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(werte={"lebenslauf": "UX Designer",
+                                         "portfolio": "ux  designer"}, neuer="portfolio")),
+     "alle gleich – keine Abweichung", None),
+    ("werte gleich bis auf Strichart", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(werte={"lebenslauf": "2017 - 2024",
+                                         "linkedin_export": "2017 – 2024"}, neuer="lebenslauf")),
+     "alle gleich – keine Abweichung", None),
+    ("werte verschieden in der Reihenfolge", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(werte={"lebenslauf": "UI/UX Designer",
+                                         "portfolio": "UX/UI Designer"}, neuer="portfolio")),
+     None, None),
+    ("Wert leer", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(werte={"lebenslauf": "2021", "portfolio": " "})),
+     "abweichungen[0].werte.portfolio: leer", None),
+    ("Wert Gedankenstrich", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(werte={"lebenslauf": "2021", "linkedin_export": "2020",
+                                         "portfolio": "–"})),
+     "abweichungen[0].werte.portfolio: leer", None),
+    ("zwei Werte, einer leer, der dritte gleich", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(werte={"lebenslauf": "2021", "linkedin_export": "2021",
+                                         "portfolio": "-"})),
+     "alle gleich – keine Abweichung", None),
+    ("neuer fehlt", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d["abweichungen"][0].pop("neuer")), None, None),
+    ("neuer nicht in werte", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(neuer="linkedin_export")),
+     "abweichungen[0].neuer: 'linkedin_export' ist keine Quelle aus werte", None),
+    ("neuer ist Label statt Schlüssel", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(neuer="Lebenslauf")),
+     "abweichungen[0].neuer: 'Lebenslauf' ist keine Quelle", None),
+    ("neuer ist Liste", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(neuer=["lebenslauf"])),
+     "abweichungen[0].neuer: muss ein String sein", None),
+    ("neuer ist null", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(neuer=None)),
+     "abweichungen[0].neuer: muss ein String sein", None),
+    ("neuer bei kaputten werte", pl.pruefe_fragen,
+     geaendert(FRAGEN, abweichung(werte=[], neuer="xing")),
+     "abweichungen[0].neuer: 'xing' ist keine Quelle", None),
+    # Eine Quelle für alle: vorrang in auftrag.json
+    ("vorrang fehlt", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d.pop("vorrang")), None, None),
+    ("vorrang null", pl.pruefe_auftrag, geaendert(AUFTRAG, vorrang(None)), None, None),
+    ("vorrang lebenslauf", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, vorrang("lebenslauf")), None, None),
+    ("vorrang linkedin_export", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, vorrang("linkedin_export")), None, None),
+    ("vorrang Anweisung", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, vorrang("Anweisung: Zeiträume aus LinkedIn, Titel aus dem Portfolio")),
+     None, None),
+    ("vorrang ist Label statt Schlüssel", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, vorrang("LinkedIn-Export")),
+     "vorrang: 'LinkedIn-Export' ist keiner von", None),
+    ("vorrang Anweisung ohne Text", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, vorrang("Anweisung:  ")), "vorrang: Anweisung ohne Text", None),
+    ("vorrang ist Zahl", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, vorrang(1)), "vorrang: 1 ist keiner von", None),
+    ("vorrang ist Liste", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, vorrang(["portfolio"])), "vorrang: ['portfolio'] ist keiner von", None),
 ]
 
 
@@ -331,6 +441,12 @@ ORDNER = [
     ("bauen offen: uebergabe.md geprüft",
      {"auftrag.json": AUFTRAG, "portfolio/uebergabe.md": "# Übergabe newmonday-portfolio\n"},
      "portfolio/uebergabe.md: Abschnitt fehlt", None),
+    ("Abweichung mit falschem neuer im Laufordner",
+     {"auftrag.json": AUFTRAG, "cv/fragen.json": geaendert(FRAGEN, abweichung(neuer="xing"))},
+     "cv/fragen.json: abweichungen[0].neuer", None),
+    ("vorrang falsch im Laufordner",
+     {"auftrag.json": geaendert(AUFTRAG, vorrang("Portfolio")), "cv/fragen.json": FRAGEN},
+     "auftrag.json: vorrang", None),
 ]
 
 
