@@ -61,7 +61,7 @@ Seite auf rund 90 %. Deshalb ist der Druckbereich 475pt breit (rechter Rand
 
 | Seite | Inhalt |
 |---|---|
-| 1 | Kopfzeile (Logo), Profilkopf (Foto, Name, Rolle, Erfahrung, Verweise), Bildung, Skillset |
+| 1 | Kopfzeile (Logo), Profilkopf (Foto, Name, Rolle, Erfahrung, Verweise), Bildung (Abschlüsse, darunter Zertifikate), Skillset |
 | 2 ff. | Kurzprofil als eigene Rubrik, danach die Stationen mit ihren Projekten |
 | letzte | Footer, am unteren Seitenrand |
 
@@ -105,6 +105,59 @@ Fotospalte 113pt. `render_cv.py` setzt Bildung und Skillset in zwei Stufen enger
 (`.deckblatt--kompakt`, `.deckblatt--eng`), bevor jemand Einträge streicht —
 angefasst werden nur Abstände, nie Schriftgrößen.
 
+### Bildung: Abschlüsse und Zertifikate
+
+Unter „Bildung“ stehen die Abschlüsse im Zweispaltenraster (202pt, 24pt
+Abstand), je Eintrag Abschluss (fett), Einrichtung, Zeitraum – **ohne
+Studieninhalte** (Vorgabe vom 2026-10-03; die Liste darunter und mit ihr
+`bildung_liste` sind entfallen). Darunter, `zert_abstand` tiefer, der Block
+„Zertifikate“: Titel im Stil einer Skillset-Gruppe (`gruppe`, `gruppe_liste`
+bis zur ersten Reihe), dann **je Zertifikat ein Tag mit dem Titel**,
+nebeneinander über die volle Inhaltsbreite (428pt), umbrechend, in der
+Reihenfolge der `cv.json`. Aussteller und Datum stehen nur in den Daten
+(Entscheidung des Nutzers vom 2026-10-03; die drei Darstellungen davor –
+`zeilen`, `spalten`, `aussteller` – sind entfallen).
+
+Die Figma-Vorlage des Lebenslaufs kennt den Block nicht. Abgeleitet ist das Tag
+aus den Themen-Tags der Skill Matrix (Innenabstand 4 × 8, Radius 6, Abstand 8,
+Rand 2px `neutral/80`, Grund `neutral/10`, Schrift 14px) im Maßstab der
+Schriftgrößen, 10 : 14, auf ganze Punkt gerundet – und für Papier
+zurückgenommen:
+
+| Token | Wert | abgeleitet aus |
+|---|---|---|
+| `text.zert_tag` | Inter Regular 10/13, Laufweite 0, `text` | Größe und 13pt-Takt von `liste`; Laufweite 0 statt −0,05, siehe unten |
+| `raster.zert_tag_innen_y`, `.zert_tag_innen_x` | 3pt, 6pt | 4 × 8 der Skill Matrix |
+| `raster.zert_tag_radius` | 4pt | 6 der Skill Matrix – die einzige Rundung im Lebenslauf |
+| `raster.zert_tag_linie`, `farben.rahmen` | 1pt, `#9EA8AA` (`neutral/40`) | Strichstärke von `linie`; heller und dünner als der 2px-Rand in `neutral/80`, der auf Papier jedes Tag zum Kasten macht |
+| `raster.zert_tag_abstand`, `.zert_tag_reihen` | 6pt, 6pt | Abstand 8 der Skill Matrix, nebeneinander wie untereinander |
+| `verdichtung.deckblatt.*.zert_abstand` | 20 / 16 / 12 | `bildung_reihen` |
+
+Einen Grund hat das Tag nicht: `neutral/10` ist auf Papier nicht vom Weiß zu
+unterscheiden und gäbe dem Drucker nur eine Fläche zu rastern. Ein Tag ist
+13 + 2 × 3 + 2 × 1 = 21pt hoch, eine Reihe mit Abstand 27pt. Die Abstände
+zwischen den Tags verdichten nicht mit: Bei vier Reihen brächte das 3–6pt,
+und dicht gedrängte Tags verlieren genau das, was sie lesbar macht.
+
+**Kein Tag bricht in sich um.** `.zert__tags` ist eine Flex-Reihe mit
+`flex-wrap` und `gap`, wie die Verweise im Profilkopf: Ein Tag, das nicht mehr
+in die Reihe passt, rückt als Ganzes in die nächste. Nur ein Titel, der breiter
+ist als die ganze Reihe, wird über `max-width: 100%` auf die Satzbreite begrenzt
+und bricht dann in sich um – er nimmt die Reihe allein. Dafür muss WeasyPrint
+die Breite des Titels richtig messen, und das tut es **nur ohne Laufweite**:
+Mit −0,05pt (dem Wert von `liste`) misst WeasyPrint 66 die Breite eines Titels
+zu knapp, und jedes Tag bricht sein letztes Wort in eine zweite Zeile um
+(„Claude Code in / Action“) – dieselbe Schwäche, wegen der die Abschlüsse als
+Floats stehen. `zert_tag` trägt deshalb Laufweite 0, wie `fliesstext` und
+`aufgabe`; der Unterschied ist bei 10pt nicht zu sehen.
+
+Was der Block auf Seite 1 kostet, steht als Richtwert in SKILL.md (Schritt 2).
+Gemessen am Lebenslauf Florian Feiler (zwei Abschlüsse, acht Zertifikate in vier
+Reihen): der Block vom Titel bis zur Unterkante der letzten Reihe 127pt, mit
+dem Abstand zu den Abschlüssen 147pt – in der normalen Stufe, die vorher
+gebrauchte kompakte ist nicht mehr nötig. Die Darstellung `zeilen` brauchte
+dafür 175pt in der kompakten Stufe.
+
 ### Der Stationskopf
 
 Wie in Figma: Titel (10pt fett), darunter die Firma (8pt), darunter der Zeitraum
@@ -131,7 +184,9 @@ Projekten und Kurzprofil in zwei Notstufen enger (`.stationen--kompakt`,
 
 Im Footer: Logo links, die drei Spalten (je 86,67pt, 48pt Abstand) bündig an der
 rechten Kante. Name des Ansprechpartners fett, Mail und Telefon als zwei Blöcke
-mit 4pt Abstand — so ist es in Figma gebaut.
+mit 4pt Abstand — so ist es in Figma gebaut. Die Adresse lautet „New Monday
+GmbH, Stresemannstr. 23, 10963 Berlin“, genau so geschrieben (Vorgabe vom
+2026-10-03, `KONTAKT_VORGABE` in `render_cv.py`; der Selbsttest prüft sie).
 
 ## Bewusste Abweichungen von der Figma-Vorlage
 
@@ -147,6 +202,8 @@ Entschieden am 2026-09-28. Wer abgleicht, zieht diese Punkte **nicht** nach.
 | Aufgaben rücken unter hohe Logos (Row-Auto-Layout) | Aufgaben 24pt unter dem Kopftext, das Logo darf daneben weiterlaufen | Figma ist hier uneinheitlich (Bayer mit 13pt statt 24pt ausgeglichen) |
 | Skillset mit sechs Gruppen (u. a. „Gestaltung", „AI-gestütztes Arbeiten", „Branchenerfahrung"), Sprachen ohne Niveau | immer genau vier: Fähigkeiten, Branchen, Tools, Sprachen, 2 × 2; Deutsch – Muttersprache, Englisch – Business Niveau | Vorgabe vom 2026-09-29: jeder Lebenslauf gleich aufgebaut |
 | Porträt-Platzhalter in der Vorlage nicht vorgesehen | Platzhalterbild „user-pict-placeholder" (80 × 110) in den 79 × 106pt-Fotoplatz eingesetzt | Vorgabe vom 2026-09-29; siehe „Raster" |
+| Education mit Studieninhalten als Liste („sub-p“) unter jedem Abschluss | keine Studieninhalte; Abschluss, Einrichtung, Zeitraum | Vorgabe vom 2026-10-03 |
+| Keine Zertifikate | eigener Block „Zertifikate“ unter den Abschlüssen, je Zertifikat ein Tag mit dem Titel – mit 4pt Radius, der einzigen Rundung im Dokument | Vorgabe vom 2026-10-03; siehe „Bildung: Abschlüsse und Zertifikate“ |
 
 Projekte (Kunden unter einer Station) kommen im Figma-Muster nicht vor. Sie tragen
 die Stile des Stationskopfs: Kunde wie ein Titel, Zeitraum wie ein Zeitraum.
@@ -160,7 +217,8 @@ die Stile des Stationskopfs: Kunde wie ein Titel, Zeitraum wie ein Zeitraum.
 
 Im Intro abweichend: Fotospalte 78pt, Abstand 40pt, Infospalte 308pt. Foto
 79 × 106pt, Graustufen, oben 7pt eingerückt. Bildung und Skillset zweispaltig,
-je 202pt mit 24pt Abstand.
+je 202pt mit 24pt Abstand. Zertifikats-Tags über die volle Inhaltsbreite
+(428pt), 6pt auseinander, Reihen 6pt auseinander.
 
 Die anonyme Fassung setzt an dieselbe Stelle das **Platzhalterbild aus dem
 Design** (`assets/silhouette-vorlage.svg`, „user-pict-placeholder", Vorgabe vom
@@ -176,12 +234,15 @@ Vorlage und Fotomaß heute machen würde.
 ## Farben, Schriften, Abstände
 
 Alle Werte: `assets/tokens.json`. Die Farben kommen aus der Figma-Bibliothek
-(`base/black`, `neutral/80`, `brand/primary`), die Schriften sind Inter
+(`base/black`, `neutral/80`, `brand/primary`, für den Rand der
+Zertifikats-Tags `neutral/40`), die Schriften sind Inter
 (Regular, Bold) und **Rethink Sans SemiBold** für den Namen (Text-Style
 `Headings/H6`). Inter SemiBold und ExtraBold kommen im neuen Design nicht mehr vor.
 
 **Schatten, Rundungen und Transparenzen gibt es nicht** — weder in der Figma-Vorlage
-noch im Skill. Der Selbsttest schlägt an, wenn `cv.css` eines davon setzt.
+noch im Skill. Einzige Ausnahme ist der 4pt-Radius der Zertifikats-Tags
+(`.zert__tag`, Vorgabe vom 2026-10-03). Der Selbsttest schlägt an, wenn `cv.css`
+eines davon an einer anderen Regel setzt.
 
 Rethink Sans liegt als statischer SemiBold-Schnitt in `assets/fonts/`, erzeugt
 aus der variablen Google-Fonts-Datei (`RethinkSans[wght].ttf`, wght 600) mit
@@ -261,6 +322,24 @@ Bullet hängen bleiben.
 
 SVG bevorzugt. PNG vorher am Alphakanal zuschneiden, sonst wird das Logo durch
 den mitgelieferten Weißraum zu klein dargestellt.
+
+### Nie verzerrt
+
+Ein Logo steht in genau dem Seitenverhältnis seiner Datei, im PDF wie im
+Figma-Frame. Breite und Höhe kommen beide aus diesem einen Verhältnis
+(`logo_masse()` → `masse_aus_verhaeltnis()`); auch die beiden Kappen unten
+(Spaltenbreite, Hochformat) rechnen die andere Seite aus dem Verhältnis nach.
+
+Gelesen wird es in `render_cv.py` (`svg_masse()`, `verhaeltnis_der_datei()`):
+bei SVG zuerst die `viewBox`, ohne sie `width`/`height` – in jeder Reihenfolge,
+mit Zahlen wie `1e3` oder `.5`, ohne Einheit oder in px/pt; `stroke-width` zählt
+nicht als `width`, Prozentangaben sind kein Maß. adidas.svg (`viewBox="0 0 1e3
+593.2"`) und nestle.svg (nur `height` vor `width`) sind die Prüfsteine im
+Selbsttest. Rasterbilder: Pixelmaße aus dem Dateikopf.
+
+Die Rechnung schützt nicht vor einer Datei, die selbst gestaucht ist. Dafür die
+Sichtprüfung beim Aufnehmen (`add_logo.py`, Kontrollbild, SKILL.md Schritt 3) und
+in Figma die Verhältnisprüfung jedes Logoknotens (`references/figma.md`).
 
 ### Gleiche Fläche, nicht gleiche Höhe
 

@@ -25,7 +25,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from add_logo import ZIEL, als_bild, als_svg, bibliothek_bereit, slugify  # noqa: E402
+from add_logo import (  # noqa: E402
+    ZIEL, als_bild, als_svg, bibliothek_bereit, slugify, verhaeltnis_pruefen,
+    vorhandene_verhaeltnisse,
+)
 import fetch_logo  # noqa: E402
 
 RECHTSFORMEN = (
@@ -80,7 +83,13 @@ def suchen(firma, domain):
         daten, endung, woher = ergebnis
         tmp.write_bytes(daten)
         try:
+            vorher = vorhandene_verhaeltnisse(name)
             ziel = als_svg(tmp, name) if endung == "svg" else als_bild(tmp, name)
+            # Pflicht-Sichtpruefung wie bei add_logo.py; das Kontrollbild liegt
+            # im Arbeitsverzeichnis unter logo-kontrolle/, nie in der Bibliothek.
+            print(f"{firma} -> {ziel.name}:")
+            verhaeltnis_pruefen(tmp, ziel, vorher,
+                                Path.cwd() / "logo-kontrolle" / f"{name}.png")
             return ziel.name, woher
         except Exception:
             continue
@@ -183,7 +192,8 @@ def main():
         for z in aus_lib:
             print("  " + z)
     if neu:
-        print("Neu gefunden (bitte ansehen — Suche trifft manchmal daneben):")
+        print("Neu gefunden (bitte ansehen — Suche trifft manchmal daneben; "
+              "Kontrollbilder in logo-kontrolle/):")
         for z in neu:
             print("  " + z)
     if offen:

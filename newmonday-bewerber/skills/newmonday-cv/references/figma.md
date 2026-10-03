@@ -269,7 +269,8 @@ sagt die Art:
 | `kopfzeile` | Die Wortmarke aus `logo` in `logo.breite` × `logo.hoehe` |
 | `intro` | Horizontal: Fotospalte (`fotospalte`, `foto.oben` als `paddingTop`), `fotoabstand` als `itemSpacing`, dann die Infospalte mit `name` (`abstand_unten`), `zeilen`, `verweise` |
 | `rubrik` | Eine Zeile Überschrift aus `text` im Stil des Blocks |
-| `bildung` | Zwei Spalten `spaltenbreite`, `spaltenabstand` auseinander, Umbruch nach zwei Einträgen mit `reihenabstand` dazwischen; je Eintrag `abschluss`, `zeilen`, `themen` |
+| `bildung` | Zwei Spalten `spaltenbreite`, `spaltenabstand` auseinander, Umbruch nach zwei Einträgen mit `reihenabstand` dazwischen; je Eintrag `abschluss` und `zeilen` (Einrichtung, Zeitraum) – Studieninhalte gibt es nicht mehr |
+| `zertifikate` | Titel „Zertifikate“ (`titel`, `abstand_unten`), darunter je Eintrag in `eintraege` ein Tag, nebeneinander mit Umbruch, siehe „Die Zertifikats-Tags“ |
 | `skillset` | Zwei Spalten aus `spalten`, je Gruppe `titel` (`abstand_unten`) und `eintraege` im Stil `liste`, `gruppenabstand` zwischen den Gruppen |
 | `profil` | Ein Absatz über die volle Inhaltsbreite |
 | `trennlinie` | Eine Linie über die volle Breite, `staerke` pt, Farbe `farbe` (Hex) |
@@ -376,6 +377,94 @@ projekt.appendChild(kunde);
 Jedes Projektlogo ist 26pt groß (gleiche Fläche), allein wie in der Reihe — die
 Maße stehen fertig am Eintrag.
 
+### Die Zertifikats-Tags
+
+Stehen unter `bildung`, vor der Trennlinie: erst der Titel aus `titel` (Stil
+`gruppe`), darunter mit `titel.abstand_unten` die Reihe der Tags. Je Eintrag in
+`eintraege` ein Tag mit genau diesem Text – nur der Titel des Zertifikats,
+Aussteller und Datum stehen nicht im Plan. Ein geschütztes Leerzeichen (U+00A0)
+im Titel wird übernommen, nicht durch ein normales ersetzt.
+
+Die Reihe ist ein Auto-Layout mit Umbruch, wie die Projektlogos: fest `breite`
+(428pt) breit, `abstand` zwischen zwei Tags, `zeilenabstand` zwischen zwei
+Reihen. Jedes Tag ist ein eigener Auto-Layout-Rahmen, der seinen Text umschließt
+– Innenabstand, Rand und Radius stehen fertig unter `tag`, ebenso der Textstil
+(`familie`, `schnitt`, `groesse`, `zeile`, `laufweite`, `farbe`):
+
+```js
+// block: der Planeintrag, Z: sein Rahmen (huelle)
+const T = block.tag;
+const reihe = figma.createAutoLayout("HORIZONTAL", { name: "Tags", itemSpacing: block.abstand });
+reihe.fills = [];
+reihe.resize(block.breite, reihe.height);     // Umbruch braucht eine feste Breite
+reihe.primaryAxisSizingMode = "FIXED";
+reihe.counterAxisSizingMode = "AUTO";
+reihe.layoutWrap = "WRAP";
+reihe.counterAxisSpacing = block.zeilenabstand;
+for (const titel of block.eintraege) {
+  const tag = figma.createAutoLayout("HORIZONTAL", { name: "Tag", itemSpacing: 0 });
+  tag.paddingTop = tag.paddingBottom = T.innen_y;
+  tag.paddingLeft = tag.paddingRight = T.innen_x;
+  tag.cornerRadius = T.radius;
+  tag.fills = [];
+  tag.strokes = [{ type: "SOLID", color: hex(T.rahmen.farbe) }];
+  tag.strokeWeight = T.rahmen.staerke;
+  tag.strokeAlign = "INSIDE";
+  tag.strokesIncludedInLayout = true;    // Rand zählt zur Größe, wie border im CSS
+  tag.primaryAxisSizingMode = "AUTO"; tag.counterAxisSizingMode = "AUTO";
+  const n = await txt(titel, T, null);   // eine Zeile, so breit wie der Titel
+  n.name = titel;                        // Ebenen lesbar halten
+  tag.appendChild(n);
+  // Nur ein Titel, der breiter ist als die ganze Reihe, bricht um – auf
+  // Satzbreite, wie max-width: 100% im CSS.
+  const innen = block.breite - 2 * (T.innen_x + T.rahmen.staerke);
+  if (n.width > innen) { n.resize(innen, n.height); n.textAutoResize = "HEIGHT"; }
+  reihe.appendChild(tag);
+}
+// Der Abstand unter dem Titel gehoert zur Reihe, nicht zum Titeltext:
+// eine Huelle mit paddingTop, sonst klebt die erste Tag-Reihe am Titel.
+const huelle = figma.createAutoLayout("VERTICAL", { name: "Tag-Reihe", itemSpacing: 0 });
+huelle.fills = [];
+huelle.paddingTop = block.titel.abstand_unten;
+huelle.appendChild(reihe);
+Z.appendChild(huelle);
+```
+
+Beim ersten echten Lauf (Oktober 2026) griff das Rezept auf Anhieb: Die
+Reihen in Figma stimmten mit `reihen` aus dem PDF überein. Den Rückfall auf
+feste Reihen hat dieser Lauf nicht gebraucht – er ist noch ungetestet. Für die
+anonyme Fassung dürfen die Blöcke ab Bildung aus der fertigen vollständigen
+Seite 1 geklont werden, wenn sich die beiden Pläne dort nicht unterscheiden.
+
+`strokesIncludedInLayout` ist der Punkt, an dem Frame und PDF sonst
+auseinanderlaufen: Ohne ihn liegt der Rand im Innenabstand, jedes Tag wird 2pt
+schmaler und niedriger als im PDF, und am Ende einer Reihe passt womöglich ein
+Tag mehr hinein.
+
+**Danach die Reihen gegen das PDF prüfen.** `reihen` im Plan sagt, welche Titel
+im PDF in welcher Reihe stehen – gelesen aus dem gerenderten PDF, wie die
+Seitenaufteilung. Figma und WeasyPrint messen Textbreiten nicht aufs
+Hundertstel gleich; liegt eine Reihe knapp an der Kante, kann ein Tag im Frame
+eine Reihe früher oder später umbrechen:
+
+```js
+const ist = [];
+for (const t of reihe.children) {
+  const r = ist.find(r => Math.abs(r.y - t.y) < 1);
+  r ? r.titel.push(t.children[0].characters) : ist.push({ y: t.y, titel: [t.children[0].characters] });
+}
+const gleich = JSON.stringify(ist.map(r => r.titel)) === JSON.stringify(block.reihen);
+```
+
+Weicht es ab, wird die Reihe auf die Reihen des PDF festgelegt statt
+nachjustiert: `reihe.layoutWrap = "NO_WRAP"` und `layoutMode = "VERTICAL"`
+mit `itemSpacing = block.zeilenabstand`, darin je Eintrag in `block.reihen` ein
+HORIZONTAL-Rahmen mit `itemSpacing = block.abstand`, in den die fertigen Tags
+dieser Reihe wandern. Dann steht jedes Tag, wo es im PDF steht; nur
+umbrechen sie nicht mehr von selbst, wenn jemand einen Titel ändert. Fehlt
+`reihen` im Plan (figma_plan.py hat die Tags im PDF nicht gefunden und das
+gemeldet), bleibt es beim Umbruch, und die Meldung gehört in die Übergabe.
+
 ### Der Stationskopf
 
 Titel, darunter die Firma, darunter der Zeitraum als eigene Zeile, danach die
@@ -385,6 +474,13 @@ es nicht mehr. Fehlt `firma` oder `zeitraum`, steht dort `null`: Dann entfällt 
 Knoten, der Abstand des nächsten bleibt.
 
 ## Logos und Foto
+
+**Logos werden nie verzerrt.** Das Seitenverhältnis kommt immer aus der Datei;
+`breite` und `hoehe` im Plan sind beide daraus gerechnet, und jeder
+Logoeintrag trägt es zusätzlich als `verhaeltnis`. Rasterlogos kommen mit `FIT`
+in ein Rechteck genau dieser Maße, SVGs werden mit `rescale()` skaliert. Was
+danach im Frame steht, wird gegengeprüft – siehe „Logos werden nie verzerrt“
+unten.
 
 Zwei Wege, und die Trennung ist Absicht.
 
@@ -411,15 +507,19 @@ unter ~5 KB direkt einsetzen, größere Dateien über den zweiten Weg. Das Marku
 vorher von XML-Prolog, DOCTYPE, Kommentaren und Zeilenumbrüchen befreien.
 
 **`rescale()`, nicht `resize()`.** `resize()` dehnt nur den Rahmen, die Pfade darin
-bleiben in Originalgröße stehen. Das Seitenverhältnis stimmt schon aus
-`logo_masse()`, also genügt `knoten.rescale(zielbreite / knoten.width)`.
+bleiben in Originalgröße stehen – oder werden, je nach Constraints, verzerrt.
+Das Seitenverhältnis stimmt schon aus `logo_masse()`, also genügt
+`knoten.rescale(zielbreite / knoten.width)`; die Höhe ergibt sich und wird nicht
+gesetzt.
 
 **Raster — über `upload_assets` mit `nodeId`.** Erst das Zielrechteck in den Maßen
 aus dem Plan anlegen, dann die Bytes darauf hochladen:
 
-1. `figma.createRectangle()` auf `breite` × `hoehe`, an seinen Platz hängen, ID merken.
+1. `figma.createRectangle()` auf `breite` × `hoehe` – das Seitenverhältnis der
+   Datei, aus dem Plan, nie geschätzt –, an seinen Platz hängen, ID merken.
 2. `upload_assets` mit `fileKey`, `nodeId` und `scaleMode` — `FILL` fürs Foto,
-   `FIT` fürs Logo.
+   **immer `FIT` fürs Logo**. `FILL` schneidet ein Logo an, sobald das Rechteck
+   nur ein wenig abweicht; `FIT` lässt es höchstens kleiner.
 3. Die zurückgegebene URL an `figma_assets.py` weiterreichen:
    ```bash
    python3 ${CLAUDE_SKILL_DIR}/scripts/figma_assets.py --paare arbeit/uploads.json
@@ -435,6 +535,10 @@ Code-Caps sauber an ihren Platz.
 irgendwo auf der Seite ab, und sie hinterher wiederzufinden und einzusortieren ist
 Raterei. `figma.createImageAsync` ist gesperrt, `figma.createImage` bräuchte die
 Bytes im Code — bei einem 160-KB-Foto sprengt das den Cap.
+
+**Jeden Logoknoten `Logo · <dateiname>` nennen** (`Logo · beq.png`), auf beiden
+Wegen. Daran findet die Prüfung unten ihn wieder und weiß, welche Datei er
+zeigen soll.
 
 Das Foto ist bereits in Graustufen und auf 79 × 106pt beschnitten; `extract_input.py`
 hat das erledigt. In Figma wird nichts nachgefärbt.
@@ -459,6 +563,49 @@ Zwei Dinge hängen daran:
   können, legt `anonymisieren.py` die PNG-Silhouette ein; dann steht im Plan
   `raster`, und es gilt der Upload-Weg. Anonym heißt also nicht automatisch
   SVG — gefragt wird `typ`, nicht die Fassung.
+
+### Logos werden nie verzerrt
+
+Drei Wege, auf denen ein Logo im Frame verzerrt landet, und alle drei sehen
+beim Bauen nach Erfolg aus: `resize()` statt `rescale()` an einem SVG,
+`FILL` oder `STRETCH` statt `FIT` an einem Rasterbild, und ein Rechteck, dessen
+Maße nicht aus dem Plan stammen. Ein vierter liegt vor Figma: eine gestauchte
+Datei in der Bibliothek (beQ, bis 03.10.2026) – die fängt die Sichtprüfung beim
+Aufnehmen ab (SKILL.md, Schritt 3), nicht diese hier.
+
+**Nach jedem Frame mit Logos ein lesender Aufruf**, mit den Werten aus dem Plan
+(`logo_verhaeltnisse`, `logo_toleranz`):
+
+```js
+const SOLL = PLAN_LOGO_VERHAELTNISSE;   // plan.logo_verhaeltnisse, {"beq.png": 1.8611, …}
+const TOL = PLAN_LOGO_TOLERANZ;         // plan.logo_toleranz, 0.01 = 1 %
+const befunde = [];
+let geprueft = 0;
+for (const id of FRAME_IDS) {
+  const frame = await figma.getNodeByIdAsync(id);
+  for (const n of frame.findAll(k => k.name.startsWith("Logo · "))) {
+    geprueft++;
+    const datei = n.name.slice("Logo · ".length), soll = SOLL[datei];
+    const ist = n.width / n.height;
+    if (!soll) { befunde.push({ datei, id: n.id, grund: "nicht im Plan" }); continue; }
+    if (Math.abs(ist / soll - 1) > TOL)
+      befunde.push({ datei, id: n.id, grund: `verzerrt: ${ist.toFixed(3)}:1 statt ${soll.toFixed(3)}:1` });
+    const bild = "fills" in n && Array.isArray(n.fills) ? n.fills.find(f => f.type === "IMAGE") : null;
+    if (bild && bild.scaleMode !== "FIT")
+      befunde.push({ datei, id: n.id, grund: `scaleMode ${bild.scaleMode} statt FIT` });
+  }
+}
+return { geprueft, befunde };
+```
+
+- **`befunde` leer und `geprueft` gleich der Zahl der Logos im Frame**: weiter.
+- **Ein Befund**: den Knoten ersetzen, nicht zurechtziehen – SVG neu aus der
+  Datei mit `rescale()`, Rasterbild neu auf ein Rechteck in `breite` × `hoehe`
+  mit `FIT`. Ein SVG, das auch neu gebaut verzerrt ankommt, trägt
+  `width`/`height`, die nicht zu seiner `viewBox` passen: dann ist die Datei zu
+  korrigieren (`add_logo.py` warnt davor), und das gehört in die Übergabe.
+- **`geprueft` zu klein**: ein Logoknoten trägt nicht den Namen `Logo · …` –
+  nachbenennen und noch einmal prüfen. Ungeprüft gilt nicht als bestanden.
 
 ## Schritt für Schritt, nicht auf einmal
 

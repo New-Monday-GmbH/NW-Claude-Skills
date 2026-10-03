@@ -20,6 +20,15 @@ Optionen:
   --stufen <datei>                 stufen.json aus `render_cv.py --stufen-json`
   --deckblatt normal|kompakt|eng   Stufe von Hand setzen (schlaegt --stufen)
   --stationen normal|kompakt|eng   dito
+
+Zertifikate stehen immer als Tags, nur mit dem Titel (Vorgabe vom 03.10.2026);
+ein --zertifikate aus aelteren Aufrufen und "zertifikate" in einer aelteren
+stufen.json werden ignoriert.
+
+Logos werden nie verzerrt: Jeder Logoeintrag traegt das Seitenverhaeltnis
+seiner Datei (verhaeltnis), und das Skript prueft, dass Breite und Hoehe im
+Plan dazu passen (Toleranz logo_toleranz, 1 %). Dieselbe Toleranz prueft der
+Figma-Schritt am fertigen Knoten nach, siehe references/figma.md.
 """
 import json
 import sys
@@ -28,13 +37,19 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import tokens  # noqa: E402  — erst nach sys.path.insert moeglich
 from render_cv import (  # noqa: E402
-    BESCHRIFTUNG, KONTAKT_VORGABE, VERWEISTEXT, dateiname, logo_groessen,
-    logo_masse, logoliste, skillset_gruppen,
+    BESCHRIFTUNG, KONTAKT_VORGABE, VERWEISTEXT, bildung_aufbereiten, dateiname,
+    logo_groessen, logo_masse, logoliste, seitenverhaeltnis, skillset_gruppen,
+    zertifikate_aufbereiten,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
 T = tokens.laden()
+
+# Wie weit Breite/Hoehe eines Logos vom Seitenverhaeltnis seiner Datei
+# abweichen duerfen, im Plan wie am fertigen Figma-Knoten: 1 %. Mehr ist keine
+# Rundung mehr, sondern ein gestauchtes oder gestrecktes Logo.
+LOGO_TOLERANZ = 0.01
 
 
 def norm(text):
@@ -62,16 +77,23 @@ def typo(name):
 def logo_eintrag(datei, groesse):
     """Absoluter Pfad, nicht relativ: Die Logos liegen im Skill-Ordner, das Foto
     im Arbeitsverzeichnis des Nutzers. Relativ liesse sich im Plan nicht mehr
-    unterscheiden, worauf sich welcher Pfad bezieht."""
+    unterscheiden, worauf sich welcher Pfad bezieht.
+
+    verhaeltnis ist Breite/Hoehe der Datei selbst. Der Figma-Schritt prueft
+    daran den fertigen Knoten: ein Logo, das dort anders proportioniert ist als
+    seine Datei, ist verzerrt.
+    """
     breite, hoehe = logo_masse(datei, groesse)
     return {"datei": str(ASSETS / "logos" / datei),
             "typ": "svg" if datei.lower().endswith(".svg") else "raster",
-            "breite": breite, "hoehe": hoehe}
+            "breite": breite, "hoehe": hoehe,
+            "verhaeltnis": round(seitenverhaeltnis(datei), 4)}
 
 
 def nm_logo(breite, hoehe):
     return {"datei": str(ASSETS / "logos" / "nm-logo.svg"), "typ": "svg",
-            "breite": breite, "hoehe": hoehe}
+            "breite": breite, "hoehe": hoehe,
+            "verhaeltnis": round(seitenverhaeltnis("nm-logo.svg"), 4)}
 
 
 def block(art, abstand_oben=0, marke=None, einzug=0, **rest):
@@ -145,27 +167,34 @@ def bloecke_bauen(daten, deckblatt, stationen):
                   if verweise else None)))
 
     # --- Deckblatt: Bildung und Skillset, beide auf Seite 1 ---
+    # Abschluesse ohne Studieninhalte (dieselbe Aufbereitung wie im PDF), die
+    # Zertifikate als eigener Block darunter, je Titel ein Tag.
+    bildung = bildung_aufbereiten(daten)[0]
+    zertifikate = zertifikate_aufbereiten(daten)[0]
     erste_rubrik = True
-    if daten.get("bildung"):
+    if bildung or zertifikate:
         bloecke.append(block("rubrik", abstand_oben=a["intro_inhalt"],
                              marke=labels["bildung"], text=labels["bildung"],
                              **typo("rubrik")))
         erste_rubrik = False
+    if bildung:
         eintraege = []
-        for b in daten["bildung"]:
+        for b in bildung:
             eintraege.append({
                 "abschluss": dict(text=norm(b.get("abschluss")), **typo("abschluss")),
                 "zeilen": [dict(text=norm(b[f]), abstand_oben=0, **typo("bildung"))
                            for f in ("institution", "zeitraum") if b.get(f)],
-                "themen": (dict(abstand_oben=d["bildung_liste"], einzug=r["listeneinzug"],
-                                abstand=0, eintraege=[norm(t) for t in b["themen"]],
-                                **typo("liste")) if b.get("themen") else None),
             })
         bloecke.append(block(
             "bildung", abstand_oben=d["rubrik_inhalt"],
-            marke=(daten["bildung"][0] or {}).get("abschluss"),
+            marke=bildung[0].get("abschluss"),
             spaltenbreite=ab["halbe_spalte"], spaltenabstand=r["spaltenabstand"],
             reihenabstand=d["bildung_reihen"], eintraege=eintraege))
+    if zertifikate:
+        bloecke.append(zertifikatsblock(
+            zertifikate, labels["zertifikate"], d,
+            d["zert_abstand"] if bildung else d["rubrik_inhalt"]))
+    if bildung or zertifikate:
         bloecke.append(block("trennlinie", abstand_oben=d["vor_linie"],
                              farbe=farben["text"], staerke=r["linie"]))
 
@@ -291,6 +320,30 @@ def bloecke_bauen(daten, deckblatt, stationen):
     return bloecke
 
 
+def zertifikatsblock(titel_liste, titel, d, abstand_oben):
+    """Der Zertifikatsblock unter den Abschluessen: Titel, darunter die Tags.
+
+    Wie .zert__tags in cv.css: eine Reihe ueber die volle Breite, die
+    umbricht — im Frame ein HORIZONTAL-Autolayout mit WRAP, abstand als
+    itemSpacing, zeilenabstand als counterAxisSpacing. Je Eintrag ein Tag mit
+    Innenabstand, Rand und Radius aus tag; der Text bricht nicht um, ausser er
+    ist breiter als die ganze Reihe (siehe references/figma.md).
+    """
+    r, ab, farben = T["raster"], T["abgeleitet"], T["farben"]
+    return block(
+        "zertifikate", abstand_oben=abstand_oben, marke=titel_liste[0],
+        titel=dict(text=titel, abstand_unten=d["gruppe_liste"], **typo("gruppe")),
+        breite=ab["inhaltsbreite"], abstand=r["zert_tag_abstand"],
+        zeilenabstand=r["zert_tag_reihen"],
+        tag=dict(innen_x=r["zert_tag_innen_x"], innen_y=r["zert_tag_innen_y"],
+                 radius=r["zert_tag_radius"],
+                 rahmen={"staerke": r["zert_tag_linie"], "farbe": farben["rahmen"]},
+                 **typo("zert_tag")),
+        # Die Titel wie aus render_cv.py, nicht noch einmal durch norm():
+        # das naehme ein geschuetztes Leerzeichen (U+00A0) wieder heraus.
+        eintraege=list(titel_liste))
+
+
 def aufgabenblock(aufgaben, abstand_oben):
     """Bulletliste einer Station oder eines Projekts.
 
@@ -355,6 +408,57 @@ def seiten_zuordnen(bloecke, texte):
     return ungefunden
 
 
+def tagreihen(pdf, bloecke):
+    """Traegt an den Zertifikatsblock ein, wie die Tags im PDF auf Reihen
+    stehen: reihen = [[Titel, ...], ...]. Gibt die Titel zurueck, die sich
+    nicht wiederfinden liessen.
+
+    Gelesen, nicht gerechnet: WeasyPrint schreibt jede Reihe Tags als eine
+    Textzeile ("Claude 101Introduction to Agent Skills"). Gesucht wird unter
+    der Blockueberschrift, Titel fuer Titel in der Reihenfolge des Plans; ein
+    ueberlanger Titel, der in sich umbricht, zaehlt zu der Reihe, in der er
+    beginnt. Der Figma-Schritt prueft daran, ob sein Auto-Layout genauso
+    umbricht wie das PDF (references/figma.md, "Die Zertifikats-Tags").
+    """
+    import re
+    from pypdf import PdfReader
+    block = next((b for b in bloecke if b["art"] == "zertifikate"), None)
+    if block is None:
+        return []
+    zeilen = {}
+
+    def besucher(text, cm, tm, schrift, groesse):
+        if text.strip():
+            y = round(tm[4] * cm[1] + tm[5] * cm[3] + cm[5], 1)
+            zeilen.setdefault(y, []).append((tm[4] * cm[0] + cm[4], text))
+
+    PdfReader(str(pdf)).pages[block["seite"] - 1].extract_text(visitor_text=besucher)
+    # Von oben nach unten (im PDF waechst y nach oben), je Zeile von links.
+    texte = [norm("".join(t for _, t in sorted(stuecke)))
+             for _, stuecke in sorted(zeilen.items(), reverse=True)]
+    titel = block["titel"]["text"]
+    if titel not in texte:
+        return list(block["eintraege"])
+    rest = "\n".join(texte[texte.index(titel) + 1:])
+    pos, reihen, letzte = 0, [], None
+    for eintrag in block["eintraege"]:
+        # Zwischen zwei Woertern darf ein Umbruch stehen oder - wo zwei Tags
+        # in einer Zeile aneinanderstossen - gar nichts.
+        muster = r"\s*".join(re.escape(w) for w in norm(eintrag).split())
+        fund = re.compile(muster).search(rest, pos)
+        if not fund:
+            return [e for e in block["eintraege"]
+                    if not any(e in r for r in reihen)]
+        reihe = rest.count("\n", 0, fund.start())
+        if reihe != letzte:
+            reihen.append([])
+            letzte = reihe
+        reihen[-1].append(eintrag)
+        pos = fund.end()
+    block["reihen"] = reihen
+    return []
+
+
 def bulletlisten_teilen(bloecke, texte):
     """Laeuft eine Bulletliste im PDF ueber einen Seitenumbruch, wird sie hier
     aufgetrennt — sonst haengt der Rest unten aus dem Frame heraus."""
@@ -386,12 +490,20 @@ def bulletlisten_teilen(bloecke, texte):
 # --- Aufruf -----------------------------------------------------------------
 
 def stufen_lesen(argv):
-    """--stufen liest die Sidecar-Datei, --deckblatt/--stationen schlagen sie."""
+    """--stufen liest die Sidecar-Datei, --deckblatt/--stationen schlagen sie.
+    --zertifikate gibt es nicht mehr; ein alter Aufruf wird samt Wert
+    ignoriert und gemeldet."""
     deckblatt = stationen = "normal"
-    rest = []
+    rest, hinweise = [], []
     argv = list(argv)
+    hand = {}
     while argv:
         a = argv.pop(0)
+        if a == "--zertifikate":
+            wert = argv.pop(0) if argv else "(ohne Wert)"
+            hinweise.append(f"--zertifikate {wert} ignoriert — Zertifikate stehen "
+                            "immer als Tags, nur mit dem Titel.")
+            continue
         if a in ("--stufen", "--deckblatt", "--stationen"):
             if not argv:
                 raise SystemExit(f"{a} braucht einen Wert")
@@ -400,21 +512,22 @@ def stufen_lesen(argv):
                 gelesen = json.loads(Path(wert).read_text(encoding="utf-8"))
                 deckblatt = gelesen.get("deckblatt", "normal")
                 stationen = gelesen.get("stationen", "normal")
-            elif a == "--deckblatt":
-                deckblatt = wert
             else:
-                stationen = wert
+                hand[a] = wert
             continue
         rest.append(a)
+    # Von Hand Gesetztes schlaegt die Sidecar-Datei, egal in welcher Reihenfolge.
+    deckblatt = hand.get("--deckblatt", deckblatt)
+    stationen = hand.get("--stationen", stationen)
     stufen = T["verdichtung"]["deckblatt"]
     for name, wert in (("--deckblatt", deckblatt), ("--stationen", stationen)):
         if wert not in stufen:
             raise SystemExit(f"{name}: {', '.join(stufen)} — nicht {wert!r}")
-    return deckblatt, stationen, rest
+    return deckblatt, stationen, rest, hinweise
 
 
 def main():
-    deckblatt, stationen, args = stufen_lesen(sys.argv[1:])
+    deckblatt, stationen, args, vorab = stufen_lesen(sys.argv[1:])
     if len(args) < 3:
         raise SystemExit(__doc__)
     daten = json.loads(Path(args[0]).read_text(encoding="utf-8"))
@@ -428,6 +541,7 @@ def main():
     bloecke = bloecke_bauen(daten, deckblatt, stationen)
     ungefunden = seiten_zuordnen(bloecke, texte)
     bloecke = bulletlisten_teilen(bloecke, texte)
+    ohne_reihe = tagreihen(pdf, bloecke)
 
     name = norm((daten.get("person") or {}).get("name")) or "Lebenslauf"
     frames = []
@@ -453,6 +567,11 @@ def main():
         "sprache": daten.get("sprache", "de"),
         "person": {"name": name, "rolle": norm((daten.get("person") or {}).get("rolle"))},
         "stufen": {"deckblatt": deckblatt, "stationen": stationen},
+        # Seitenverhaeltnis jeder Logodatei, zum Gegenpruefen der fertigen
+        # Knoten in Figma (references/figma.md, "Logos werden nie verzerrt").
+        "logo_toleranz": LOGO_TOLERANZ,
+        "logo_verhaeltnisse": {Path(l["datei"]).name: l["verhaeltnis"]
+                               for f in frames for l in logos_im_frame(f)},
         "quelle": T["quelle"],
         "rahmen": {"breite": seite["breite"], "hoehe": seite["hoehe"],
                    "oben": seite["rand_oben"], "rechts": seite["rand_rechts"],
@@ -469,19 +588,44 @@ def main():
     print(f"{ziel} geschrieben ({len(frames)} Frames, "
           f"{sum(len(f['bloecke']) for f in frames)} Bloecke)")
 
-    hinweise = []
+    hinweise = list(vorab)
     if ungefunden:
         hinweise.append(
             "Im PDF-Text nicht wiedergefunden, die Seitenkante ist dort geraten: "
             + "; ".join(m[:60] for m in ungefunden))
+    if ohne_reihe:
+        hinweise.append(
+            "Zertifikats-Tags im PDF nicht wiedergefunden, ohne reihen im Plan — "
+            "im Frame die Reihen mit dem PDF vergleichen: " + "; ".join(ohne_reihe))
     fehlend = sorted({b["datei"] for f in frames for b in logos_im_frame(f)
                       if not Path(b["datei"]).exists()})
     if fehlend:
         hinweise.append("Logodatei fehlt: " + ", ".join(fehlend))
+    hinweise += logos_verzerrt(frames)
     if hinweise:
         print("\nPruefen:", file=sys.stderr)
         for h in hinweise:
             print(f"  - {h}", file=sys.stderr)
+
+
+def logos_verzerrt(frames):
+    """Hinweise fuer jedes Logo, dessen Masse im Plan nicht zu seiner Datei
+    passen. Gerechnet wird beides aus der Datei, also darf das nie anschlagen —
+    tut es das doch, ist eine Kappe in logo_masse() oder ein Mass in
+    tokens.json falsch, und der Frame wuerde das Logo verzerren."""
+    hinweise = []
+    for f in frames:
+        for l in logos_im_frame(f):
+            soll = l.get("verhaeltnis")
+            if not soll or not l.get("hoehe"):
+                continue
+            ist = l["breite"] / l["hoehe"]
+            if abs(ist / soll - 1) > LOGO_TOLERANZ:
+                hinweise.append(
+                    f"Logo verzerrt im Plan: {Path(l['datei']).name} soll "
+                    f"{soll:.3f}:1 sein, steht als {l['breite']} x {l['hoehe']} "
+                    f"({ist:.3f}:1) — Abweichung {abs(ist / soll - 1):.1%}")
+    return hinweise
 
 
 def logos_im_frame(frame):

@@ -58,8 +58,22 @@ def pruefe(pdf):
     # den Bildung und Skillset brauchen.
     if "Als UX-Designer mit Schwerpunkt" in erste:
         fehler.append("das Kurzprofil steht auf Seite 1 statt auf Seite 2")
+    # Zertifikate stehen als eigener Block unter den Abschluessen, auf Seite 1.
+    if "Zertifikate" not in erste:
+        fehler.append("der Block Zertifikate steht nicht auf Seite 1")
+
+    # Die Adresse im Footer, genau so geschrieben (Vorgabe vom 03.10.2026).
+    # Der Sollwert steht hier und nicht aus render_cv.py gelesen.
+    letzte = " ".join((leser.pages[-1].extract_text() or "").split())
+    if ADRESSE not in letzte:
+        fehler.append(f"Footer: „{ADRESSE}“ steht nicht auf der letzten Seite")
+    if "Stresemannstraße" in letzte:
+        fehler.append("Footer: alte Schreibweise „Stresemannstraße“ steht noch drin")
 
     return seiten, breite, hoehe, len(schriften), bilder, fehler
+
+
+ADRESSE = "Stresemannstr. 23"
 
 
 # Nachbau einer oeffentlichen Profilseite: oben das Foto der Person im
@@ -504,6 +518,341 @@ def pruefe_skillset(tmp):
     return fehler
 
 
+def _rendern(tmp, daten, name, *schalter):
+    """Eine abgewandelte cv.json rendern. Gibt (PDF, Lauf, stufen.json) zurueck."""
+    quelle = Path(tmp) / f"{name}.json"
+    quelle.write_text(json.dumps(daten, ensure_ascii=False), encoding="utf-8")
+    ziel = Path(tmp) / f"{name}.pdf"
+    stufen = Path(tmp) / f"{name}-stufen.json"
+    lauf = subprocess.run(
+        [sys.executable, str(WURZEL / "scripts" / "render_cv.py"), str(quelle), str(ziel),
+         "--pfad-genau", "--stufen-json", str(stufen), *schalter],
+        capture_output=True, text=True, cwd=str(WURZEL))
+    return ziel, lauf, stufen
+
+
+# Ein Titel, der breiter ist als die ganze Reihe (428pt): Er darf als einziges
+# Tag in sich umbrechen, ueber die volle Breite.
+ZERT_LANG = ("Certified Professional for Usability and User Experience – Advanced "
+             "Level User Requirements Engineering")
+
+
+def _tagzeilen(laeufe):
+    """Die Textzeilen der Tags auf Seite 1, von oben nach unten.
+
+    WeasyPrint schreibt eine Reihe Tags meist als eine Textzeile ("Claude 101
+    Introduction to Agent Skills") — die Reihen findet man deshalb an ihren
+    Zeilen, nicht je Tag. Gezaehlt wird jede Zeile zwischen dem Titel
+    "Zertifikate" und der Rubrik Skillset darunter; dazwischen steht nur die
+    Trennlinie, und die ist kein Text.
+    """
+    seite1 = [l for l in laeufe if l["seite"] == 1]
+    oben = next((l["y"] for l in seite1 if l["text"] in ("Zertifikate", "Certificates")), None)
+    unten = next((l["y"] for l in seite1 if l["text"] == "Skillset"), None)
+    if oben is None or unten is None:
+        return []
+    return sorted((l for l in seite1 if oben < l["y"] < unten),
+                  key=lambda l: (l["y"], l["x"]))
+
+
+def pruefe_zertifikate(tmp):
+    """Zertifikate als Tags unter den Abschluessen, nur mit dem Titel.
+
+    Vorgabe vom 03.10.2026: keine Studieninhalte mehr unter Bildung, die
+    Zertifikate als eigener Block, je Zertifikat ein Tag, nebeneinander und
+    umbrechend; Aussteller und Datum bleiben in der cv.json. Geprueft wird am
+    PDF (Lage, Reihenfolge, kein Tag in sich umbrochen, nur ein ueberlanger
+    Titel; Aussteller und Datum nicht im Dokument; Randfarbe), am Figma-Plan
+    (Tags, Masse und Stil aus tokens.json), dazu Englisch, alte cv.json mit
+    themen und Darstellungsschluessel, der alte Schalter und die Meldungen.
+    """
+    sys.path.insert(0, str(WURZEL / "scripts"))
+    import tokens
+    from render_cv import zert_datum, zertifikate_aufbereiten
+    from pypdf import PdfReader
+    t = tokens.laden()
+    r = t["raster"]
+    norm = lambda x: " ".join(str(x or "").split())
+    basis = json.loads((WURZEL / "beispiel" / "cv.json").read_text(encoding="utf-8"))
+    titel = [norm(z["titel"]) for z in basis["zertifikate"]]
+    fehler = []
+
+    ziel, lauf, stufen = _rendern(tmp, basis, "zert-tags")
+    if not ziel.exists():
+        return [f"Zertifikate: PDF nicht gerendert — {lauf.stderr.strip()[:120]}"]
+    leser = PdfReader(str(ziel))
+    erste = norm(leser.pages[0].extract_text())
+    if "UI-Design User Research Usability-Testing Marktforschung" in erste:
+        fehler.append("Zertifikate: Studieninhalte stehen wieder unter Bildung")
+    laeufe = _laeufe(ziel)
+    seite1 = [l for l in laeufe if l["seite"] == 1]
+    y = {m: next((l["y"] for l in seite1 if l["text"] == m), None)
+         for m in ("Bildung", "Zertifikate", "Skillset")}
+    if None in y.values() or not y["Bildung"] < y["Zertifikate"] < y["Skillset"]:
+        fehler.append("Zertifikate: Block steht nicht zwischen Bildung und Skillset")
+
+    # Jeder Titel steht ganz in einer Zeile — ein Tag, das in sich umbricht,
+    # verteilte ihn auf zwei. Und in der Reihenfolge der cv.json.
+    zeilen = _tagzeilen(laeufe)
+    text = " ".join(l["text"] for l in zeilen)
+    for z in titel:
+        if not any(z in l["text"] for l in zeilen):
+            fehler.append(f"Zertifikate: Tag „{z}“ ist umbrochen oder fehlt auf Seite 1")
+    stellen = [text.find(z) for z in titel]
+    if -1 not in stellen and stellen != sorted(stellen):
+        fehler.append("Zertifikate: Tags stehen nicht in der Reihenfolge der cv.json")
+    # Reihen im Takt: Tag (Zeile + Innenabstand + Rand) plus Reihenabstand,
+    # jede Reihe beginnt an der linken Kante plus Rand und Innenabstand.
+    hoehe = tokens.stil("zert_tag")["zeile"] + 2 * (r["zert_tag_innen_y"] + r["zert_tag_linie"])
+    takt = hoehe + r["zert_tag_reihen"]
+    ys = sorted({l["y"] for l in zeilen})
+    if len(ys) < 2:
+        fehler.append(f"Zertifikate: nur {len(ys)} Reihe(n) — das Beispiel braucht zwei")
+    for a_, b_ in zip(ys, ys[1:]):
+        if abs(b_ - a_ - takt) > 0.3:
+            fehler.append(f"Zertifikate: Reihen stehen {b_ - a_:.1f}pt auseinander statt {takt:.1f}pt")
+    kante = t["seite"]["rand_links"] + r["zert_tag_linie"] + r["zert_tag_innen_x"]
+    for reihe in ys:
+        links = min(l["x"] for l in zeilen if l["y"] == reihe)
+        if abs(links - kante) > 0.3:
+            fehler.append(f"Zertifikate: eine Reihe beginnt bei x = {links:.1f}pt "
+                          f"statt {kante:.1f}pt")
+            break
+
+    # Nur der Titel: Aussteller und Datum stehen nirgends im Dokument. Ein
+    # blosses Jahr ("2021") kann in einem Zeitraum stehen, geprueft werden
+    # deshalb nur die monatsgenauen Daten.
+    alles = norm(" ".join(s_.extract_text() or "" for s_ in leser.pages))
+    for z in basis["zertifikate"]:
+        for feld in ("aussteller", "datum"):
+            if (feld == "aussteller" or "/" in z[feld]) and norm(z[feld]) in alles:
+                fehler.append(f"Zertifikate: {feld} „{z[feld]}“ steht im Dokument")
+    # Der Rand in der Farbe aus tokens.json.
+    rahmen = tuple(int(t["farben"]["rahmen"][i:i + 2], 16) / 255 for i in (1, 3, 5))
+    if _fehlen([rahmen], _malfarben(leser.pages[0])):
+        fehler.append(f"Zertifikate: kein Rand in {t['farben']['rahmen']} (farben.rahmen) auf Seite 1")
+    if "zertifikate" in json.loads(stufen.read_text(encoding="utf-8")):
+        fehler.append("Zertifikate: stufen.json fuehrt noch eine Darstellung")
+
+    # Derselbe Block im Figma-Plan: Tags mit Massen und Stil aus tokens.json.
+    ordner = Path(tmp) / "zert-tags-figma"
+    plan_lauf = subprocess.run(
+        [sys.executable, str(WURZEL / "scripts" / "figma_plan.py"),
+         str(Path(tmp) / "zert-tags.json"), str(ziel), str(ordner), "--stufen", str(stufen)],
+        capture_output=True, text=True, cwd=str(WURZEL))
+    if plan_lauf.returncode != 0:
+        fehler.append(f"Zertifikate: figma_plan.py fehlgeschlagen — "
+                      f"{(plan_lauf.stderr or plan_lauf.stdout).strip()[:120]}")
+    else:
+        plan = json.loads((ordner / "figma_plan.json").read_text(encoding="utf-8"))
+        bloecke = [(f["nr"], b) for f in plan["frames"] for b in f["bloecke"]
+                   if b["art"] == "zertifikate"]
+        if len(bloecke) != 1 or bloecke[0][0] != 1:
+            fehler.append("Zertifikate: Block steht im Plan nicht genau einmal auf Frame 1")
+        else:
+            b = bloecke[0][1]
+            if [norm(e) for e in b["eintraege"]] != titel:
+                fehler.append(f"Zertifikate: Plan fuehrt {b['eintraege']} statt der Titel")
+            soll = {"innen_x": r["zert_tag_innen_x"], "innen_y": r["zert_tag_innen_y"],
+                    "radius": r["zert_tag_radius"], "abstand": r["zert_tag_abstand"],
+                    "zeilenabstand": r["zert_tag_reihen"], "breite": t["abgeleitet"]["inhaltsbreite"],
+                    "staerke": r["zert_tag_linie"], "farbe": t["farben"]["rahmen"]}
+            ist = {"innen_x": b["tag"]["innen_x"], "innen_y": b["tag"]["innen_y"],
+                   "radius": b["tag"]["radius"], "abstand": b["abstand"],
+                   "zeilenabstand": b["zeilenabstand"], "breite": b["breite"],
+                   "staerke": b["tag"]["rahmen"]["staerke"], "farbe": b["tag"]["rahmen"]["farbe"]}
+            if ist != soll:
+                fehler.append(f"Zertifikate: Tag-Masse im Plan {ist} statt {soll}")
+            if _stilwerte(b["tag"]) != _stilwerte(tokens.stil("zert_tag")):
+                fehler.append(f"Zertifikate: Tag-Stil im Plan nicht zert_tag — {_stilwerte(b['tag'])}")
+            if "darstellung" in b or "zertifikate" in plan:
+                fehler.append("Zertifikate: Plan fuehrt noch eine Darstellung")
+            # Die Reihen, wie sie im PDF umbrechen — daran prueft der
+            # Figma-Schritt sein Auto-Layout.
+            reihen = b.get("reihen") or []
+            if [x for reihe in reihen for x in reihe] != b["eintraege"] or len(reihen) != len(ys):
+                fehler.append(f"Zertifikate: reihen im Plan ({len(reihen)}) passen nicht "
+                              f"zu den {len(ys)} Reihen im PDF")
+
+    # Ein ueberlanger Titel bricht in sich um, ueber die volle Breite, und
+    # nimmt die Reihe fuer sich; die Tags davor und danach bleiben heil.
+    lang = json.loads(json.dumps(basis))
+    lang["zertifikate"].insert(2, {"titel": ZERT_LANG, "aussteller": "UXQB e. V.", "datum": "2025"})
+    ziel, lauf, _ = _rendern(tmp, lang, "zert-lang")
+    if not ziel.exists():
+        fehler.append(f"Zertifikate lang: PDF nicht gerendert — {lauf.stderr.strip()[:120]}")
+    else:
+        zeilen = _tagzeilen(_laeufe(ziel))
+        teile = [l for l in zeilen if l["text"] in ZERT_LANG]
+        if len(teile) != 2 or norm(" ".join(l["text"] for l in teile)) != ZERT_LANG:
+            fehler.append("Zertifikate lang: der ueberlange Titel steht nicht in zwei "
+                          f"Zeilen eines Tags — {[l['text'][:30] for l in teile]}")
+        elif abs(teile[1]["y"] - teile[0]["y"] - tokens.stil("zert_tag")["zeile"]) > 0.3:
+            fehler.append("Zertifikate lang: die zweite Zeile steht nicht im Takt von zert_tag")
+        for z in titel:
+            if not any(z in l["text"] for l in zeilen):
+                fehler.append(f"Zertifikate lang: Tag „{z}“ ist umbrochen oder fehlt")
+        # Im Plan steht der ueberlange Titel als eigene Reihe.
+        ordner = Path(tmp) / "zert-lang-figma"
+        subprocess.run([sys.executable, str(WURZEL / "scripts" / "figma_plan.py"),
+                        str(Path(tmp) / "zert-lang.json"), str(ziel), str(ordner)],
+                       capture_output=True, text=True, cwd=str(WURZEL))
+        plan_datei = ordner / "figma_plan.json"
+        reihen = next((b.get("reihen") for f in (json.loads(plan_datei.read_text(
+            encoding="utf-8"))["frames"] if plan_datei.exists() else [])
+            for b in f["bloecke"] if b["art"] == "zertifikate"), None)
+        if not reihen or [ZERT_LANG] not in reihen:
+            fehler.append(f"Zertifikate lang: der ueberlange Titel steht im Plan nicht als "
+                          f"eigene Reihe — {reihen}")
+
+    # Englisch: die Rubrik heisst "Certificates".
+    ziel, lauf, _ = _rendern(tmp, dict(basis, sprache="en"), "zert-en")
+    if not ziel.exists():
+        fehler.append("Zertifikate englisch: PDF nicht gerendert")
+    elif "Certificates" not in norm(PdfReader(str(ziel)).pages[0].extract_text()):
+        fehler.append("Zertifikate englisch: „Certificates“ fehlt auf Seite 1")
+
+    # Aeltere cv.json und alter Aufruf: zertifikate_darstellung und
+    # --zertifikate werden ignoriert und gemeldet, es entstehen trotzdem Tags.
+    alt = dict(basis, zertifikate_darstellung="spalten")
+    ziel, lauf, _ = _rendern(tmp, alt, "zert-altdarstellung", "--zertifikate", "aussteller")
+    if not ziel.exists():
+        fehler.append(f"Zertifikate: alte Darstellung bricht ab — {lauf.stderr.strip()[:120]}")
+    else:
+        for meldung in ("zertifikate_darstellung „spalten“ wird ignoriert",
+                        "--zertifikate aussteller ignoriert"):
+            if meldung not in lauf.stderr:
+                fehler.append(f"Zertifikate: Meldung fehlt — „{meldung}“")
+        if not _tagzeilen(_laeufe(ziel)):
+            fehler.append("Zertifikate: mit alter Darstellung keine Tags im PDF")
+
+    # Alte cv.json: themen unter Bildung, ein Zertifikat als Bildungseintrag.
+    # Darf nicht brechen; themen fallen weg und werden gemeldet.
+    alt = json.loads(json.dumps(basis))
+    alt.pop("zertifikate")
+    alt["bildung"][0]["themen"] = ["Marktforschung", "Projektmanagement"]
+    alt["bildung"].append({"abschluss": "CPUX-F-Zertifikat"})
+    ziel, lauf, _ = _rendern(tmp, alt, "zert-alt")
+    if not ziel.exists():
+        fehler.append(f"Alte cv.json mit themen bricht ab — {lauf.stderr.strip()[:120]}")
+    else:
+        text = norm(" ".join(s_.extract_text() or "" for s_ in PdfReader(str(ziel)).pages))
+        if "Marktforschung" in text:
+            fehler.append("Alte cv.json: themen stehen noch im PDF")
+        if "themen ignoriert" not in lauf.stderr:
+            fehler.append("Alte cv.json: ignorierte themen nicht gemeldet")
+        if "sieht nach einem Zertifikat aus" not in lauf.stderr:
+            fehler.append("Alte cv.json: Zertifikat unter bildung nicht gemeldet")
+
+    # Die Aufbereitung: nur Titel, in der Reihenfolge der Daten; Meldungen bei
+    # falscher Reihenfolge, unlesbarem Datum, fehlendem Aussteller und Datum;
+    # ausgeschriebener Monat gelesen.
+    probe = {"zertifikate": [
+        {"titel": "A", "aussteller": "X", "datum": "September 2026"},
+        {"titel": "B", "aussteller": "Y", "datum": "2027"},
+        {"titel": "C", "aussteller": "X"},
+        {"titel": "D", "datum": "irgendwann"},
+        {"aussteller": "Z", "datum": "2020"}]}
+    liste, hinweise = zertifikate_aufbereiten(probe)
+    if liste != ["A", "B", "C", "D"]:
+        fehler.append(f"Zertifikate: Aufbereitung liefert {liste} statt der Titel A-D")
+    for meldung in ("nicht neueste zuerst", "nicht lesbar", "ohne Aussteller",
+                    "ohne Datum", "hat keinen titel"):
+        if not any(meldung in h for h in hinweise):
+            fehler.append(f"Zertifikate: Meldung fehlt — „{meldung}“")
+    if zert_datum("September 2026") != (2026, 9):
+        fehler.append(f"Zertifikate: „September 2026“ nicht als 09/2026 gelesen — "
+                      f"{zert_datum('September 2026')}")
+    return fehler
+
+
+# Seitenverhaeltnisse aus der Bibliothek, von Hand aus den Dateikoepfen
+# abgelesen. adidas schreibt die viewBox mit "1e3", Nestle hat keine viewBox
+# und height vor width — beides las der Portfolio-Skill einmal als quadratisch.
+SVG_SOLL = {"adidas.svg": 1000 / 593.2, "nestle.svg": 300 / 82.413406}
+SVG_KANTEN = {
+    '<svg height="50" width="200">': 4.0,
+    '<svg stroke-width="3" width="200pt" height="100pt">': 2.0,
+    '<svg viewBox="0,0,1e3,5e2" width="10" height="10">': 2.0,
+    '<svg viewBox="0 0 .5 .25">': 2.0,
+    '<svg width="100%" height="100%">': None,
+}
+
+
+def pruefe_svg_verhaeltnisse():
+    """Liest der Lebenslauf die Seitenverhaeltnisse von SVG-Logos richtig?
+
+    Ein falsch gelesenes Verhaeltnis heisst: das Logo steht verzerrt oder
+    quadratisch eingepasst. Die Vorgabe "Logos werden nie verzerrt" haengt an
+    dieser einen Funktion, im PDF wie im Figma-Plan.
+    """
+    sys.path.insert(0, str(WURZEL / "scripts"))
+    from render_cv import _svg_verhaeltnis, seitenverhaeltnis
+    fehler = []
+    for datei, soll in SVG_SOLL.items():
+        ist = seitenverhaeltnis(datei)
+        if abs(ist / soll - 1) > 0.001:
+            fehler.append(f"SVG: {datei} als {ist:.3f}:1 gelesen statt {soll:.3f}:1")
+    for kopf, soll in SVG_KANTEN.items():
+        ist = _svg_verhaeltnis((kopf + "</svg>").encode())
+        if (soll is None) != (ist is None) or (soll and abs(ist / soll - 1) > 0.001):
+            fehler.append(f"SVG: {kopf} als {ist} gelesen statt {soll}")
+    return fehler
+
+
+def pruefe_add_logo(tmp):
+    """Gibt add_logo.py das Seitenverhaeltnis aus und legt das Kontrollbild ab?
+
+    Gebaut gegen eine Bibliothek im Temporaerordner, nicht gegen assets/logos/.
+    Erst eine gestauchte Fassung des beQ-Logos (wie die Datei, die im Oktober
+    2026 in der Bibliothek lag), dann das Original darueber: der Wechsel des
+    Verhaeltnisses muss als Warnung kommen, das Kontrollbild neben der Quelle
+    liegen und nie in der Bibliothek.
+    """
+    try:
+        from PIL import Image
+    except ImportError:
+        return []
+    import contextlib
+    import io
+    sys.path.insert(0, str(WURZEL / "scripts"))
+    import add_logo
+    ordner = Path(tmp) / "add-logo"
+    quelle, bibliothek = ordner / "quelle", ordner / "logos"
+    quelle.mkdir(parents=True, exist_ok=True)
+    original = WURZEL / "assets" / "logos" / "beq.png"
+    with Image.open(original) as bild:
+        bild.save(quelle / "beq-original.png")
+        bild.resize((948, 869)).save(quelle / "beq-gestaucht.png")
+
+    alt_ziel, alt_argv = add_logo.ZIEL, sys.argv
+    ausgaben = []
+    try:
+        add_logo.ZIEL = bibliothek
+        for datei in ("beq-gestaucht.png", "beq-original.png"):
+            sys.argv = ["add_logo.py", str(quelle / datei), "beq"]
+            puffer = io.StringIO()
+            with contextlib.redirect_stdout(puffer):
+                add_logo.main()
+            ausgaben.append(puffer.getvalue())
+    except SystemExit as abbruch:
+        return [f"add_logo.py brach ab: {abbruch}"]
+    finally:
+        add_logo.ZIEL, sys.argv = alt_ziel, alt_argv
+
+    fehler = []
+    if "Seitenverhaeltnis: Quelle 948 x 869 px (1,091:1)" not in ausgaben[0]:
+        fehler.append("add_logo: Seitenverhaeltnis von Quelle und Datei nicht ausgegeben")
+    if "1,091:1, die neue hat 1,861:1" not in ausgaben[1]:
+        fehler.append("add_logo: ersetzte Datei mit anderem Verhaeltnis nicht gewarnt")
+    for datei in ("beq-gestaucht-kontrolle.png", "beq-original-kontrolle.png"):
+        if not (quelle / datei).exists():
+            fehler.append(f"add_logo: Kontrollbild {datei} liegt nicht neben der Quelle")
+    if any("kontrolle" in p.name for p in bibliothek.iterdir()):
+        fehler.append("add_logo: Kontrollbild liegt in der Bibliothek")
+    return fehler
+
+
 def pruefe_silhouette(tmp):
     """Ist das Platzhalterbild der anonymen Fassung das aus dem Design?
 
@@ -605,6 +954,8 @@ def pruefe_figma_plan(pdf, stufen, tmp):
             for logo in _logos(b):
                 if not Path(logo["datei"]).exists():
                     fehler.append(f"Logodatei fehlt: {logo['datei']}")
+                    continue
+                fehler += _logo_unverzerrt(logo, plan)
             # Das Skillset im Plan hat dieselben vier Gruppen 2 x 2 wie das PDF.
             if b["art"] == "skillset":
                 titel = [[g["titel"]["text"] for g in spalte] for spalte in b["spalten"]]
@@ -621,6 +972,34 @@ def pruefe_figma_plan(pdf, stufen, tmp):
         fehler.append("Die Kopfzeile steht nicht als erster Block auf Frame 1")
     if arten[-1] != (len(seiten), "footer"):
         fehler.append("Der Footer steht nicht als letzter Block auf dem letzten Frame")
+    return fehler
+
+
+def _logo_unverzerrt(logo, plan):
+    """Traegt der Logoeintrag das Verhaeltnis seiner Datei, und passen Breite
+    und Hoehe dazu? Rasterbilder werden dafuer selbst geoeffnet — der Sollwert
+    kommt aus der Datei, nicht aus dem Plan."""
+    name = Path(logo["datei"]).name
+    soll = logo.get("verhaeltnis")
+    if not soll:
+        return [f"Figma-Plan: {name} ohne verhaeltnis — der Figma-Schritt kann den "
+                "Knoten nicht gegenpruefen"]
+    if logo["typ"] == "raster":
+        try:
+            from PIL import Image
+            with Image.open(logo["datei"]) as bild:
+                soll = bild.width / bild.height
+        except ImportError:
+            pass
+    fehler = []
+    if abs(logo["verhaeltnis"] / soll - 1) > 0.001:
+        fehler.append(f"Figma-Plan: {name} fuehrt verhaeltnis {logo['verhaeltnis']} statt "
+                      f"{soll:.4f} aus der Datei")
+    if abs((logo["breite"] / logo["hoehe"]) / soll - 1) > plan.get("logo_toleranz", 0.01):
+        fehler.append(f"Figma-Plan: {name} steht als {logo['breite']} x {logo['hoehe']} — "
+                      f"verzerrt gegenueber {soll:.3f}:1")
+    if plan.get("logo_verhaeltnisse", {}).get(name) != logo["verhaeltnis"]:
+        fehler.append(f"Figma-Plan: {name} fehlt in logo_verhaeltnisse")
     return fehler
 
 
@@ -715,10 +1094,25 @@ def _css_literale():
 
 
 def _schatten_und_rundungen():
-    """Weder Figma noch der Skill setzen Schatten, Rundungen oder Filter."""
+    """Weder Figma noch der Skill setzen Schatten, Rundungen oder Filter.
+
+    Eine Ausnahme: der Radius der Zertifikats-Tags (.zert__tag, Vorgabe vom
+    03.10.2026) — die einzige Rundung im Lebenslauf. Ein border-radius an
+    jeder anderen Regel schlaegt an.
+    """
     css = (WURZEL / "assets" / "cv.css").read_text(encoding="utf-8")
+    # Erst die Jinja-Ausdruecke heraus: ihre Klammern stuenden sonst mitten in
+    # den CSS-Regeln, und keine Regel liesse sich mehr ihrem Selektor zuordnen.
+    css = re.sub(r"\{\{.*?\}\}|\{%.*?%\}|\{#.*?#\}", " ", css, flags=re.S)
     css = re.sub(r"/\*.*?\*/", " ", css, flags=re.S)
-    return sorted(set(re.findall(r"box-shadow|text-shadow|drop-shadow|border-radius|filter\s*:|opacity\s*:", css)))
+    funde = set()
+    for selektor, inhalt in re.findall(r"([^{}]*)\{([^{}]*)\}", css):
+        for fund in re.findall(r"box-shadow|text-shadow|drop-shadow|border-radius|"
+                               r"filter\s*:|opacity\s*:", inhalt):
+            if fund == "border-radius" and selektor.strip() == ".zert__tag":
+                continue
+            funde.add(fund)
+    return sorted(funde)
 
 
 def pruefe_design(pdf, stufen):
@@ -743,7 +1137,8 @@ def pruefe_design(pdf, stufen):
     verboten = _schatten_und_rundungen()
     if verboten:
         fehler.append("Design: cv.css setzt " + ", ".join(verboten)
-                      + " — die Figma-Vorlage hat weder Schatten noch Rundungen")
+                      + " — die Figma-Vorlage hat weder Schatten noch Rundungen "
+                      "(einzige Ausnahme: der Radius von .zert__tag)")
     # Die Notstufen sollen enger setzen, nie weiter: Wird ein normal-Wert aus
     # Figma kleiner, muessen kompakt und eng mitziehen, sonst setzt die Stufe,
     # die Platz schaffen soll, mehr Abstand als der Normalsatz.
@@ -821,6 +1216,17 @@ def pruefe_design(pdf, stufen):
         (projekt["kunde"], projekt["zeitraum"], unter("kunde") + a["kunde_zeitraum"] + gl("zeitraum")),
         (kontakt_label, "Manuel Klein", unter("fuss_label") + a["fuss_label_wert"] + gl("fuss_name")),
     ]
+    # Zertifikate: Abschluesse -> Titel -> erste Reihe Tags, von Schriftlinie
+    # zu Schriftlinie. Vor dem Text eines Tags stehen Rand und Innenabstand.
+    # Den Takt der Reihen misst pruefe_zertifikate.
+    zert = daten.get("zertifikate") or []
+    if zert:
+        proben += [
+            (daten["bildung"][0]["zeitraum"], "Zertifikate",
+             unter("bildung") + d["zert_abstand"] + gl("gruppe")),
+            ("Zertifikate", zert[0]["titel"], unter("gruppe") + d["gruppe_liste"]
+             + r["zert_tag_linie"] + r["zert_tag_innen_y"] + gl("zert_tag")),
+        ]
     # Der Listentakt im Skillset: Eintrag unter Eintrag, gemessen ab dem
     # Gruppentitel — nicht ab dem ersten Treffer, der kann in der Bildung stehen.
     titel_zeile = zeile(gruppe["titel"])
@@ -847,6 +1253,9 @@ def pruefe_design(pdf, stufen):
     rechts = spalten["rechts"][0]["titel"]
     lagen = [
         (person["name"], "y", kopf + gl("name")),
+        # Das erste Tag: Text hinter Rand und Innenabstand.
+        *([(zert[0]["titel"], "x", seite_t["rand_links"] + r["zert_tag_linie"]
+            + r["zert_tag_innen_x"])] if zert else []),
         ("Kurzprofil", "y", seite_t["rand_oben"] + gl("rubrik")),
         (rechts, "x", seite_t["rand_links"] + ab["halbe_spalte"] + r["spaltenabstand"]),
         (station["titel"], "x", seite_t["rand_links"] + ab["einzug"]),
@@ -859,6 +1268,14 @@ def pruefe_design(pdf, stufen):
         elif abs(l[achse] - soll) > 0.3:
             fehler.append(f"Design: {marke!r} steht bei {achse} = {l[achse]:.1f}pt "
                           f"statt {soll:.1f}pt")
+
+    # Die Tags in zert_tag: Schnitt und Farbe am ersten Tag gemessen.
+    if zert:
+        lauf = zeile(zert[0]["titel"])
+        stil = tokens.stil("zert_tag")
+        if not lauf or _schriftname(lauf["schrift"]) != _schriftname(tokens.postscript("zert_tag")) \
+                or lauf["farbe"] != stil["farbe_hex"].upper():
+            fehler.append("Design: Zertifikats-Tag nicht in zert_tag gesetzt")
 
     # Aufgaben laufen ohne Zwischenraum: jede Zeile genau eine Zeilenhoehe tiefer.
     erste = zeile(station["aufgaben"][0][:20])
@@ -965,18 +1382,23 @@ def pruefe_anonym_kanten(tmp):
                           "unerwaehnt — der Nutzer muss davon erfahren.")
 
     # Zu wenig: der Name steht in firma und rolle. Beides geht sonst ins PDF,
-    # der Rollenteil sogar in den Dateinamen.
+    # der Rollenteil sogar in den Dateinamen. Ebenso im Titel eines
+    # Zertifikats — der steht als Tag im Dokument.
     selbst = json.loads(json.dumps(basis))
     selbst["person"]["rolle"] = "UX Designer – Timo Muster"
     selbst["stationen"].append({"titel": "Inhaber", "firma": "Timo Muster Freelance",
                                 "zeitraum": "2019 - 2021", "aufgaben": ["Beratung"]})
+    selbst["zertifikate"].append({"titel": "Mentoring bei Timo Muster",
+                                  "aussteller": "Timo Muster Akademie", "datum": "2019"})
     daten, lauf = _anonymisiere(tmp, selbst, "Timo Muster")
     if daten is None:
         fehler.append(f"Anonym: Selbstaendigen-Fall brach ab — {lauf.stderr.strip()[:120]}")
     else:
         uebrig = [pfad for pfad, wert in (
             ("person.rolle", daten["person"]["rolle"]),
-            ("firma", daten["stationen"][-1]["firma"]))
+            ("firma", daten["stationen"][-1]["firma"]),
+            ("zertifikate.titel", daten["zertifikate"][-1]["titel"]),
+            ("zertifikate.aussteller", daten["zertifikate"][-1]["aussteller"]))
             if "Timo Muster" in wert]
         if uebrig:
             fehler.append("Anonym: der volle Name steht noch in "
@@ -992,6 +1414,9 @@ def pruefe_anonym_kanten(tmp):
     elif daten["stationen"][-1]["zeitraum"] != "Seit 2019":
         fehler.append("Anonym: --jahre machte aus \"Seit 2019\" ein "
                       f"\"{daten['stationen'][-1]['zeitraum']}\"")
+    elif [z.get("datum") for z in daten.get("zertifikate") or []][:1] != ["2026"]:
+        fehler.append("Anonym: --jahre liess das Zertifikatsdatum monatsgenau stehen — "
+                      f"{[z.get('datum') for z in daten.get('zertifikate') or []][:1]}")
     return fehler
 
 
@@ -1061,6 +1486,10 @@ def pruefe_anonym(pdf, tmp):
     if ANONYM_KUERZEL not in text:
         fehler.append(f"Anonym: {ANONYM_KUERZEL!r} steht nirgends im PDF — der "
                       "Lebenslauf gehoert dann niemandem mehr")
+    # Zertifikate bleiben in der anonymen Fassung stehen, wie Bildung und Firmen.
+    for z in daten.get("zertifikate") or []:
+        if " ".join(z["titel"].split()) not in text:
+            fehler.append(f"Anonym: Zertifikat „{z['titel']}“ fehlt in der anonymen Fassung")
 
     # Mit person.links faellt der sichtbare Verweis weg — die Adresse dahinter
     # aber steht im Klartext in der Annotation, und "in/florian-feiler" benennt
@@ -1168,7 +1597,10 @@ def main():
         fehler += pruefe_anonym_kanten(tmp)
         fehler += pruefe_silhouette(tmp)
         fehler += pruefe_skillset(tmp)
+        fehler += pruefe_zertifikate(tmp)
+        fehler += pruefe_add_logo(tmp)
 
+    fehler += pruefe_svg_verhaeltnisse()
     fehler += pruefe_linkedin_auswahl()
     fehler += pruefe_website_auswahl()
 
@@ -1187,7 +1619,11 @@ def main():
     print(f"  Anonym:    kein Name in Text, Titel, Dateiname und Frames, Silhouette da")
     print(f"  Platzhalter: Bild aus dem Design, eingesetzt in den Fotoplatz, SVG und PNG")
     print(f"  Skillset:  immer Faehigkeiten, Branchen, Tools, Sprachen - 2 x 2, Sprachvorgabe")
-    print(f"  Kanten:    Monatsnamen und Firmen bleiben heil, firma/rolle werden mitgezogen")
+    print(f"  Kanten:    Monatsnamen und Firmen bleiben heil, firma/rolle/Zertifikate werden mitgezogen")
+    print(f"  Zertifikate: Tags unter Bildung, nur der Titel, umbrechend, PDF und Plan")
+    print(f"  Bildung:   keine Studieninhalte, alte cv.json mit themen bricht nicht")
+    print(f"  Logos:     SVG-Verhaeltnisse richtig gelesen, im Plan unverzerrt, add_logo mit Kontrollbild")
+    print(f"  Adresse:   {ADRESSE} im Footer")
 
     if fehler:
         print("\nProbleme:")

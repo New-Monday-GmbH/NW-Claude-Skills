@@ -2,6 +2,7 @@
 """Rendert cv.json ueber das New-Monday-Template zu einem PDF.
 
     python3 scripts/render_cv.py daten/cv.json ausgabe/
+    python3 scripts/render_cv.py daten/cv.json ausgabe/ --stufen-json arbeit/stufen.json
 
 Den Dateinamen setzt das Skript selbst aus den Daten:
 "New-Monday - Vorname Nachname - Jobtitel - CV.pdf". Das zweite Argument
@@ -32,18 +33,34 @@ import tokens  # noqa: E402  — erst nach sys.path.insert moeglich
 BESCHRIFTUNG = {
     "de": {
         "bildung": "Bildung", "skillset": "Skillset", "links": "Weiterführende Links",
-        "kurzprofil": "Kurzprofil",
+        "kurzprofil": "Kurzprofil", "zertifikate": "Zertifikate",
         "ansprechpartner": "Ansprechpartner", "kontakt": "Kontakt", "adresse": "Adresse",
         "faehigkeiten": "Fähigkeiten", "branchen": "Branchen", "tools": "Tools",
         "sprachen": "Sprachen",
     },
     "en": {
         "bildung": "Education", "skillset": "Skillset", "links": "Further links",
-        "kurzprofil": "Profile",
+        "kurzprofil": "Profile", "zertifikate": "Certificates",
         "ansprechpartner": "Contact person", "kontakt": "Contact", "adresse": "Address",
         "faehigkeiten": "Skills", "branchen": "Industries", "tools": "Tools",
         "sprachen": "Languages",
     },
+}
+
+# Zertifikate und Weiterbildungen stehen seit dem 03.10.2026 nicht mehr als
+# Bildungseintraege, sondern als eigener Block unter den Abschluessen: je
+# Zertifikat ein Tag mit dem Titel, nebeneinander (Entscheidung des Nutzers vom
+# selben Tag; die drei Darstellungen davor - zeilen, spalten, aussteller - sind
+# entfallen). Aussteller und Datum bleiben in der cv.json, fuer die Uebergabe
+# und spaetere Zwecke; ins Dokument kommt nur der Titel.
+#
+# Ausgeschriebene Monatsnamen, nur zum Lesen eines Zertifikatsdatums wie
+# "September 2026" (zert_datum) - gesetzt wird kein Datum mehr.
+MONATSNAMEN = {
+    "de": ("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August",
+           "September", "Oktober", "November", "Dezember"),
+    "en": ("January", "February", "March", "April", "May", "June", "July",
+           "August", "September", "October", "November", "December"),
 }
 
 # Das Skillset hat in jedem Lebenslauf dieselben vier Gruppen in derselben
@@ -100,10 +117,12 @@ VERWEISTEXT = {
 
 # Der Ansprechpartner im Footer steht als Vorgabe im Skill, nicht in der
 # cv.json. figma_plan.py liest ihn von hier, damit Frame und PDF gleich bleiben.
+# Die Strasse genau so geschrieben, in allen drei Dokumenten gleich (Vorgabe
+# vom 03.10.2026; vorher stand hier eine falsche Hausnummer).
 KONTAKT_VORGABE = {
     "name": "Manuel Klein", "rolle": "CCO",
     "mail": "manuel.klein@newmonday.co", "telefon": "+49 (0) 155 1148 0130",
-    "firma": "New Monday GmbH", "strasse": "Stresemannstraße 32", "ort": "10963 Berlin",
+    "firma": "New Monday GmbH", "strasse": "Stresemannstr. 23", "ort": "10963 Berlin",
 }
 
 # Optische Groesse in pt: die Kantenlaenge, die ein quadratisches Logo bekommt.
@@ -298,26 +317,158 @@ def skillset_gruppen(daten):
     return spalten, hinweise
 
 
-def _svg_verhaeltnis(rohdaten):
+# Woran ein Bildungseintrag als Zertifikat zu erkennen ist. Nur fuer einen
+# Hinweis — umgezogen wird nichts, das waere Raten.
+ZERT_MUSTER = re.compile(r"zertifi|certifi|certified", re.IGNORECASE)
+
+
+def bildung_aufbereiten(daten):
+    """Die Abschluesse fuers Dokument — ohne Studieninhalte.
+
+    Gibt (Eintraege, Hinweise) zurueck. Was jemand an einer Einrichtung gelernt
+    hat (frueher "themen"), steht seit dem 03.10.2026 nicht mehr im Lebenslauf.
+    Aeltere cv.json-Dateien tragen das Feld noch: es wird ignoriert und
+    gemeldet, nicht still verschluckt. Ebenso ein Zertifikat, das noch als
+    Bildungseintrag steht — es bleibt dort stehen, wird aber genannt, weil es
+    jetzt unter "zertifikate" gehoert.
+    """
+    eintraege, hinweise = [], []
+    for nummer, b in enumerate(daten.get("bildung") or []):
+        if not isinstance(b, dict):
+            continue
+        eintrag = {k: v for k, v in b.items() if k != "themen"}
+        name = " ".join(str(b.get("abschluss") or b.get("institution") or "").split())
+        if b.get("themen"):
+            themen = ", ".join(" ".join(str(t).split()) for t in b["themen"])
+            hinweise.append(f"bildung[{nummer}] („{name}“): themen ignoriert — "
+                            "Studieninhalte stehen nicht mehr im Lebenslauf "
+                            f"(Vorgabe vom 03.10.2026). Waren: {themen}")
+        if ZERT_MUSTER.search(name):
+            hinweise.append(f"bildung[{nummer}] „{name}“ sieht nach einem Zertifikat "
+                            "aus — Zertifikate stehen jetzt unter zertifikate "
+                            "(SKILL.md, Schritt 2). Im Dokument steht er weiter "
+                            "als Abschluss.")
+        eintraege.append(eintrag)
+    return eintraege, hinweise
+
+
+def zert_datum(text):
+    """'09/2026' -> (2026, 9), '2021' -> (2021, None). None, wenn nicht lesbar.
+
+    Erwartet wird MM/JJJJ oder JJJJ. Ein ausgeschriebener Monat ('September
+    2026') wird auch gelesen — der Eingang schreibt Daten selten so, wie das
+    Schema es will.
+    """
+    t = " ".join(str(text or "").split()).lower()
+    m = re.fullmatch(r"(\d{1,2})\s*[/.]\s*(\d{4})", t)
+    if m and 1 <= int(m.group(1)) <= 12:
+        return int(m.group(2)), int(m.group(1))
+    if re.fullmatch(r"\d{4}", t):
+        return int(t), None
+    m = re.fullmatch(r"([a-zäöü]+)\.?\s+(\d{4})", t)
+    if m:
+        namen = {n.lower(): i for namen in MONATSNAMEN.values()
+                 for i, n in enumerate(namen, start=1)}
+        monat = MONATE.get(m.group(1)) or namen.get(m.group(1))
+        if monat:
+            return int(m.group(2)), monat
+    return None
+
+
+def leerraum(text):
+    """Fasst Leerraum zusammen, laesst aber das geschuetzte Leerzeichen (U+00A0)
+    stehen - str.split() wuerde auch daran trennen, und dann bricht etwa
+    „e. V.“ zwischen „e.“ und „V.“ um."""
+    return re.sub(r"[ \t\r\n\f\v]+", " ", str(text or "")).strip()
+
+
+def zertifikate_aufbereiten(daten):
+    """Die Zertifikate fuers Dokument: die Titel, fertig fuer Template und Plan.
+
+    Gibt (Titel, Hinweise) zurueck; ohne Zertifikate ist die Liste leer. Jedes
+    Zertifikat wird ein Tag, und ein Tag traegt nur den Titel. Aussteller und
+    Datum bleiben in der cv.json — sie werden hier trotzdem geprueft, weil die
+    Uebergabe nennt, was davon fehlt, und weil die Reihenfolge der Tags am
+    Datum haengt: neueste zuerst ist Sache der Daten, steht ein aelteres vor
+    einem neueren, wird das gemeldet, nicht umsortiert.
+
+    "zertifikate_darstellung" aus einer aelteren cv.json (zeilen, spalten,
+    aussteller) wird ignoriert und gemeldet.
+    """
+    hinweise = []
+    if daten.get("zertifikate_darstellung"):
+        hinweise.append(f"zertifikate_darstellung „{daten['zertifikate_darstellung']}“ "
+                        "wird ignoriert — Zertifikate stehen seit dem 03.10.2026 immer "
+                        "als Tags, nur mit dem Titel. Der Schlüssel kann aus der cv.json.")
+
+    gelesen = []
+    for nummer, z in enumerate(daten.get("zertifikate") or []):
+        if not isinstance(z, dict):
+            hinweise.append(f"zertifikate[{nummer}] ist kein Objekt und fehlt im Dokument.")
+            continue
+        titel = leerraum(z.get("titel"))
+        if not titel:
+            hinweise.append(f"zertifikate[{nummer}] hat keinen titel und fehlt im Dokument.")
+            continue
+        roh = " ".join(str(z.get("datum") or "").split())
+        datum = zert_datum(roh) if roh else None
+        if roh and datum is None:
+            hinweise.append(f"zertifikate[{nummer}] („{titel}“): Datum „{roh}“ nicht "
+                            "lesbar — erwartet MM/JJJJ oder JJJJ.")
+        if not leerraum(z.get("aussteller")):
+            hinweise.append(f"zertifikate[{nummer}] („{titel}“) ohne Aussteller.")
+        if not roh:
+            hinweise.append(f"zertifikate[{nummer}] („{titel}“) ohne Datum.")
+        gelesen.append({"titel": titel, "roh": roh, "datum": datum})
+
+    # Neueste zuerst. Gemeldet wird nur, was eindeutig falsch steht: ein Jahr
+    # ohne Monat ist innerhalb seines Jahres weder aelter noch neuer.
+    for vorher, nachher in zip(gelesen, gelesen[1:]):
+        a, b = vorher["datum"], nachher["datum"]
+        if a and b and (a[0] < b[0] or (a[0] == b[0] and a[1] and b[1] and a[1] < b[1])):
+            hinweise.append(f"Zertifikate nicht neueste zuerst: „{vorher['titel']}“ "
+                            f"({vorher['roh']}) steht vor „{nachher['titel']}“ "
+                            f"({nachher['roh']}).")
+    return [z["titel"] for z in gelesen], hinweise
+
+
+# Eine Zahl, wie sie in SVG-Attributen steht: "593.2", ".5", "1e3", "-0.25".
+# Das fruehere Muster [\d.]+ las "1e3" zwar, nahm aber auch "1.2.3" als eine
+# Zahl, und \bwidth traf "stroke-width" — gleich gehalten mit dem
+# Portfolio-Skill, der dort adidas und Nestle als quadratisch gelesen hatte.
+SVG_ZAHL = r"[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?"
+
+
+def svg_masse(rohdaten):
+    """(Verhaeltnis der viewBox, Verhaeltnis aus width/height) des
+    Wurzelelements, je None, wenn nicht lesbar. width/height in jeder
+    Reihenfolge, ohne Einheit oder in px/pt; Prozentangaben sind kein Mass."""
+    if isinstance(rohdaten, str):
+        rohdaten = rohdaten.encode("utf-8")
     kopf = re.search(rb"<svg\b[^>]*>", rohdaten, re.S)
     if not kopf:
-        return None
+        return None, None
     tag = kopf.group(0).decode("utf-8", "replace")
 
-    box = re.search(r'viewBox\s*=\s*["\']([^"\']+)["\']', tag)
+    box_verhaeltnis = None
+    box = re.search(r'(?<![-\w])viewBox\s*=\s*["\']([^"\']+)["\']', tag)
     if box:
-        zahlen = re.findall(r"[-+]?[\d.]+(?:[eE][-+]?\d+)?", box.group(1))
-        if len(zahlen) == 4 and float(zahlen[3]):
-            return float(zahlen[2]) / float(zahlen[3])
+        werte = [float(z) for z in re.findall(SVG_ZAHL, box.group(1))]
+        if len(werte) == 4 and werte[2] > 0 and werte[3] > 0:
+            box_verhaeltnis = werte[2] / werte[3]
 
-    # Ohne viewBox bleiben width/height — Einheiten (pt, px, mm) abschneiden.
-    masse = []
-    for attribut in ("width", "height"):
-        wert = re.search(rf'\b{attribut}\s*=\s*["\']\s*([-+]?[\d.]+)', tag)
-        masse.append(float(wert.group(1)) if wert else 0.0)
-    if masse[0] and masse[1]:
-        return masse[0] / masse[1]
-    return None
+    masse = [re.search(rf'(?<![-\w]){attribut}\s*=\s*["\']\s*({SVG_ZAHL})\s*(?:px|pt)?\s*["\']', tag)
+             for attribut in ("width", "height")]
+    breit_hoch = None
+    if all(masse) and float(masse[0].group(1)) > 0 and float(masse[1].group(1)) > 0:
+        breit_hoch = float(masse[0].group(1)) / float(masse[1].group(1))
+    return box_verhaeltnis, breit_hoch
+
+
+def _svg_verhaeltnis(rohdaten):
+    """Erst die viewBox, ohne sie width/height."""
+    box, breit_hoch = svg_masse(rohdaten)
+    return box or breit_hoch
 
 
 def _bitmap_verhaeltnis(rohdaten):
@@ -341,23 +492,34 @@ def _bitmap_verhaeltnis(rohdaten):
     return None
 
 
+def verhaeltnis_der_datei(pfad):
+    """Breite/Hoehe einer Bilddatei, gelesen aus der Datei selbst. None, wenn
+    sie fehlt oder sich nicht lesen laesst. SVG bringt das Verhaeltnis in der
+    viewBox mit, PNG/GIF/JPEG im Dateikopf. add_logo.py misst damit, was es
+    abgelegt hat — dieselbe Rechnung wie beim Setzen."""
+    pfad = Path(pfad)
+    try:
+        rohdaten = pfad.read_bytes()
+    except OSError:
+        return None
+    try:
+        return (_svg_verhaeltnis(rohdaten) if pfad.suffix.lower() == ".svg"
+                else _bitmap_verhaeltnis(rohdaten)) or None
+    except (ValueError, struct.error):
+        return None
+
+
 def seitenverhaeltnis(datei):
     """Breite/Hoehe einer Logodatei. 1.0, wenn sie sich nicht lesen laesst.
 
     Quelle ist die Datei selbst, nicht die Angabe in der cv.json: nur so laesst
-    sich die Flaeche jedes Logos gleich setzen. SVG bringt das Verhaeltnis in
-    der viewBox mit, PNG/GIF/JPEG im Dateikopf.
+    sich die Flaeche jedes Logos gleich setzen — und nur so wird kein Logo
+    verzerrt. Breite und Hoehe kommen immer aus diesem einen Verhaeltnis.
     """
     pfad = ASSETS / "logos" / datei
-    try:
-        rohdaten = pfad.read_bytes()
-    except OSError:
+    if not pfad.exists():
         return 1.0
-    try:
-        verhaeltnis = (_svg_verhaeltnis(rohdaten) if pfad.suffix.lower() == ".svg"
-                       else _bitmap_verhaeltnis(rohdaten))
-    except (ValueError, struct.error):
-        verhaeltnis = None
+    verhaeltnis = verhaeltnis_der_datei(pfad)
     if not verhaeltnis:
         print(f"Warnung: Seitenverhaeltnis von {datei} nicht lesbar, nehme 1:1",
               file=sys.stderr)
@@ -366,13 +528,19 @@ def seitenverhaeltnis(datei):
 
 
 def logo_masse(datei, groesse):
-    """(Breite, Hoehe) in pt fuer ein Logo bei gegebener optischer Groesse.
+    """(Breite, Hoehe) in pt fuer ein Logo bei gegebener optischer Groesse."""
+    return masse_aus_verhaeltnis(seitenverhaeltnis(datei), groesse)
+
+
+def masse_aus_verhaeltnis(verhaeltnis, groesse):
+    """(Breite, Hoehe) in pt aus Seitenverhaeltnis und optischer Groesse.
 
     Gleiche Flaeche fuer alle: Breite = Groesse * sqrt(Verhaeltnis), Hoehe =
     Groesse / sqrt(Verhaeltnis). Ein Quadrat bekommt damit genau Groesse x
-    Groesse, ein 4:1-Schriftzug dieselbe Flaeche in flacher Form.
+    Groesse, ein 4:1-Schriftzug dieselbe Flaeche in flacher Form. Beide Kappen
+    unten rechnen die andere Seite aus dem Verhaeltnis nach — gestaucht wird
+    nie.
     """
-    verhaeltnis = seitenverhaeltnis(datei)
     wurzel = math.sqrt(verhaeltnis)
     breite, hoehe = groesse * wurzel, groesse / wurzel
     if breite > RAIL_BREITE:                  # breiter als die Spalte: kappen
@@ -481,6 +649,10 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
     # mehrmals, und die Rohdaten muessen fuer den naechsten Durchgang bleiben.
     kontext = dict(daten)
     kontext["skillset"] = skillset_gruppen(daten)[0]
+    # Abschluesse ohne Studieninhalte, Zertifikate als Liste ihrer Titel — je
+    # Titel ein Tag. Beides fertig aufbereitet, wie es gesetzt wird.
+    kontext["bildung"] = bildung_aufbereiten(daten)[0]
+    kontext["zertifikate"] = zertifikate_aufbereiten(daten)[0]
     return env.get_template("template.html").render(
         stufe=stufe, fuss_abstand=fuss_abstand,
         stationen_kompakt=stationen_kompakt, t=labels, **kontext
@@ -650,9 +822,12 @@ def _schlussmarken(daten):
             eintraege = letzte.get("eintraege") or []
             marken.append(eintraege[-1] if eintraege else letzte.get("titel"))
     if not marken:
-        for b in (daten.get("bildung") or [])[-1:]:
-            themen = b.get("themen") or []
-            marken.append(themen[-1] if themen else b.get("institution") or b.get("abschluss"))
+        # Ohne Skillset ist das Letzte im Block ein Zertifikats-Tag oder, ohne
+        # die, der letzte Abschluss. Studieninhalte gibt es nicht mehr.
+        zert = zertifikate_aufbereiten(daten)[0]
+        marken += zert[-1:]
+        for b in ([] if zert else bildung_aufbereiten(daten)[0][-1:]):
+            marken.append(b.get("zeitraum") or b.get("institution") or b.get("abschluss"))
     return [" ".join(str(m).split()) for m in marken if m]
 
 
@@ -727,15 +902,24 @@ def main():
     # sich nicht ablesen — die Deckblattstufe wird nur gemeldet, wenn sie am Ende
     # auch gereicht hat. Ohne die Option aendert sich nichts.
     stufen_datei = None
+    # --zertifikate (zeilen|spalten|aussteller) gibt es seit dem 03.10.2026
+    # nicht mehr: Zertifikate stehen immer als Tags. Ein alter Aufruf bricht
+    # nicht ab, der Schalter wird samt Wert ignoriert und gemeldet.
+    vorab = []
     args = []
     rest = list(sys.argv[1:])
     while rest:
         a = rest.pop(0)
         if a == "--pfad-genau":
             continue
+        if a == "--zertifikate":
+            wert = rest.pop(0) if rest else "(ohne Wert)"
+            vorab.append(f"--zertifikate {wert} ignoriert — Zertifikate stehen immer "
+                         "als Tags, nur mit dem Titel.")
+            continue
         if a == "--stufen-json":
             if not rest:
-                raise SystemExit("--stufen-json braucht einen Dateinamen")
+                raise SystemExit(f"{a} braucht einen Wert")
             stufen_datei = Path(rest.pop(0))
             continue
         args.append(a)
@@ -744,10 +928,16 @@ def main():
     quelle = Path(args[0])
     daten = json.loads(quelle.read_text(encoding="utf-8"))
 
-    hinweise = pruefe(daten)
+    hinweise = vorab + pruefe(daten)
     # Was am Skillset gesetzt, ergaenzt oder weggelassen wurde (Sprachvorgabe,
     # leere Gruppen, altes Format) — gehoert in die Uebergabe.
     hinweise += skillset_gruppen(daten)[1]
+    # Dasselbe fuer Bildung und Zertifikate: ignorierte Studieninhalte und
+    # Darstellungsschluessel aus aelteren cv.json, Zertifikate im alten
+    # Bildungsplatz, fehlende Aussteller und Daten, die Reihenfolge.
+    hinweise += bildung_aufbereiten(daten)[1]
+    zertifikate, zert_hinweise = zertifikate_aufbereiten(daten)
+    hinweise += zert_hinweise
     person = daten.get("person") or {}
     for feld in ("name", "rolle"):
         if not person.get(feld):
@@ -820,6 +1010,12 @@ def main():
             "je Gruppe die aussagekraeftigsten Eintraege behalten."
         )
         hinweise += spalten_pruefen(daten)
+        # Der Zertifikatsblock steht mit auf Seite 1, gekuerzt wird aber im
+        # Skillset: Zertifikate werden nur nach Rueckfrage gestrichen.
+        if zertifikate:
+            hinweise.append(
+                f"Zertifikate stehen mit {len(zertifikate)} Tags auf Seite 1 — "
+                "gestrichen wird dort nur nach Rueckfrage.")
     elif seiten < 0:
         hinweise.append(
             "Die Seitenaufteilung liess sich nicht pruefen: die erste Station "
@@ -828,6 +1024,8 @@ def main():
         )
     elif stufe != "normal":
         print(f"Bildung/Skillset {stufe} gesetzt, damit sie auf Seite 1 passen.")
+    if zertifikate:
+        print(f"Zertifikate: {len(zertifikate)} als Tags.")
     if kompakt:
         print(f"Stationen {kompakt} gesetzt, damit der Footer nicht allein auf "
               "einer Seite steht.")

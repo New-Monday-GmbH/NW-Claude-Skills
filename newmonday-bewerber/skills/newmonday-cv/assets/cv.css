@@ -197,7 +197,34 @@ ul.tasks { padding-left: {{ pt(r.listeneinzug) }}; {{ css("aufgabe") }} list-sty
 
 .edu__degree { {{ css("abschluss") }} }
 .edu__line { {{ css("bildung") }} }
-.edu ul { margin-top: {{ pt(dn.bildung_liste) }}; }
+
+/* Zertifikate: eigener Block unter den Abschluessen, mit Titel wie eine
+   Skillset-Gruppe (h3, gruppe_liste bis zur ersten Reihe). Darunter je
+   Zertifikat ein Tag mit dem Titel, nebeneinander, in der Reihenfolge der
+   cv.json; Aussteller und Datum stehen nur in den Daten. Ohne Abschluesse
+   steht der Block direkt unter der Rubrik und bringt keinen eigenen Abstand
+   mit. */
+.zert { margin-top: {{ pt(dn.zert_abstand) }}; }
+.section h2 + .zert { margin-top: 0; }
+.zert h3 { break-after: avoid; }
+/* Eine Reihe mit Umbruch, wie die Verweise im Profilkopf: Flex mit gap, im
+   Frame dasselbe als Auto-Layout mit Wrap. Ein Tag bricht nicht in sich um,
+   sondern rueckt als Ganzes in die naechste Reihe — Flex misst ihn dafuer an
+   seiner vollen Textbreite. Nur ein Titel, der breiter ist als die ganze
+   Reihe, wird von max-width auf die Satzbreite begrenzt und bricht dann in
+   sich um. Das geht nur ohne Laufweite: mit negativer misst WeasyPrint (66)
+   die Textbreite zu knapp und bricht das letzte Wort jedes Tags um — deshalb
+   traegt zert_tag laufweite 0 (siehe tokens.json). */
+.zert__tags {
+  display: flex; flex-wrap: wrap;
+  column-gap: {{ pt(r.zert_tag_abstand) }}; row-gap: {{ pt(r.zert_tag_reihen) }};
+}
+.zert__tag {
+  display: block; flex: none; max-width: 100%; {{ css("zert_tag") }}
+  padding: {{ pt(r.zert_tag_innen_y) }} {{ pt(r.zert_tag_innen_x) }};
+  border: {{ pt(r.zert_tag_linie) }} solid {{ f.rahmen }};
+  border-radius: {{ pt(r.zert_tag_radius) }};
+}
 
 /* Kompakte Listen (Bildung, Skillset): 13pt-Takt ohne Zwischenraum. Figma
    erreicht denselben Takt ueber 25 % Zeilenhoehe plus 10pt Listenabstand;
@@ -219,7 +246,8 @@ ul.tight { padding-left: {{ pt(r.listeneinzug) }}; list-style: disc; {{ css("lis
 .deckblatt--{{ stufe }} .stack > * + * { margin-top: {{ pt(w.gruppen) }}; }
 .deckblatt--{{ stufe }} .cols--wrap > *:nth-child(n+3) { margin-top: {{ pt(w.bildung_reihen) }}; }
 .deckblatt--{{ stufe }} .divider { margin-top: {{ pt(w.vor_linie) }}; }
-.deckblatt--{{ stufe }} .edu ul { margin-top: {{ pt(w.bildung_liste) }}; }
+.deckblatt--{{ stufe }} .zert { margin-top: {{ pt(w.zert_abstand) }}; }
+.deckblatt--{{ stufe }} .section h2 + .zert { margin-top: 0; }
 {% endfor %}
 
 /* ---------- Footer ---------- */

@@ -140,4 +140,9 @@ Seite".
 
 Nicht in der Vorlage und deshalb frei gewählt: Projekte unter einer Station, der
 Zeilenabstand umbrechender Verweise, der Reihenabstand bei mehr als zwei
-Bildungseinträgen und alle Stufen außer `normal` unter `verdichtung`.
+Bildungseinträgen, die Zertifikats-Tags (`text.zert_tag`, `raster.zert_tag_*`,
+`farben.rahmen`, `verdichtung.deckblatt.*.zert_abstand`, Vorgabe vom
+03.10.2026, abgeleitet aus den Tags der Skill Matrix, Herleitung in
+`layout.md`) und alle Stufen außer `normal` unter `verdichtung`. Die
+Studieninhalte unter den Abschlüssen („sub-p“ in Education) übernimmt der Skill
+seit dem 03.10.2026 nicht mehr – ein Abgleich zieht sie nicht nach.

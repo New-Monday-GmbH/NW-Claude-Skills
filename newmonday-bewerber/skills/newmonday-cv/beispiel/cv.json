@@ -82,31 +82,34 @@
     {
       "abschluss": "Master UX-Design & Management",
       "institution": "PFH Göttingen",
-      "zeitraum": "April 2022 - September 2023",
-      "themen": [
-        "UI-Design",
-        "User Research",
-        "Usability-Testing",
-        "Marktforschung",
-        "Projektmanagement"
-      ]
+      "zeitraum": "April 2022 - September 2023"
     },
     {
       "abschluss": "Bachelor Medieninformatik",
       "institution": "FH Hof und MMU Malaysia",
-      "zeitraum": "Oktober 2016 - September 2020",
-      "themen": [
-        "UX-Design",
-        "Frontend-Entwicklung",
-        "Backend-Entwicklung",
-        "Marketing"
-      ]
+      "zeitraum": "Oktober 2016 - September 2020"
+    }
+  ],
+  "zertifikate": [
+    {
+      "titel": "Claude 101",
+      "aussteller": "Anthropic",
+      "datum": "09/2026"
     },
     {
-      "abschluss": "CPUX-F-Zertifikat"
+      "titel": "Introduction to Agent Skills",
+      "aussteller": "Anthropic",
+      "datum": "08/2026"
     },
     {
-      "abschluss": "WCAG – Barrierefrei Lehren"
+      "titel": "WCAG – Barrierefrei Lehren",
+      "aussteller": "IAAP D-A-CH",
+      "datum": "03/2025"
+    },
+    {
+      "titel": "CPUX-F-Zertifikat",
+      "aussteller": "UXQB – International Usability and User Experience Qualification Board e. V.",
+      "datum": "2021"
     }
   ],
   "skillset": {

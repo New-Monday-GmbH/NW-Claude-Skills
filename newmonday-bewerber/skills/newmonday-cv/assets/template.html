@@ -44,21 +44,36 @@
 
 {# Bildung und Skillset stehen auf Seite 1, direkt unter dem Profilkopf. Die
    Stationen beginnen danach auf einer neuen Seite. #}
-{% if bildung or skillset %}
+{% if bildung or zertifikate or skillset %}
 <div class="deckblatt{% if stufe != 'normal' %} deckblatt--{{ stufe }}{% endif %}">
-{% if bildung %}
+{% if bildung or zertifikate %}
 <div class="section">
   <h2>{{ t.bildung }}</h2>
+  {# Nur Abschluss, Einrichtung, Zeitraum — was jemand dort gelernt hat, steht
+     seit dem 03.10.2026 nicht mehr im Lebenslauf. #}
+  {% if bildung %}
   <div class="cols cols--wrap">
     {% for b in bildung %}
     <div class="edu">
       <div class="edu__degree">{{ b.abschluss }}</div>
       {% if b.institution %}<div class="edu__line">{{ b.institution }}</div>{% endif %}
       {% if b.zeitraum %}<div class="edu__line">{{ b.zeitraum }}</div>{% endif %}
-      {% if b.themen %}<ul class="tight">{% for thema in b.themen %}<li>{{ thema }}</li>{% endfor %}</ul>{% endif %}
     </div>
     {% endfor %}
   </div>
+  {% endif %}
+  {# Zertifikate als eigener Block unter den Abschluessen: je Zertifikat ein
+     Tag mit dem Titel, nebeneinander, neueste zuerst. Aussteller und Datum
+     bleiben in der cv.json, ins Dokument kommt nur der Titel — die Liste
+     kommt fertig aus render_cv.py (zertifikate_aufbereiten). #}
+  {% if zertifikate %}
+  <div class="zert">
+    <h3>{{ t.zertifikate }}</h3>
+    <div class="zert__tags">
+      {% for titel in zertifikate %}<span class="zert__tag">{{ titel }}</span>{% endfor %}
+    </div>
+  </div>
+  {% endif %}
   <div class="divider"></div>
 </div>
 {% endif %}
@@ -91,7 +106,7 @@
 </div>
 {% endif %}
 
-<div class="stationen{% if bildung or skillset %} stationen--neue-seite{% endif %}{% if stationen_kompakt %} stationen--{{ stationen_kompakt }}{% endif %}">
+<div class="stationen{% if bildung or zertifikate or skillset %} stationen--neue-seite{% endif %}{% if stationen_kompakt %} stationen--{{ stationen_kompakt }}{% endif %}">
 {# Eigene Rubrik mit Ueberschrift und Trennlinie: ohne sie liest sich der
    Absatz wie der Text der ersten Station. #}
 {% if person.kurzprofil %}

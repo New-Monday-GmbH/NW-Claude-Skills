@@ -12,12 +12,13 @@ person.name abgeleitet sind: der Dateiname des PDF, der PDF-Titel in den
 Metadaten und die Frame-Namen im Figma-Plan.
 
 Voreingestellt ist nur die Person — Name zu Initialen, Links weg, Silhouette
-statt Foto, Namensnennungen im Fliesstext ersetzt. Arbeitgeber, Logos, Bildung
-und Zeitraeume bleiben stehen: sie sind der Grund, warum ein Kunde das Dokument
-ueberhaupt liest. Weitergehendes steht auf Schaltern, und dort nur, was sich
+statt Foto, Namensnennungen im Fliesstext ersetzt. Arbeitgeber, Logos, Bildung,
+Zertifikate und Zeitraeume bleiben stehen: sie sind der Grund, warum ein Kunde
+das Dokument ueberhaupt liest. Weitergehendes steht auf Schaltern, und dort nur, was sich
 mechanisch entscheiden laesst:
 
-    --jahre              streicht die Monate aus allen Zeitraeumen
+    --jahre              streicht die Monate aus allen Zeitraeumen und
+                         Zertifikatsdaten
     --firmen-map DATEI   Zuordnung {"Cocomore": "Digitalagentur"} auf firma,
                          kunde und Fliesstext; nimmt jeder ersetzten Firma
                          das Logo ab
@@ -35,7 +36,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from render_cv import MONATE, logoliste  # noqa: E402  — erst nach sys.path.insert moeglich
+from render_cv import MONATE, logoliste, zert_datum  # noqa: E402  — erst nach sys.path.insert moeglich
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
@@ -50,6 +51,12 @@ FLIESSTEXT = ("zusammenfassung", "beschreibung")
 # anonymen Fassung. Gesucht wird hier nur die volle Schreibweise: ein einzelnes
 # "Muster" in einem Firmennamen ist die Firma und nicht die Person.
 NAMENSFELDER = ("firma", "kunde", "titel")
+# Dasselbe fuer die Zertifikate: Titel und Aussteller sind Eigennamen. Ein Kurs
+# bei der "Feiler Akademie" macht den Nachnamen mehrdeutig, und wer sein
+# eigenes Zertifikat mit vollem Namen eingetragen hat, verliert ihn hier. Der
+# Titel steht als Tag im Dokument, der Aussteller nur noch in der cv.json —
+# ersetzt wird in beiden, damit auch die anonyme cv.json namenfrei ist.
+ZERT_NAMENSFELDER = ("titel", "aussteller")
 
 # Monatsnamen, an denen --jahre die Zeitraeume kuerzt. Die deutschen kommen aus
 # render_cv.py, damit es nur eine Liste gibt; die englischen stehen hier, weil
@@ -230,6 +237,15 @@ def namensfelder(daten):
                 if isinstance(projekt.get(feld), str) and projekt[feld]:
                     pfad = f"stationen[{i}].projekte[{j}].{feld}"
                     yield projekt, feld, pfad, projekt[feld]
+    for i, zert in enumerate(zertifikatsknoten(daten)):
+        for feld in ZERT_NAMENSFELDER:
+            if isinstance(zert.get(feld), str) and zert[feld]:
+                yield zert, feld, f"zertifikate[{i}].{feld}", zert[feld]
+
+
+def zertifikatsknoten(daten):
+    """Jeder Eintrag unter zertifikate, der ein Objekt ist."""
+    return [z for z in daten.get("zertifikate") or [] if isinstance(z, dict)]
 
 
 def textstellen(daten):
@@ -397,6 +413,16 @@ def jahre_kuerzen(daten):
         if neu != alt:
             knoten["zeitraum"] = neu
             gekuerzt.append(f"{alt} -> {neu}")
+    # Zertifikate tragen ein datum statt eines Zeitraums: "09/2026" verraet so
+    # viel wie "September 2026". Im Dokument steht es seit den Tags nicht mehr,
+    # gekuerzt wird trotzdem — die anonyme cv.json soll nicht genauer sein als
+    # die Stufe, die verlangt wurde. Was sich nicht lesen laesst, bleibt stehen.
+    for zert in zertifikatsknoten(daten):
+        alt = zert.get("datum")
+        gelesen = zert_datum(alt) if isinstance(alt, str) and alt else None
+        if gelesen and str(gelesen[0]) != alt:
+            zert["datum"] = str(gelesen[0])
+            gekuerzt.append(f"{alt} -> {gelesen[0]}")
     return gekuerzt
 
 
@@ -437,7 +463,17 @@ def firmen_ersetzen(daten, karte):
                 im_text.append(f"{pfad}: {name} -> {neu}")
                 text = regel.sub(lambda _, wert=neu: wert, text)
         behaelter[schluessel] = text
-    return ersetzt, ohne_logo, im_text, list(dict.fromkeys(offen))
+    # Aussteller sind weder Arbeitgeber noch Kunden — ersetzt wird dort nichts.
+    # Steht eine Firma aus der Zuordnung trotzdem darin, gehoert das in den
+    # Bericht: ein "Cocomore Academy"-Zertifikat verriete die ersetzte Firma.
+    in_zertifikaten = []
+    for i, zert in enumerate(zertifikatsknoten(daten)):
+        for feld in ZERT_NAMENSFELDER:
+            wert = str(zert.get(feld) or "")
+            for name, _, regel in regeln:
+                if regel.search(wert):
+                    in_zertifikaten.append(f"zertifikate[{i}].{feld}: {name} in „{wert}“")
+    return ersetzt, ohne_logo, im_text, list(dict.fromkeys(offen)), in_zertifikaten
 
 
 def silhouette_pruefen(pfad):
@@ -516,7 +552,8 @@ def main():
     if not isinstance(daten, dict):
         raise SystemExit(f"{quelle} enthaelt {type(daten).__name__} statt eines "
                          "Objekts — erwartet wird eine cv.json.")
-    for feld, art in (("person", dict), ("stationen", list), ("bildung", list)):
+    for feld, art in (("person", dict), ("stationen", list), ("bildung", list),
+                      ("zertifikate", list)):
         if feld in daten and daten[feld] is not None and not isinstance(daten[feld], art):
             raise SystemExit(f"{quelle}: {feld} ist {type(daten[feld]).__name__} "
                              f"statt {art.__name__} — so laesst sich daraus "
@@ -551,11 +588,11 @@ def main():
     # Die Firmen kommen vor den Namen an die Reihe. Andersherum haette eine
     # Namensersetzung "Feiler GmbH" schon zu "F. F. GmbH" gemacht, und die
     # Zuordnung liefe im Fliesstext ins Leere, ohne dass es jemand merkt.
-    firmen, logos_weg, firmen_im_text, firmen_offen = [], [], [], []
+    firmen, logos_weg, firmen_im_text, firmen_offen, firmen_zert = [], [], [], [], []
     if karte_datei:
         if not karte_datei.exists():
             raise SystemExit(f"Firmen-Zuordnung nicht gefunden: {karte_datei}")
-        firmen, logos_weg, firmen_im_text, firmen_offen = firmen_ersetzen(
+        firmen, logos_weg, firmen_im_text, firmen_offen, firmen_zert = firmen_ersetzen(
             daten, json.loads(karte_datei.read_text(encoding="utf-8")))
 
     treffer, offen = [], []
@@ -583,6 +620,12 @@ def main():
     print(f"Foto:  {altes_foto} -> {silhouette}")
     print(f"Links: {len(entfernte)} entfernt"
           + (f" ({', '.join(entfernte)})" if entfernte else ""))
+    # Zertifikate bleiben stehen wie Bildung und Arbeitgeber, als Tags mit dem
+    # Titel. Die Zeile sagt, dass der Block mitgekommen ist — fehlt sie, gab es
+    # keine.
+    zert_zahl = len(zertifikatsknoten(daten))
+    if zert_zahl:
+        print(f"Zertifikate: {zert_zahl} bleiben stehen")
     print(f"Text:  {anzahl(len(treffer), 'Namensnennung', 'Namensnennungen')} ersetzt"
           + (f", {len(offen)} Namensteil(e) mehrdeutig stehen gelassen" if offen else ""))
     for pfad, gefunden, ersatz, stelle in treffer:
@@ -596,6 +639,8 @@ def main():
               "eine Rechtsform davor oder dahinter bleibt stehen:", firmen_im_text)
     abschnitt("Offen — steht nicht in der Firmen-Zuordnung und bleibt stehen:",
               firmen_offen)
+    abschnitt("Firma aus der Zuordnung steht in einem Zertifikat — dort wird "
+              "nichts ersetzt, bitte von Hand entscheiden:", firmen_zert)
     print(f"{ziel} geschrieben")
 
     if hinweise:

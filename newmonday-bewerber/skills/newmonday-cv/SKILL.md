@@ -78,8 +78,8 @@ Entscheidung treffen lassen wie die vollständige – nur ohne die Person zu
 erkennen.
 
 Deshalb ist sie **keine geschwärzte Version des Dokuments, sondern dasselbe
-Dokument mit weniger Person darin**. Layout, Stationen, Logos, Bildung und
-Skillset stehen unverändert. Was verschwindet, ist eng umrissen:
+Dokument mit weniger Person darin**. Layout, Stationen, Logos, Bildung,
+Zertifikate und Skillset stehen unverändert. Was verschwindet, ist eng umrissen:
 
 - **Das Foto** wird zum Platzhalterbild aus dem Design (`assets/silhouette.svg`,
   eingesetzt aus `assets/silhouette-vorlage.svg`, Vorgabe vom 29.09.2026) –
@@ -116,8 +116,8 @@ auseinanderlaufen.
 
 ### Was bewusst stehen bleibt
 
-**Arbeitgeber, Kunden, Logos, Bildungseinrichtungen und die monatsgenauen
-Zeiträume bleiben drin.** Sie sind der Grund, warum jemand das Profil überhaupt
+**Arbeitgeber, Kunden, Logos, Bildungseinrichtungen, Zertifikate und die
+monatsgenauen Zeiträume bleiben drin.** Sie sind der Grund, warum jemand das Profil überhaupt
 liest – ein Lebenslauf ohne Firmen ist kein anonymer Lebenslauf, sondern keiner.
 Die Fassung schützt davor, dass jemand die Person **erkennt**; sie schützt nicht
 davor, dass jemand sie **ermittelt**, der es darauf anlegt. Wer das zweite
@@ -141,7 +141,7 @@ ist, entscheidet nicht der Skill.
 
 | Stufe | Wie |
 |---|---|
-| **Zeiträume nur als Jahre** | `--jahre` am Skript. Monatsgenaue Daten machen den Abgleich mit einem LinkedIn-Profil zur Fingerübung – das ist die wirksamste der vier Stufen. |
+| **Zeiträume nur als Jahre** | `--jahre` am Skript – kürzt auch die Zertifikatsdaten in der `cv-anonym.json` (`09/2026` → `2026`; im Dokument stehen sie ohnehin nicht). Monatsgenaue Daten machen den Abgleich mit einem LinkedIn-Profil zur Fingerübung – das ist die wirksamste der vier Stufen. |
 | **Firmen und Kunden generisch** | Eine Zuordnung `{"Cocomore": "Digitalagentur"}` schreiben und mit `--firmen-map` übergeben. Das Skript entfernt die Logos der ersetzten Firmen gleich mit; ein Logo neben "Digitalagentur" hebt die Anonymisierung sofort wieder auf. Die Oberbegriffe erfindet es nicht. |
 | **Bildungseinrichtungen generisch** | Handarbeit in der `cv.json`, vor dem Anonymisieren: aus "TU Braunschweig" wird "Technische Universität". Abschluss und Fach bleiben stehen. |
 | **Sprachen im Skillset** | Handarbeit in der `cv.json`, nur für Sprachen über Deutsch und Englisch hinaus – die beiden setzt das Renderskript ohnehin gleich für alle. "Armenisch – Muttersprache" verrät regelmäßig die Herkunft und steht selten in einem Zusammenhang mit der Stelle. |
@@ -230,7 +230,8 @@ Keine `cv.json`, keine Logos, nichts rendern.
   wie er dasteht.
 - `fachfremd`, `weiterbildung` → die angehakten Einträge bleiben drin, alle
   anderen aus der Frage fallen weg. Fehlt die `id`, gab es nichts zu entscheiden
-  – dann bleibt alles drin.
+  – dann bleibt alles drin. Behaltene Weiterbildungen landen in `zertifikate`
+  (Schritt 2), nicht unter `bildung`.
 
 Widersprechen sich Lebenslauf, LinkedIn und Portfolio, gilt statt der Regel aus
 Schritt 1b die Quelle aus `vorrang` in `auftrag.json`, danach Lebenslauf,
@@ -238,6 +239,15 @@ Portfolio, LinkedIn – in allen drei Dokumenten gleich; fehlt `vorrang`, der
 Lebenslauf. Die Ergänzungsregeln aus Schritt 1b bleiben (LinkedIn füllt Lücken,
 vollständige Firmierung aus LinkedIn, die feinere Angabe, solange sie nicht
 widerspricht).
+
+**`skillset.tools` kommt aus der Skill Matrix.** Lebenslauf und Skill Matrix
+führen dieselbe Tool-Liste – gleiche Einträge, gleiche Schreibweise („Figma /
+FigJam“, nicht „Figma“), gleiche Reihenfolge. Die Liste steht im Entwurf in
+`../skillmatrix/notizen.md` bzw. nach der Freigabe in
+`../skillmatrix/skillmatrix.json` (`tools[].name`); sie wird wörtlich
+übernommen, auch wenn der Eingang andere Tools nennt. Was dadurch gegenüber dem
+Eingang wegfällt oder dazukommt, steht unter „Hinweise“. `pruefe_lauf.py`
+vergleicht beide Listen.
 
 Stationen mit mehreren Marken (Schritt 3): ohne Rückfrage in einer Station, alle
 Logos als Liste in `logo`, und das unter „Ohne Rückfrage entschieden“. Die
@@ -671,9 +681,12 @@ Dazu gilt:
   Vorschlag dazu ist erlaubt, die Entscheidung nicht.
 - **Lücken benennen.** Entsteht durch das Weglassen ein Loch von mehr als ein
   paar Monaten, steht das in derselben Nachricht.
-- **Weiterbildungen, die drin bleiben, stehen unter `bildung`** – nie als
-  Station. Und sie zählen **nicht als Berufserfahrung**: `erfahrung` rechnet
-  ohne sie, genau wie ohne Ausbildung und Studium.
+- **Weiterbildungen, die drin bleiben, stehen unter `zertifikate`** – nie als
+  Station und nicht mehr unter `bildung` (Vorgabe vom 03.10.2026), je
+  Weiterbildung ein Eintrag mit Titel, Aussteller und Datum; im Dokument steht
+  davon der Titel als Tag, siehe Schritt 2.
+  Und sie zählen **nicht als Berufserfahrung**: `erfahrung` rechnet ohne sie,
+  genau wie ohne Ausbildung und Studium.
 - **Ist alles einschlägig, entfällt die Frage.** Keine Frage um der Frage
   willen, und keine Liste mit einer einzigen Zeile, die offensichtlich dazu
   gehört.
@@ -697,7 +710,8 @@ Aus dem Text eine `cv.json` bauen. Vollständiges Beispiel: `beispiel/cv.json`.
     "aufgaben": [],
     "projekte": [{ "kunde", "zeitraum", "logo", "beschreibung", "aufgaben": [] }]
   }],
-  "bildung": [{ "abschluss", "institution", "zeitraum", "themen": [] }],
+  "bildung": [{ "abschluss", "institution", "zeitraum" }],
+  "zertifikate": [{ "titel", "aussteller", "datum" }],
   "skillset": {
     "faehigkeiten": [], "branchen": [], "tools": [], "sprachen": []
   }
@@ -705,8 +719,55 @@ Aus dem Text eine `cv.json` bauen. Vollständiges Beispiel: `beispiel/cv.json`.
 ```
 
 `sprache` ist `"de"` oder `"en"` und kommt aus der Frage in Schritt 0. Sie steuert
-die Rubriken ("Bildung" / "Education", "Kurzprofil" / "Profile") und die
-Footer-Beschriftungen. Der Inhalt der Stationen wird davon nicht angefasst.
+die Rubriken ("Bildung" / "Education", "Zertifikate" / "Certificates",
+"Kurzprofil" / "Profile") und die Footer-Beschriftungen. Der Inhalt der Stationen wird davon nicht angefasst.
+
+#### Bildung und Zertifikate
+
+**Unter `bildung` stehen nur Abschluss, Einrichtung und Zeitraum.** Was jemand
+dort gelernt hat – Studieninhalte, Schwerpunkte, Module –, steht nicht mehr im
+Lebenslauf (Vorgabe vom 03.10.2026). Das frühere Feld `themen` gibt es nicht
+mehr; eine ältere `cv.json`, die es noch trägt, bricht nicht: `render_cv.py`
+lässt es weg und meldet je Eintrag, was weggefallen ist.
+
+**Zertifikate und Weiterbildungen stehen in `zertifikate`**, nicht als
+Bildungseintrag. Gesetzt werden sie als eigener Block „Zertifikate“
+(„Certificates“) unter den Abschlüssen, im Bereich Bildung auf Seite 1 – **je
+Zertifikat ein Tag mit dem Titel**, nebeneinander, umbrechend, in der
+Reihenfolge der `cv.json` (Entscheidung des Nutzers vom 03.10.2026):
+
+```json
+"zertifikate": [
+  { "titel": "Claude 101", "aussteller": "Anthropic", "datum": "09/2026" },
+  { "titel": "CPUX-F-Zertifikat", "aussteller": "UXQB e. V.", "datum": "2021" }
+]
+```
+
+**Ins Dokument kommt nur der Titel, in die Daten alle drei Felder.** Der
+Nutzer wollte ausdrücklich nur den Namen des Zertifikats sehen. Aussteller und
+Datum stehen deshalb weder im PDF noch im Frame, werden aber trotzdem erhoben:
+Die Übergabe nennt, was davon fehlt, die Reihenfolge der Tags hängt am Datum,
+und für spätere Zwecke wären sie nachträglich nur aus dem Eingang zu holen.
+
+- **Jedes Zertifikat ein Eintrag, nichts bündeln** – weder in den Daten noch
+  beim Setzen. Fünf Kurse desselben Ausstellers sind fünf Tags.
+- **`datum` ist `MM/JJJJ`**, oder nur `JJJJ`, wenn kein Monat belegt ist. Ein
+  Monat wird nicht erfunden. **Neueste zuerst** – das Skript sortiert nicht um,
+  es meldet nur, was falsch herum steht. Die Reihenfolge ist die der Tags.
+- **Titel und Aussteller wörtlich**, wie für jeden Text im Dokument. Der Titel
+  steht so im Tag, wie er in der `cv.json` steht – nicht gekürzt, keine
+  Abkürzung erfunden. Ein Tag bricht nicht in sich um, er rückt als Ganzes in
+  die nächste Reihe; nur ein Titel, der breiter ist als die ganze Reihe, nimmt
+  sie allein und bricht dann um. Ohne belegten Aussteller oder ohne Datum bleibt
+  das Feld leer – das Skript meldet es, und es gehört in die Übergabe.
+- **Keine Nachweis-IDs, Mitgliedsnummern, Prüfadressen.**
+- Steht ein Zertifikat in einer älteren `cv.json` noch unter `bildung`, meldet
+  `render_cv.py` das („sieht nach einem Zertifikat aus“) und setzt es weiter als
+  Abschluss – umgezogen wird es von Hand.
+- **`zertifikate_darstellung` gibt es nicht mehr.** Die drei Darstellungen
+  davor (`zeilen`, `spalten`, `aussteller`) sind entfallen; steht der Schlüssel
+  in einer älteren `cv.json` oder `--zertifikate` im Aufruf, setzt das Skript
+  trotzdem Tags und meldet, dass es ihn ignoriert hat.
 
 `person.links` sind die Verweise aus Schritt 0, in der Reihenfolge LinkedIn,
 Xing, Portfolio. Sie stehen auf Seite 1 im Profilkopf, **direkt unter der Zeile
@@ -839,15 +900,15 @@ Zum Modell:
   nicht ins Dokument: keine Befristungen, keine Kündigungsfristen, keine Gehälter,
   und auch keine Hinweise wie "(freiberuflich in Vollauslastung, 40h/Woche)".
 - **Ausbildungen stehen nur unter `bildung`**, nie zusätzlich als Station, auch
-  wenn der Eingang sie doppelt führt. Für Weiterbildungen, die nach Schritt 1d
-  drinbleiben, gilt dasselbe.
+  wenn der Eingang sie doppelt führt. Weiterbildungen, die nach Schritt 1d
+  drinbleiben, stehen ebenso nie als Station – sie gehören in `zertifikate`.
 - **Vom Schulweg steht nur die letzte Station.** Führt der Eingang mehrere
   Schulabschlüsse – Realschule, Gymnasium, Oberstufenzentrum, Fachoberschule,
   Kolleg, Fachschule –, kommt nur der **neueste** ins Dokument, die früheren
   fallen weg. Ein Kundendokument belegt keinen Schulweg, es zeigt den Abschluss,
-  auf dem alles Weitere aufbaut. **Studienabschlüsse, Ausbildungen und die nach
-  Schritt 1d behaltenen Weiterbildungen sind davon nicht betroffen** – die stehen
-  alle drin, auch mehrere nebeneinander. Nennt der Eingang zu einer Station
+  auf dem alles Weitere aufbaut. **Studienabschlüsse und Ausbildungen sind davon
+  nicht betroffen** – die stehen alle drin, auch mehrere nebeneinander; die nach
+  Schritt 1d behaltenen Weiterbildungen ohnehin, sie stehen in `zertifikate`. Nennt der Eingang zu einer Station
   keinen Abschluss, sondern nur Jahr und Haus (etwa "2008 // Media Design
   Hochschule"), zählt sie zum Schulweg: sie belegt eine Station, keinen Titel.
   Was wegfällt, wird in der Übergabe genannt.
@@ -863,7 +924,7 @@ Zum Modell:
     Schwerpunkte, Kernkompetenzen, Methoden, Arbeitsweise, Soft Skills →
     `faehigkeiten`; Branchen, Branchenerfahrung, Industrien → `branchen`;
     Software, Tools, Werkzeuge → `tools`. Zertifikate sind Weiterbildungen und
-    gehen den Weg aus Schritt 1d – drin bleiben heißt: unter `bildung`. Der
+    gehen den Weg aus Schritt 1d – drin bleiben heißt: unter `zertifikate`. Der
     Wortlaut der Einträge bleibt. Doppelte fallen weg, auch fast gleiche ("UI/UX"
     neben "UI/UX Design": das genauere bleibt).
   - **Was nirgends passt, fällt aus dem Skillset** – eine Kundenliste etwa (die
@@ -889,20 +950,32 @@ Zum Modell:
     die Gruppe im Dokument, und das Renderskript meldet es – das gehört in die
     Übergabe.
 
-  **Bildung und Skillset stehen auf Seite 1**, direkt unter dem Profilkopf, und
-  müssen dort zusammen Platz finden – die Stationen beginnen danach auf Seite 2.
-  Kopfzeile und Profilkopf nehmen zusammen rund 200pt, es bleiben also
-  etwa 550pt statt einer ganzen Seite; die Verweise unter der Erfahrungszeile
-  kosten nichts, die Fotospalte ist ohnehin höher. Als Richtwert trägt **jede der
-  beiden Skillset-Spalten etwa 17 Zeilen**, Gruppentitel mitgezählt, bei zwei
-  Bildungseinträgen samt Themen daneben – mit den beiden engeren Stufen des
-  Renderskripts bis etwa 23. Das Kurzprofil zählt hier nicht mit – es steht auf
-  Seite 2 und nimmt Seite 1 keinen Platz weg.
+  **Bildung (Abschlüsse und Zertifikate) und Skillset stehen auf Seite 1**,
+  direkt unter dem Profilkopf, und müssen dort zusammen Platz finden – die
+  Stationen beginnen danach auf Seite 2. Kopfzeile und Profilkopf nehmen
+  zusammen rund 200pt, es bleiben also etwa 550pt statt einer ganzen Seite; die
+  Verweise unter der Erfahrungszeile kosten nichts, die Fotospalte ist ohnehin
+  höher. Als Richtwert trägt **die längere Skillset-Spalte bei zwei Abschlüssen
+  ohne Zertifikate etwa 27 Zeilen**, Gruppentitel mitgezählt – mit den beiden
+  engeren Stufen des Renderskripts bis etwa 31. **Zertifikate gehen davon ab**:
+  drei Skillset-Zeilen für den Blocktitel, dazu zwei je Reihe Tags. Wie viele
+  Tags in eine Reihe passen, hängt an der Länge der Titel – kurze stehen zu
+  dritt oder viert, ein langer allein (gemessen am 03.10.2026):
+
+  | Zertifikate | normal | engste Stufe |
+  |---|---|---|
+  | keine | 27 | 31 |
+  | 4 Tags in 2 Reihen | 20 | 24 |
+  | 8 Tags in 4 Reihen | 16 | 20 |
+
+  Das Kurzprofil zählt hier nicht mit – es steht auf Seite 2 und nimmt Seite 1
+  keinen Platz weg.
 
   Bringt der Eingang mehr mit – Senior-Profile haben oft 40 Kompetenzen und mehr
   –, ist die Reihenfolge: erst das Renderskript enger setzen lassen (das macht
   es von selbst, in zwei Stufen), **und erst dann kürzen** – in der längsten
-  Gruppe der längeren Spalte, durch Weglassen der schwächsten Einträge. Gruppen
+  Gruppe der längeren Spalte, durch Weglassen der schwächsten Einträge.
+  Zertifikate werden nicht ohne Rückfrage gestrichen. Gruppen
   verschieben oder zusammenlegen geht nicht mehr, die vier stehen fest. **Der
   Wortlaut der übernommenen Einträge bleibt unverändert**, gekürzt wird durch
   Weglassen, nicht durch Umformulieren. Was wegfällt, wird am Ende gemeldet. Das
@@ -1048,6 +1121,50 @@ das Raster steht – der Text rückt **nicht** auf die volle Breite. So sehen al
 Lebensläufe gleich aus. Welche fehlen, kommt in die Schlusszeile der Übergabe,
 siehe Schritt 5.
 
+#### Logos werden nie verzerrt
+
+**Ein Logo steht nie gestreckt oder gestaucht – im PDF nicht und im
+Figma-Frame nicht.** Ein verzerrtes Logo ist ein Fehler in der Darstellung
+einer fremden Marke, und er fällt dem Kunden eher auf als jeder Tippfehler.
+Drei Regeln:
+
+- **Das Seitenverhältnis kommt immer aus der Datei** – SVG aus der `viewBox`
+  (ohne sie aus `width`/`height`), Rasterbilder aus den Pixelmaßen. Breite und
+  Höhe rechnet `render_cv.py` (`logo_masse()`) aus diesem einen Verhältnis; nie
+  werden beide frei gesetzt, und kein Logo bekommt ein Maß von Hand, weder im
+  CSS noch im Frame.
+- **In Figma: Rasterlogos mit `FIT` auf ein Rechteck im Seitenverhältnis der
+  Datei, SVGs mit `rescale()`** – nie `resize()`, nie `FILL` oder `STRETCH`
+  für ein Logo. Der Plan trägt das Verhältnis jeder Datei mit
+  (`verhaeltnis`, `logo_verhaeltnisse`); nach dem Bau prüft ein lesender
+  Aufruf jeden Logoknoten dagegen, Toleranz 1 % (`references/figma.md`,
+  „Logos werden nie verzerrt“). Schlägt die Prüfung an, wird repariert, bevor
+  weitergebaut wird.
+- **Die Datei selbst muss stimmen.** Gegen eine Bibliotheksdatei, die schon
+  gestaucht ist, hilft keine Rechnung: Das beQ-Logo lag bis zum 03.10.2026 als
+  948 × 869 statt 1018 × 547 in `assets/logos/` – PDF und Figma haben es
+  korrekt eingepasst und trotzdem verzerrt gezeigt. Deshalb die
+  Sichtprüfung beim Aufnehmen, gleich unten.
+
+**Pflicht bei jedem neuen Logo: die Sichtprüfung gegen die Quelle.**
+`add_logo.py` (ebenso `fetch_logo.py` und `logos_ergaenzen.py`) gibt das
+Seitenverhältnis der Quelle und der abgelegten Datei aus und legt ein
+Kontrollbild ab – oben die Quelle, wie sie geliefert wurde, unten das Logo so,
+wie der Lebenslauf es setzt. Es liegt neben der Quelle
+(`<quelle>-kontrolle.png`), bei einer URL im Arbeitsverzeichnis, bei der
+automatischen Suche unter `logo-kontrolle/` – nie in der Bibliothek. **Das
+Bild ansehen** und mit dem Logo auf der Seite der Firma vergleichen:
+
+- **Weicht das Verhältnis von der Quelle ab, oder wirkt die Schrift gestreckt
+  oder gestaucht** – Buchstaben zu schmal oder zu breit, Kreise als Ellipsen –,
+  **wird das Logo nicht aufgenommen**: die Datei wieder aus `assets/logos/`
+  entfernen (eine ersetzte Datei zurückholen) und eine andere Quelle suchen.
+- Ein anderes Verhältnis, das nur vom abgeschnittenen Rand kommt, ist kein
+  Fehler – das Skript sagt dazu, dass es skaliert nur gleichmäßig.
+- Warnt das Skript, die **ersetzte Datei** habe ein anderes Verhältnis gehabt,
+  ist eine der beiden verzerrt oder anders beschnitten. Erst klären, dann
+  weiter.
+
 **Logos stehen rechtsbündig und wirken gleich schwer.** Beides macht
 `render_cv.py` selbst, sobald die Dateinamen in der `cv.json` stehen – hier ist
 nichts zu setzen und im CSS nichts nachzujustieren:
@@ -1088,8 +1205,8 @@ Badge-Logo mit breitem Rand schrumpft im Layout sonst so weit, dass die
 Wortmarke unleserlich wird.
 
 **Die Ausgabe der Skripte ist zu lesen, nicht zu überfliegen.** Sie melden die
-erkannten Farben, den entfernten Rand und wie viel vom Kasten in Einsatzgröße
-tatsächlich gedeckt ist. Bleibt darunter eine Warnung stehen, ist das Logo kaputt
+erkannten Farben, den entfernten Rand, das Seitenverhältnis und wie viel vom
+Kasten in Einsatzgröße tatsächlich gedeckt ist. Bleibt darunter eine Warnung stehen, ist das Logo kaputt
 und gehört nicht ins Dokument.
 
 Zusätzlich das fertige PDF an der Logostelle in 300 dpi ansehen. Ein Logo kann
@@ -1113,8 +1230,8 @@ Skill fremden Text anfasst, ohne dass jemand es angeordnet hat. Welche Schalter 
 darüber hinaus gibt, steht unter "Die anonymisierte Fassung".
 
 `--stufen-json` schreibt mit, welche Verdichtungsstufen gegriffen haben. Das
-braucht Schritt 4a: ohne die Datei setzen die Frames andere Abstände als die PDFs
-und laufen über. **Je Fassung eine eigene Datei** – der anonymen fehlt die
+braucht Schritt 4a: ohne die
+Datei setzen die Frames andere Abstände als die PDFs und laufen über. **Je Fassung eine eigene Datei** – der anonymen fehlt die
 Verweiszeile im Profilkopf, sie kann deshalb in einer anderen Stufe landen als die
 vollständige.
 
@@ -1143,7 +1260,11 @@ Zusätzlich prüft es die Zeiträume und meldet nach stderr: Ende vor Anfang,
 Projekte außerhalb der Anstellung, fehlende Logodateien.
 
 Es setzt Bildung und Skillset selbst enger, wenn sie sonst nicht neben den
-Profilkopf auf Seite 1 passen, und sagt in welcher Stufe. Bleibt die Meldung
+Profilkopf auf Seite 1 passen, und sagt in welcher Stufe. Dazu meldet es, was an
+Bildung und Zertifikaten auffällt: weggelassene Studieninhalte und ein
+ignorierter `zertifikate_darstellung` aus einer älteren `cv.json`, Zertifikate
+ohne Aussteller oder Datum, ein unlesbares Datum, eine Reihenfolge, die nicht
+neueste zuerst ist. Bleibt die Meldung
 stehen, dass der Block über mehrere Seiten läuft, ist zu kürzen – nach der
 Reihenfolge aus Schritt 2, nicht vorher.
 
@@ -1184,7 +1305,7 @@ Liegt kein Link vor, wird mit `create_new_file` eine Datei
 `New Monday CV — Vorname Nachname` angelegt und beides dort hineingebaut. Der Link
 darauf geht in die Übergabe.
 
-Fünf Dinge stehen fest:
+Sechs Dinge stehen fest:
 
 - **Erst die vollständige Fassung, dann die anonyme.** Bricht der zweite Lauf ab,
   steht wenigstens die vollständige in der Datei. Andersherum läge dort ein
@@ -1201,6 +1322,10 @@ Fünf Dinge stehen fest:
   neue daneben, nicht darüber.
 - **Kein Ersatz-Layout.** Reicht es nicht für den Frame, wird kein vereinfachter
   gebaut. Entweder das Dokument oder nichts.
+- **Kein Logo verzerrt.** Nach jedem Frame mit Logos die Verhältnisprüfung aus
+  `references/figma.md`: jeder Logoknoten im Seitenverhältnis seiner Datei,
+  höchstens 1 % daneben, Rasterlogos mit `FIT`. Was anschlägt, wird repariert,
+  bevor der nächste Frame entsteht.
 
 
 ### 5. Übergeben
@@ -1229,7 +1354,13 @@ Zeilen berichten:
 - Welches Enddatum die letzte eigene Station bekommen hat, wenn sie im Eingang
   noch offen lief – mit der Bitte, den Ausstiegsmonat zu bestätigen. Abgeleitet
   ist er aus dem Startmonat bei New Monday, nicht aus dem Eingang.
-- Welche Schulabschlüsse aus dem Bildungsblock weggefallen sind.
+- Welche Schulabschlüsse aus dem Bildungsblock weggefallen sind, und – bei
+  einer älteren `cv.json` – welche Studieninhalte `render_cv.py` als ignoriert
+  gemeldet hat.
+- **Die Zertifikate**: welche ohne Aussteller oder ohne Datum sind (das Skript
+  meldet sie) – mit der Bitte, das Fehlende nachzureichen, falls es belegt ist.
+  Im Dokument steht davon nichts, nur der Titel; gebraucht wird es trotzdem,
+  siehe Schritt 2.
 - Welche Rechtschreibfehler korrigiert wurden
 - Was im Eingang unklar war und geraten werden müsste – als Frage, nicht als
   stille Annahme
@@ -1278,8 +1409,8 @@ Regeln dazu:
 ## Was fest steht und nicht zur Disposition steht
 
 - **Seitenaufbau**: Seite 1 trägt die Kopfzeile (nur das Logo), den Profilkopf
-  (Foto, Name, Rolle, Erfahrung, darunter die Verweise), Bildung und
-  Skillset. Ab Seite 2 folgen Kurzprofil und Stationen, am Ende der Footer, der
+  (Foto, Name, Rolle, Erfahrung, darunter die Verweise), Bildung (Abschlüsse,
+  darunter die Zertifikate) und Skillset. Ab Seite 2 folgen Kurzprofil und Stationen, am Ende der Footer, der
   immer am unteren Rand der letzten Seite sitzt. Bildung und Skillset stehen
   vorn, nicht hinten – daran wird nicht getauscht.
 - **Erste Station ist New Monday**, immer – und **nur sie läuft auf "Heute"**.
@@ -1287,8 +1418,13 @@ Regeln dazu:
 - **Das Skillset hat immer dieselben vier Gruppen**, 2 × 2: links Fähigkeiten und
   Branchen, rechts Tools und Sprachen. Deutsch – Muttersprache und Englisch –
   Business Niveau stehen immer drin. Siehe Schritt 2.
-- **Ansprechpartner im Footer**: immer Manuel Klein, CCO. Steht als Vorgabe im
-  Renderskript.
+- **Ansprechpartner im Footer**: immer Manuel Klein, CCO, und die Adresse
+  New Monday GmbH, **Stresemannstr. 23**, 10963 Berlin – genau so geschrieben,
+  gleich in allen drei Dokumenten (Vorgabe vom 03.10.2026). Steht als Vorgabe
+  im Renderskript.
+- **Logos werden nie verzerrt.** Seitenverhältnis immer aus der Datei, in Figma
+  `FIT` bzw. `rescale()`, jedes neue Logo mit Sichtprüfung gegen die Quelle.
+  Siehe Schritt 3.
 - **Zwei Fassungen, immer.** Die vollständige und die anonymisierte, jeweils als
   PDF und als Figma-Frame. Die anonyme ersetzt die vollständige nie und wird nie
   allein übergeben: Wer sie bekommt, bekommt beide.
@@ -1299,7 +1435,9 @@ Regeln dazu:
   Namen. Beide liegen in `assets/fonts/` und werden ins PDF eingebettet. Nicht
   durch Systemschriften ersetzen.
 - **Keine Schatten, keine Rundungen.** Die Figma-Vorlage hat keine, das Dokument
-  auch nicht.
+  auch nicht. Einzige Ausnahme sind die Zertifikats-Tags mit 4pt Radius
+  (Vorgabe vom 03.10.2026): Ein Tag liest sich erst mit Rundung als Tag und
+  nicht als Kasten, und die Skill Matrix setzt ihre Tags genauso.
 - **Kein Umbau des Layouts.** Neue Rubriken, andere Farben, zusätzliche Spalten:
   nur nach ausdrücklicher Ansage.
 - **Die PDFs sind der Ausgang**, die Figma-Frames die bearbeitbare Zweitschrift.
@@ -1328,7 +1466,7 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/selbsttest.py
 Er misst am gerenderten PDF nach, ob Schrift, Größe und Farbe jeder Zeile und die
 Abstände von Schriftlinie zu Schriftlinie den Tokens entsprechen, und schlägt an,
 sobald in `cv.css` ein Wert als Literal steht oder Schatten und Rundungen
-auftauchen.
+auftauchen – außer dem Radius der Zertifikats-Tags.
 
 **Hat sich das Design-System in Figma geändert**, gilt
 `references/figma-abgleich.md`: Figma-Seite auslesen, mit `tokens.json`

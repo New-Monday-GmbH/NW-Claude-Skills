@@ -31,7 +31,10 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from add_logo import ZIEL, als_bild, als_svg, bibliothek_bereit, slugify  # noqa: E402
+from add_logo import (  # noqa: E402
+    ZIEL, als_bild, als_svg, bibliothek_bereit, slugify, verhaeltnis_pruefen,
+    vorhandene_verhaeltnisse,
+)
 
 KOPF = {"User-Agent": "newmonday-cv/1.0 (Lebenslauf-Aufbereitung)"}
 def _zwischenlager():
@@ -178,13 +181,19 @@ def main():
         daten, endung, woher = ergebnis
         tmp.write_bytes(daten)
         try:
+            vorher = vorhandene_verhaeltnisse(name)
             ziel = als_svg(tmp, name) if endung == "svg" else als_bild(tmp, name)
+            print(f"Gefunden ueber {woher}: {ziel.name}")
+            # Dieselbe Pflicht-Sichtpruefung wie bei add_logo.py: Verhaeltnis
+            # ausgeben, Kontrollbild ins Arbeitsverzeichnis, nie in die
+            # Bibliothek.
+            verhaeltnis_pruefen(tmp, ziel, vorher,
+                                Path.cwd() / "logo-kontrolle" / f"{name}.png")
         except Exception as fehler:
             print(f"  {woher}: nicht verwertbar ({fehler})")
             continue
         finally:
             tmp.unlink(missing_ok=True)
-        print(f"Gefunden ueber {woher}: {ziel.name}")
         print("Bitte ansehen — automatisch gefundene Logos sind manchmal veraltet "
               "oder gehoeren zu einer gleichnamigen Firma.")
         print(f'In der cv.json eintragen als:  "logo": "{ziel.name}"')
