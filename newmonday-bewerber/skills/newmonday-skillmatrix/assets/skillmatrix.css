@@ -131,48 +131,69 @@ body { font-family: "Inter"; }
 
 /* ---------- Zertifikate ---------- */
 
-.zertkarten { margin-top: var(--zertifikate-titel-abstand); }
-.zertkarte {
-  position: relative;
-  padding: var(--zertkarte-padding);
-  border-left: var(--zertkarte-kante); border-radius: var(--zertkarte-radius);
-  background: var(--zertkarte-hintergrund);
-  box-shadow: var(--zertkarte-schatten);
+/* Ueberschrift -> Qualifikationskarte (falls belegt) -> Kacheln, je 32
+   auseinander, geplant von scripts/zertifikate.py. Die Sektion ist hoechstens
+   --zertifikate-max-hoehe hoch, die Karte eingerechnet; render_skillmatrix.py
+   misst nach. Bildgroessen und Zeilengrenzen stehen als style-Attribut im
+   Template, gerechnet aus den Tokens. */
+.zertinhalt, .qualikarte { margin-top: var(--zertifikate-titel-abstand); }
+
+/* Erworbene Qualifikationen: volle Breite, Rahmen, kein Schatten. Jedes Tag
+   traegt seinen Abstand oben und rechts selbst - so haben umbrechende Zeilen
+   denselben Abstand wie die erste zum Satz (8 + 8, wie in Figma). */
+.qualikarte {
+  padding: var(--qualikarte-padding);
+  border: var(--qualikarte-rahmen); border-radius: var(--qualikarte-radius);
+  background: var(--qualikarte-hintergrund);
 }
-.zertkarte + .zertkarte { margin-top: var(--zertifikate-karten-abstand); }
-.zertkarte__kopf { display: flex; justify-content: space-between; align-items: flex-start; }
-.zertkarte__titel { flex: 1 1 auto; margin-right: var(--zertkarte-jahr-abstand-min); }
-.jahr {
+.qualikarte__block { margin-top: var(--qualikarte-abstand); }
+.qualikarte__tags { display: flex; flex-wrap: wrap; }
+.qualikarte__tags--nach-text { margin-top: var(--qualikarte-gruppen-abstand); }
+.qualitag {
   display: block; flex: none; white-space: nowrap;
-  padding: var(--jahr-padding-y) var(--jahr-padding-x);
-  border: var(--jahr-rahmen); border-radius: var(--jahr-radius);
-  background: var(--jahr-hintergrund);
-}
-.zertkarte__aussteller { margin-top: var(--zertkarte-gruppen-abstand); }
-.zertkarte__unten { margin-top: var(--zertkarte-abstand); }
-/* Tags: Abstand zur Beschreibung = gruppen-abstand + abstand-oben (8 + 8).
-   Den oberen Teil traegt jeder Tag selbst — so haben umbrechende Zeilen
-   denselben Abstand, und unter der letzten Zeile entsteht keiner. */
-.zertkarte__tags { display: flex; flex-wrap: wrap; margin-top: var(--zertkarte-gruppen-abstand); }
-.zert-tag {
-  display: block; flex: none; white-space: nowrap;
-  margin: var(--zert-tags-abstand-oben) var(--zert-tags-abstand) 0 0;
-  padding: var(--zert-tag-padding-y) var(--zert-tag-padding-x);
-  border: var(--zert-tag-rahmen); border-radius: var(--zert-tag-radius);
-  background: var(--zert-tag-hintergrund);
+  margin: var(--qualitags-abstand) var(--qualitags-abstand) 0 0;
+  padding: var(--qualitag-padding-y) var(--qualitag-padding-x);
+  border: var(--qualitag-rahmen); border-radius: var(--qualitag-radius);
+  background: var(--qualitag-hintergrund);
 }
 
-/* Bilderraster: feste Kachelbreiten statt Grid — jede Zeile ist ein eigener
-   Flex-Container, den das Template baut. Bilder mittig gefuellt. */
-.zertbilder { margin-top: var(--zertifikate-abstand); }
-.zertbilder__zeile { display: flex; }
-.zertbilder__zeile + .zertbilder__zeile { margin-top: var(--raster-abstand); }
-.zertbilder__kachel {
-  flex: none; overflow: hidden;
-  width: var(--raster-kachel-breite); height: var(--raster-kachel-hoehe);
+/* Bild: Die Flaeche hat schon das Seitenverhaeltnis der Datei (eingepasst, nie
+   beschnitten); contain faengt nur den Bruchteil eines Punktes ab, den der
+   Rahmen kostet. Zentriert wird mit margin: auto - WeasyPrint richtet Bilder
+   in Flex-Zeilen nicht nach justify-content aus. */
+.zertbild {
+  display: block; flex: none; margin: auto; object-fit: contain;
+  border: var(--zertbild-rahmen); border-radius: var(--zertbild-radius);
+  background: var(--zertbild-platz-hintergrund);
 }
-.zertbilder__kachel + .zertbilder__kachel { margin-left: var(--raster-abstand); }
-.zertbilder__kachel img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.zertplatz {
+  display: flex; flex: none; margin: auto; align-items: center; justify-content: center;
+  border: var(--zertbild-rahmen); border-radius: var(--zertbild-radius);
+  background: var(--zertbild-platz-hintergrund);
+}
+.zertplatz__icon { display: block; margin: auto; width: var(--zertbild-icon); height: var(--zertbild-icon); }
+
+/* Kachel: gebaut wie die Skill Card. Oben die Buehne - grauer Grund, damit
+   Bilder jeden Formats gleich viel Flaeche bekommen. */
+.zk__zeile { display: flex; }
+.zk__zeile + .zk__zeile { margin-top: var(--zertkachel-zeilenabstand); }
+.zk__kachel {
+  position: relative; flex: none;
+  width: var(--zertkachel-breite);
+  padding: var(--zertkachel-padding);
+  border: var(--zertkachel-rahmen); border-radius: var(--zertkachel-radius);
+  background: var(--zertkachel-hintergrund);
+  box-shadow: var(--zertkachel-schatten);
+}
+.zk__kachel + .zk__kachel { margin-left: var(--zertkachel-spaltenabstand); }
+.zk__buehne {
+  display: flex; align-items: center; justify-content: center;
+  height: var(--zertkachel-buehne-hoehe);
+  padding: var(--zertbuehne-padding); border-radius: var(--zertbuehne-radius);
+  background: var(--zertbuehne-hintergrund);
+}
+.zk__text { margin-top: var(--zertkachel-abstand); }
+.zk__meta { margin-top: var(--zertkachel-text-abstand); }
 
 /* ---------- Kernkompetenzen ---------- */
 

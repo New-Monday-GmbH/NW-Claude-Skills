@@ -10,6 +10,7 @@ Figma-Library. Von dort lesen:
 | PDF | `design_system.css()` erzeugt `@font-face`, `:root`-Variablen je Komponente (`--skillkarte-padding` …) und die Textklassen `.t-<verwendung>`; `skillmatrix.css` trägt nur Struktur und `var(--…)` |
 | Figma, Weg B | `figma_plan.py` baut den Knotenbaum aus denselben Einträgen |
 | Figma, Weg A | braucht die Datei nicht — der Klon hängt an den Komponenten und der Library |
+| Zertifikate | `zertifikate.py` rechnet aus `zertifikate`, `zertkachel`, `zertbild`, `zertbuehne`, `qualikarte`, `qualitags` und `qualitag` die Sektion vor – Karte, Bündelung, Bildgrößen, Zeilengrenzen, Höhe – für PDF und Plan gleich |
 | Zuschnitt | `extract_input.py`, `zert_bilder.py`, `kopf_ausschnitt.py` und die Foto-Skripte nehmen Foto- und Kachelformat sowie die Kopflage (`kopf-oben-anteil`, `kinn-anteil`) aus `komponenten` |
 
 **Die Regel:** Ein Wert wird nur in `tokens.json` geändert — nie im CSS, im
@@ -20,7 +21,8 @@ etwas abweicht. Dieselbe Prüfung einzeln:
 `python3 ${CLAUDE_SKILL_DIR}/scripts/design_system.py pruefe <pdf>`.
 
 Die Tabellen unten sind ein **Überblick zum Nachschlagen, Stand 2026-09-28**
-(= `_quelle.ausgelesen` in `tokens.json`). Maßgeblich ist immer `tokens.json`;
+(= `_quelle.ausgelesen` in `tokens.json`), die Zertifikatssektion Stand
+2026-10-03. Maßgeblich ist immer `tokens.json`;
 wer dort etwas ändert, zieht diese Tabellen im selben Zug nach (Abgleich,
 Schritt 2).
 
@@ -28,14 +30,14 @@ Schritt 2).
 
 | Token | Wert | Verwendung |
 |---|---|---|
-| `brand/primary` | `#009193` | Kopf, Fuß, Rolle, volle Punkte, Zertifikatskante, Jahr, Schwerpunkt-Rahmen, Icons, Verlauf |
+| `brand/primary` | `#009193` | Kopf, Fuß, Rolle, volle Punkte, „+3“ gebündelter Zertifikate, Schwerpunkt-Rahmen, Icons, Verlauf |
 | `base/black` | `#111111` | Name, Titel, Überschriften, Schwerpunkte |
-| `base/white` | `#ffffff` | Hero, Karten, Texte im Fuß |
-| `neutral/80` | `#48575a` | Hero-Beschreibung, Kartentexte, Kategorielabel und -linie, Chips |
-| `neutral/60` | `#738082` | Badge-Text und -Rahmen, „Ausgestellt von" |
-| `neutral/40` | `#9ea8aa` | Rahmen der Skill-Karten und der Fotokarte |
+| `base/white` | `#ffffff` | Hero, Karten, Tags der Qualifikationskarte, Texte im Fuß |
+| `neutral/80` | `#48575a` | Hero-Beschreibung, Kartentexte, Kategorielabel und -linie, Satz, Tag-Text und Tag-Rahmen der Qualifikationskarte |
+| `neutral/60` | `#738082` | Badge-Text und -Rahmen, „Aussteller · Datum" der Zertifikate |
+| `neutral/40` | `#9ea8aa` | Rahmen der Skill-Karten, Zertifikatskacheln, Zertifikatsbilder, Qualifikationskarte und Fotokarte |
 | `neutral/15` | `#ebf2f5` | Linie über dem Rumpf |
-| `neutral/10` | `#f8fafc` | Rumpf, Badge, Jahr, Chips, leere Punkte, Texte auf dem Verlauf |
+| `neutral/10` | `#f8fafc` | Rumpf, Badge, Bühne unter den Zertifikatsbildern, leere Punkte, Texte auf dem Verlauf |
 | `Colors/Background/bg-primary_hover` | `#ebf2f5` | Grund der Fotokarte |
 | `#22c55e` (ohne Token) | | Punkt im Verfügbarkeits-Badge |
 
@@ -44,13 +46,15 @@ Schritt 2).
 Abstände sind die Stufen `spacing-xs` 4 · `sm` 6 · `md` 8 · `lg` 12 · `xl` 16 ·
 `2xl` 20 · `3xl` 24 · `4xl` 32 · `5xl` 40 · `7xl` 64 · `10xl` 128 · `11xl` 160,
 dazu `spacer/--space-64-32` 64 (Padding unten im Rumpf).
-Radien: `radius-2xl` 16, `radius-full` 9999; roh in der Vorlage: 16 (Karten,
-Fotokarte), 6 (Schwerpunkte, Chips), 4 (Punkte).
+Radien: `radius-2xl` 16 (Qualifikationskarte), `radius-full` 9999; roh in der
+Vorlage: 16 (Karten, Fotokarte), 6 (Schwerpunkte, Tags), 4 (Punkte); roh als
+Ergänzung des Skills: 8 (Bühne der Zertifikatsbilder), 4 (Zertifikatsbild).
 
 | Schatten | Ebenen (x, y, Blur, Spread, Farbe) | an |
 |---|---|---|
-| `Shadows/shadow-xs` | 0, 1, 2, 0, Schwarz 5 % | Skill-Karten |
-| `Shadows/shadow-md` | 0, 2, 4, −2, Schwarz 6 % · 0, 4, 6, −1, Schwarz 10 % | Zertifikatskarte |
+| `Shadows/shadow-xs` | 0, 1, 2, 0, Schwarz 5 % | Skill-Karten, Zertifikatskacheln |
+
+Die Qualifikationskarte hat keinen Schatten, nur den Rahmen.
 
 ## Schrift
 
@@ -62,15 +66,15 @@ das Rendern ab — ohne sie setzte jede Engine still eine Ersatzschrift.
 | Textstil | Schrift | Größe / Zeile | Laufweite | Verwendung |
 |---|---|---|---|---|
 | `Display/display-lg/bold` | Rethink Sans 600 | 60 / 110 % | −0,3 % | Name, Rolle |
-| `Body/text-lg/bold` | Inter 600 | 24 / 125 % | 0 | Sektionsüberschriften |
-| `Body/text-md/bold` | Inter 600 | 20 / 150 % | 0 | Zertifikatstitel |
+| `Body/text-lg/bold` | Inter 600 | 24 / 125 % | 0 | Sektionsüberschriften; „+3“ gebündelter Zertifikate (`brand/primary`) |
+| `Body/text-md/bold` | Inter 600 | 20 / 150 % | 0 | „Erworbene Qualifikationen“ |
 | `Body/text-md/reg` | Inter 400 | 20 / 150 % | 0 | Hero-Beschreibung |
-| `Body/text-sm/bold` | Inter 600 | 16 / 150 % | 0 | Schwerpunkte, Kartentitel |
-| `Body/text-xs/reg` | Inter 400 | 14 / 150 % | 0,5 | Badge, Jahr, Aussteller, Chips, Kartentexte, Kontaktwerte |
+| `Body/text-sm/bold` | Inter 600 | 16 / 150 % | 0 | Schwerpunkte, Kartentitel, Zertifikatstitel |
+| `Body/text-xs/reg` | Inter 400 | 14 / 150 % | 0,5 | Badge, „Aussteller · Jahr", Kartentexte, Tags, Kontaktwerte |
 | `Body/text-xs/med-AG` | Inter 500 | 14 / 150 % | 0,5 | Kategorielabel, Kontaktlabel (Versalien) |
 | roh | Inter 700 | 20 / 28 | 0 | Name auf der Fotokarte |
 | roh | Inter 500 | 14 / 20 | 0 | Erfahrung auf der Fotokarte |
-| roh | Inter 400 | 14 / 20 | 0 | Zertifikatsbeschreibung |
+| roh | Inter 400 | 14 / 20 | 0 | Satz der Qualifikationskarte |
 | roh | Inter 600 | 30 / 36 | 0 | Fußfrage |
 
 „roh" heißt: Die Vorlage setzt dort keinen Text-Style. In `tokens.json` stehen
@@ -93,10 +97,30 @@ Ränder `spacing-10xl`. Von oben:
 - **Rumpf** `neutral/10`, oben 1pt Linie `neutral/15`, Padding oben 64, unten 64
   (`spacer/--space-64-32`), Sektionen 64 auseinander. Der Rumpf reicht bis an
   den Fuß — kein weißer Streifen dazwischen.
-  - *Zertifikate:* Überschrift (Icon 24, 12 Abstand) → 32 → Karte (Padding 24,
-    Kante links 6 `brand/primary`, Radius 16, `shadow-md`; Titelzeile mit Jahr,
-    8, Aussteller, 20, Beschreibung, 16, Chips) → 24 → Raster 3 × 380 × 278,05,
-    Abstand 24.
+  - *Zertifikate:* Überschrift (Icon 24, 12 Abstand; 30 hoch) → 32 →
+    Qualifikationskarte (falls belegt) → 32 → Kacheln. Die ganze Sektion ist
+    **höchstens 924 hoch** (`zertifikate.max-hoehe`), die Karte eingerechnet;
+    darüber bündelt `zertifikate.py` (SKILL.md, Schritt 3).
+    - **Qualifikationskarte** volle Breite 1188, Rahmen 1 `neutral/40` innen,
+      Radius 16, weiß, kein Schatten, Padding 24: „Erworbene Qualifikationen“
+      (`text-md/bold`) → 20 → Satz (14/20 roh, `neutral/80`, höchstens zwei
+      Zeilen, nie gekürzt) → 8 → Tags. Jedes Tag: Padding 4/8, Rahmen 2
+      `neutral/80` innen, Radius 6, weiß, Text `text-xs/reg` `neutral/80`;
+      33 hoch, 8 auseinander, mit 8 darüber, umbrechend. Mit einer Tag-Zeile und
+      einzeiligem Satz 1 + 24 + 30 + 20 + 20 + 8 + 41 + 24 + 1 = 169 – so hoch
+      wie die Komponente „Zertifikate Erklärung“ (`2284:964`), die der Nutzer
+      in Florians Datei angelegt hat.
+    - **Kacheln**: vier zu 279, 24 auseinander, wie die Skill Card (Padding 16,
+      Rahmen 1 `neutral/40`, Radius 16, `shadow-xs`). Bühne 245 × 140
+      (`neutral/10`, Radius 8, Padding 12) mit dem Bild mittig, eingepasst –
+      Seitenverhältnis der Datei, nie beschnitten, nie verzerrt –, Rahmen 1
+      `neutral/40`, Radius 4. Ohne Bild steht ein weißes Feld im Kachelformat
+      41 : 30 mit dem Zertifikats-Icon, bei gebündelten Einträgen mit „+3“.
+      → 12 → Textfeld 73: Titel (`text-sm/bold`, endet nach zwei Zeilen mit
+      Auslassungszeichen) → 4 → „Aussteller · Jahr“; zusammen höchstens drei
+      Zeilen, sonst zeigt der Aussteller seine Kurzform. Kachel 259, Reihen 24
+      auseinander. Ohne Karte 12 Kacheln = 62 + 3 × 259 + 2 × 24 = 887, mit
+      Karte (169) 8 Kacheln = 62 + 169 + 32 + 2 × 259 + 24 = 805.
   - *Kernkompetenzen:* Überschrift → 24 → Kategorien, 40 auseinander. Je
     Kategorie das Label (10 Padding, Versalien, 8 Luft, Linie 1 `neutral/80`) →
     16 → Karten, drei je Zeile, 24 Abstand, Zeile gleich hoch, mindestens 108
@@ -116,24 +140,27 @@ Die Vorlage hat drei Unstimmigkeiten (Details in `figma-vorlage.md`). Das PDF
 folgt dort dem System, nicht dem Fehler:
 
 - Die Kategorielinie endet 10 vor der rechten Kante statt 61 darüber hinaus.
-- Alle Zertifikatskacheln sind 380 × 278,05; die erste Reihe der Vorlage ist 300 hoch.
 - Das Tools-Raster hat 24 Abstand und 380 breite Karten wie die Kernkompetenzen;
   die Vorlage zeigt dort das Master-Raster mit 16 und 385.
+- Die Zertifikatssektion hat einen anderen Aufbau (Feedback 2026-10-03): Die
+  Vorlage zeigt eine Karte mit Kante, Beschreibung und Chips über einem
+  Bilderraster 3 × 380 × 278,05; das wurde bei vielen Zertifikaten zu lang.
+  Stattdessen stehen die Zertifikate als Kacheln, darüber die
+  Qualifikationskarte im Aufbau der Komponente, die der Nutzer in Florians
+  Datei angelegt hat (Rahmen statt Kante und Schatten, Tags auf Weiß). Im
+  Master gibt es dafür noch keine Komponente.
 
-Mit dem Inhalt der Vorlage wäre die Matrix dadurch 14pt niedriger als der
-Vorlagenframe (3776,55 − 21,95 Kachelreihe + 8 Tools-Raster) und deckte sich
-sonst bis auf Bruchteile eines Punktes. Die Beispielmatrix ist 3631 hoch, weil
-sie die Tools nur in der Tools-Sektion führt (SKILL.md, Schritt 3): Die
-Kategorie `Coding Skills` hat drei Karten statt vier, eine Reihe weniger.
+Die Beispielmatrix ist 3788 hoch: Sie führt die Tools nur in der Tools-Sektion
+(SKILL.md, Schritt 3), ihre Kategorien folgen dem Katalog – fünf statt vier, mit
+19 Karten –, und die acht Zertifikate stehen als zwei Kachelreihen unter der
+Qualifikationskarte statt in Karte und Raster.
 
 Dazu kommen Ergänzungen, für die es in Figma kein Gegenstück gibt. Bei den
 Vorlagentexten sieht man keinen Unterschied, sie greifen erst bei langen Texten:
 
-- Kartentitel halten 12 Abstand zu den Punkten, Zertifikatstitel 24 zum Jahr,
-  und beide brechen um (`titel-abstand-min`, `jahr-abstand-min` als Rohwerte).
-  In Figma stehen sie per SPACE_BETWEEN ohne Mindestabstand und laufen über.
-- Die Themen-Chips der Zertifikatskarte brechen um; in Figma stehen sie in
-  einer Zeile (NO_WRAP).
+- Kartentitel halten 12 Abstand zu den Punkten und brechen um
+  (`titel-abstand-min` als Rohwert). In Figma stehen sie per SPACE_BETWEEN ohne
+  Mindestabstand und laufen über.
 - Name und Rolle im Hero brechen innerhalb der 640er Spalte um; in Figma laufen
   sie in die Fotokarte.
 - Name und Erfahrung auf der Fotokarte haben 389,33 Breite (Karte − 2 × 24). In
@@ -186,6 +213,17 @@ im CV-Skill. Das Layout ist auf WeasyPrint abgestimmt:
   Karten einer Zeile gleich hoch.
 - **Kein `filter`.** Das Foto kommt bereits in Graustufen aus `extract_input.py`.
 - **`var()` geht überall**, auch in Kurzschreibweisen (`padding`, `border`).
+- **`line-clamp` geht** (WeasyPrint ab 54): Zertifikatstitel und „Aussteller ·
+  Jahr“ enden nach der geplanten Zeilenzahl mit „…“. In Figma ist das
+  `textTruncation = "ENDING"` mit `maxLines`.
+- **Umbrechende Tags mit Rand statt `gap`:** Jedes Tag trägt 8 oben und rechts
+  als `margin`, die Reihe ist `flex-wrap: wrap`. So hat jede Zeile denselben
+  Abstand darüber wie die erste zum Satz. Das letzte Tag einer Zeile braucht
+  dadurch 8 mehr Platz als in Figma – PDF und Plan brechen höchstens früher um,
+  nie später.
+- **Bilder in Flex-Zeilen mit `margin: auto` zentrieren.** WeasyPrint richtet
+  ein `<img>` nicht nach `justify-content` aus; Zertifikatsbilder und das Icon
+  im Platzhalterfeld säßen sonst links.
 - **Konturen innen:** In Figma zählen Konturen im Layout mit — im CSS sind das
   `border` plus `padding` bei `box-sizing: border-box`. Die Linie unter der
   Fußfrage zählt in Figma nicht mit und ist deshalb ein `::after`.

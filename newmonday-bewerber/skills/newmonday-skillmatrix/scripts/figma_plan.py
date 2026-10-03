@@ -24,6 +24,12 @@ setzt nur, was im Plan steht.
 
 `--pdf` ist optional und traegt nur die Seitenhoehe als Sollwert ein, gegen die
 der fertige Frame gehalten wird.
+
+Wie render_skillmatrix.py setzt der Plan die KI-Kategorie an die erste Stelle
+und plant die Zertifikatskacheln mit scripts/zertifikate.py (Buendel,
+Bildgroessen) — PDF und Frame zeigen dasselbe. Zum Gegenpruefen rechnet
+planhoehe() die Hoehen des Plans nach den Auto-Layout-Regeln aus (Texte
+geschaetzt) und meldet Zertifikatssektion und Gesamthoehe.
 """
 import json
 import re
@@ -32,7 +38,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import design_system  # noqa: E402  — nach sys.path.insert
-from render_skillmatrix import BESCHRIFTUNG  # noqa: E402
+import zertifikate  # noqa: E402
+from render_skillmatrix import beschriftung, kompetenzen_ordnen  # noqa: E402
 
 ASSETS = design_system.ASSETS
 DS = design_system.laden()
@@ -43,7 +50,7 @@ KOMP = DS["komponenten"]
 KONTAKT_VORGABE = {
     "name": "Manuel Klein", "rolle": "CCO",
     "mail": "manuel.klein@newmonday.co", "telefon": "+49 (0)155 1148 0130",
-    "firma": "New Monday GmbH", "strasse": "Stresemannstraße 32",
+    "firma": "New Monday GmbH", "strasse": "Stresemannstr. 23",
     "ort": "10963 Berlin",
 }
 
@@ -110,20 +117,29 @@ def rahmen(name, layout, kinder=(), *, abstand=0, padding=0, breite="HUG",
     return k
 
 
-def text(name, inhalt, verwendung, breite="HUG", mehrzeilig=False):
-    s = design_system.textstil(DS, verwendung)
-    inhalt = str(inhalt or "")
-    if not mehrzeilig:
-        inhalt = " ".join(inhalt.split())
+def _typo(s):
     zeile = ({"einheit": "PIXELS", "wert": s["zeilenhoehe_pt"]} if s.get("zeilenhoehe_pt")
              else {"einheit": "PERCENT", "wert": round(s["zeilenhoehe"] * 100, 3)})
     lauf = ({"einheit": "PERCENT", "wert": s["laufweite_prozent"]} if s.get("laufweite_prozent")
             else {"einheit": "PIXELS", "wert": s.get("laufweite", 0)})
-    return {"typ": "text", "name": name, "text": inhalt, "breite": breite,
-            "stil": s["stilname"], "farbe": s["farbe"],
-            "typo": {"familie": s["familie"], "schnitt": s["figma_schnitt"],
-                     "groesse": s["groesse"], "zeilenhoehe": zeile, "laufweite": lauf,
-                     "versalien": s["versalien"]}}
+    return {"familie": s["familie"], "schnitt": s["figma_schnitt"],
+            "groesse": s["groesse"], "zeilenhoehe": zeile, "laufweite": lauf,
+            "versalien": s["versalien"]}
+
+
+def text(name, inhalt, verwendung, breite="HUG", mehrzeilig=False, max_zeilen=None):
+    """max_zeilen: nach so vielen Zeilen mit Auslassungszeichen kuerzen
+    (textTruncation ENDING) — wie line-clamp im PDF."""
+    s = design_system.textstil(DS, verwendung)
+    inhalt = str(inhalt or "")
+    if not mehrzeilig:
+        inhalt = " ".join(inhalt.split())
+    k = {"typ": "text", "name": name, "text": inhalt, "breite": breite,
+         "stil": s["stilname"], "farbe": s["farbe"], "verwendung": verwendung,
+         "typo": _typo(s)}
+    if max_zeilen:
+        k["max_zeilen"] = max_zeilen
+    return k
 
 
 def svg(name, datei, breite, hoehe):
@@ -135,8 +151,9 @@ def svg(name, datei, breite, hoehe):
     return {"typ": "svg", "name": name, "svg": markup, "breite": breite, "hoehe": hoehe}
 
 
-def bild(name, wert, breite, hoehe, deckkraft=None, absolut=None):
-    """Platzhalter fuers Rasterbild; die Bytes kommen spaeter per upload_assets."""
+def bild(name, wert, breite, hoehe, deckkraft=None, absolut=None, skalierung="FILL"):
+    """Platzhalter fuers Rasterbild; die Bytes kommen spaeter per upload_assets
+    mit scaleMode = skalierung (Foto FILL, Zertifikate FIT)."""
     datei = None
     if wert:
         p = Path(str(wert)).expanduser()
@@ -147,7 +164,7 @@ def bild(name, wert, breite, hoehe, deckkraft=None, absolut=None):
         else:
             hinweise.append(f"{name}: Datei nicht gefunden — {wert}")
     k = {"typ": "bild", "name": name, "datei": datei, "breite": breite, "hoehe": hoehe,
-         "merken": True}
+         "skalierung": skalierung, "merken": True}
     if deckkraft is not None:
         k["deckkraft"] = deckkraft
     if absolut:
@@ -241,69 +258,86 @@ def sektionstitel(icon, titel):
         abstand=m(st["abstand"]), quer="CENTER")
 
 
-def zertkarte(z, labels):
-    zk, jahr, zt, tag = KOMP["zertkarte"], KOMP["jahr"], KOMP["zert-tags"], KOMP["zert-tag"]
-    innen = KOMP["seite"]["inhalt"] - zk["kante"]["breite"] - 2 * m(zk["padding"])
-    # Titel fuellt, das Jahr huggt: So steht das Jahr rechtsbuendig, und ein
-    # langer Titel bricht um, statt ins Jahr zu laufen.
-    titelzeile = [text("Titel", z.get("titel"), "zert-titel", breite="FILL")]
-    if z.get("jahr"):
-        titelzeile.append(rahmen("Jahr", "HORIZONTAL", [text("Jahr", z["jahr"], "zert-jahr")],
-                                 padding=(m(jahr["padding-y"]), m(jahr["padding-x"])),
-                                 quer="CENTER", fuellung=f(jahr["hintergrund"]),
-                                 kontur=kontur(jahr["rahmen"]), radius=m(jahr["radius"])))
-    kopfgruppe = [rahmen("Titelzeile", "HORIZONTAL", titelzeile,
-                         abstand=m(zk["jahr-abstand-min"]), breite="FILL")]
-    if z.get("aussteller"):
-        kopfgruppe.append(text("Aussteller", f"{labels['aussteller']} {z['aussteller']}",
-                               "zert-aussteller", breite="FILL"))
-    teile = [rahmen("Kopf", "VERTICAL", kopfgruppe, abstand=m(zk["gruppen-abstand"]),
-                    breite="FILL")]
-    unten = []
-    if z.get("beschreibung"):
-        unten.append(text("Beschreibung", z["beschreibung"], "zert-beschreibung", breite="FILL"))
-    if z.get("tags"):
-        # Umbruch braucht eine feste Breite, sonst weiss Figma nicht, wo.
-        unten.append(rahmen("Tags", "HORIZONTAL", [
-            rahmen("Tag", "HORIZONTAL", [text("Tag", t, "zert-tag")],
-                   padding=(m(tag["padding-y"]), m(tag["padding-x"])), quer="CENTER",
-                   fuellung=f(tag["hintergrund"]), kontur=kontur(tag["rahmen"]),
-                   radius=m(tag["radius"]))
-            for t in z["tags"]],
-            abstand=m(zt["abstand"]), padding=(m(zt["abstand-oben"]), 0, 0, 0),
-            breite=innen, umbruch=m(zt["abstand"])))
-    if unten:
-        teile.append(rahmen("Inhalt", "VERTICAL", unten, abstand=m(zk["gruppen-abstand"]),
-                            breite="FILL"))
-    return rahmen("Zertifikatskarte", "VERTICAL", teile, abstand=m(zk["abstand"]),
-                  padding=m(zk["padding"]), breite="FILL", radius=m(zk["radius"]),
-                  fuellung=f(zk["hintergrund"]),
-                  kontur=kontur(zk["kante"], seiten=[0, 0, 0, 1]),
-                  schatten=schatten(zk["schatten"]))
+def zertbild(e):
+    """Bild eingepasst — ein Rechteck mit dem Seitenverhaeltnis der Datei,
+    scaleMode FIT, nie verzerrt — oder das Platzhalterfeld mit Icon bzw. "+3"."""
+    zb = KOMP["zertbild"]
+    if e.get("bild"):
+        k = bild(f"Zertifikat {e['nr']}", e["bild"], e["breite"], e["hoehe"], skalierung="FIT")
+        k.update(radius=zb["radius"], kontur=kontur(zb["rahmen"]))
+        return k
+    inhalt = (text("Anzahl", f"+{e['anzahl']}", "zert-anzahl") if e["art"] == "buendel"
+              else svg("Icon", "icon-zertifikat.svg", zb["icon"], zb["icon"]))
+    return rahmen(f"Platzhalter {e['nr']}", "HORIZONTAL", [inhalt], breite=e["breite"],
+                  hoehe=e["hoehe"], haupt="CENTER", quer="CENTER",
+                  fuellung=f(zb["platz-hintergrund"]), kontur=kontur(zb["rahmen"]),
+                  radius=zb["radius"])
 
 
-def sektion_zertifikate(daten, labels):
-    za, ra = KOMP["zertifikate"], KOMP["raster"]
-    karten = [zertkarte(z, labels) for z in daten.get("zertifikate") or []]
-    bilder = list(daten.get("zertifikat_bilder") or [])
-    if not karten and not bilder:
+def zerttext(e, g):
+    """Titel und "Aussteller · Jahr", gekuerzt nach der geplanten Zeilenzahl.
+    Das Textfeld ist fest hoch, damit die Kachel auch in Figma 259 bleibt."""
+    kinder = [text("Titel", e["titel"], "karte-titel", breite="FILL", max_zeilen=e["titel_max"])]
+    if e["meta"]:
+        kinder.append(text("Aussteller und Jahr", e["meta"], "zert-aussteller", breite="FILL",
+                           max_zeilen=e["meta_max"]))
+    return rahmen("Text", "VERTICAL", kinder, abstand=g["text_abstand"], breite="FILL",
+                  hoehe=g["text_hoehe"])
+
+
+def buehne(e, g):
+    b = KOMP["zertbuehne"]
+    return rahmen("Buehne", "HORIZONTAL", [zertbild(e)], padding=m(b["padding"]), breite="FILL",
+                  hoehe=g["buehne"][1], haupt="CENTER", quer="CENTER",
+                  fuellung=f(b["hintergrund"]), radius=m(b["radius"]))
+
+
+def qualikarte(karte, labels):
+    """Erworbene Qualifikationen: Titel, darunter Satz und umbrechende
+    Tag-Reihe. Wie die Komponente "Zertifikate Erklaerung" - volle Breite,
+    Kontur innen, kein Schatten. Nichts wird gekuerzt."""
+    q, qt, qg = KOMP["qualikarte"], KOMP["qualitag"], KOMP["qualitags"]
+    block = []
+    if karte["text"]:
+        block.append(text("Text", karte["text"], "quali-text", breite="FILL"))
+    if karte["tags"]:
+        # Abstand oben als Padding der Reihe, wie in der Komponente; Zeilen
+        # brechen mit demselben Abstand um.
+        block.append(rahmen("Tags", "HORIZONTAL", [
+            rahmen("Tag", "HORIZONTAL", [text("Tag", t, "quali-tag")],
+                   padding=(m(qt["padding-y"]), m(qt["padding-x"])),
+                   fuellung=f(qt["hintergrund"]), kontur=kontur(qt["rahmen"]),
+                   radius=m(qt["radius"]))
+            for t in karte["tags"]],
+            abstand=m(qg["abstand"]), padding=(m(qg["abstand"]), 0, 0, 0), breite="FILL",
+            umbruch=m(qg["abstand"])))
+    return rahmen("Erworbene Qualifikationen", "VERTICAL", [
+        text("Titel", labels["qualifikationen"], "quali-titel", breite="FILL"),
+        rahmen("Block", "VERTICAL", block, abstand=m(q["gruppen-abstand"]), breite="FILL")],
+        abstand=m(q["abstand"]), padding=m(q["padding"]), breite="FILL",
+        radius=m(q["radius"]), fuellung=f(q["hintergrund"]), kontur=kontur(q["rahmen"]))
+
+
+def sektion_zertifikate(zp, labels):
+    """Ueberschrift, Qualifikationskarte (falls belegt), vier Kacheln je Reihe -
+    gebaut wie die Skill Card."""
+    if not zp:
         return None
-    oben = [sektionstitel("icon-zertifikat.svg", labels["zertifikate"])]
-    if karten:
-        oben.append(rahmen("Zertifikatskarten", "VERTICAL", karten,
-                           abstand=m(za["karten-abstand"]), breite="FILL"))
-    teile = [rahmen("Zertifikate oben", "VERTICAL", oben, abstand=m(za["titel-abstand"]),
-                    breite="FILL")]
-    if bilder:
-        zeilen = []
-        for i in range(0, len(bilder), ra["spalten"]):
-            zeilen.append(rahmen(f"Zeile {len(zeilen) + 1}", "HORIZONTAL", [
-                bild(f"Zertifikat {nr}", b, ra["kachel-breite"], ra["kachel-hoehe"])
-                for nr, b in enumerate(bilder[i:i + ra["spalten"]], start=i + 1)],
-                abstand=m(ra["abstand"])))
-        teile.append(rahmen("Raster", "VERTICAL", zeilen, abstand=m(ra["abstand"]),
-                            breite="FILL"))
-    return rahmen("Zertifikate", "VERTICAL", teile, abstand=m(za["abstand"]), breite="FILL")
+    g, t = zp["geometrie"], KOMP["zertkachel"]
+    eintraege = zp["eintraege"]
+    zeilen = [rahmen(f"Zeile {nr}", "HORIZONTAL", [
+        rahmen("Kachel", "VERTICAL", [buehne(e, g), zerttext(e, g)],
+               abstand=m(t["abstand"]), padding=m(t["padding"]), breite=g["breite"],
+               radius=m(t["radius"]), fuellung=f(t["hintergrund"]), kontur=kontur(t["rahmen"]),
+               schatten=schatten(t["schatten"]))
+        for e in eintraege[i:i + g["spalten"]]], abstand=g["spaltenabstand"])
+        for nr, i in enumerate(range(0, len(eintraege), g["spalten"]), start=1)]
+    kinder = [sektionstitel("icon-zertifikat.svg", labels["zertifikate"])]
+    if zp.get("karte"):
+        kinder.append(qualikarte(zp["karte"], labels))
+    kinder.append(rahmen("Kacheln", "VERTICAL", zeilen, abstand=g["zeilenabstand"], breite="FILL"))
+    return rahmen("Zertifikate", "VERTICAL", kinder,
+                  abstand=m(KOMP["zertifikate"]["titel-abstand"]), breite="FILL")
 
 
 def skillkarte(s):
@@ -313,7 +347,7 @@ def skillkarte(s):
         form("rechteck", f"Punkt {i + 1}", p["groesse"], p["groesse"],
              f(p["voll"] if i < punkte else p["leer"]), radius=p["radius"])
         for i in range(p["anzahl"])], abstand=m(p["abstand"]))
-    # Titel fuellt, die Punkte huggen — wie beim Zertifikatstitel.
+    # Titel fuellt, die Punkte huggen.
     karte = rahmen("Skill Card", "VERTICAL", [
         rahmen("Kopf", "HORIZONTAL", [text("Titel", s.get("name"), "karte-titel", breite="FILL"),
                                       reihe],
@@ -395,16 +429,21 @@ def fuss(daten, labels):
 
 def _bilder(knoten):
     if knoten.get("typ") == "bild" and knoten.get("datei"):
-        yield {"knoten": knoten["name"], "datei": knoten["datei"]}
+        yield {"knoten": knoten["name"], "datei": knoten["datei"],
+               "scaleMode": knoten.get("skalierung", "FILL")}
     for kind in knoten.get("kinder", []):
         yield from _bilder(kind)
 
 
 def plan_bauen(daten, pdf=None):
     sprache = daten.get("sprache", "de")
-    labels = dict(BESCHRIFTUNG.get(sprache, BESCHRIFTUNG["de"]))
-    if daten.get("zertifikate_titel"):
-        labels["zertifikate"] = daten["zertifikate_titel"]
+    labels = beschriftung(daten)
+    # Wie im PDF: KI-Kategorie zuerst, Zertifikate geplant und gebuendelt.
+    daten, ki_hinweis = kompetenzen_ordnen(daten)
+    if ki_hinweis:
+        hinweise.append(ki_hinweis)
+    zplan, zert_hinweise = zertifikate.planen(daten, DS, labels)
+    hinweise.extend(zert_hinweise)
     person = daten.get("person") or {}
     name = " ".join(str(person.get("name") or "Skillmatrix").split())
     r = KOMP["rumpf"]
@@ -423,7 +462,7 @@ def plan_bauen(daten, pdf=None):
 
     schritte = [{"was": "Rahmen mit Kopf, Hero, leerem Rumpf und Fuss",
                  "eltern": "SEITE", "knoten": wurzel}]
-    zert = sektion_zertifikate(daten, labels)
+    zert = sektion_zertifikate(zplan, labels)
     zert_schritt = [{"was": "Zertifikate", "eltern": "Rumpf", "knoten": zert}] if zert else []
     kompetenzen = []
     if daten.get("kompetenzen"):
@@ -458,12 +497,159 @@ def plan_bauen(daten, pdf=None):
         "schritte": [{"nr": i + 1, **s} for i, s in enumerate(schritte)],
         "uploads": [b for s in schritte for b in _bilder(s["knoten"])],
     }
+    if zplan:
+        plan["zertifikate"] = {
+            "kacheln": len(zplan["eintraege"]),
+            "karte": ({"hoehe": zplan["karte"]["hoehe"], "tags": len(zplan["karte"]["tags"]),
+                       "tag_reihen": zplan["karte"]["tag_reihen"]} if zplan.get("karte") else None),
+            "gebuendelt": [{"aussteller": e["aussteller"] or "Sammelkachel", "anzahl": e["anzahl"]}
+                           for e in zplan["eintraege"] if e["art"] == "buendel"],
+            "hoehe_geplant": zplan["hoehe"], "grenze": zplan["grenze"]}
+        if zplan["hoehe"] > zplan["grenze"]:
+            hinweise.append(f"Zertifikatssektion im Plan {zplan['hoehe']:g}pt — ueber der "
+                            f"Grenze von {zplan['grenze']}pt.")
     if pdf:
         hoehe = pdf_hoehe(pdf)
         if hoehe:
             # Sollwert zum Gegenpruefen. Der Frame selbst huggt.
             plan["rahmen"]["hoehe_pdf"] = hoehe
     return plan
+
+
+# --- Hoehen nachrechnen -----------------------------------------------------
+
+def _zeile_pt(typo):
+    z = typo["zeilenhoehe"]
+    return z["wert"] if z["einheit"] == "PIXELS" else z["wert"] / 100 * typo["groesse"]
+
+
+def _konturen(k):
+    """[oben, rechts, unten, links] der Kontur, soweit sie im Layout zaehlt —
+    wie strokesIncludedInLayout im Baukasten (nur Auto-Layout-Rahmen)."""
+    ko = k.get("kontur")
+    if not ko or not ko.get("im_layout", True) or k.get("layout") not in ("VERTICAL", "HORIZONTAL"):
+        return [0, 0, 0, 0]
+    return list(ko["seiten"]) if ko.get("seiten") else [ko["breite"]] * 4
+
+
+def masse(k, verfuegbar, schaetzer):
+    """(breite, hoehe) eines Planknotens nach den Auto-Layout-Regeln, die der
+    Baukasten setzt. verfuegbar: Breite fuer ein FILL-Kind. Texte werden mit
+    zertifikate.Schaetzer umbrochen — eine Gegenrechnung, Figma rechnet beim
+    Bauen selbst. Breiten von HUG-Texten bleiben 0 (fuer Hoehen unerheblich)."""
+    typ = k["typ"]
+    if typ in ("bild", "rechteck", "ellipse", "svg"):
+        return k["breite"], k["hoehe"]
+    if typ == "text":
+        zeile = _zeile_pt(k["typo"])
+        b = k["breite"] if isinstance(k["breite"], (int, float)) else (
+            verfuegbar if k["breite"] == "FILL" else None)
+        if b is None:
+            return 0, (k["text"].count("\n") + 1) * zeile
+        n = sum(max(schaetzer.zeilen([(z, k["verwendung"])], b), 1)
+                for z in k["text"].split("\n"))
+        if k.get("max_zeilen"):
+            n = min(n, k["max_zeilen"])
+        return b, n * zeile
+    pad = k.get("padding") or [0, 0, 0, 0]
+    ko = _konturen(k)
+    oben, rechts, unten, links = (pad[i] + ko[i] for i in range(4))
+    breite = k["breite"] if isinstance(k["breite"], (int, float)) else (
+        verfuegbar if k["breite"] == "FILL" else None)
+    layout = k.get("layout")
+    kinder = [c for c in k.get("kinder", []) if not c.get("absolut")]
+    innen = breite - links - rechts if breite is not None else None
+    abstand = k.get("abstand", 0) * max(len(kinder) - 1, 0)
+    if layout == "VERTICAL":
+        groessen = [masse(c, innen, schaetzer) for c in kinder]
+        h, b = sum(g[1] for g in groessen) + abstand, max([g[0] for g in groessen] or [0])
+    elif layout == "HORIZONTAL" and k.get("umbruch"):
+        # Umbrechende Reihe (Tags): Zeilen wie zertifikate.tag_reihen.
+        breiten = [_hug_breite(c, schaetzer) for c in kinder]
+        reihen = zertifikate.tag_reihen(breiten, innen, k.get("abstand", 0))
+        zeile = max([masse(c, None, schaetzer)[1] for c in kinder] or [0])
+        h, b = reihen * zeile + max(reihen - 1, 0) * k["umbruch"], innen or 0
+    elif layout == "HORIZONTAL":
+        fest = [None if c.get("breite") == "FILL" else masse(c, None, schaetzer) for c in kinder]
+        fuellen = fest.count(None)
+        rest = None
+        if fuellen and innen is not None:
+            rest = (innen - sum(g[0] for g in fest if g) - abstand) / fuellen
+        groessen = [g or masse(c, rest, schaetzer) for g, c in zip(fest, kinder)]
+        h, b = max([g[1] for g in groessen] or [0]), sum(g[0] or 0 for g in groessen) + abstand
+    elif layout == "GRID":
+        r = k["raster"]
+        zelle = (innen - (r["spalten"] - 1) * r["spaltenabstand"]) / r["spalten"]
+        groessen = [masse(c, zelle, schaetzer) for c in kinder]
+        reihen = [max(g[1] for g in groessen[i:i + r["spalten"]])
+                  for i in range(0, len(groessen), r["spalten"])]
+        h, b = sum(reihen) + r["zeilenabstand"] * max(len(reihen) - 1, 0), innen or 0
+    else:
+        h, b = 0, 0
+    hoehe = k["hoehe"] if isinstance(k["hoehe"], (int, float)) else h + oben + unten
+    if k.get("min_hoehe"):
+        hoehe = max(hoehe, k["min_hoehe"])
+    return (breite if breite is not None else b + links + rechts), hoehe
+
+
+def _hug_breite(k, schaetzer):
+    """Breite eines Knotens, der seinen Inhalt huggt (Tag): Texte geschaetzt."""
+    if k["typ"] == "text":
+        return schaetzer.breite(k["text"], k["verwendung"])
+    if isinstance(k.get("breite"), (int, float)):
+        return k["breite"]
+    pad, ko = k.get("padding") or [0, 0, 0, 0], _konturen(k)
+    kinder = [_hug_breite(c, schaetzer) for c in k.get("kinder", [])]
+    if k.get("layout") == "HORIZONTAL":
+        innen = sum(kinder) + k.get("abstand", 0) * max(len(kinder) - 1, 0)
+    else:
+        innen = max(kinder or [0])
+    return innen + pad[1] + pad[3] + ko[1] + ko[3]
+
+
+def gesamtbaum(plan):
+    """Alle Bauschritte zu einem Baum zusammengesetzt, wie er in Figma steht."""
+    import copy
+    wurzel = copy.deepcopy(plan["schritte"][0]["knoten"])
+    gemerkt = {}
+
+    def merken(k):
+        if k.get("merken") and k.get("typ") == "rahmen":
+            gemerkt[k["name"]] = k
+        for kind in k.get("kinder", []):
+            merken(kind)
+    merken(wurzel)
+    for schritt in plan["schritte"][1:]:
+        knoten = copy.deepcopy(schritt["knoten"])
+        gemerkt[schritt["eltern"]]["kinder"].append(knoten)
+        merken(knoten)
+    return wurzel
+
+
+def planhoehe(plan):
+    """Traegt die nachgerechneten Hoehen in den Plan ein: Rahmen gesamt und
+    Zertifikatssektion. Der Rahmen wird knapp geschaetzt - er wird gegen das
+    fertige PDF gehalten -, die Zertifikatssektion so grosszuegig wie in
+    zertifikate.py, gegen deren Planung sie gehalten wird."""
+    schaetzer = zertifikate.Schaetzer(DS)
+    plan["rahmen"]["hoehe_geschaetzt"] = round(
+        masse(gesamtbaum(plan), KOMP["seite"]["breite"],
+              zertifikate.Schaetzer(DS, sicherheit=1.0))[1], 1)
+    for schritt in plan["schritte"]:
+        if schritt["was"] == "Zertifikate":
+            hoehe = round(masse(schritt["knoten"], KOMP["seite"]["inhalt"], schaetzer)[1], 2)
+            plan["zertifikate"]["hoehe_plan"] = hoehe
+            if hoehe > plan["zertifikate"]["grenze"]:
+                hinweise.append(f"Zertifikatssektion im Plan nachgerechnet {hoehe:g}pt — ueber "
+                                f"der Grenze von {plan['zertifikate']['grenze']}pt.")
+            if abs(hoehe - plan["zertifikate"]["hoehe_geplant"]) > 1:
+                hinweise.append(f"Zertifikatssektion: Plan {hoehe:g}pt, geplant "
+                                f"{plan['zertifikate']['hoehe_geplant']:g}pt — Bauplan und "
+                                "zertifikate.py rechnen verschieden, bitte melden.")
+    soll = plan["rahmen"].get("hoehe_pdf")
+    if soll and abs(plan["rahmen"]["hoehe_geschaetzt"] - soll) > 20:
+        hinweise.append(f"Rahmenhoehe nachgerechnet {plan['rahmen']['hoehe_geschaetzt']:g}pt, "
+                        f"PDF {soll:g}pt — mehr als 20pt Unterschied.")
 
 
 def pdf_hoehe(pfad):
@@ -506,6 +692,7 @@ def main():
     ziel.parent.mkdir(parents=True, exist_ok=True)
 
     plan = plan_bauen(daten, pdf)
+    planhoehe(plan)
     ziel.write_text(json.dumps(plan, ensure_ascii=False, indent=1), encoding="utf-8")
 
     print(f"{ziel} geschrieben — {len(plan['schritte'])} Bauschritte, "
@@ -513,6 +700,11 @@ def main():
     for s in plan["schritte"]:
         groesse = len(json.dumps(s["knoten"], ensure_ascii=False, separators=(",", ":")))
         print(f"  {s['nr']:2}. {s['was']}  (in: {s['eltern']}, {groesse / 1000:.0f} KB)")
+    if plan.get("zertifikate"):
+        z = plan["zertifikate"]
+        print(f"Zertifikate: {z['kacheln']} Kacheln, Sektion {z['hoehe_plan']:g}pt "
+              f"(geplant {z['hoehe_geplant']:g}, Grenze {z['grenze']})")
+    print(f"Rahmenhoehe nachgerechnet (Texte geschaetzt): {plan['rahmen']['hoehe_geschaetzt']:g}pt")
     if plan["rahmen"].get("hoehe_pdf"):
         print(f"Sollhoehe aus dem PDF: {plan['rahmen']['hoehe_pdf']}pt")
     if hinweise:

@@ -15,33 +15,68 @@
   },
   "zertifikate": [
     {
-      "titel": "Anthropic AI Certificate & Google UX Design Certificate & Microsoft UI UX Certificate",
-      "aussteller": "Anthropic & Google & Microsoft",
-      "jahr": "2026",
-      "beschreibung": "Umfassende Weiterbildung in UX Research, Wireframing, Prototyping und Usability Testing mit praxisnahen Portfolio-Projekten.",
-      "tags": [
-        "AI Skills",
-        "Agentic Coding",
-        "AI for UX / UI",
-        "User Interface",
-        "Figma",
-        "Design Systems",
-        "Stakeholder Management",
-        "Prototyping"
-      ]
+      "titel": "AI Fundamentals",
+      "aussteller": "Google",
+      "datum": "Juni 2026",
+      "bild": "material/zert-01-google-ai-fundamentals.png"
+    },
+    {
+      "titel": "Claude Code in Action",
+      "aussteller": "Anthropic",
+      "datum": "März 2026",
+      "bild": "material/zert-05-claude-code-in-action.png"
+    },
+    {
+      "titel": "AI Fluency: AI Capabilities & Limitations",
+      "aussteller": "Anthropic",
+      "datum": "2026",
+      "bild": "material/zert-02-ai-fluency-capabilities.png"
+    },
+    {
+      "titel": "Introduction to Agent Skills",
+      "aussteller": "Anthropic",
+      "datum": "2026",
+      "bild": "material/zert-03-agent-skills.png"
+    },
+    {
+      "titel": "Introduction to Subagents",
+      "aussteller": "Anthropic",
+      "datum": "2026",
+      "bild": "material/zert-04-subagents.png"
+    },
+    {
+      "titel": "AI Fluency for Small Businesses",
+      "aussteller": "Anthropic",
+      "datum": "2026",
+      "bild": "material/zert-06-ai-fluency-small-business.png"
+    },
+    {
+      "titel": "Google UX Design Certificate",
+      "aussteller": "Google",
+      "datum": "2026"
+    },
+    {
+      "titel": "Microsoft UI UX Certificate",
+      "aussteller": "Microsoft",
+      "datum": "2026"
     }
   ],
-  "zertifikat_bilder": [
-    "material/zert-01-google-ai-fundamentals.png",
-    "material/zert-02-ai-fluency-capabilities.png",
-    "material/zert-03-agent-skills.png",
-    "material/zert-04-subagents.png",
-    "material/zert-05-claude-code-in-action.png",
-    "material/zert-06-ai-fluency-small-business.png"
-  ],
+  "qualifikationen": {
+    "text": "Umfassende Weiterbildung in UX Research, Wireframing, Prototyping und Usability Testing mit praxisnahen Portfolio-Projekten.",
+    "tags": [
+      "AI Skills",
+      "Agentic Coding",
+      "AI for UX / UI",
+      "User Interface",
+      "Figma",
+      "Design Systems",
+      "Stakeholder Management",
+      "Prototyping"
+    ]
+  },
   "kompetenzen": [
     {
-      "kategorie": "AI",
+      "kategorie": "AI & Emerging Tech",
       "skills": [
         {
           "name": "Vibe Coding",
@@ -67,11 +102,46 @@
           "name": "Guard Rails",
           "punkte": 5,
           "beschreibung": "Definition von Regeln und Sicherheitsmechanismen für zuverlässige KI-Systeme."
+        },
+        {
+          "name": "Anthropic Design",
+          "punkte": 5,
+          "beschreibung": "KI-gestützte Konzeption, Ideation und Designprozesse."
         }
       ]
     },
     {
-      "kategorie": "Strategie & Research",
+      "kategorie": "Interaction & Visual Design",
+      "skills": [
+        {
+          "name": "Wireframing & Prototyping",
+          "punkte": 5,
+          "beschreibung": "Von Low-Fidelity-Wireframes bis hin zu interaktiven High-Fidelity-Prototypen."
+        },
+        {
+          "name": "Information Architecture",
+          "punkte": 5,
+          "beschreibung": "Strukturierung komplexer Informationen."
+        },
+        {
+          "name": "Konzeption",
+          "punkte": 5,
+          "beschreibung": "Ideen zu validierten und tragfähigen Konzepten."
+        },
+        {
+          "name": "Responsive Web Design",
+          "punkte": 4,
+          "beschreibung": "Mobile-First-Ansätze für konsistente Nutzererlebnisse."
+        },
+        {
+          "name": "Microinteractions",
+          "punkte": 4,
+          "beschreibung": "Animationen für unmittelbares Feedback."
+        }
+      ]
+    },
+    {
+      "kategorie": "User Research & Insights",
       "skills": [
         {
           "name": "User Interviews & Testing",
@@ -89,30 +159,15 @@
           "beschreibung": "Ergebnisorientierte und nutzerzentrierte Produkte."
         },
         {
-          "name": "Information Architecture",
-          "punkte": 5,
-          "beschreibung": "Strukturierung komplexer Informationen."
-        },
-        {
           "name": "Workshop Facilitation",
           "punkte": 3,
           "beschreibung": "Workshops und Abstimmung relevanter Stakeholder."
-        },
-        {
-          "name": "Concepts",
-          "punkte": 5,
-          "beschreibung": "Ideen zu validierten und tragfähigen Konzepten."
         }
       ]
     },
     {
-      "kategorie": "Interaction & Visual Design",
+      "kategorie": "Design Systems & Scaling",
       "skills": [
-        {
-          "name": "Wireframing & Prototyping",
-          "punkte": 5,
-          "beschreibung": "Von Low-Fidelity-Wireframes bis hin zu interaktiven High-Fidelity-Prototypen."
-        },
         {
           "name": "Design Systems",
           "punkte": 5,
@@ -122,16 +177,6 @@
           "name": "Design System Testing",
           "punkte": 5,
           "beschreibung": "Validierung von Komponenten hinsichtlich Konsistenz, Barrierefreiheit und Edge Cases."
-        },
-        {
-          "name": "Responsive Web Design",
-          "punkte": 4,
-          "beschreibung": "Mobile-First-Ansätze für konsistente Nutzererlebnisse."
-        },
-        {
-          "name": "Micro-interactions",
-          "punkte": 4,
-          "beschreibung": "Animationen für unmittelbares Feedback."
         }
       ]
     },
@@ -147,11 +192,6 @@
           "name": "React / TypeScript / Vite",
           "punkte": 5,
           "beschreibung": "Entwicklung produktionsreifer Frontends und wiederverwendbarer Komponenten."
-        },
-        {
-          "name": "Anthropic Design",
-          "punkte": 5,
-          "beschreibung": "KI-gestützte Konzeption, Ideation und Designprozesse."
         }
       ]
     }

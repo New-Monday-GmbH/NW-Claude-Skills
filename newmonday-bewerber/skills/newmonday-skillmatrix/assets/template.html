@@ -48,51 +48,65 @@
 
 {# Die Zertifikatssektion als Makro: sie steht standardmaessig vor den
    Kernkompetenzen (Wissem-Vorlage), mit "zertifikate_position": "ende"
-   dahinter (Florian-Variante). #}
+   dahinter (Florian-Variante). Was gezeigt wird, plant scripts/zertifikate.py
+   (z): Qualifikationskarte, Reihenfolge, Buendel, Bildgroessen, Zeilengrenzen.
+   Die Werte im style-Attribut sind dort aus tokens.json gerechnet - wie die
+   Schattenbilder. g traegt die Masse der Kacheln. #}
+
+{# Bild eingepasst (Seitenverhaeltnis der Datei, nie beschnitten, nie verzerrt),
+   sonst das Platzhalterfeld: Icon, bei einem Buendel "+3". #}
+{% macro zertbild(e) -%}
+  {%- if e.src -%}
+  <img class="zertbild" src="{{ e.src }}" alt="" style="width: {{ e.breite }}pt; height: {{ e.hoehe }}pt">
+  {%- else -%}
+  <div class="zertplatz" style="width: {{ e.breite }}pt; height: {{ e.hoehe }}pt">
+    {%- if e.art == 'buendel' %}<span class="t-zert-anzahl">+{{ e.anzahl }}</span>
+    {%- else %}<img class="zertplatz__icon" src="icon-zertifikat.svg" alt="">{% endif -%}
+  </div>
+  {%- endif -%}
+{%- endmacro %}
+
 {% macro zertsektion() %}
-  {% if zertifikate or zertifikat_bilder %}
+  {% if z %}
   <section class="sektion zertsektion">
     <h2 class="sektionstitel t-sektion-titel">
       <img class="sektionstitel__icon" src="icon-zertifikat.svg" alt=""><span>{{ t.zertifikate }}</span>
     </h2>
-
-    {% if zertifikate %}
-    <div class="zertkarten">
-      {% for z in zertifikate %}
-      <div class="zertkarte" data-schatten="zertkarte" id="schatten-zert-{{ loop.index }}">
-        {{ schatten_von('schatten-zert-' ~ loop.index) }}
-        <div class="zertkarte__kopf">
-          <div class="zertkarte__titel t-zert-titel">{{ z.titel }}</div>
-          {% if z.jahr %}<span class="jahr t-zert-jahr">{{ z.jahr }}</span>{% endif %}
-        </div>
-        {% if z.aussteller %}<div class="zertkarte__aussteller t-zert-aussteller">{{ t.aussteller }} {{ z.aussteller }}</div>{% endif %}
-        {% if z.beschreibung or z.tags %}
-        <div class="zertkarte__unten">
-          {% if z.beschreibung %}<p class="t-zert-beschreibung">{{ z.beschreibung }}</p>{% endif %}
-          {% if z.tags %}
-          <div class="zertkarte__tags">
-            {% for tag in z.tags %}<span class="zert-tag t-zert-tag">{{ tag }}</span>{% endfor %}
-          </div>
-          {% endif %}
+    {# Erworbene Qualifikationen: Titel, Satz, Tags - nie gekuerzt. #}
+    {% if z.karte %}
+    <div class="qualikarte">
+      <div class="t-quali-titel">{{ t.qualifikationen }}</div>
+      <div class="qualikarte__block">
+        {% if z.karte.text %}<p class="t-quali-text">{{ z.karte.text }}</p>{% endif %}
+        {% if z.karte.tags %}
+        <div class="qualikarte__tags{% if z.karte.text %} qualikarte__tags--nach-text{% endif %}">
+          {% for tag in z.karte.tags %}<span class="qualitag t-quali-tag">{{ tag }}</span>{% endfor %}
         </div>
         {% endif %}
       </div>
-      {% endfor %}
     </div>
     {% endif %}
-
-    {# Bilderraster: drei Kacheln je Zeile, mittig gefuellt. #}
-    {% if zertifikat_bilder %}
-    <div class="zertbilder">
-      {% for zeile in zertifikat_bilder | batch(raster_spalten) %}
-      <div class="zertbilder__zeile">
-        {% for bild in zeile %}
-        <div class="zertbilder__kachel"><img src="{{ bild }}" alt=""></div>
+    {# Vier Kacheln je Reihe: Bild auf der Buehne, darunter Titel und
+       "Aussteller · Jahr", beide nach der geplanten Zeilenzahl mit
+       Auslassungszeichen gekuerzt. #}
+    <div class="zertinhalt">
+      {% for zeile in z.eintraege | batch(g.spalten) %}
+      {% set r = loop.index %}
+      <div class="zk__zeile">
+        {% for e in zeile %}
+        {% set id = 'schatten-zk-' ~ r ~ '-' ~ loop.index %}
+        <div class="zk__kachel" data-schatten="zertkachel" id="{{ id }}">
+          {{ schatten_von(id) }}
+          <div class="zk__buehne">{{ zertbild(e) }}</div>
+          <div class="zk__text" style="min-height: {{ g.text_hoehe }}pt">
+            <div class="t-karte-titel" style="line-clamp: {{ e.titel_max }}">{{ e.titel }}</div>
+            {%- if e.meta %}<div class="zk__meta t-zert-aussteller" style="line-clamp: {{ e.meta_max }}">{{ e.meta }}</div>{% endif %}
+          </div>
+        </div>
         {% endfor %}
       </div>
       {% endfor %}
     </div>
-    {% endif %}
   </section>
   {% endif %}
 {% endmacro %}

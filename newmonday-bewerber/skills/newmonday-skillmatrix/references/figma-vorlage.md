@@ -57,7 +57,7 @@ Alle auf der Komponentenseite. Texte werden direkt auf den Layern der Instanz
 | `Header` | `4001:11603` | Teal-Balken mit `Logo`, 65,16 hoch |
 | `Hero` | `4007:12611` | `Badge`, Name, Rolle, Beschreibung, `Tag Reihe`, `Zertifikate/Profilbild` |
 | `Zertifikate/Profilbild` | `4007:12416` | Fotokarte 437,33 × 435,34, darin `imageArea` und der Verlauf |
-| `Zertifikate Section` | `4007:12765` | Überschrift, `Zertifikate Erklärung` (Karte mit Chips), Bilderraster |
+| `Zertifikate Section` | `4007:12765` | Überschrift, `Zertifikate Erklärung` (Karte mit Chips), Bilderraster – alter Aufbau, wird immer entfernt (Schritt 2) |
 | `Text` (Set) | `4006:12163` | Überschriften, Variante `Variante` |
 | `Zertifikate-Icon` (Set) | `4005:12142` | Sektions-Icons 24 × 24, Variante `Icon` = `Zertifikate`, `Kernkompetenzen`, `Tools` (`4158:10710`) |
 | `Skill Section` | `4008:13204` | Kategorielabel + **sechs** Skill Cards im GRID |
@@ -98,6 +98,19 @@ keine Zertifikate mit, bleiben sonst die Bilder aus der Vorlage stehen — und
 behaupten Qualifikationen, die der Kandidat nie erworben hat. Eine Matrix ohne
 Zertifikatssektion ist vollständig; eine mit fremden Zertifikaten ist eine
 Falschaussage.
+
+**Mit Zertifikaten wird die Sektion genauso entfernt.** Sie zeigt noch die alte
+Karte mit Kante und Chips über dem Bilderraster; Kacheln und die Karte „Erworbene
+Qualifikationen“ (SKILL.md, Schritt 3) haben im Master noch keine Komponente –
+die Karte gibt es bisher nur in Florians Datei (`Zertifikate Erklärung`,
+`2284:964`). An ihre Stelle kommt der Schritt „Zertifikate“ aus dem Bauplan
+(`figma_plan.py`, gebaut mit dem Baukasten aus `references/figma.md`, Eltern
+`Frame 83`), danach an den Anfang
+von `Frame 83` gerückt (`f83.insertChild(0, zertifikate)`; mit
+`"zertifikate_position": "ende"` bleibt er hinten). Das ist die einzige Stelle
+des Klons mit rohen Werten – aus denselben Tokens wie das PDF. Bilder kommen
+mit `scaleMode: "FIT"` auf die Rechtecke `Zertifikat n` (`references/figma.md`,
+„Bilder“).
 
 Dieselbe Regel gilt für jeden anderen Block, für den das Material nichts
 hergibt: entfernen, nicht mit Vorlageninhalt stehen lassen.
@@ -275,7 +288,9 @@ else {
 
 Reihenfolge im Rumpf danach: **Zertifikate → Kernkompetenzen → Tools**. Mit
 `"zertifikate_position": "ende"` die Zertifikatssektion ans Ende hängen
-(`f83.appendChild(zert)`).
+(`f83.appendChild(zert)`). Die Kategorien kommen in der Reihenfolge des Plans –
+**eine KI-Kategorie zuerst** (SKILL.md, Schritt 2a), auch wenn die JSON sie
+weiter hinten führt.
 
 ### 7. Das Foto
 
@@ -326,8 +341,11 @@ es in ein Kundendokument geht.
 ```js
 return {
   instanzen: klon.findAll(n => n.type === "INSTANCE").length,   // nichts detached
+  // "Anthropic" stand frueher mit drin - es kam nur aus der Zertifikatskarte der
+  // Vorlage, die jetzt immer entfernt wird; echte Anthropic-Zertifikate des
+  // Kandidaten sind kein Rest.
   reste: klon.findAllWithCriteria({types:["TEXT"]})
-             .filter(t => /Wissem|Kordi|Anthropic/i.test(t.characters)).length,  // 0
+             .filter(t => /Wissem|Kordi/i.test(t.characters)).length,  // 0
   textstyles: (await figma.getLocalTextStylesAsync()).length,   // unveraendert
   vorlage: (await figma.getNodeByIdAsync("4158:4223")).height,  // 3776,55, unberuehrt
 };
@@ -348,8 +366,8 @@ sie systemkonform um:
   hinaus. Im PDF endet sie 10pt vor der rechten Kante (wie links).
 - **Erste Kachelreihe zu hoch:** In `Zertifikate Section` ist die mittlere Kachel
   der ersten Reihe ein loses Rechteck (300 hoch) statt einer `Zertifikate`-Instanz;
-  die Reihe ist dadurch 300 statt 278,05 hoch. Im PDF sind alle Kacheln
-  380 × 278,05.
+  die Reihe ist dadurch 300 statt 278,05 hoch. Seit 2026-10-03 ohne Folgen – die
+  Sektion wird im Klon immer ersetzt.
 - **Master-Komponente `Skill Section` mit anderem Raster:** Die Komponente hat
   Kartenabstände von 16, ihre Karten füllen die Spalte (im Master 430,78, in der
   Vorlagenbreite 385,33), die Label-Linie ist an `base/white` gebunden; die

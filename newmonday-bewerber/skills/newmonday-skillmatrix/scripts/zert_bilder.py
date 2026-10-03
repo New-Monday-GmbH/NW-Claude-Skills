@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
-"""Bereitet Zertifikate fuer das Bilderraster der Skillmatrix auf.
+"""Bereitet Zertifikate fuer die Zertifikatssektion der Skillmatrix auf.
 
     python3 scripts/zert_bilder.py zert1.pdf zert2.png zert3.jpg arbeit/zertifikate/
 
 Nimmt beliebig viele Zertifikate als PDF oder Bild, das letzte Argument ist der
 Zielordner. Aus PDFs wird die erste Seite gerendert (150 dpi), Bilder werden
-nach RGB gewandelt und auf maximal 1600px Breite gebracht. Die Reihenfolge der
-Argumente ist die Reihenfolge im Raster — die Dateinamen tragen deshalb eine
-laufende Nummer, damit sie sortiert bleiben.
+nach RGB gewandelt und auf maximal 1600px Breite gebracht. Die Dateinamen
+tragen eine laufende Nummer in der Reihenfolge der Argumente — am besten
+neueste zuerst, so wie die Eintraege in der JSON stehen.
 
-Die Kacheln im Layout sind 380 x 278,05pt (assets/tokens.json) und werden mittig
-gefuellt (cover): stark abweichende Formate verlieren an den Raendern etwas
-Bild. Das Skript meldet je Datei das Seitenverhaeltnis, damit Ausreisser
-auffallen, bevor sie beschnitten im Dokument stehen.
+Jedes Bild gehoert danach in das Feld "bild" seines Zertifikats (SKILL.md,
+Schritt 3). Im Layout wird es in seine Flaeche eingepasst: Seitenverhaeltnis
+der Datei, nie beschnitten, nie verzerrt (scripts/zertifikate.py). Ein Format,
+das stark vom Kachelformat 41 : 30 abweicht (assets/tokens.json,
+zertbild.platz-format), wirkt deshalb klein — das Skript meldet solche
+Ausreisser, damit vorher ein besserer Ausschnitt gesucht werden kann.
 """
 import shutil
 import subprocess
@@ -23,9 +25,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import design_system  # noqa: E402  — nach sys.path.insert
 
-# Seitenverhaeltnis der Kachel im Raster (Breite / Hoehe), aus assets/tokens.json.
-_RASTER = design_system.laden()["komponenten"]["raster"]
-KACHEL = _RASTER["kachel-breite"] / _RASTER["kachel-hoehe"]
+# Kachelformat (Breite / Hoehe) der Vorlage, aus assets/tokens.json.
+KACHEL = design_system.laden()["komponenten"]["zertbild"]["platz-format"]
 MAX_BREITE = 1600
 
 
@@ -79,16 +80,20 @@ def main():
         abweichung = (b / h) / KACHEL
         hinweis = ""
         if abweichung > 1.25 or abweichung < 0.8:
-            hinweis = ("  — weicht deutlich vom Kachelformat ab, wird im "
-                       "Raster mittig beschnitten")
+            hinweis = ("  — weicht deutlich vom Kachelformat ab, wirkt eingepasst "
+                       "klein (beschnitten wird nichts)")
         ergebnisse.append(ausgabe)
         print(f"{ausgabe}  ({b}x{h}px, Verhaeltnis {b / h:.2f}){hinweis}")
 
     if ergebnisse:
-        print("\nFuer die skillmatrix.json, in dieser Reihenfolge:")
-        print("  \"zertifikat_bilder\": [")
+        # Titel, Aussteller und Datum stehen auf dem Zertifikat - ablesen und
+        # eintragen; erraten wird hier nichts.
+        print("\nFuer die skillmatrix.json — je Zertifikat titel, aussteller und datum "
+              "eintragen, neueste zuerst:")
+        print("  \"zertifikate\": [")
         for e in ergebnisse:
-            print(f"    \"{e}\",")
+            print(f"    {{\"titel\": \"\", \"aussteller\": \"\", \"datum\": \"\", "
+                  f"\"bild\": \"{e}\"}},")
         print("  ]")
     else:
         print("Nichts aufbereitet.")

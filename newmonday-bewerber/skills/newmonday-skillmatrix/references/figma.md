@@ -13,7 +13,10 @@ Abstände, Radien, Konturen, Schatten und Textstile stammen aus
 `assets/tokens.json`, derselben Quelle wie das PDF. Hier wird nichts umgerechnet,
 nichts geschätzt und nichts nachgeschlagen — was im Plan steht, wird gesetzt.
 Der Plan bildet den Aufbau der Figma-Vorlage nach: Auto-Layout mit Abständen,
-Konturen innen, Schatten als Effekte, das Kartenraster als GRID-Layout.
+Konturen innen, Schatten als Effekte, das Kartenraster als GRID-Layout. Die
+Zertifikatssektion plant er mit `scripts/zertifikate.py` – dieselbe
+Qualifikationskarte, Reihenfolge, Bündelung und Bildgröße wie im PDF –, die
+KI-Kategorie steht wie dort zuerst.
 
 ## Der Link
 
@@ -153,6 +156,8 @@ async function bau(n, eltern) {
       [k.paddingTop, k.paddingRight, k.paddingBottom, k.paddingLeft] = n.padding;
       k.primaryAxisAlignItems = n.haupt;
       k.counterAxisAlignItems = n.quer;
+      // Umbrechende Reihe (Tags der Qualifikationskarte): Zeilen mit demselben
+      // Abstand wie die Tags nebeneinander.
       if (n.umbruch) { k.layoutWrap = "WRAP"; k.counterAxisSpacing = n.umbruch; }
     }
   }
@@ -179,6 +184,9 @@ async function bau(n, eltern) {
 
   eltern.appendChild(k);
   groesse(k, n);
+  // Nach so vielen Zeilen mit "…" enden - wie line-clamp im PDF. ERST nach
+  // groesse(): textAutoResize = "HEIGHT" setzt die Kuerzung sonst zurueck.
+  if (n.typ === "text" && n.max_zeilen) { k.textTruncation = "ENDING"; k.maxLines = n.max_zeilen; }
   if (n.min_hoehe) k.minHeight = n.min_hoehe;       // Skill Card: nie niedriger als in der Vorlage
   if (n.absolut) {
     if (imAutoLayout(k)) k.layoutPositioning = "ABSOLUTE";   // ZUERST, dann x/y
@@ -218,9 +226,8 @@ Zu den Stellen, die still danebengehen, wenn man sie anders macht:
 - **Konturen liegen innen** und zählen im Auto-Layout mit (`strokesIncludedInLayout`)
   — so rechnet die Vorlage. Einzige Ausnahme ist die Linie unter der Fußfrage
   (`im_layout: false`): Sie liegt auf den untersten 1pt des Abstands.
-- **Einseitige Konturen** (Zertifikatskante links, Linie über dem Rumpf, unter dem
-  Kategorielabel und der Fußfrage) sind `strokeTopWeight` … `strokeLeftWeight`,
-  kein Ersatzrechteck.
+- **Einseitige Konturen** (Linie über dem Rumpf, unter dem Kategorielabel und der
+  Fußfrage) sind `strokeTopWeight` … `strokeLeftWeight`, kein Ersatzrechteck.
 - **Das Kartenraster ist ein GRID**: drei Spalten, Zeilen erst nach den Karten auf
   `HUG`, dann der Rahmen auf `HUG`. Die Karten stehen auf `FILL`/`FILL` — nur so
   sind Karten einer Zeile gleich hoch, ohne feste Höhe. Ein `HUG`-Rahmen mit
@@ -229,7 +236,20 @@ Zu den Stellen, die still danebengehen, wenn man sie anders macht:
   Verlauf wird erst nach seinen Texten unten bündig gesetzt. Die Kontur der Karte
   liegt in Figma über den Kindern — wie in der Komponente.
 - **Schatten sind Effekte** mit den Werten aus `tokens.json` (`Shadows/shadow-xs`
-  an den Skill-Karten, `Shadows/shadow-md` an der Zertifikatskarte).
+  an den Skill-Karten und Zertifikatskacheln). Die Qualifikationskarte hat
+  keinen, nur die Kontur.
+- **Die Tag-Reihe bricht um** (`layoutWrap = "WRAP"`), mit 8 Padding oben und 8
+  Abstand in beide Richtungen – wie die Komponente „Zertifikate Erklärung“.
+  Gesetzt wird das Umbrechen beim Anlegen, wirksam wird es, sobald die Reihe
+  nach `appendChild` auf `FILL` steht. Satz und Tags werden nicht gekürzt.
+- **Zertifikatsbilder haben schon ihr Format.** Jedes Rechteck `Zertifikat n` ist
+  so groß wie das eingepasste Bild – Seitenverhältnis der Datei – und bekommt es
+  mit `scaleMode: "FIT"` (siehe unten). Mit FILL oder einem anderen Rechteck
+  würde beschnitten oder verzerrt.
+- **Feste Höhen in den Kacheln** (Textfeld 73, Bühne 140) und `maxLines` an Titel
+  und „Aussteller · Jahr“ halten die Sektion bei 924 – auch wenn Figma eine Zeile
+  anders umbricht. Die Qualifikationskarte huggt; der Plan rechnet ihre Tags so
+  um, wie das PDF umbricht, Figma kommt höchstens auf so viele Zeilen.
 
 ## Die Bauschritte
 
@@ -245,14 +265,22 @@ und `ELTERN_ID` aus den `ids` der Schritte davor:
 | Schritt | Eltern | liefert in `ids` |
 |---|---|---|
 | 1 Rahmen mit Kopf, Hero, leerem Rumpf, Fuß | Seite (`null`) | Rahmen, `Rumpf`, `Foto` |
-| Zertifikate (falls belegt) | `Rumpf` | `Zertifikat 1` … |
+| Zertifikate (falls belegt) – Überschrift, Qualifikationskarte, Kacheln | `Rumpf` | `Zertifikat 1` … (nur Einträge mit Bild) |
 | Kernkompetenzen: Überschrift, leere Liste | `Rumpf` | `Kategorien` |
 | je Kategorie einer | `Kategorien` | — |
 | Tools (falls welche in der JSON stehen) | `Rumpf` | — |
 
 Die Reihenfolge der Schritte ist die Reihenfolge im Rumpf — mit
 `"zertifikate_position": "ende"` stehen die Zertifikate hinten, der Plan hat das
-schon sortiert. Nach jedem Schritt `get_screenshot` auf den Rahmen; stimmt etwas
+schon sortiert.
+
+Vor dem Bauen die Ausgabe des Planskripts lesen: `plan.zertifikate` nennt
+Kacheln, Karte (Höhe, Tags, Tag-Zeilen), Bündel und die Höhe der Sektion –
+geplant und im Plan nachgerechnet (`hoehe_geplant`, `hoehe_plan`, beide
+höchstens `grenze` 924) –,
+`plan.rahmen.hoehe_geschaetzt` die nachgerechnete Rahmenhöhe. Die Hinweise
+(Bündelung, gekürzte Aussteller, KI-Kategorie nach vorn) sind dieselben wie
+beim Rendern. Nach jedem Schritt `get_screenshot` auf den Rahmen; stimmt etwas
 nicht, erst reparieren, dann weiterbauen.
 
 `use_figma` ist atomar: Ein Skript, das wirft, hat nichts geschrieben. Nach einem
@@ -264,16 +292,19 @@ reparieren, erneut senden.
 Die Platzhalter (`typ: "bild"`) sind leere Rechtecke in Zielgröße; `plan.uploads`
 sagt, welche Datei auf welchen gehört. Je Bild:
 
-1. `upload_assets` mit `fileKey`, `nodeId` (aus `ids`), `count: 1` und
-   `scaleMode: "FILL"`. Das Foto ist schon im Kartenformat zugeschnitten, mit dem
-   Kopf in der Mitte (`kopf_ausschnitt.py`); Zertifikatsbilder füllt FILL mittig,
-   wie `cover` im PDF.
+1. `upload_assets` mit `fileKey`, `nodeId` (aus `ids`), `count: 1` und dem
+   `scaleMode` aus `plan.uploads`: **FILL fürs Foto** – es ist schon im
+   Kartenformat zugeschnitten, mit dem Kopf in der Mitte (`kopf_ausschnitt.py`) –,
+   **FIT für Zertifikate**: Ihr Rechteck hat das Seitenverhältnis der Datei, FIT
+   zeigt das Bild ganz, unbeschnitten und unverzerrt, wie `contain` im PDF.
 2. Die zurückgegebene URL an `figma_assets.py` weiterreichen:
    ```bash
    python3 ${CLAUDE_SKILL_DIR}/scripts/figma_assets.py --paare arbeit/uploads.json
    ```
 
-`nodeId` geht nur bei `count: 1` — mehrere Bilder heißen mehrere Aufrufe. **Nie
+`nodeId` geht nur bei `count: 1` — mehrere Bilder heißen mehrere Aufrufe. (Wer
+`nodeIds` mit mehreren Zielen nutzt: Ein Aufruf trägt nur einen `scaleMode`,
+Foto und Zertifikate also getrennt hochladen.) **Nie
 `upload_assets` ohne `nodeId`**: Ohne Zielknoten landen neue Frames irgendwo auf
 der Seite. `figma.createImageAsync` ist gesperrt, `figma.createImage` bräuchte die
 Bytes im Code — bei einem 160-KB-Foto sprengt das den Cap.
@@ -282,8 +313,11 @@ Bytes im Code — bei einem 160-KB-Foto sprengt das den Cap.
 
 Ein letzter Aufruf: `placeholder = false` am Rahmen, dann `F.height` gegen
 `plan.rahmen.hoehe_pdf` halten. **±20pt sind normal** (Figma und WeasyPrint brechen
-Zeilen minimal anders um), mehr ist ein Hinweis, dass ein Block nicht sitzt. Dazu
-ein `get_screenshot` über den ganzen Rahmen.
+Zeilen minimal anders um), mehr ist ein Hinweis, dass ein Block nicht sitzt.
+Dazu die Höhe des Rahmens `Zertifikate` im Rumpf zurückgeben: **höchstens 924**
+und nahe `plan.zertifikate.hoehe_plan`. Darüber stimmt etwas am Bau, nicht an den
+Daten – nichts von Hand stauchen, den Schritt prüfen. Dann ein `get_screenshot`
+über den ganzen Rahmen.
 
 ## Was in einer fremden Datei nicht passiert
 
@@ -307,6 +341,7 @@ Satz dazu, was an Figma nicht ging:
 | `unloaded font` | Schnittname anders geschrieben als in `plan.schriften` |
 | `HUG`/`FILL` wird abgelehnt | vor `appendChild` gesetzt, oder `FILL` ohne Auto-Layout-Eltern |
 | Textknoten auf Nullbreite | `FILL` ohne vorher `textAutoResize = "HEIGHT"` |
-| Chips stehen alle in einer Zeile | `layoutWrap = "WRAP"` ohne feste Breite am Rahmen |
+| Zertifikatsbild beschnitten oder leer gerändert | mit `scaleMode: "FILL"` hochgeladen statt FIT, oder Rechteck nicht aus dem Plan |
+| Zertifikatssektion höher als 924 | `maxLines` fehlt an einem Titel, eine feste Höhe (Textfeld 73, Bühne 140) wurde zu HUG, oder die Tag-Reihe bricht nicht um (`layoutWrap` fehlt, Reihe nicht auf FILL) |
 | Karten einer Zeile ungleich hoch | Kartenraster nicht als GRID gebaut oder Zeilen nicht auf `HUG` |
 | Upload hängt oder bricht ab | im Browser-Chat blockt der Proxy fremde Domains |

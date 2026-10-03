@@ -23,7 +23,16 @@ Schriften, Textstile, Farben. Weicht es ab, endet das Skript mit Code 2.
 
 Sucht sich die Render-Engine selbst: WeasyPrint (bevorzugt), sonst headless
 Chrome, sonst wkhtmltopdf. Prueft ausserdem die Daten auf Auffaelligkeiten und
-schreibt sie nach stderr — korrigiert wird nichts.
+schreibt sie nach stderr — darunter jedes Attribut ausserhalb seiner
+Katalog-Kategorie (verwandt: Hinweis, fachfremd: WARNUNG, Tabelle VERWANDT) und
+jeder Name, der nicht der Katalogform der Dokumentsprache entspricht
+(references/attribute-katalog.md). Korrigiert wird nichts — mit zwei
+Ausnahmen, die
+gemeldet werden und die figma_plan.py genauso anwendet: Die KI-Kategorie
+rueckt an die erste Stelle der Kernkompetenzen, und die Zertifikate werden
+nach Datum sortiert und, wo der Platz nicht reicht, je Aussteller gebuendelt
+(scripts/zertifikate.py). Die Zertifikatssektion wird im Layout vermessen;
+ueber 924pt (tokens.json) gibt es einen Hinweis mit der Ueberschreitung.
 """
 import json
 import math
@@ -37,9 +46,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import design_system  # noqa: E402  — nach sys.path.insert
+import zertifikate  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
+KATALOG = ROOT / "references" / "attribute-katalog.md"
 
 VORRAT_HOEHE = 12000         # pt, erster Durchgang — reicht fuer jede Matrix
 PT_JE_PX = 0.75              # WeasyPrint rechnet intern in CSS-px (96 dpi)
@@ -48,18 +59,22 @@ BESCHRIFTUNG = {
     "de": {
         "verfuegbar": "Verfügbar ab",
         "zertifikate": "Zertifikate",
+        "qualifikationen": "Erworbene Qualifikationen",
         "kernkompetenzen": "Kernkompetenzen",
         "tools": "Tools",
-        "aussteller": "Ausgestellt von:",
+        "buendel": "+ {n} weitere Kurse von {aussteller}",
+        "sammel": "+ {n} weitere Zertifikate",
         "footer_frage": "Bereit für das nächste Projekt?",
         "ansprechpartner": "Ansprechpartner", "kontakt": "Kontakt", "adresse": "Adresse",
     },
     "en": {
         "verfuegbar": "Available from",
         "zertifikate": "Certificates",
+        "qualifikationen": "Acquired qualifications",
         "kernkompetenzen": "Core Skills",
         "tools": "Tools",
-        "aussteller": "Issued by:",
+        "buendel": "+ {n} more courses from {aussteller}",
+        "sammel": "+ {n} more certificates",
         "footer_frage": "Ready for the next project?",
         "ansprechpartner": "Contact person", "kontakt": "Contact", "adresse": "Address",
     },
@@ -143,18 +158,12 @@ def pruefe(daten):
                 "Skill Matrix spricht der Kandidat selbst („Ich gestalte …“, "
                 "nicht „Gestaltet …“).")
 
-    for z in daten.get("zertifikate") or []:
-        if not z.get("titel"):
-            hinweise.append("Ein Zertifikat ohne Titel.")
-        if not z.get("jahr"):
-            hinweise.append(f"Zertifikat ohne Jahr: {z.get('titel')}")
-
-    for datei in daten.get("zertifikat_bilder") or []:
-        pfad = Path(datei).expanduser()
-        if not pfad.is_absolute():
-            pfad = Path.cwd() / pfad
-        if not pfad.exists():
-            hinweise.append(f"Zertifikatsbild nicht gefunden: {datei}")
+    # Zertifikate prueft zertifikate.planen() — samt Bildern, Karte und Hoehe.
+    quali = daten.get("qualifikationen")
+    if isinstance(quali, dict) and quali.get("text"):
+        hinweis = _sprachhinweis(quali["text"], sprache, "qualifikationen.text")
+        if hinweis:
+            hinweise.append(hinweis)
 
     tools = daten.get("tools") or []
     hoechstens = design_system.laden()["komponenten"]["tools"]["anzahl"]
@@ -193,12 +202,193 @@ def pruefe(daten):
                 if hinweis:
                     hinweise.append(hinweis)
     hinweise += _doppelte(gruppen)
+    hinweise += katalog_pruefen(daten)
     if not daten.get("kompetenzen"):
         hinweise.append("Keine Kernkompetenzen — die Matrix besteht dann nur aus dem Hero.")
     return hinweise
 
 
 TOOLS_SEKTION = object()      # Kennung der Tools-Sektion - eine Kategorie darf auch "Tools" heissen
+
+MAX_KATEGORIEN = 5            # SKILL.md, Schritt 2a
+
+
+def _schluessel(name):
+    """Vergleichsform eines Namens: "Micro-interactions" = "Microinteractions"."""
+    return re.sub(r"[^0-9a-zäöüß+#]", "", str(name or "").lower())
+
+
+def katalog_laden(pfad=KATALOG):
+    """(attribute, kategorien) aus references/attribute-katalog.md.
+    attribute: Vergleichsform des englischen Namens und der deutschen Form ->
+    {"name", "deutsch" (None, wenn der Name englisch bleibt), "kategorie"}.
+    kategorien: die Kategorienamen in Katalogreihenfolge."""
+    attribute, kategorien, kat = {}, [], None
+    for zeile in pfad.read_text(encoding="utf-8").splitlines():
+        liste = re.match(r"\d+\. \*\*(.+?)\*\* \(\d+\)$", zeile.strip())
+        if liste:
+            kategorien.append(liste.group(1))
+            continue
+        titel = re.match(r"## (.+)$", zeile)
+        if titel:
+            kat = titel.group(1).strip() if titel.group(1).strip() in kategorien else None
+            continue
+        if not kat or not zeile.startswith("|"):
+            continue
+        zellen = [z.strip() for z in zeile.strip().strip("|").split("|")]
+        if len(zellen) < 3 or zellen[0] == "Attribut" or not zellen[0].strip("-"):
+            continue
+        deutsch = zellen[1] if zellen[1] and not zellen[1].startswith("*") else None
+        eintrag = {"name": zellen[0], "deutsch": deutsch, "kategorie": kat}
+        attribute[_schluessel(zellen[0])] = eintrag
+        if deutsch:
+            attribute[_schluessel(deutsch)] = eintrag
+    return attribute, kategorien
+
+
+# Verwandtschaft der Katalog-Kategorien, naechste zuerst: Fehlt die
+# Katalog-Kategorie eines Attributs in der Matrix (oder ist sie mit sechs Skills
+# voll), steht es in einer der hier genannten. Jede andere Kategorie ist
+# fachfremd - "Frontend-Verstaendnis" unter Accessibility etwa.
+VERWANDT = {
+    "UX Strategy & Product Discovery": ["User Research & Insights", "Stakeholder Management & Facilitation",
+                                        "Agile Product Delivery", "Interaction & Visual Design"],
+    "User Research & Insights": ["Usability Testing & Evaluation", "UX Strategy & Product Discovery"],
+    "Interaction & Visual Design": ["UI Design & Visual Systems", "Design Systems & Scaling",
+                                    "UX Strategy & Product Discovery"],
+    "UI Design & Visual Systems": ["Interaction & Visual Design", "Design Systems & Scaling"],
+    "Design Systems & Scaling": ["UI Design & Visual Systems", "Interaction & Visual Design",
+                                 "Development Collaboration"],
+    "Usability Testing & Evaluation": ["User Research & Insights", "UX Strategy & Product Discovery"],
+    "Accessibility & Inclusive Design": ["Interaction & Visual Design", "UI Design & Visual Systems",
+                                         "Usability Testing & Evaluation"],
+    "Agile Product Delivery": ["Stakeholder Management & Facilitation", "Development Collaboration",
+                               "UX Strategy & Product Discovery"],
+    "Stakeholder Management & Facilitation": ["UX Strategy & Product Discovery", "User Research & Insights",
+                                              "Agile Product Delivery"],
+    "Development Collaboration": ["Coding Skills", "Agile Product Delivery", "Design Systems & Scaling"],
+    "AI & Emerging Tech": ["Interaction & Visual Design", "User Research & Insights"],
+    "Coding Skills": ["Development Collaboration"],
+}
+# Einzelne Attribute, deren naechste Kategorie eine andere ist als die ihrer
+# Katalog-Kategorie - sie gehen zuerst dorthin.
+VERWANDT_ATTRIBUT = {
+    "Accessibility Audits": ["Accessibility & Inclusive Design"],
+}
+
+
+def katalog_pruefen(daten):
+    """Kategorien und Namen gegen den Katalog (SKILL.md, Schritt 2a). Ein
+    Katalog-Attribut steht in seiner Katalog-Kategorie, wenn die in der Matrix
+    vorkommt; sonst (oder wenn sie voll ist) in einer verwandten (Hinweis), nie in
+    einer fachfremden (Warnung). Namen in der Katalogform der Dokumentsprache.
+    Hoechstens fuenf Kategorien, sechs Skills je Kategorie, 24 insgesamt."""
+    if not KATALOG.exists():
+        return [f"Katalog nicht gefunden: {KATALOG} — Kategorien und Namen ungeprueft."]
+    attribute, kategorien = katalog_laden()
+    sprache = daten.get("sprache", "de")
+    hinweise = []
+    unbekannt = ({k for k in VERWANDT} | {v for vs in list(VERWANDT.values())
+                                          + list(VERWANDT_ATTRIBUT.values()) for v in vs}) - set(kategorien)
+    if unbekannt:
+        hinweise.append("VERWANDT in render_skillmatrix.py nennt Kategorien, die der Katalog nicht "
+                        "mehr fuehrt: " + ", ".join(sorted(unbekannt)) + " — nachziehen.")
+    kompetenzen = daten.get("kompetenzen") or []
+    je_kategorie = 2 * design_system.laden()["komponenten"]["skillraster"]["spalten"]
+    in_matrix = {str(k.get("kategorie") or ""): len(k.get("skills") or []) for k in kompetenzen}
+    if len(kompetenzen) > MAX_KATEGORIEN:
+        hinweise.append(f"{len(kompetenzen)} Kategorien — hoechstens {MAX_KATEGORIEN} (SKILL.md, "
+                        "Schritt 2a). Attribute der kleinsten in verwandte Kategorien setzen.")
+    if sum(in_matrix.values()) > 24:
+        hinweise.append("Mehr als 24 Kernkompetenzen — die Sektion traegt hoechstens 24.")
+
+    def name_pruefen(name, wo):
+        e = attribute.get(_schluessel(name))
+        if not e:
+            return None
+        soll = e["deutsch"] if sprache == "de" and e["deutsch"] else e["name"]
+        if name != soll:
+            if sprache == "de" and e["deutsch"] and name == e["name"]:
+                grund = "in einer deutschen Matrix die deutsche Form"
+            elif sprache != "de" and name == e["deutsch"]:
+                grund = "in einer englischen Matrix den englischen Namen"
+            else:
+                grund = "die Schreibweise des Katalogs"
+            hinweise.append(f"„{name}“ ({wo}): der Katalog fuehrt {grund} — „{soll}“.")
+        return e
+
+    for k in kompetenzen:
+        kategorie = str(k.get("kategorie") or "")
+        skills = k.get("skills") or []
+        if kategorie not in kategorien:
+            hinweise.append(f"Kategorie „{kategorie}“ steht nicht im Katalog — Kategorien werden "
+                            "nicht erfunden (SKILL.md, Schritt 2a): "
+                            + ", ".join(kategorien) + ".")
+        if len(skills) > je_kategorie:
+            hinweise.append(f"Kategorie „{kategorie}“ hat {len(skills)} Skills — hoechstens "
+                            f"{je_kategorie} (zwei Reihen).")
+        elif len(skills) == 1:
+            hinweise.append(f"Kategorie „{kategorie}“ hat nur einen Skill — eine eigene Kategorie "
+                            "lohnt sich ab zwei; den Skill in die naechstverwandte Kategorie setzen.")
+        for s in skills:
+            name = s.get("name")
+            e = name_pruefen(name, kategorie)
+            if not e or e["kategorie"] == kategorie:
+                continue
+            soll = e["kategorie"]
+            if soll == "Tools":
+                hinweise.append(f"WARNUNG: „{name}“ steht unter „{kategorie}“ — im Katalog ist es "
+                                "ein Tool und gehoert in die Tools-Sektion.")
+                continue
+            verwandt = VERWANDT_ATTRIBUT.get(e["name"], []) + VERWANDT.get(soll, [])
+            if kategorie not in verwandt:
+                hinweise.append(
+                    f"WARNUNG: „{name}“ steht unter „{kategorie}“ — fachfremd. Der Katalog fuehrt "
+                    f"es unter „{soll}“; "
+                    + (f"die steht in der Matrix, dorthin setzen." if soll in in_matrix else
+                       "verwandt sind " + ", ".join(f"„{v}“" for v in dict.fromkeys(verwandt))
+                       + " (SKILL.md, Schritt 2a)."))
+            elif soll in in_matrix and in_matrix[soll] < je_kategorie:
+                hinweise.append(
+                    f"WARNUNG: „{name}“ steht unter „{kategorie}“, seine Katalog-Kategorie "
+                    f"„{soll}“ steht aber in der Matrix und hat Platz — dorthin setzen.")
+            else:
+                grund = "voll ist" if soll in in_matrix else "in der Matrix fehlt"
+                hinweise.append(f"„{name}“ steht in der naechstverwandten Kategorie „{kategorie}“, "
+                                f"weil „{soll}“ {grund}. In der Uebergabe nennen.")
+    for t in daten.get("tools") or []:
+        name_pruefen(t.get("name"), "Tools")
+    return hinweise
+
+# Eine KI-Kategorie beginnt mit "AI" oder "KI" ("AI & Emerging Tech", "KI-Tools").
+KI_KATEGORIE = re.compile(r"\s*(AI|KI)\b", re.I)
+
+
+def kompetenzen_ordnen(daten):
+    """Die KI-Kategorie steht immer an erster Stelle der Kernkompetenzen, danach
+    die Reihenfolge der JSON. Gibt (daten, hinweis) zurueck — daten ist eine
+    Kopie, wenn umsortiert wurde, sonst unveraendert und hinweis None. Rufen
+    render_skillmatrix.py und figma_plan.py gleich auf, damit PDF und Frame
+    dieselbe Reihenfolge haben."""
+    kompetenzen = list(daten.get("kompetenzen") or [])
+    ki = [k for k in kompetenzen if KI_KATEGORIE.match(str(k.get("kategorie") or ""))]
+    neu = ki + [k for k in kompetenzen if not any(k is x for x in ki)]
+    if all(a is b for a, b in zip(neu, kompetenzen)):
+        return daten, None
+    namen = ", ".join(f"„{k.get('kategorie')}“" for k in ki)
+    return dict(daten, kompetenzen=neu), (
+        f"KI-Kategorie {namen} an die erste Stelle der Kernkompetenzen gesetzt — sie "
+        "steht immer zuerst (SKILL.md, Schritt 3). In der skillmatrix.json nachziehen.")
+
+
+def beschriftung(daten):
+    """Rubriken in der Dokumentsprache; die Ueberschrift der Zertifikatssektion
+    laesst sich ueberschreiben (ein Beispiel der Vorlage traegt
+    "Zertifizierungen UX/UI")."""
+    labels = dict(BESCHRIFTUNG.get(daten.get("sprache", "de"), BESCHRIFTUNG["de"]))
+    if daten.get("zertifikate_titel"):
+        labels["zertifikate"] = daten["zertifikate_titel"]
+    return labels
 
 
 def _namensteile(name):
@@ -254,43 +444,40 @@ def _pfad_zu_uri(wert):
 _GEMELDET = set()
 
 
-def html_bauen(daten, hoehe, design, schatten=None):
+def html_bauen(daten, hoehe, design, schatten=None, zplan=None):
     """schatten: Karten-ID -> Schattenbild samt Lage, nur im zweiten
-    WeasyPrint-Durchgang. Ohne sie zeichnet Chrome box-shadow selbst."""
+    WeasyPrint-Durchgang. Ohne sie zeichnet Chrome box-shadow selbst.
+    zplan: Ergebnis von zertifikate.planen(), None ohne Zertifikate."""
     from jinja2 import Environment, FileSystemLoader, select_autoescape
     env = Environment(
         loader=FileSystemLoader(str(ASSETS)),
         autoescape=select_autoescape(["html"]),
     )
-    sprache = daten.get("sprache", "de")
-    labels = dict(BESCHRIFTUNG.get(sprache, BESCHRIFTUNG["de"]))
-    # Ueberschrift der Zertifikatssektion laesst sich ueberschreiben —
-    # ein Beispiel der Vorlage traegt "Zertifizierungen UX/UI".
-    if daten.get("zertifikate_titel"):
-        labels["zertifikate"] = daten["zertifikate_titel"]
+    labels = beschriftung(daten)
 
     daten = dict(daten)
     person = dict(daten.get("person") or {})
     person["foto"] = _pfad_zu_uri(person.get("foto"))
     daten["person"] = person
-    daten["zertifikat_bilder"] = [
-        _pfad_zu_uri(b) for b in daten.get("zertifikat_bilder") or []]
+    if zplan:
+        zplan = dict(zplan, eintraege=[dict(e, src=_pfad_zu_uri(e["bild"]) if e.get("bild") else None)
+                                       for e in zplan["eintraege"]])
 
     daten.setdefault("kontakt", {
         "name": "Manuel Klein", "rolle": "CCO",
         "mail": "manuel.klein@newmonday.co", "telefon": "+49 (0)155 1148 0130",
-        "firma": "New Monday GmbH", "strasse": "Stresemannstraße 32", "ort": "10963 Berlin",
+        "firma": "New Monday GmbH", "strasse": "Stresemannstr. 23", "ort": "10963 Berlin",
     })
     komponenten = design["komponenten"]
     return env.get_template("template.html").render(
         hoehe=hoehe, t=labels,
         design_css=design_system.css(design),
         seitenbreite=komponenten["seite"]["breite"],
-        raster_spalten=komponenten["raster"]["spalten"],
         skill_spalten=komponenten["skillraster"]["spalten"],
         punkte_anzahl=komponenten["punkte"]["anzahl"],
         schatten=schatten or {},
-        **daten)
+        z=zplan, g=(zplan or {}).get("geometrie"),
+        **{k: v for k, v in daten.items() if k not in ("zertifikate", "zertifikat_bilder")})
 
 
 def chrome_pfad():
@@ -349,18 +536,28 @@ def layout_pruefen(wurzel, design):
     return hinweise
 
 
-def rendern_weasyprint(daten, design, ziel):
+def zertsektion_messen(wurzel):
+    """Hoehe der Zertifikatssektion im Layout in pt, None ohne Sektion."""
+    for element, box in _elemente(wurzel):
+        if "zertsektion" in (element.get("class") or "").split():
+            return round(_kasten(box)["hoehe"], 2)
+    return None
+
+
+def rendern_weasyprint(daten, design, ziel, zplan=None):
     """Zwei Durchgaenge. Der erste liefert Inhaltshoehe und Kartengroessen, der
     zweite rendert mit exakter Hoehe und den Schattenbildern hinter den Karten.
-    Gibt (engine, hoehe_pt, anzahl_schatten, hinweise) zurueck; ImportError,
-    wenn WeasyPrint fehlt."""
+    Gibt (engine, hoehe_pt, anzahl_schatten, hinweise, zertsektion_pt) zurueck;
+    ImportError, wenn WeasyPrint fehlt."""
     from weasyprint import HTML
     basis = ASSETS.as_uri() + "/"
-    doc = HTML(string=html_bauen(daten, VORRAT_HOEHE, design), base_url=basis).render()
+    doc = HTML(string=html_bauen(daten, VORRAT_HOEHE, design, zplan=zplan),
+               base_url=basis).render()
     wurzel = doc.pages[0]._page_box
     html_kasten = wurzel.children[0]
     hoehe = math.ceil((html_kasten.position_y + html_kasten.margin_height()) * PT_JE_PX)
     hinweise = layout_pruefen(wurzel, design)
+    zert_hoehe = zertsektion_messen(wurzel)
 
     with tempfile.TemporaryDirectory() as tmp:
         cache, schatten = {}, {}
@@ -381,9 +578,9 @@ def rendern_weasyprint(daten, design, ziel):
                 "breite": round(k["breite"] + 2 * rand, 3),
                 "hoehe": round(k["hoehe"] + 2 * rand, 3),
             }
-        HTML(string=html_bauen(daten, hoehe, design, schatten),
+        HTML(string=html_bauen(daten, hoehe, design, schatten, zplan),
              base_url=basis).write_pdf(str(ziel))
-    return "WeasyPrint", hoehe, len(schatten), hinweise
+    return "WeasyPrint", hoehe, len(schatten), hinweise, zert_hoehe
 
 
 def rendern_ausweich(html, ziel):
@@ -470,6 +667,25 @@ def inhaltshoehe_messen(pdf):
     return None
 
 
+def zert_hoehe_pruefen(zplan, gemessen):
+    """Meldet die gemessene Hoehe der Zertifikatssektion und jede
+    Ueberschreitung der Grenze."""
+    grenze, geplant = zplan["grenze"], zplan["hoehe"]
+    print(f"Zertifikatssektion: {gemessen:g}pt hoch ({len(zplan['eintraege'])} Kacheln, "
+          f"geplant {geplant:g}, Grenze {grenze})")
+    hinweise = []
+    if gemessen > grenze:
+        hinweise.append(
+            f"Zertifikatssektion {gemessen:g}pt hoch — {gemessen - grenze:g}pt ueber der "
+            f"Grenze von {grenze}pt. Titel kuerzen oder Eintraege mit dem Nutzer streichen.")
+    if abs(gemessen - geplant) > 1:
+        hinweise.append(
+            f"Zertifikatssektion im PDF {gemessen:g}pt, geplant {geplant:g}pt — ein Text "
+            "bricht anders um als geschaetzt. Der Figma-Plan rechnet mit der geplanten "
+            "Hoehe; Vorschau ansehen.")
+    return hinweise
+
+
 def seitenzahl(pdf):
     try:
         from pypdf import PdfReader
@@ -527,20 +743,26 @@ def main():
             "\nDie Schnitte nennt assets/tokens.json unter \"schriften\" "
             "(Google Fonts, OFL).")
 
-    hinweise = pruefe(daten)
+    daten, ki_hinweis = kompetenzen_ordnen(daten)
+    hinweise = ([ki_hinweis] if ki_hinweis else []) + pruefe(daten)
+    zplan, zert_hinweise = zertifikate.planen(daten, design, beschriftung(daten))
+    hinweise += zert_hinweise
     ziel = Path(args[1]) if genau else zielpfad(Path(args[1]), daten)
     ziel.parent.mkdir(parents=True, exist_ok=True)
     breite = design["komponenten"]["seite"]["breite"]
 
     try:
-        engine, hoehe, schatten, layout_hinweise = rendern_weasyprint(daten, design, ziel)
+        engine, hoehe, schatten, layout_hinweise, zert_hoehe = rendern_weasyprint(
+            daten, design, ziel, zplan)
         hinweise += layout_hinweise
         print(f"Seitenformat: {breite} x {hoehe}pt, {schatten} Kartenschatten")
+        if zplan and zert_hoehe is not None:
+            hinweise += zert_hoehe_pruefen(zplan, zert_hoehe)
     except ImportError:
         # Ausweichweg: Hoehe am Bild messen (letzte nicht weisse Pixelzeile).
         # Die 2pt Reserve decken den Messfehler der Rasterung — lieber eine
         # haarduenne weisse Kante als ein abgeschnittener Footer.
-        engine = rendern_ausweich(html_bauen(daten, VORRAT_HOEHE, design), ziel)
+        engine = rendern_ausweich(html_bauen(daten, VORRAT_HOEHE, design, zplan=zplan), ziel)
         hoehe = inhaltshoehe_messen(ziel)
         if hoehe is None:
             hinweise.append(
@@ -549,8 +771,12 @@ def main():
                 "viel Weissraum. pruefe_umgebung.py zeigt, was fehlt.")
         else:
             hoehe = round(hoehe + 2)
-            engine = rendern_ausweich(html_bauen(daten, hoehe, design), ziel)
+            engine = rendern_ausweich(html_bauen(daten, hoehe, design, zplan=zplan), ziel)
             print(f"Seitenformat: {breite} x {hoehe}pt")
+        if zplan:
+            hinweise.append(
+                f"Zertifikatssektion auf dem Ausweichweg nicht vermessen — geplant "
+                f"{zplan['hoehe']:g}pt (Grenze {zplan['grenze']}). In der Vorschau pruefen.")
 
     seiten = seitenzahl(ziel)
     if seiten > 1:

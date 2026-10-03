@@ -39,8 +39,9 @@ nach Freigabe gebaut (Schritt 2). Still gesetzt wird keine einzige Zahl.
 Für alle übernommenen Texte gilt dieselbe Regel wie im CV-Skill: Inhalte
 werden übernommen, nicht umgeschrieben; erlaubt ist nur das Glätten von
 Rechtschreibung und Grammatik. Neu formuliert werden ausschließlich die
-Hero-Beschreibung (nach den Regeln in Schritt 2c) und Beschreibungen für
-Attribute, die nicht im Katalog stehen (nach `references/attribute-katalog.md`).
+Hero-Beschreibung und die Karte „Erworbene Qualifikationen“ (nach den Regeln in
+Schritt 2c) sowie Beschreibungen für Attribute, die nicht im Katalog stehen
+(nach `references/attribute-katalog.md`).
 
 ## Umgebung
 
@@ -78,7 +79,7 @@ Skills vor; im Einzellauf gilt er nicht.
 |---|---|
 | Sprache | `sprache` |
 | Figma | Der Frame entsteht, wenn `figma.aktiv` true ist – eine eigene Frage danach gibt es nicht. `figma.link` trägt die `node-id` der Kandidatenseite, also gilt „Zielseite“ mit `node-id` (`references/figma.md` bzw. `figma-vorlage.md`). |
-| Material | `material` – Zertifikate aus dem Ordner `material.zertifikate`, in der Reihenfolge der Dateinamen |
+| Material | `material` – Zertifikate aus dem Ordner `material.zertifikate`; je Datei ein Eintrag, Titel, Aussteller und Datum vom Zertifikat abgelesen, neueste zuerst |
 | Verfügbarkeit | wandert in die Fragen der Phase *vorbereiten* |
 
 **Phase vorbereiten: Schritte 1 bis 2d.** Statt der Freigabe-Nachricht aus 2e
@@ -87,8 +88,12 @@ entsteht `fragen.json`:
 - `texte`: was 2e dem Nutzer zeigt, ein Markdown-Block je Punkt – die
   Hero-Beschreibung im Wortlaut (als generiert gekennzeichnet) mit den drei
   Schwerpunkten, die Matrix-Tabelle (Kategorie, Attribut, Punkte, Beleg), die
-  Tools-Tabelle (Tool, Punkte, Beleg bzw. „Vorschlag, nicht belegt“). Sollen
-  Zertifikate zu einer Karte gebündelt werden, steht der Vorschlag dabei.
+  Tools-Tabelle (Tool, Punkte, Beleg bzw. „Vorschlag, nicht belegt“), die
+  Zertifikatstabelle (Titel, Aussteller, Datum, Bild ja/nein) in der
+  Reihenfolge neueste zuerst und die Karte „Erworbene Qualifikationen“ (Satz
+  als generiert gekennzeichnet, je Tag das Zertifikat, aus dem es stammt).
+  Bündelt `zertifikate.py` wegen Platzmangels (Schritt 3), steht dabei, welche
+  Einträge zu welcher Kachel werden.
 - `fragen`:
   - `verfuegbar_ab` – Wortlaut und Optionen wie in Schritt 0, Punkt 2.
   - `freigabe` – wie in 2e; die Option „Ich möchte etwas ändern“ trägt
@@ -97,8 +102,8 @@ entsteht `fragen.json`:
 - `luecken`: „Profilfoto“, wenn Schritt 1a bei „beim Kandidaten anfragen“ endet
   oder das beste Foto unter 100 dpi liegt (Folge mit dpi-Zahl); „Zertifikate“,
   wenn Lebenslauf, LinkedIn oder Portfolio Zertifikate nennen, aber keine
-  Dateien dazu im Eingang liegen (Folge: die Zertifikatssektion zeigt kein
-  Bilderraster).
+  Dateien dazu im Eingang liegen (Folge: die Einträge stehen ohne Bild, mit dem
+  Platzhalterfeld).
 
 In `notizen.md`:
 
@@ -132,6 +137,13 @@ Lebenslauf, Portfolio, LinkedIn – in allen drei Dokumenten gleich; fehlt
 Erfahrung im Hero), wird er angepasst und die Änderung unter „Zur Freigabe“
 genannt.
 
+**Die Tools-Liste gilt auch für den Lebenslauf.** Im Gesamtlauf übernimmt der
+Lebenslauf `tools[].name` wörtlich und in dieser Reihenfolge als
+`skillset.tools` – Lebenslauf und Skill Matrix führen dieselben Tools. Deshalb
+die Namen so wählen, dass sie auch als Listeneintrag im Lebenslauf stehen
+können, und eine Änderung an der Liste nach der Übergabe als Grund nennen, den
+Lebenslauf neu zu bauen. `pruefe_lauf.py` vergleicht beide Listen.
+
 Schritt 4a läuft, wenn `figma.aktiv` true ist. Die Übergabe aus Schritt 5 geht
 nach `uebergabe.md`: Hero-Beschreibung und die **endgültige** Matrix-Tabelle
 unter „Zur Freigabe“ – nach einer Änderung ist das die einzige Stelle, an der der
@@ -164,10 +176,10 @@ Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    Optionen: Deutsch  |  Englisch
    ```
 
-   Sie steuert die Rubriken ("Kernkompetenzen" / "Core Skills", "Ausgestellt
-   von:" / "Issued by:", die Fußzeile) – und darüber hinaus **jeden Satz im
-   Dokument**. Eine deutsche Matrix, auf deren Karten "Using AI to analyze
-   user data." steht, ist ein Fehler und kein Fachbegriff. Das gilt genauso
+   Sie steuert die Rubriken ("Kernkompetenzen" / "Core Skills", "+ 3 weitere
+   Kurse von …" / "+ 3 more courses from …", die Fußzeile) – und darüber hinaus
+   **jeden Satz im Dokument**. Eine deutsche Matrix, auf deren Karten "Using
+   AI to analyze user data." steht, ist ein Fehler und kein Fachbegriff. Das gilt genauso
    für die Hero-Beschreibung und für jede Beschreibung, die neu formuliert
    werden muss.
 
@@ -177,13 +189,27 @@ Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    Fachbegriffe bleiben dabei stehen. Erfundene englische Fassungen zu
    behaupten, die es im Pool nicht gibt, war der Fehler der Vorgängerversion.
 
-   **Nicht übersetzt werden Attribut- und Kategorienamen.** Sie sind
-   Fachbegriffe und stehen auch in den deutschen Vorlagen englisch – eine
-   deutsche Matrix trägt "Wireframing & Prototyping", "Design Systems" und
-   "Coding Skills". Ebenso bleiben Toolnamen und eingeführte
-   Fachwörter innerhalb der Beschreibungen englisch ("Auto-Layout",
-   "Edge Cases", "WCAG", "Jobs-to-be-Done"). Übersetzt wird, was ein Satz
-   ist.
+   **Namen: Fachbegriffe bleiben englisch, Übersetzungen werden deutsch.**
+   Kategorienamen bleiben in jeder Matrix englisch ("Interaction & Visual
+   Design", "Coding Skills"). Ein Attributname bleibt in einer deutschen Matrix
+   nur dann englisch, wenn er ein eingeführter Fachbegriff ist, den man im
+   deutschen UX-Alltag so sagt – "Wireframing & Prototyping", "Design Systems",
+   "Information Architecture", "Journey Mapping", "Qualitative Research",
+   "Accessibility Audits", "Workshop Facilitation", "Stakeholder Management",
+   "Emotional Design". **KI-Begriffe bleiben englisch** – "AI Prototyping",
+   "AI in Research", "AI Workflows & Agents": So stehen sie in der Branche und in
+   der Vorschau, die der Nutzer gewählt hat. Ist der englische Name nur eine
+   Übersetzung, heißt das Attribut deutsch: "Frontend-Verständnis" statt
+   "Frontend Understanding", "Zusammenarbeit mit Entwicklern" statt "Dev
+   Collaboration", "Regulatorische Anforderungen" statt "Regulatory
+   Compliance". Welche Form gilt, steht im Katalog in der Spalte „deutsch“ (leer = bleibt
+   englisch; *Grenzfall* = bleibt englisch, Alternative daneben). Für neue
+   Attribute gilt dieselbe Abwägung, im Zweifel bleibt der englische Name.
+   Eine **englische** Matrix trägt durchgehend die englischen Namen. Toolnamen
+   und eingeführte Fachwörter innerhalb der Beschreibungen bleiben in jeder
+   Sprache stehen ("Auto-Layout", "Edge Cases", "WCAG", "Jobs-to-be-Done").
+   Das Renderskript meldet, wo eine Matrix vom Katalognamen ihrer Sprache
+   abweicht.
 
    **Produktnamen tragen die Schreibweise des Herstellers.** Belegbare
    Eigenschreibung schlägt jede andere Variante – auch die aus dem Auftrag:
@@ -239,13 +265,13 @@ Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    > Schick mir bitte den Lebenslauf als PDF, den LinkedIn-Export als PDF
    > (auf dem Profil: *Mehr* → *Als PDF speichern*) plus den Link zum
    > Profil, und das Portfolio als Link oder PDF. Wenn es Zertifikate gibt,
-   > die mit in die Matrix sollen: als Bild oder PDF dazu – sie bekommen
-   > eine eigene Sektion mit Bilderraster.
+   > die mit in die Matrix sollen: als Bild oder PDF dazu – jedes bekommt in
+   > der Zertifikatssektion eine eigene Kachel mit Bild.
 
    Was davon fehlt, fehlt – gebaut wird mit dem, was kommt. Aber jede
-   fehlende Quelle macht die Belegbasis schmaler, und ohne Zertifikate
-   entfällt die Zertifikatssektion ersatzlos (das ist in Ordnung – Florians
-   Vorlage hat auch nur eine Zertifikatskarte und kein Bilderraster).
+   fehlende Quelle macht die Belegbasis schmaler. Ohne Zertifikate entfällt
+   die Zertifikatssektion ersatzlos; Zertifikate ohne Bild stehen mit einem
+   Platzhalterfeld statt des Bildes – beides ist in Ordnung.
 
 5. **Ein Foto**, falls Lebenslauf, LinkedIn und Portfolio keins hergeben –
    erst nach Schritt 1a anfragen, nicht hier. Hier nur erwähnen, dass ein
@@ -286,9 +312,14 @@ wonach im Lebenslauf und Portfolio zu suchen ist, nie als alleiniger Beleg.
 python3 ${CLAUDE_SKILL_DIR}/scripts/zert_bilder.py <zert1.pdf> <zert2.png> … arbeit/zertifikate/
 ```
 
-Die Reihenfolge der Argumente ist die Reihenfolge im Raster. Das Skript
-meldet Formate, die vom Kachelformat (laut `tokens.json`) stark abweichen – solche
-Bilder werden im Raster mittig beschnitten, das vorher sagen, nicht danach.
+Je Zertifikat ein Bild; am besten in der Reihenfolge neueste zuerst, so wie die
+Einträge später in der JSON stehen. Titel, Aussteller und Datum vom Zertifikat
+ablesen (Monat und Jahr, wenn draufsteht) – das Skript gibt dafür das Gerüst
+der `zertifikate`-Liste aus. Beschnitten wird im Layout nichts: Jedes Bild wird
+mit seinem Seitenverhältnis eingepasst. Formate, die stark vom Kachelformat
+41 : 30 abweichen, meldet das Skript, weil sie dann klein wirken – dann lieber
+einen besseren Ausschnitt suchen. Nachweis-IDs, Mitgliedsnummern und
+Verifizierungs-Adressen kommen nicht ins Dokument.
 
 ### 1a. Das Foto — dieselbe Rangfolge wie im CV-Skill
 
@@ -344,19 +375,41 @@ lesen – er ist der Wortschatz der Matrix.
 
 #### 2a. Kategorien festlegen
 
-Kategorien werden **nicht erfunden**. Genommen werden Abschnittstitel aus
-`references/attribute-katalog.md` – dort stehen dreizehn, und sie decken jedes
-Profil ab, das dieses Haus vermittelt.
+Kategorien werden **nicht erfunden und nicht umgebaut**. Genommen werden
+Abschnittstitel aus `references/attribute-katalog.md` – dort stehen dreizehn,
+und sie decken jedes Profil ab, das dieses Haus vermittelt.
 
-**Die Sektion Kernkompetenzen trägt höchstens 24 Skills:** vier Kategorien zu
-je sechs, gesetzt als **drei Karten pro Reihe, zwei Reihen** je Kategorie. Das
-ist keine Empfehlung, sondern das Layout – ein siebter Skill hat keinen Platz,
-eine fünfte Kategorie sprengt die Seite. Weniger ist erlaubt und oft besser:
-eine Kategorie mit zwei Skills wird mit einer verwandten zusammengelegt, drei
-Kategorien sind ein vollständiges Dokument.
+**Jedes Attribut steht in seiner Katalog-Kategorie, wenn die in der Matrix
+vorkommt** – sonst in der inhaltlich nächsten Kategorie der Matrix, nie in einer
+fachfremden. Beispiele: `Accessibility Audits` (Katalog: Usability Testing)
+steht unter `Accessibility & Inclusive Design`, `Design Systems` unter
+`Interaction & Visual Design`, `User Centered Design` und `Workshop
+Facilitation` unter `User Research & Insights`, wenn ihre eigenen Kategorien
+fehlen. „Frontend-Verständnis“ und „Zusammenarbeit mit Entwicklern“ gehören
+dagegen nie zu Accessibility. Welche Kategorien verwandt sind, steht als
+Tabelle `VERWANDT` in `scripts/render_skillmatrix.py` (nächste zuerst). Ist die
+nächste schon voll, kommt die übernächste. Bringt der Kandidat eine alte Skill
+Matrix mit, werden aus ihr Auswahl, Punkte und Beschreibungen übernommen – die
+Kategorie nicht. Alte Matrizen sortieren nach Gefühl; so landeten
+„Frontend-Verständnis“ und „Zusammenarbeit mit Entwicklern“ einmal unter
+Barrierefreiheit, und der Skill hat es übernommen. Steht ein Attribut nicht im
+Katalog, kommt es in die Katalog-Kategorie, zu der es inhaltlich gehört. Das
+Renderskript meldet jedes Katalog-Attribut außerhalb seiner Kategorie:
+verwandt als Hinweis („weil <Katalog-Kategorie> fehlt“, gehört in die
+Übergabe), fachfremd als `WARNUNG` – die wird behoben, nicht übergeben.
 
-Ausgewählt werden die Kategorien, die das Profil **belegt**, die stärkste
-zuerst. Ein Profil ohne KI-Belege bekommt keine AI-Kategorie; ein
+**Eine eigene Kategorie lohnt sich ab zwei Attributen.** Ein einzelnes geht in
+die nächstverwandte. **Die Sektion Kernkompetenzen trägt höchstens 24 Skills,
+höchstens sechs je Kategorie** (drei Karten pro Reihe, zwei Reihen) **und
+höchstens fünf Kategorien**, üblich sind drei bis vier. **Belegte Attribute
+gehen nicht verloren:** Gestrichen wird nur, wenn diese Grenzen es erzwingen –
+dann die schwächsten, mit Hinweis und unter „nicht aufgenommen“ in der Freigabe
+(2e).
+
+Ausgewählt werden die Kategorien, die das Profil **belegt**. **Eine
+KI-Kategorie steht immer zuerst** (`AI & Emerging Tech`; das Skript erkennt
+jede Kategorie, deren Name mit „AI“ oder „KI“ beginnt), danach die stärkste. Ein Profil ohne KI-Belege bekommt
+keine AI-Kategorie – die Regel ordnet nur, sie ergänzt nichts. Ein
 Barrierefreiheits-Schwerpunkt bekommt `Accessibility & Inclusive Design`.
 
 **`Tools` ist keine Kategorie, sondern eine eigene Sektion.** Sie bekommt eine
@@ -382,9 +435,8 @@ steht, wird in den Kernkompetenzen nicht noch einmal als Skill geführt: nicht i
 einer Kategorie wie `Tools & Implementation` und nicht als Teil eines
 Sammelnamens (`Figma / FigJam` in den Tools schließt `Figma` in den
 Kernkompetenzen aus). Umgekehrt wird kein Skill der Kernkompetenzen zusätzlich
-als Tool gezeigt. Bleibt eine Kategorie dadurch mit zwei Skills zurück, wird sie
-mit einer verwandten zusammengelegt (siehe oben). Das Renderskript meldet
-Doppelungen.
+als Tool gezeigt. Bleibt eine Kategorie dadurch mit einem Skill zurück, geht er in
+die nächstverwandte (siehe oben). Das Renderskript meldet Doppelungen.
 
 **Nennt der Eingang gar keine Tools**, wird nichts still ergänzt. Stattdessen
 kommen in Schritt 2e rollentypische Tools als Vorschlag in die Freigabe – bei
@@ -394,28 +446,31 @@ der Rolle 4, sonst 3). Ob sie ins Dokument kommen, entscheidet die Tools-Frage
 in derselben Freigabe. Ohne Ja entfällt die Tools-Sektion.
 
 `Coding Skills` ist dagegen eine gewöhnliche Kategorie innerhalb der
-Kernkompetenzen und ersetzt dann eine der vier.
+Kernkompetenzen und zählt wie jede andere gegen die fünf.
 
 #### 2b. Attribute wählen
 
 Je Kategorie die Skills, die der Eingang **belegt** – über Stationen,
 Projekte, Tool-Listen, Portfolio-Cases oder Zertifikate.
 
-**Die Katalogabschnitte sind Ablage, keine Schranke.** Eine Matrix-Kategorie
-darf ihre Attribute aus jedem Abschnitt ziehen; entscheidend ist, was der
-Eingang hergibt, nicht wo das Attribut im Katalog einsortiert ist. Ein Profil
-mit vier Stationen, die "Frontend Development" als Skill führen, bekommt
-`HTML / CSS` in seine Development-Kategorie – auch wenn der Eintrag im Katalog
-unter `Coding Skills` steht. Wer stattdessen abschnittstreu befüllt, wählt
-nach Ordnerstruktur statt nach Beleg und schiebt den konkreten Eintrag
-zugunsten eines vageren beiseite, der zufällig im richtigen Abschnitt liegt.
+**Ausgewählt wird nach Beleg, einsortiert nach Katalog.** Welche Attribute in
+die Matrix kommen, entscheidet der Eingang – nicht, welcher Katalogabschnitt
+gerade Platz hat. Wo sie stehen, entscheidet der Katalog (2a). Ein Profil mit
+vier Stationen, die "Frontend Development" als Skill führen, bekommt
+`HTML / CSS`, und zwar unter `Coding Skills`, wo der Katalog es führt, wenn die
+Kategorie in der Matrix steht – sonst unter der nächstverwandten,
+`Development Collaboration` (2a). Den konkreten Eintrag zugunsten eines vageren
+zu verdrängen, der zufällig in einer vorhandenen Kategorie liegt, ist kein
+Ausweg.
 
-Steht ein Attribut
-im Katalog, werden **Name und Beschreibung wörtlich** übernommen – die
-Beschreibung so, wie sie im Katalog steht, der Name unverändert.
-Nur was dort fehlt, wird neu formuliert (Stilregeln am Ende des Katalogs),
-und zwar ebenfalls in der Dokumentsprache. So tragen alle Matrizen für
-denselben Skill denselben Text.
+Steht ein Attribut im Katalog, werden **Name und Beschreibung wörtlich**
+übernommen – der Name in der Form der Dokumentsprache (für eine deutsche Matrix
+die Spalte „deutsch“, wo sie gefüllt ist, sonst der englische Name), die
+Beschreibung so, wie sie im Katalog steht. Ausnahme ist eine alte Skill Matrix
+des Kandidaten: Ihre Beschreibungen gehen vor (2a), geglättet nach den Regeln
+oben. Nur was im Katalog fehlt, wird neu formuliert (Stilregeln am Ende des
+Katalogs), und zwar ebenfalls in der Dokumentsprache. So tragen alle Matrizen
+für denselben Skill denselben Namen am selben Ort.
 
 #### 2c. Hero-Inhalte
 
@@ -440,6 +495,19 @@ denselben Skill denselben Text.
 - **Schwerpunkte**: **genau drei** Begriffe für die umrandeten Buttons,
   aus den stärksten belegten Themen des Profils. Kurz halten – zwei bis
   vier Wörter je Button, sonst bricht die Zeile.
+- **Erworbene Qualifikationen** – die Karte über den Zertifikatskacheln, nur
+  wenn es Zertifikate gibt: ein Satz und sechs bis zehn Tags. **Jedes Tag muss
+  sich aus mindestens einem der aufgeführten Zertifikate ableiten lassen** –
+  aus Titel, Aussteller oder Kursinhalt. Was nur Lebenslauf oder Portfolio
+  belegen, gehört in die Kernkompetenzen, nicht in diese Karte. Der Satz fasst
+  die Weiterbildung zusammen, die die Zertifikate zeigen: höchstens zwei
+  Zeilen, ohne Eigenschaftszuschreibungen, nichts, was die Zertifikate nicht
+  hergeben. Tag-Namen folgen der Namensregel aus Schritt 0. Ändern sich die
+  Zertifikate (Nachlieferung, Streichung, Bündelung), werden Tags und Satz neu
+  abgeglichen. Der Text der Vorlagenkarte („Umfassende Weiterbildung in UX
+  Research …“) beschreibt Wissems Zertifikate und wird nicht übernommen. Satz
+  und Tags sind generiert: **melden und zur Freigabe stellen** (2e). Gibt der
+  Nutzer Satz oder Tags vor, gelten sie wörtlich.
 
 #### 2d. Bewerten — die Skala
 
@@ -475,11 +543,23 @@ Urteil ist:
 2. Die **drei Schwerpunkte**.
 3. Die **komplette Matrix als Tabelle**: Kategorie, Attribut, Punkte, Beleg
    (eine Zeile je Attribut, Beleg in Stichworten – "3 Jahre Design-System
-   bei X", "CPUX-F 2021", "Portfolio-Case Y").
+   bei X", "CPUX-F 2021", "Portfolio-Case Y"). Steht ein Attribut in einer
+   nächstverwandten Kategorie, dazu in Klammern die Katalog-Kategorie. Darunter,
+   falls die Grenzen es erzwungen haben, die belegten Attribute, die **nicht
+   aufgenommen** wurden – mit Punkten und Grund (2a).
 4. Die **Tools** als eigene kleine Tabelle: Tool, Punkte, Beleg. Nennt der
    Eingang keine Tools, stehen hier die rollentypischen Vorschläge, jeder mit
    „Vorschlag, nicht belegt" statt eines Belegs.
-5. Dazu **eine** `AskUserQuestion` mit der Freigabe:
+5. Die **Zertifikate**, falls welche kommen: Titel, Aussteller, Datum, Bild
+   ja/nein – neueste zuerst, so wie sie als Kacheln ins Dokument gehen. Sind es
+   mehr, als die Sektion trägt, welche Einträge gebündelt werden – die Ausgabe
+   von `python3 ${CLAUDE_SKILL_DIR}/scripts/zertifikate.py <entwurf.json>`
+   nennt es.
+6. Die **Karte „Erworbene Qualifikationen“**, falls es Zertifikate gibt: der
+   Satz im Wortlaut, als generiert gekennzeichnet, und die Tags als Tabelle
+   Tag – Zertifikat, aus dem es stammt. Ein Tag ohne Zertifikat kommt nicht in
+   die Karte (2c).
+7. Dazu **eine** `AskUserQuestion` mit der Freigabe:
 
    ```
    Frage:   Passen Auswahl und Bewertung so?
@@ -506,12 +586,20 @@ Urteil ist:
 
 Aus den freigegebenen Inhalten eine `skillmatrix.json` bauen. Vollständiges
 Beispiel: `beispiel/skillmatrix.json` (das ist Wissems Matrix aus der
-Vorlage mit drei Abweichungen: Die Hero-Beschreibung steht in der
+Vorlage mit fünf Abweichungen: Die Hero-Beschreibung steht in der
 Ich-Perspektive, das Vorlagen-PDF trägt sie noch in der dritten Person. Die
 Werkzeuge stehen nur in den Tools – `Figma / FigJam` und `Adobe CC` –, die
-Vorlage führt sie zusätzlich unter `Tools & Implementation`; die restliche
-Kategorie heißt deshalb nach dem Katalog `Coding Skills`. Und das Foto ist mit
-dem Kopf in der Mitte zugeschnitten, `material/foto-karte.png`).
+Vorlage führt sie zusätzlich unter `Tools & Implementation`. Das Foto ist mit
+dem Kopf in der Mitte zugeschnitten, `material/foto-karte.png`. Die
+Zertifikate stehen einzeln als Kacheln statt als gebündelte Karte über einem
+Bilderraster – zwei davon ohne Bild, wie die Vorlage sie nennt –, darüber die
+Karte „Erworbene Qualifikationen“ mit Satz und Tags der Vorlagenkarte. Und die
+Kategorien folgen dem Katalog (2a): Statt „AI“, „Strategie & Research“,
+„Interaction & Visual Design“ und „Tools & Implementation“ stehen fünf
+Katalog-Kategorien da; „Product Thinking“ und „Workshop Facilitation“ stehen
+nächstverwandt unter `User Research & Insights`, weil ihre Kategorien fehlen,
+„Concepts“ heißt nach der Namensregel „Konzeption“ und „Micro-interactions“
+nach dem Katalog „Microinteractions“).
 
 ```json
 {
@@ -520,8 +608,8 @@ dem Kopf in der Mitte zugeschnitten, `material/foto-karte.png`).
     "name", "rolle", "verfuegbar_ab", "erfahrung",
     "beschreibung", "schwerpunkte": [], "foto"
   },
-  "zertifikate": [{ "titel", "aussteller", "jahr", "beschreibung", "tags": [] }],
-  "zertifikat_bilder": [],
+  "zertifikate": [{ "titel", "aussteller", "datum", "bild" }],
+  "qualifikationen": { "text", "tags": [] },
   "kompetenzen": [{ "kategorie", "skills": [{ "name", "punkte", "beschreibung" }] }],
   "tools": [{ "name", "punkte", "beschreibung" }]
 }
@@ -532,23 +620,62 @@ Dazu:
 - **`tools`**: die Tools-Sektion nach den Kernkompetenzen, höchstens sechs
   Einträge, gleicher Aufbau wie ein Skill. Fehlt der Schlüssel oder ist die
   Liste leer, entfällt die Sektion (PDF und Figma).
-- **`zertifikate`**: je Zertifikat eine Karte, mit Ausstellungsjahr im
-  Badge. Gehören mehrere Zertifikate erkennbar zu einem Weiterbildungsblock,
-  dürfen sie wie in der Wissem-Vorlage zu einer Karte gebündelt werden
-  ("A & B & C") – das ist eine Darstellungsentscheidung, im Zweifel den
-  Nutzer in Schritt 2e mitentscheiden lassen. `tags` sind die Themen aus dem
-  Zertifikatsinhalt, sechs bis acht reichen.
-- **`zertifikat_bilder`**: die Ausgabe von `zert_bilder.py`, in
-  Rasterreihenfolge. Ohne Bilder entfällt das Raster, ohne `zertifikate`
-  die ganze Sektion – beides ist zulässig.
+- **`zertifikate`**: je Zertifikat ein Eintrag, **neueste zuerst** – auch
+  Kurse einer Reihe einzeln, gebündelt wird nur vom Skript und nur bei
+  Platzmangel (siehe unten). Ohne Zertifikate entfällt die Sektion.
+  - `titel`: so, wie er auf dem Zertifikat steht.
+  - `aussteller`: Name des Ausstellers. Hat er eine Kurzform, sie vorn mit
+    Gedankenstrich führen („UXQB – International Usability …“): Wird es eng,
+    zeigt das Layout nur die Kurzform.
+  - `datum`: „Monat Jahr“ in der Dokumentsprache („September 2026“) oder nur das
+    Jahr, wenn kein Monat belegt ist. Die Kachel zeigt nur das Jahr; der Monat
+    ordnet Zertifikate desselben Jahres.
+  - `bild` (optional): die Datei aus `zert_bilder.py`. Ohne Bild steht ein
+    Platzhalterfeld mit dem Zertifikats-Icon.
+
+  `beschreibung`, `tags` und die frühere Bilderliste `zertifikat_bilder`
+  gibt es nicht mehr: Die Sektion zeigt Titel, Aussteller und Datum – das, was
+  ein Kunde prüft. **Alte JSONs:** `jahr` wird als `datum` übernommen,
+  `beschreibung`, `tags`, `hervorheben` und `zertifikate_darstellung` werden
+  übergangen, alles mit Hinweis. Steht
+  `zertifikat_bilder` darin, brechen Render- und Planskript mit einer
+  Umstellanleitung ab – welches Bild zu welchem Zertifikat gehört, lässt sich
+  nicht erraten, und ein Bild neben dem falschen Titel ist eine Falschaussage.
+- **Die Zertifikate stehen als Kacheln**, vier je Reihe: Bild oben auf grauer
+  Bühne, darunter Titel (höchstens zwei Zeilen) und „Aussteller · Jahr“. Eine
+  andere Darstellung gibt es nicht – Liste und Top 3 standen am 2026-10-03 zur
+  Wahl, entschieden wurde für die Kacheln.
+
+  **Die Sektion ist höchstens 924 hoch** (Figma-px = pt), von der Überschrift
+  bis zur letzten Kachelreihe, die Karte „Erworbene Qualifikationen“
+  eingerechnet: ohne Karte drei Reihen (12 Kacheln), mit Karte zwei (8). Sind
+  es mehr Zertifikate, fasst `scripts/zertifikate.py` die **ältesten Einträge
+  eines Ausstellers** zu einer Kachel zusammen („+ 3 weitere Kurse von
+  Anthropic“, darunter Jahre und Titel), immer beim Aussteller mit den meisten
+  Einträgen, bis es passt. Der neueste Eintrag jedes Ausstellers bleibt
+  sichtbar. Reicht auch das nicht – mehr Aussteller als Kacheln –, kommen die
+  ältesten Kacheln in eine **Sammelkachel** („+ 5 weitere Zertifikate“).
+  Gestrichen wird nichts. Render- und Planskript planen gleich, PDF und Figma
+  zeigen also dasselbe; beide melden jede Bündelung – sie gehört in die
+  Übergabe, und die Tags der Karte werden danach abgeglichen. Gekürzt wird
+  sonst nur mit Auslassungszeichen (Titel über zwei Zeilen) oder auf die
+  Kurzform des Ausstellers; das Jahr bleibt immer stehen.
+- **`qualifikationen`** (optional): die Karte „Erworbene Qualifikationen“
+  (en: „Acquired qualifications“, die Überschrift setzt das Layout) zwischen
+  Sektionsüberschrift und Kacheln. `text`: ein Satz, höchstens zwei Zeilen;
+  `tags`: sechs bis zehn, jedes von einem Zertifikat belegt (2c). Die Karte
+  wird nie gekürzt – ein längerer Satz oder mehr Tags gehen von den Kacheln
+  ab, das Skript meldet es. Ohne Zertifikate entfällt sie mit der Sektion.
 - **`zertifikate_titel`** (optional, oberste Ebene): überschreibt die
   Sektionsüberschrift, z.B. `"Zertifizierungen UX/UI"` wie in Florians
   Vorlage.
 - **`punkte`**: ganze Zahl 3–5, siehe Skala. Das Renderskript warnt
   darunter.
-- **Reihenfolge der Kategorien**: die stärkste zuerst – bei einem
-  KI-Profil AI, sonst Strategie & Research. Die Vorlagenreihenfolge nur
-  übernehmen, wenn sie zum Profil passt.
+- **Reihenfolge der Kategorien**: **die KI-Kategorie immer zuerst** (Name
+  beginnt mit „AI“ oder „KI“), danach die stärkste – sonst meist Strategie &
+  Research. Render- und Planskript setzen eine KI-Kategorie, die weiter hinten
+  steht, selbst nach vorn und melden das; die JSON dann nachziehen. Die
+  Vorlagenreihenfolge nur übernehmen, wenn sie zum Profil passt.
 
 ### 4. Rendern
 
@@ -574,8 +701,17 @@ Das Skript rendert zweimal (Vorratshöhe, dann exakte Inhaltshöhe – die
 Matrix ist eine einzige lange Seite), sucht sich die Engine selbst und
 meldet Auffälligkeiten nach stderr: fehlende Felder, Punkte außerhalb der
 Skala, überlange Beschreibungen, Schwerpunkte breiter als die Textspalte,
-fehlende Bilddateien. Die Hinweise sind zu lesen und abzuarbeiten, nicht zu
+fehlende Bilddateien, eine nach vorn gesetzte KI-Kategorie, Attribute außerhalb
+ihrer Katalog-Kategorie, Namen, die nicht der Katalogform der Dokumentsprache
+entsprechen, erfundene Kategorien, umsortierte, gekürzte und gebündelte
+Zertifikate, einen zu langen Satz oder zu wenige Tags in der
+Qualifikationskarte. Die Hinweise sind zu lesen und abzuarbeiten, nicht zu
 überfliegen.
+
+Die Zertifikatssektion wird im fertigen Layout vermessen, mit Karte:
+„Zertifikatssektion: 805pt hoch (8 Kacheln, geplant 805, Grenze 924)“. Liegt
+sie über 924, steht im Hinweis, um wie viel; weicht sie von der geplanten Höhe
+ab, bricht ein Text anders um als geschätzt.
 
 Dabei zeichnet es die Kartenschatten (WeasyPrint kennt kein `box-shadow`) und
 prüft zum Schluss das fertige PDF gegen `assets/tokens.json`: Seitenbreite,
@@ -598,9 +734,12 @@ pdftoppm -png -r 40 "ausgabe/New-Monday - Vorname Nachname - Jobtitel - Skillmat
 Auf der Vorschau prüfen: Steht der Kopf mittig in der Fotokarte und das
 Gesicht frei vom Farbverlauf? Stehen die
 Schwerpunkt-Buttons in einer Zeile? Läuft kein Kartentitel in die Punkte?
-Sind die Zertifikatsbilder nicht unglücklich beschnitten? Wirkt eine
-Kategoriezeile halb leer (eine einzelne Karte in der letzten Zeile ist in
-Ordnung – die Vorlage hat das auch)?
+Steht die KI-Kategorie zuerst, und steht jedes Attribut in seiner
+Katalog-Kategorie? Sind die Zertifikate unverzerrt, neueste zuerst, nichts
+abgeschnitten oder überlappend, passt jedes Tag der Qualifikationskarte zu einem
+der gezeigten Zertifikate, und ist die Sektion höchstens 924 hoch?
+Wirkt eine Kategoriezeile halb leer (eine einzelne Karte in der letzten Zeile
+ist in Ordnung – die Vorlage hat das auch)?
 
 ### 4a. Den Figma-Frame ablegen — nur wenn danach gefragt wurde
 
@@ -637,7 +776,10 @@ den `imageHash` einsetzen. Vollständig mit allen Fallstricken in
 - **Sektionen ohne Beleg entfernen**, nicht mit Vorlageninhalt stehen lassen.
   Ohne Zertifikate im Eingang fliegt die Zertifikatssektion raus; sonst
   behaupten die Zertifikatsbilder der Vorlage Qualifikationen, die der Kandidat
-  nie erworben hat.
+  nie erworben hat. **Mit Zertifikaten fliegt sie ebenfalls raus** und wird
+  durch den Schritt „Zertifikate“ aus dem Bauplan ersetzt: Die Vorlage zeigt
+  noch die alte Karte und das Bilderraster, für Kacheln und die neue Karte
+  „Erworbene Qualifikationen“ gibt es im Master keine Komponente.
 - **Kategorien aus einer vollständigen `Skill Section` klonen**, nicht mit
   `resetOverrides()` zurücksetzen — in der Vorlage sind Kartenslots per Override
   gelöscht, und `resetOverrides()` holt sie zwar zurück, stellt aber das Raster
@@ -665,7 +807,9 @@ Frame-Höhe dagegen gehalten (±20pt sind normal, mehr ist ein Hinweis).
 
 Gebaut wird mit `use_figma` nach dem Rezept in `references/figma.md`. Dort stehen
 Linkauslesung, Zielseite, Schnittnamen, der Baukasten für jeden Aufruf, die
-Bauschritte und der Weg für Foto und Zertifikatsbilder.
+Bauschritte und der Weg für Foto und Zertifikatsbilder. Das Skript rechnet die
+Höhen des Plans nach („Zertifikate: 8 Kacheln, Sektion 805pt“, „Rahmenhöhe
+nachgerechnet“) – die Zertifikatssektion hält auch in Figma die 924.
 
 ---
 
@@ -692,9 +836,13 @@ Vier Dinge stehen fest:
 PDF ausgeben und in wenigen Zeilen berichten:
 
 - Die generierte Hero-Beschreibung im Wortlaut (falls seit der Freigabe
-  geändert), mit Bitte um finalen Blick.
+  geändert), mit Bitte um finalen Blick – ebenso Satz und Tags der Karte
+  „Erworbene Qualifikationen“ mit dem Zertifikat je Tag, unter „Zur Freigabe“.
 - Welche Attribute **nicht** aus dem Katalog stammen und neu formuliert
-  wurden.
+  wurden, welche Namen nach der Namensregel deutsch stehen, welche Attribute in
+  einer nächstverwandten Kategorie stehen (Wortlaut der Hinweise) und – nur wenn
+  die Grenzen es erzwungen haben – welche belegten Attribute nicht
+  aufgenommen wurden.
 - Welche Tools **ohne Beleg** auf Wunsch ergänzt wurden (nur wenn der Eingang
   keine nannte und die Tools-Frage mit Ja beantwortet wurde).
 - Wo Quellen einander widersprachen – mit beiden Werten; ins Dokument kam
@@ -702,7 +850,10 @@ PDF ausgeben und in wenigen Zeilen berichten:
 - Woher das Foto stammt (falls automatisch geholt) und die dpi-Zahl, falls
   unter 100. Steht der Kopf nicht mittig, weil das Original zu wenig Rand hat,
   auch das – mit der Bitte um ein anderes Foto.
-- Was das Renderskript bemängelt hat und wie damit umgegangen wurde.
+- Was das Renderskript bemängelt hat und wie damit umgegangen wurde – immer
+  mit dabei: welche Zertifikate gebündelt oder gekürzt wurden (Wortlaut aus
+  den Hinweisen, samt Sammelkachel) und dass eine KI-Kategorie nach vorn
+  gerückt ist, falls das Skript das gemeldet hat.
 - **Der Figma-Frame**, falls einer gewünscht war: der Link auf den Frame
   (`…?node-id=…`) und auf welcher Seite der Datei er liegt. Ist er nicht
   zustande gekommen, steht hier stattdessen der Grund in einem Satz. Weicht
@@ -722,8 +873,9 @@ Fehlt nichts, steht hier nichts.
 
 - **Eine Sprache im ganzen Dokument.** Die gewählte Sprache gilt für jeden
   Satz – Rubriken, Hero-Beschreibung, jede Kartenbeschreibung. Gemischte
-  Dokumente gibt es nicht. Ausgenommen sind allein Attribut- und
-  Kategorienamen sowie Toolnamen, die als Fachbegriffe englisch bleiben.
+  Dokumente gibt es nicht. Ausgenommen sind Kategorienamen, Toolnamen und
+  Attributnamen, die eingeführte Fachbegriffe sind (Namensregel in Schritt 0,
+  Spalte „deutsch“ im Katalog).
   Das Renderskript warnt, wenn eine Beschreibung nach der falschen Sprache
   aussieht.
 - **Hero-Beschreibung in der Ich-Perspektive.** In der Skill Matrix spricht
@@ -733,6 +885,20 @@ Fehlt nichts, steht hier nichts.
   Florian-Variante mit den Zertifikaten am Ende:
   `"zertifikate_position": "ende"` in der JSON. Nur auf Wunsch des Nutzers,
   Standard ist vorn.
+- **Zertifikate als Kacheln, Sektion höchstens 924 hoch** – in PDF und Figma,
+  bei jeder Zahl von Zertifikaten, die Karte „Erworbene Qualifikationen“
+  eingerechnet. Reicht der Platz nicht, wird gebündelt (je Aussteller, zuletzt
+  in einer Sammelkachel), nie still gestrichen – ein Zertifikat fällt nur mit
+  Zustimmung des Nutzers weg.
+- **Die Tags der Qualifikationskarte kommen aus den Zertifikaten.** Jedes Tag
+  ist von einem gezeigten Zertifikat belegt; was nur Lebenslauf oder Portfolio
+  hergeben, steht in den Kernkompetenzen.
+- **Die KI-Kategorie steht immer zuerst** in den Kernkompetenzen.
+- **Jedes Attribut steht in seiner Katalog-Kategorie**, wenn die in der Matrix
+  vorkommt, sonst in der nächstverwandten – nie in einer fachfremden und nie in
+  der, die eine alte Matrix ihm gegeben hat. Höchstens fünf Kategorien, sechs
+  Skills je Kategorie, 24 insgesamt; belegte Attribute fallen nur weg, wenn
+  diese Grenzen es erzwingen.
 - **Der graue Rumpf reicht bis an den Fuß.** Zwischen der letzten Sektion und
   dem Fuß liegen 64 Innenabstand im Rumpf, kein weißer Streifen.
 - **Bewertungsskala**: fünf Punkte, gefüllt in der Markenfarbe. Keine

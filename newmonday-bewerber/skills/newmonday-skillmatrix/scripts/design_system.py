@@ -94,6 +94,12 @@ def textstil(ds, verwendung):
     return stil
 
 
+def zeilenhoehe(ds, verwendung):
+    """Hoehe einer Textzeile in pt (Zeilenhoehe aus dem Textstil)."""
+    s = textstil(ds, verwendung)
+    return s.get("zeilenhoehe_pt") or s["zeilenhoehe"] * s["groesse"]
+
+
 def schatten_ebenen(ds, ref):
     ebenen = aufloesen(ds, ref)
     if not isinstance(ebenen, list):
@@ -129,7 +135,9 @@ def _css_wert(ds, eigenschaft, wert):
     aufgeloest = aufloesen(ds, wert)
     if isinstance(aufgeloest, str):
         return aufgeloest                                 # Farbe
-    if eigenschaft.endswith(("deckkraft", "anteil")) or eigenschaft in ("anzahl", "spalten"):
+    # Zaehler und Verhaeltnisse sind keine Masse — ohne pt.
+    if (eigenschaft.endswith(("deckkraft", "anteil", "format", "zeilen", "spalten", "anzahl"))
+            or eigenschaft == "eintraege"):
         return _zahl(aufgeloest)
     return f"{_zahl(aufgeloest)}pt"
 
