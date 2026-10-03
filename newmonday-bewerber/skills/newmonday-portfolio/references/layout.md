@@ -311,12 +311,17 @@ Niveau im Klartext („Business Niveau“, „Muttersprache“), nicht als Kürz
 „C2“.
 
 **Meine Kunden** (Folie 3). Überschrift (`h1`) x 193 / y 160. Die Wand ist
-ein Band ab x 196 / y 471, 1579 × 420 pt – siehe „Logos".
+ein Band ab x 196 / y 471, 1579 × 420 pt – siehe „Logos". Wer auf die Wand
+kommt, regelt SKILL.md (Schritt 4, `kunden`).
 
 **Statement** (Folie 4). Nebelblaue Fläche ab x 798. Rollenzeile (`h1`) x 193 /
 y 332, 520 pt breit. Das Zitat (`h2-regular`, `neutral/80`) x 964 / y 285,
-790 pt breit – oben verankert wie in Figma, nicht mehr vertikal mittig. In
-72 pt trägt die Fläche höchstens neun Zeilen, rund 20 Wörter.
+790 pt breit – oben verankert wie in Figma, nicht mehr vertikal mittig. Es
+hat höchstens 124 Zeichen, bis 130 tolerierbar (Vorgabe Oktober 2026):
+gemessen sechs Zeilen bei 121 Zeichen (Unterkante 760 pt), sieben bei 129
+(839 pt). Die Fläche trüge neun Zeilen bis 1010 pt – so stand ein Zitat mit
+184 Zeichen dort –, die Grenze kommt also aus der Vorgabe, nicht aus dem
+Platz. Die Luft darunter ist gewollt.
 
 **Divider** (Folien 5, 10, 16). Überschrift (`h1`, weiß) x 160 / y 353,
 einzeilig – der frühere Umbruch „Mein Design / Prozess" entfällt.
@@ -357,8 +362,9 @@ Seitenzahl verschwände darin spurlos.
 
 **KI-Einsatz.** Nicht in Figma; dieselbe Seite wie die Arbeitsweise, mit zwei
 Unterschieden. Unter dem Text stehen die Werkzeuglogos: Kacheln zu 80 × 80 pt
-im 102,4-pt-Takt ab x 193, Grund `neutral/15`, das Logo darin freigestellt,
-Unterkante 826 pt. Die Kacheln messen **immer 80 pt**, egal wie viele es sind
+im 102,4-pt-Takt ab x 193, Grund `neutral/15`, das Logo darin freigestellt
+und in seinem Seitenverhältnis ins Innenquadrat von 52 pt eingepasst, mittig
+über gerechnetes Padding, Unterkante 826 pt. Die Kacheln messen **immer 80 pt**, egal wie viele es sind
 – eine frühere Fassung ließ ein bis drei Kacheln wachsen, und genau das kam
 als „verrutscht" zurück. Mehr als sechs zeigt die Seite nicht, und das Skript
 sagt, welche es weggelassen hat. Der Fließtext steht durchgehend mager:
@@ -582,6 +588,18 @@ Dateikopf) und rechnet:
 ```
 Breite = Größe × √Verhältnis      Höhe = Größe / √Verhältnis
 ```
+
+**Nie verzerrt.** Jede Logofläche – Kundenwand, Kopfseite, Werkzeugkachel –
+steht im Seitenverhältnis ihrer Datei, gesetzt auf 0,1 pt; auf ganze Punkte
+gerundet stand Rossmann im Beispiel 1,04 % daneben. `logo_masse()` liest die
+Datei dafür noch einmal und meldet jede Fläche, die mehr als 1 %
+(`LOGO_VERZERRUNG_MAX`) abweicht; `object-fit: contain` kommt im CSS dazu.
+`seitenverhaeltnis()` liest bei SVG die `viewBox` des Wurzelelements, sonst
+`width`/`height`, in jeder Schreibweise – das frühere Muster las „1e3“
+(adidas) und „height vor width“ (Nestlé) nicht und setzte stumm quadratisch
+ein. Was unlesbar bleibt, wird gemeldet. Eine Datei, die selbst gestaucht ist
+(beQ, Oktober 2026), fängt keine dieser Prüfungen: dafür die Sichtprüfung
+gegen die Quelle in SKILL.md, Schritt 5.
 
 **Die Kundenwand folgt Folie 3 der Figma-Seite.** Die Logos stehen in ihren
 **Originalfarben** – Figma zeigt sie einfarbig schwarz, der Skill bleibt bei

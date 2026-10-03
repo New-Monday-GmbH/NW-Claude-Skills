@@ -237,7 +237,8 @@ def _bild(box, folie: Folie, bilder: list):
     position = st["object_position"]
     folie.ebenen.append({"t": "i", "n": _name(box), "x": x, "y": y, "w": w, "h": h,
                          "quelle": str(datei), "passung": passung,
-                         "oben": _oben_verankert(position)})
+                         "oben": _oben_verankert(position),
+                         "anker": _verankerung(position), "folie": folie.nr})
     bilder.append(folie.ebenen[-1])
 
 
@@ -246,6 +247,43 @@ def _oben_verankert(position) -> bool:
         return position[0][2][0] in ("top",) or position[0][3].value == 0
     except Exception:
         return False
+
+
+def _verankerung(position) -> tuple[float, float]:
+    """object-position als Anteil (0 links/oben, 1 rechts/unten). Das
+    Kundenlogo der Projektseiten steht links, alles andere mittig."""
+    try:
+        ox, lx, oy, ly = position[0]
+        anteil = lambda ursprung, laenge, fern: (
+            (laenge.value / 100 if laenge.unit == "%" else 0.0) if ursprung != fern
+            else 1 - (laenge.value / 100 if laenge.unit == "%" else 0.0))
+        return anteil(ox, lx, "right"), anteil(oy, ly, "bottom")
+    except Exception:
+        return 0.5, 0.5
+
+
+VERZERRUNG_MAX = rp.LOGO_VERZERRUNG_MAX
+
+
+def im_verhaeltnis(e: dict, quelle: Path, passung: str, anker, folie: int) -> None:
+    """Ein Bild, das eingepasst statt beschnitten wird (Logos), bekommt in
+    Figma ein Rechteck im Seitenverhaeltnis seiner Datei, gesetzt wie
+    object-position im PDF. Dann passt FIT ohne Rand - und wer in Figma den
+    Fuellmodus wechselt, verzerrt trotzdem nichts. Weicht die Flaeche aus dem
+    Layout mehr als 1 % ab, wird das gemeldet: bei object-fit fill steht das
+    Bild dann schon im PDF verzerrt. Eine gestauchte Datei findet diese
+    Pruefung nicht - die faellt nur beim Ansehen gegen die Quelle auf."""
+    v = rp.seitenverhaeltnis(quelle.as_uri())
+    w, h = e["w"], e["h"]
+    if abs((w / h) / v - 1) > VERZERRUNG_MAX:
+        folge = ("steht im PDF verzerrt" if passung == "fill"
+                 else "das Rechteck wird auf die Datei eingepasst")
+        rp.merke(f"Figma: Bildfläche {quelle.name} auf Folie {folie:02d} ist "
+                 f"{w:g} × {h:g} pt ({w / h:.2f}), die Datei {v:.2f} – {folge}.")
+    neu_w, neu_h = (h * v, h) if w / h > v else (w, w / v)
+    e["x"] = round(e["x"] + (w - neu_w) * anker[0], 2)
+    e["y"] = round(e["y"] + (h - neu_h) * anker[1], 2)
+    e["w"], e["h"] = round(neu_w, 2), round(neu_h, 2)
 
 
 def _gehe(box, folie: Folie, bilder: list):
@@ -352,6 +390,9 @@ def bilder_vorbereiten(bilder: list[dict], ordner: Path, folien: list[Folie]) ->
         quelle = Path(e.pop("quelle"))
         passung = e.pop("passung")
         oben = e.pop("oben")
+        anker, folie = e.pop("anker"), e.pop("folie")
+        if passung != "cover":
+            im_verhaeltnis(e, quelle, passung, anker, folie)
         if quelle.suffix.lower() == ".svg":
             svg = _svg_bereinigen(quelle.read_text(encoding="utf-8", errors="replace"))
             if not raster:

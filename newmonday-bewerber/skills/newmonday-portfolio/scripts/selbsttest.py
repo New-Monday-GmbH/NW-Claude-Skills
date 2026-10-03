@@ -25,6 +25,12 @@
    und Seitenzahlfeld in reiner Markenfarbe (kein Schleier, kein Schatten),
    die schwarze Phone-Fassung, das Herauslösen von Clay-Phones und die
    Szene, die die Fläche füllt.
+7. Statement: bis 124 Zeichen keine Meldung, bis 130 ein Hinweis, darüber
+   eine Warnung mit der Zahl; »« und Fettmarken zählen nicht mit.
+8. Logos: Das Seitenverhältnis wird aus jeder SVG-Schreibweise gelesen, jede
+   Logofläche im Layout (Kundenwand als Reihe und als Raster, Kopfseite,
+   Werkzeugkacheln) passt auf 1 % zu ihrer Datei, und figma_plan gibt einem
+   eingepassten Bild ein Rechteck im Seitenverhältnis der Datei.
 
 Schreibt nichts in den Skill-Ordner. Rückgabe 1, wenn etwas abweicht.
 """
@@ -228,6 +234,89 @@ def erfahrung_pruefen() -> list[str]:
     return befunde
 
 
+def statement_pruefen() -> list[str]:
+    """Bis 124 Zeichen still, bis 130 ein Hinweis, darüber eine Warnung mit
+    Zahl. Die »« des Layouts und Fettmarken zählen nicht mit."""
+    befunde = []
+    t = rp.TEXTE["de"]
+    for laenge, soll in ((124, None), (127, "Hinweis"), (131, "Warnung")):
+        rp.hinweise.clear()
+        text = "»" + "x" * (laenge - 2) + " y«"
+        d = {"person": {"statement": {"text": text, "zitat": True}, "rolle": "UX"}}
+        rp.seite_statement(d, t, BEISPIEL, 4)
+        meldung = [h for h in rp.hinweise if "Statement" in h]
+        if rp.statement_zeichen(text) != laenge:
+            befunde.append(f"gezählt {rp.statement_zeichen(text)} Zeichen, erwartet {laenge}")
+        if soll is None and meldung:
+            befunde.append(f"{laenge} Zeichen werden gemeldet: {meldung!r}")
+        elif soll == "Hinweis" and (not meldung or "Warnung" in meldung[0]):
+            befunde.append(f"{laenge} Zeichen: erwartet ein Hinweis, gemeldet {meldung!r}")
+        elif soll == "Warnung" and (not meldung or not meldung[0].startswith("Warnung")
+                                    or str(laenge) not in meldung[0]):
+            befunde.append(f"{laenge} Zeichen: erwartet eine Warnung mit Zahl, gemeldet {meldung!r}")
+    if rp.statement_zeichen("**Gut** gesagt.") != len("Gut gesagt."):
+        befunde.append("Fettmarken zählen bei der Statement-Länge mit")
+    rp.hinweise.clear()
+    return befunde
+
+
+def logos_pruefen() -> list[str]:
+    """Logos nie verzerrt: Das Seitenverhältnis kommt aus der Datei, in jeder
+    SVG-Schreibweise, und jede Logofläche im Layout – Kundenwand als Reihe und
+    als Raster, Kopfseite, Werkzeugkacheln – passt dazu auf 1 %. In Figma
+    bekommt ein eingepasstes Bild ein Rechteck im Seitenverhältnis der Datei."""
+    befunde = []
+    rp.hinweise.clear()
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        for name, kopf, soll in (
+                ("viewbox.svg", '<svg viewBox="0 0 300 100">', 3.0),
+                ("komma.svg", '<svg viewBox="0,0,300,100">', 3.0),
+                ("exponent.svg", '<svg viewBox="0 0 1e3 500">', 2.0),
+                ("hoehe-zuerst.svg", '<svg height="82.4" width="300">', 300 / 82.4),
+                ("einheit.svg", '<svg stroke-width="9" width="120px" height="40px">', 3.0)):
+            datei = tmp / name
+            datei.write_text(f'<?xml version="1.0"?>\n{kopf}<rect width="1" height="1"/></svg>')
+            ist = rp.seitenverhaeltnis(datei.as_uri())
+            if abs(ist - soll) > 1e-3:
+                befunde.append(f"{name}: Seitenverhältnis {ist:.3f}, erwartet {soll:.3f}")
+
+        # Figma: Fläche 100 × 100 für eine Datei 2:1 -> Rechteck 100 × 50,
+        # mittig; links verankert bleibt x stehen. Gemeldet wird es auch.
+        from PIL import Image
+        breit = tmp / "breit.png"
+        Image.new("RGBA", (200, 100)).save(breit)
+        for anker, soll_x in (((0.5, 0.5), 10.0), ((0.0, 0.5), 10.0)):
+            rp.hinweise.clear()
+            e = {"x": 10.0, "y": 10.0, "w": 100.0, "h": 100.0}
+            fp.im_verhaeltnis(e, breit, "contain", anker, 3)
+            if (e["w"], e["h"], e["x"], e["y"]) != (100.0, 50.0, soll_x, 35.0):
+                befunde.append(f"Figma-Rechteck für 2:1 in 100 × 100: {e}")
+            if not any("breit.png" in h for h in rp.hinweise):
+                befunde.append("Figma: eine Fläche außerhalb des Seitenverhältnisses wird nicht gemeldet")
+
+        # Das Layout selbst: das Beispiel (Raster, Kopfseiten, KI-Kacheln) und
+        # dieselben Daten mit fünf Kunden (eine Reihe).
+        grund = json.loads((BEISPIEL / "portfolio.json").read_text(encoding="utf-8"))
+        reihe = copy.deepcopy(grund)
+        reihe["kunden"] = reihe["kunden"][:5]
+        for fall, d in (("Raster", grund), ("Reihe", reihe)):
+            rp.hinweise.clear()
+            html_text, _ = rp.baue_html(d, BEISPIEL, tmp)
+            folien, bilder = fp.folien_lesen(html_text)
+            for e in bilder:
+                if e["passung"] == "cover":
+                    continue
+                v = rp.seitenverhaeltnis(Path(e["quelle"]).as_uri())
+                if abs((e["w"] / e["h"]) / v - 1) > rp.LOGO_VERZERRUNG_MAX:
+                    befunde.append(f"{fall}: {Path(e['quelle']).name} auf Folie {e['folie']} "
+                                   f"steht {e['w']:g} × {e['h']:g} pt, Datei {v:.3f}")
+            if any("verzerrt" in h for h in rp.hinweise):
+                befunde.append(f"{fall}: {[h for h in rp.hinweise if 'verzerrt' in h]!r}")
+    rp.hinweise.clear()
+    return befunde
+
+
 def _kuenstliche_screens():
     """Drei Desktop-Screens, drei Phone-Screens, ein Clay-Mockup mit zwei
     Phones und eine Showcase-Szene - jeder Screen mit eigenem Aufbau, damit
@@ -335,6 +424,8 @@ def main() -> None:
     fehler += [f"Sprachen: {b}" for b in sprachen_pruefen()]
     fehler += [f"Arbeitsjahre: {b}" for b in erfahrung_pruefen()]
     fehler += [f"Screen-Stil: {b}" for b in screens_pruefen()]
+    fehler += [f"Statement: {b}" for b in statement_pruefen()]
+    fehler += [f"Logos: {b}" for b in logos_pruefen()]
 
     if fehler:
         print(f"Selbsttest: {len(fehler)} Abweichung(en)")
@@ -342,8 +433,8 @@ def main() -> None:
             print(f"  - {f}")
         raise SystemExit(1)
     print("Selbsttest bestanden: Tokens, Beispiel-PDF, Figma-Abgleich "
-          f"({len(list(SOLL.glob('*.json')))} Vorlage(n)), Sprachen, Arbeitsjahre "
-          "und Screen-Stil ohne Abweichung.")
+          f"({len(list(SOLL.glob('*.json')))} Vorlage(n)), Sprachen, Arbeitsjahre, "
+          "Screen-Stil, Statement-Länge und Logo-Proportionen ohne Abweichung.")
 
 
 if __name__ == "__main__":

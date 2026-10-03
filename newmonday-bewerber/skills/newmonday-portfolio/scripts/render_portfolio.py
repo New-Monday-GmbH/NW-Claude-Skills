@@ -194,24 +194,60 @@ def uri_pfad(uri: str) -> Path:
     return Path(url2pathname(urlparse(uri).path))
 
 
+ZAHL = r"[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?"
+
+
 def seitenverhaeltnis(uri: str) -> float:
-    """Breite/Hoehe einer Bild- oder SVG-Datei. 1.0, wenn unlesbar."""
+    """Breite/Hoehe einer Bild- oder SVG-Datei - die einzige Quelle fuer die
+    Proportionen eines Logos. Bei SVG zaehlt die viewBox des Wurzelelements,
+    sonst dessen width/height, in jeder Schreibweise (Kommas, 1e3, px/pt,
+    beliebige Reihenfolge). Das fruehere starre Muster las "1e3" (adidas) und
+    "height=… width=…" (Nestle) nicht und setzte stumm 1.0 - die Logos standen
+    dann quadratisch eingepasst und viel zu klein. Unlesbar: 1.0 und Meldung."""
     pfad = uri_pfad(uri)
     try:
         if pfad.suffix.lower() == ".svg":
-            kopf = pfad.read_text(errors="ignore")[:2000]
-            m = re.search(r'viewBox="[\d.\-]+ [\d.\-]+ ([\d.]+) ([\d.]+)"', kopf)
-            if m:
-                return float(m.group(1)) / float(m.group(2))
-            mb = re.search(r'width="([\d.]+)"[^>]*height="([\d.]+)"', kopf)
-            if mb:
-                return float(mb.group(1)) / float(mb.group(2))
-            return 1.0
-        from PIL import Image
-        with Image.open(pfad) as im:
-            return im.width / im.height
+            text = pfad.read_text(errors="ignore")
+            m = re.search(r"<svg\b[^>]*>", text)
+            kopf = m.group(0) if m else text[:2000]
+            vb = re.search(r'viewBox\s*=\s*["\']([^"\']+)["\']', kopf)
+            werte = [float(z) for z in re.findall(ZAHL, vb.group(1))] if vb else []
+            if len(werte) == 4 and werte[2] > 0 and werte[3] > 0:
+                return werte[2] / werte[3]
+            masse = [re.search(rf'(?<![-\w]){a}\s*=\s*["\']\s*({ZAHL})\s*(?:px|pt)?\s*["\']', kopf)
+                     for a in ("width", "height")]
+            if all(masse) and float(masse[1].group(1)) > 0:
+                return float(masse[0].group(1)) / float(masse[1].group(1))
+        else:
+            from PIL import Image
+            with Image.open(pfad) as im:
+                return im.width / im.height
     except Exception:
-        return 1.0
+        pass
+    merke(f"Seitenverhältnis von {pfad.name} nicht lesbar – als quadratisch "
+          "gesetzt. Logo ansehen, bevor das PDF rausgeht.")
+    return 1.0
+
+
+# Ein Logo steht nie verzerrt: Breite und Hoehe kommen aus dem
+# Seitenverhaeltnis der Datei und werden auf 0,1pt gesetzt - auf ganze Punkte
+# gerundet lag ein flacher Schriftzug (Porsche, 23pt hoch) bis 2 % daneben.
+# Was darueber abweicht, meldet logo_masse(). Gegen eine Datei, die selbst
+# gestaucht ist, hilft keine Rechnung (beQ, Oktober 2026): dafuer die
+# Sichtpruefung gegen die Quelle in SKILL.md, Schritt 5.
+LOGO_VERZERRUNG_MAX = 0.01
+
+
+def logo_masse(uri: str, b: float, h: float, wo: str) -> str:
+    """CSS-Masse eines Logos - mit der Pruefung, dass die Flaeche zum
+    Seitenverhaeltnis der Datei passt. Die Datei wird dafuer noch einmal
+    gelesen: geprueft wird gegen die Quelle, nicht gegen die eigene Rechnung."""
+    b, h = round(b, 1), round(h, 1)
+    v = seitenverhaeltnis(uri)
+    if h <= 0 or abs((b / h) / v - 1) > LOGO_VERZERRUNG_MAX:
+        merke(f"Logo {uri_pfad(uri).name} ({wo}): Fläche {b:g} × {h:g} pt passt nicht "
+              f"zum Seitenverhältnis der Datei ({v:.2f}) – es stünde verzerrt.")
+    return f"width:{b:.1f}pt;height:{h:.1f}pt"
 
 
 def helligkeit(farbe: str) -> float:
@@ -693,7 +729,7 @@ def seite_kunden(d, t, basis, nr):
             kacheln.append(
                 f'<div class="kachel" style="width:{b:.1f}pt;height:640pt;'
                 f'margin-left:{links:.1f}pt;padding-top:{(640 - h) / 2:.1f}pt">'
-                f'<img src="{uri}" style="width:{b:.0f}pt;height:{h:.0f}pt"></div>')
+                f'<img src="{uri}" style="{logo_masse(uri, b, h, "Kundenwand")}"></div>')
     wand_stil = (f' style="left:193pt;top:{REIHE_OBEN}pt;width:1607pt;height:640pt"'
                  if reihe else "")
     if not reihe and dateien:
@@ -760,11 +796,23 @@ def logoraster(dateien: list[str]) -> list[str]:
         bilder = []
         for uri, b, h in masse:
             bilder.append(f'<img src="{uri}" style="left:{x:.1f}pt;'
-                          f'top:{(zeile_h - h) / 2:.1f}pt;width:{b:.0f}pt;height:{h:.0f}pt">')
+                          f'top:{(zeile_h - h) / 2:.1f}pt;{logo_masse(uri, b, h, "Kundenwand")}">')
             x += b + lucke
         raus.append(f'<div class="logozeile" style="top:{oben + z * (zeile_h + luft):.1f}pt;'
                     f'height:{zeile_h:.0f}pt">{"".join(bilder)}</div>')
     return raus
+
+
+# Das Statement auf Seite 4: hoechstens 124 Zeichen, bis 130 tolerierbar
+# (Vorgabe Oktober 2026). Ein laengeres Zitat wird nicht hier gekuerzt - der
+# Skill stellt in Schritt 3 gekuerzte Fassungen aus dem Wortlaut zur Wahl.
+STATEMENT_ZEICHEN, STATEMENT_TOLERANZ = 124, 130
+
+
+def statement_zeichen(text: str) -> int:
+    """Gezaehlt wird, was auf der Folie steht: mit Leer- und Satzzeichen, ohne
+    Fettmarken und ohne die »«, die das Layout selbst setzt."""
+    return len(" ".join(nuechtern(text).split()).strip("»«"))
 
 
 def seite_statement(d, t, basis, nr):
@@ -773,6 +821,15 @@ def seite_statement(d, t, basis, nr):
     text = st.get("text", "")
     if not text:
         merke("Statement auf Seite 4 fehlt - die Fläche bleibt leer.")
+    n = statement_zeichen(text)
+    if n > STATEMENT_TOLERANZ:
+        merke(f"Warnung: Das Statement auf Seite 4 hat {n} Zeichen – höchstens "
+              f"{STATEMENT_ZEICHEN}, bis {STATEMENT_TOLERANZ} tolerierbar. Nicht still "
+              "kürzen: zwei bis drei gekürzte Fassungen aus dem Wortlaut zur Wahl "
+              "stellen (SKILL.md, „Das Statement auf Seite 4“).")
+    elif n > STATEMENT_ZEICHEN:
+        merke(f"Das Statement auf Seite 4 hat {n} Zeichen – über {STATEMENT_ZEICHEN}, "
+              f"aber im tolerierten Rahmen bis {STATEMENT_TOLERANZ}.")
     if st.get("zitat") and text and not text.startswith("»"):
         text = f"»{text}«"
     rolle = e(p.get("statement_rolle") or p.get("rolle", "")).replace("\n", "<br>")
@@ -1003,13 +1060,21 @@ def werkzeugreihe(ki, basis) -> tuple[str, float]:
     oben = WERKZEUG_UNTEN - mass
     # Gerechnetes Padding statt Flex-Zentrierung: WeasyPrint setzt
     # justify-content nicht um, und die Logos sassen sichtbar verschoben in
-    # den Kacheln - genau die Rueckmeldung zur KI-Folie.
-    rand = mass * 0.175
-    kacheln = "".join(
-        f'<div class="werkzeug" style="width:{mass:.1f}pt;height:{mass:.1f}pt;'
-        f'border-radius:{mass * 0.0625:.1f}pt;padding:{rand:.1f}pt">'
-        f'<img src="{uri}" style="width:{mass * .65:.1f}pt;height:{mass * .65:.1f}pt">'
-        f'</div>' for uri in uris)
+    # den Kacheln - genau die Rueckmeldung zur KI-Folie. Das Logo bekommt die
+    # Flaeche seines Seitenverhaeltnisses, eingepasst ins Innenquadrat; das
+    # Padding gleicht den Rest aus. So bekommt auch Figma ein Rechteck im
+    # Seitenverhaeltnis der Datei statt eines Quadrats.
+    rand, innen = mass * 0.175, mass * 0.65
+    kacheln = []
+    for uri in uris:
+        v = seitenverhaeltnis(uri)
+        b, h = (innen, innen / v) if v >= 1 else (innen * v, innen)
+        kacheln.append(
+            f'<div class="werkzeug" style="width:{mass:.1f}pt;height:{mass:.1f}pt;'
+            f'border-radius:{mass * 0.0625:.1f}pt;'
+            f'padding:{rand + (innen - h) / 2:.1f}pt {rand + (innen - b) / 2:.1f}pt">'
+            f'<img src="{uri}" style="{logo_masse(uri, b, h, "KI-Folie")}"></div>')
+    kacheln = "".join(kacheln)
     return (f'<div class="werkzeuge" style="top:{oben:.1f}pt;'
             f'width:{breite:.1f}pt">{kacheln}</div>', oben - 11)
 
@@ -1087,7 +1152,8 @@ def kundenlogo(pr, basis):
             h, b = LOGO_PROJEKT_HOCH, LOGO_PROJEKT_HOCH * v
         if b > LOGO_PROJEKT_BREIT:
             b, h = LOGO_PROJEKT_BREIT, LOGO_PROJEKT_BREIT / v
-        imgs.append(f'<img src="{uri}" style="width:{b:.0f}pt;height:{h:.0f}pt">')
+        wo = f"Kopfseite {pr.get('kunde')}"
+        imgs.append(f'<img src="{uri}" style="{logo_masse(uri, b, h, wo)}">')
     if not imgs:
         merke(f"Kundenlogo fehlt: {pr.get('kunde')}")
         return ""

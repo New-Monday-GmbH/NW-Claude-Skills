@@ -27,7 +27,7 @@ Was dabei entsteht, je Folie ein Frame 1920 × 1080 (Clip an):
 | Textblock | ein Textknoten mit automatischer Breite, Zeilenhöhe in Punkt, Umbrüche wie im PDF |
 | `**fett**`, Links | Bereiche mit eigenem Schnitt bzw. Hyperlink im selben Textknoten |
 | SVG-Logo, Wortmarke | Vektorknoten (`createNodeFromSvg`), in seine Box eingepasst |
-| Rasterbild, großes SVG | Rechteck `bild:<nr>`, das Bild kommt per `upload_assets` – große SVGs rendert WeasyPrint zu PNG, derselbe Renderer wie im PDF |
+| Rasterbild, großes SVG | Rechteck `bild:<nr>`, das Bild kommt per `upload_assets` – große SVGs rendert WeasyPrint zu PNG, derselbe Renderer wie im PDF. Logos und andere eingepasste Bilder: Rechteck im Seitenverhältnis der Datei, Füllmodus FIT |
 
 **Die Zeilenumbrüche sind harte Umbrüche, die Textknoten haben automatische
 Breite.** Die Umbrüche stehen genau dort, wo WeasyPrint umbricht, und Figma
@@ -44,6 +44,29 @@ HostEurope als schwarze Fläche und congstar ohne seine Pille.
 **Farben und Schriften sind Rohwerte** aus dem gerenderten Layout – also genau
 die Werte aus `tokens.json`. Es werden keine Styles, Variablen oder Komponenten
 in der Zieldatei angelegt.
+
+## Logos nie verzerren
+
+Das Seitenverhältnis eines Logos kommt immer aus seiner Datei. Daraus folgt:
+
+- **Rasterlogos gehen mit FIT auf ein Rechteck im Seitenverhältnis der
+  Datei.** `figma_plan.py` setzt jedes eingepasste Bild selbst so
+  (`im_verhaeltnis()`), verankert wie `object-position` im PDF – dann füllt
+  FIT das Rechteck ohne Rand, und auch FILL schnitte nichts ab. Weicht die
+  Fläche aus dem Layout mehr als 1 % von der Datei ab, meldet das Skript es
+  („Figma: Bildfläche …“); bei `object-fit: fill` stünde das Bild dann schon
+  im PDF verzerrt.
+- **Vektorlogos werden gleichmäßig skaliert** (`rescale`), nie mit `resize`
+  auf zwei Maße.
+- **FIT hilft nicht gegen eine gestauchte Datei.** Das beQ-Logo ging verzerrt
+  nach Figma, obwohl dort korrekt mit FIT eingepasst war: Die Datei der
+  Bibliothek war selbst gestaucht (948 × 869 statt 1018 × 547 px). Deshalb
+  wird jedes Logo vor dem Rendern gegen seine Quelle angesehen (SKILL.md,
+  Schritt 5) – nicht erst in Figma.
+- **Von Hand in Figma**: Logos nur proportional skalieren (Shift beim
+  Ziehen oder Skalieren-Werkzeug K), den Füllmodus eines Logos auf FIT lassen –
+  im Modus „Crop“ zieht Figma das Bild mit, sobald die Fläche ihre Maße
+  ändert.
 
 ## Die Zieldatei
 
@@ -112,6 +135,7 @@ hochgeladen.
 
 **6. Kontrolle.** `get_screenshot` auf zwei, drei Folien – Cover, eine
 Arbeitsweise-Seite, eine Projekt-Kopfseite – und gegen die PDF-Seite halten.
+Dazu die Kundenwand: Jedes Logo hat dieselben Proportionen wie im PDF.
 Dann den Link auf den Sammelrahmen (`…?node-id=<rahmen>`) für die Übergabe.
 
 ## Einzelne Folien in einem bestehenden Deck ersetzen
@@ -146,6 +170,7 @@ so raus – mit einem Satz dazu, was an Figma nicht ging.
 | „IDs fehlen" | Schritt 3 vergessen |
 | Paket über 50 000 Zeichen | sehr viele Vektorlogos auf einer Folie – `SVG_FOLIE_MAX` in `figma_plan.py` senken, dann gehen mehr als Rasterbild |
 | Bildfläche bleibt hellgrau | Upload fehlgeschlagen oder Reihenfolge von `nodeIds` und URLs vertauscht |
+| Logo wirkt gestaucht oder gedehnt | von Hand auf „Crop“ gestellt und die Fläche verzogen – sonst ist die Datei selbst verzerrt: gegen die Quelle prüfen, Original mit `add_logo.py` nachlegen, die Folie neu bauen |
 | Upload hängt | im Browser-Chat blockt der Proxy fremde Domains |
 
 `use_figma` ist atomar: Ein Paket, das wirft, hat nichts geschrieben. Nach

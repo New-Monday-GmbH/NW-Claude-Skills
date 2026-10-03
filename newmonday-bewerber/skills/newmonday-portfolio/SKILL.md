@@ -118,8 +118,12 @@ entsteht `fragen.json`:
   Vorschläge nach Stärke, das stärkste zuerst mit „(Empfohlen)“; die
   `description` nennt die Beleglage (Text, Zahl und Schärfe der Screens). Mehr
   als vier Projekte: die vier stärksten als Optionen, die übrigen in der
-  `description` der vierten („weitere über Other: …“). `statement` hat die
-  Optionen „Ich gebe es ein“ mit `"text_noetig": true` und „Fläche leer lassen“.
+  `description` der vierten („weitere über Other: …“). `statement` hat ohne
+  Statement im Material die Optionen „Ich gebe es ein“ mit `"text_noetig": true`
+  und „Fläche leer lassen“; ist das Zitat im Material länger als 130 Zeichen,
+  zwei bis drei gekürzte Fassungen – Label „Fassung A (121 Zeichen)“, der
+  Wortlaut in der `description` – und „Ich gebe es ein“ (Schritt 4, „Das
+  Statement auf Seite 4“).
 - `luecken`:
   - je vorgeschlagenem Projekt ohne scharfe Screens ein Posten „Screens
     <Projekt>“ – gemessen an `bilder.txt` und den Grenzen aus Schritt 0,
@@ -141,6 +145,8 @@ In `notizen.md`:
 - je Projekt: Quelle der Texte, zugeordnete Bilder aus `arbeit/bilder/` mit
   Seitenzahl, Beleglage, Markenfarbe falls schon erkennbar;
 - die Profilfoto-Quelle;
+- die Kundenwand: alle Firmen nach der Regel in Schritt 4 (`kunden`), in ihrer
+  Reihenfolge, je Firma mit Quelle;
 - jede Abweichung zwischen den Quellen mit beiden Werten und anonymisierte
   Kunden; welche Fassung gilt, entscheidet beim Bauen `vorrang`;
 - bei einer Figma-Datei als Quelle: die Knoten-IDs der Screens.
@@ -158,12 +164,15 @@ Keine `portfolio.json`, keine Logos, keine Recherche, nichts rendern.
   Text über „Other“ eine andere Reihenfolge, gilt die.
 - `nda` → `"nda": true` bei den gewählten Projekten.
 - `statement` → „Ich gebe es ein: <Text>“: der Text als `statement.text`,
-  wörtlich; „Fläche leer lassen“: kein Statement. Jede andere Antwort (über
-  „Other“) ist selbst der Statement-Text, wörtlich – außer sie beginnt mit
-  „Anweisung:“: Dann formulierst du das Statement aus dem Material (vor allem
-  Über-mich-Texten), in der Dokumentsprache, in der Ich-Perspektive, ohne
-  erfundene Fakten, und stellst es unter „Zur Freigabe“ mit dem Vermerk
-  „selbst formuliert, auf Anweisung“.
+  wörtlich; „Fassung …“: der Wortlaut aus der `description` dieser Option in
+  `fragen.json`, wörtlich; „Fläche leer lassen“: kein Statement. Jede andere
+  Antwort (über „Other“) ist selbst der Statement-Text, wörtlich – außer sie
+  beginnt mit „Anweisung:“: Dann formulierst du das Statement aus dem Material
+  (vor allem Über-mich-Texten), in der Dokumentsprache, in der Ich-Perspektive,
+  ohne erfundene Fakten, mit höchstens 124 Zeichen, und stellst es unter „Zur
+  Freigabe“ mit dem Vermerk „selbst formuliert, auf Anweisung“. Ein
+  vorgegebener Text über 130 Zeichen bleibt wörtlich; die Warnung des
+  Renderskripts kommt unter „Hinweise“.
 - `ki_tools` → `person.ki.tools`.
 
 Widersprechen sich die Quellen, gilt statt „Bei Widersprüchen gewinnt das
@@ -414,7 +423,9 @@ Bauen. Vier Fragen passen hinein:
    sondern nach Stärke: das überzeugendste zuerst.
 2. **Welche Projekte sind vertraulich (NDA)?** `multiSelect`, nur wenn es
    plausible Kandidaten gibt. Siehe unten.
-3. **Das Statement für Seite 4**, falls im Material keins steht – siehe unten.
+3. **Das Statement für Seite 4**, falls im Material keins steht oder das
+   vorhandene länger als 130 Zeichen ist – dann mit zwei bis drei gekürzten
+   Fassungen aus seinem Wortlaut zur Wahl. Siehe „Das Statement auf Seite 4“.
 4. **Welche KI-Werkzeuge nutzt der Kandidat?** `multiSelect`, nur wenn das
    Material keine nennt. Die Logos auf Seite 10 behaupten, dass jemand mit
    genau diesen Werkzeugen arbeitet. Den Text der Folie darf der Skill notfalls
@@ -485,6 +496,18 @@ Fläche der jeweiligen Lösungsseite fliegen, `projekte[].screens` die der
 randlosen Abschlussseite. Ältere Dateien mit `projekte[].bild` oder
 `loesungen[].bild` laufen weiter – die Felder werden ignoriert.
 
+**`kunden` ist die Kundenwand auf Seite 3, und auf sie kommen alle Firmen, für
+die der Kandidat gearbeitet hat** – die Arbeitgeber seiner Stationen und die
+Kunden seiner Projekte, aus Lebenslauf, LinkedIn und Portfolio. Ausgenommen
+sind nur New Monday selbst und anonymisierte Kunden (Schritt 2). Ein Kunde, der
+nur im Lebenslauf steht, gehört genauso drauf wie der Kunde eines Projekts, das
+nicht ins Portfolio kommt: Die Wand zeigt Kunden, nicht Projekte. Auch die
+Kundenwand eines älteren Portfolios ist keine Obergrenze – Tollwerk stand als
+Arbeitgeber in Florians Lebenslauf, fehlte auf seiner alten Wand und deshalb
+auch auf der neuen; genau das kam als Rückmeldung zurück (Oktober 2026).
+Reihenfolge: die Kunden der Projekte in Projektreihenfolge, dann die übrigen,
+wie sie im Lebenslauf stehen; jede Firma einmal.
+
 **Textlängen — was eine Fläche trägt.** Die Werte sind aus den bestehenden
 Portfolios gemessen und am fertigen PDF nachgeprüft. Das Renderskript misst
 ebenfalls nach und meldet Überlauf, aber es ist billiger, gleich in der
@@ -498,7 +521,7 @@ Größenordnung zu bleiben:
 | `kenntnisse` | **8** wie in der Vorlage (weniger nur bei dünnem Material), je bis ~60 Zeichen, jeder in einer Zeile – die Liste läuft mit Trennlinien im 63-pt-Takt und endet mit acht Einträgen genau am unteren Rand der Vorlage; mehr passt nicht |
 | `sprachen` | **Deutsch – Muttersprache und Englisch – Business Niveau stehen immer** (Vorgabe, auch ohne Angabe im Material), dazu alle weiteren Sprachen aus dem Material – bei Platznot gleiche Niveaus zusammenfassen, siehe unten |
 | `links` | alle beruflichen Auftritte – Portfolio-Website zuerst, siehe unten |
-| `statement.text` | 10–20 Wörter – das Zitat steht in 72 pt, mehr als neun Zeilen trägt die Fläche nicht |
+| `statement.text` | **höchstens 124 Zeichen**, bis 130 tolerierbar (Vorgabe Oktober 2026) – mit Leer- und Satzzeichen, ohne die »«; in 72 pt sechs bis sieben Zeilen. Längeres Zitat: siehe „Das Statement auf Seite 4“ |
 | `prozess[].titel` | 1–3 Wörter |
 | `prozess[].kurztext` | 12–25 Wörter |
 | `prozess[].langtext` | 60–100 Wörter, zwei Absätze – bei mehrzeiligem `titel` weniger |
@@ -678,6 +701,48 @@ Steht im Material ein Zitat, ein Leitsatz oder ein Über-mich-Absatz, wird er
 eigene Haltung ist nichts, was jemand anders für einen Kandidaten formuliert.
 Kommt keiner, bleibt die Fläche leer; das Layout trägt das.
 
+**Höchstens 124 Zeichen, bis 130 tolerierbar** (Vorgabe vom Oktober 2026).
+Gezählt wird, was auf der Folie steht: mit Leer- und Satzzeichen, ohne die »«,
+die das Layout setzt. Die Grenze kommt aus der Vorgabe, nicht aus dem Platz:
+124 Zeichen sind in 72 pt sechs bis sieben Zeilen, die Fläche trüge neun. Das
+Renderskript zählt mit – über 124 ein Hinweis, über 130 eine Warnung mit der
+Zahl.
+
+**Ein längeres Zitat wird nicht still gekürzt.** Dann stellt die Frage
+`statement` in Schritt 3 zwei bis drei gekürzte Fassungen zur Wahl, jede mit
+ihrer Zeichenzahl, dazu „Ich gebe es ein“:
+
+```
+Frage:   Das Zitat im Material hat 184 Zeichen, auf Seite 4 passen höchstens 124. Welche Fassung soll stehen?
+Header:  Statement
+Optionen: Fassung A (121 Zeichen) (Empfohlen) | Fassung B (… Zeichen)
+        | Fassung C (… Zeichen) | Ich gebe es ein
+```
+
+Der Wortlaut jeder Fassung steht in ihrer `description`; zuerst die, die am
+meisten vom Original behält. Die Fassungen entstehen **aus dem Wortlaut des
+Kandidaten**: Sätze und Satzteile weglassen, zwei Sätze mit Gedankenstrich
+oder einem verbindenden Wort zusammenziehen, Rechtschreibung glätten. Nichts
+hinzuerfinden – keine neue Aussage, kein eigenes Wort für eines des
+Kandidaten. Jede Fassung bleibt bei höchstens 124 Zeichen. So wurde aus 184
+Zeichen 121:
+
+> Als Designer habe ich die Chance, Anderen den Alltag leichter zu gestalten.
+> Dabei bin ich immer auf der Suche nach Lösungen, die simpel, aber mächtig
+> sind: Low barriers, high ceilings.
+>
+> → Als Designer habe ich die Chance, anderen den Alltag leichter zu gestalten
+> – mit Lösungen, die simpel, aber mächtig sind.
+
+Mit der Übernahme-Regel verträgt sich das, weil nichts still passiert: Der
+Skill schlägt vor, der Nutzer entscheidet, und die Übergabe nennt die gewählte
+Fassung samt Original. Ein Text, den der Nutzer selbst eingibt, bleibt
+wörtlich – ist er länger als 130 Zeichen, einmal mit der Zahl darauf hinweisen.
+
+Rote Flagge: Du kürzt das Zitat, damit es passt, und fragst nicht. Dann steht
+auf Seite 4 ein Satz, den der Kandidat so nie gesagt hat, und niemand hat ihn
+freigegeben.
+
 `statement_rolle` ist die große Rollenzeile links, mit `\n` von Hand umbrochen:
 `"User\nInterface &\nExperience\nDesigner"`.
 
@@ -801,6 +866,18 @@ Danach zu prüfen:
   echten Auftritt prüfen (Websuche oder Markenseite), die farbige Fassung mit
   `add_logo.py` nachlegen – sie ersetzt den Bibliothekseintrag dauerhaft, damit
   der nächste Lauf sie gleich bekommt.
+- **Logos nie verzerrt.** Das Seitenverhältnis kommt immer aus der Datei –
+  nie aus einer Kachel, einem Feld oder einer Vorlage. Render- und
+  Figma-Skript rechnen jede Logofläche daraus und melden eine, die mehr als
+  1 % abweicht; in Figma gehen Rasterlogos mit FIT auf ein Rechteck im
+  Seitenverhältnis der Datei (`references/figma.md`). Gegen eine Datei, die
+  **selbst** gestaucht ist, hilft beides nicht: Das beQ-Logo lag in der
+  Bibliothek mit 948 × 869 statt 1018 × 547 px und ging so verzerrt in
+  Lebenslauf und Portfolio (Oktober 2026) – Figma hatte korrekt eingepasst.
+  Deshalb vor dem Rendern jedes Logo einmal gegen seine Quelle halten (das
+  Logo im Material des Kandidaten, die Firmenseite): Wirken Schrift oder
+  Bildmarke gestaucht oder gedehnt, das Original mit `add_logo.py` nachlegen –
+  es ersetzt den Bibliothekseintrag auch für alle folgenden Läufe.
 - **Fehlt ein Logo, entfällt sein Platz auf der Wand** – die übrigen rücken
   zusammen, die Projektseite rendert ohne. Deshalb gehört jedes offene Logo in
   die Übergabe, damit jemand es nachliefern kann.
@@ -958,6 +1035,10 @@ meldet:
 - **Fehlende Dateien und gesetzte Platzhalter.**
 - **Ungewöhnliche Mengen**: weniger als drei oder mehr als fünf Projekte,
   ein Design-Prozess mit anderer Schrittzahl als drei.
+- **Ein zu langes Statement**: über 124 Zeichen als Hinweis, über 130 als
+  Warnung mit der Zahl.
+- **Logoflächen, die nicht zu ihrer Datei passen** (über 1 %), und Logos,
+  deren Seitenverhältnis sich nicht lesen ließ.
 
 **Der Zwischenspeicher liegt neben der `portfolio.json`, nicht beim PDF.** Die
 gerechneten Markenflächen landen in `arbeit/screens/`, ein Bild je Lösungs- und
@@ -972,7 +1053,7 @@ aus diesen Flächen; wer es per Mail schickt, prüft vorher die Größengrenze.
 Projektseiten: ob auf der Summary-Seite wirklich das Gebäude dieses Kunden
 steht, ob es wie ein Foto aussieht und nicht wie ein Rendering und ob es
 freundlich wirkt statt grau und trist, ob die Markenfarbe zur Marke passt, ob
-das Kundenlogo lesbar ist – und ob auf den Lösungs- und Abschlussseiten von
+das Kundenlogo lesbar und unverzerrt ist – und ob auf den Lösungs- und Abschlussseiten von
 jedem Screen genug zu sehen ist und jeder scharf steht. Die Screens laufen
 über die Kanten, die Markenfarbe zeigt sich in den Fugen und in den freien
 Ecken unter Wortmarke und Seitenzahl; beides ist gewollt – so stehen die
@@ -1020,6 +1101,7 @@ PDF ausgeben und in wenigen Zeilen berichten:
   Kandidatenmaterial), mit der Bitte um Freigabe oder ein echtes Foto
 - Woher die Kundentexte stammen, wenn sie nicht vom Kandidaten kommen
 - Welcher Cover-Titel aus der Rolle abgeleitet wurde
+- Ob das Statement eine gekürzte Fassung ist – mit dem Original
 - **Ob KI- oder Prozesstexte erweitert oder selbst formuliert sind**, mit der
   Bitte um Freigabe
 - Welche Rechtschreibfehler korrigiert wurden
@@ -1089,6 +1171,9 @@ der Kaskade in Schritt 5.
   SYSTEM v1.3): Überschriften in **Rethink Sans**, Text in **Inter**, beide in
   `assets/fonts/` und eingebettet. Farben, Textstile, Linien und Kartenmaße
   stehen einmal, in `assets/tokens.json` – nirgends sonst.
+- **Logos stehen nie verzerrt.** Ihr Seitenverhältnis kommt immer aus der
+  Datei, im PDF wie in Figma, und jede Datei wird vor dem Rendern gegen ihre
+  Quelle angesehen – siehe Schritt 5.
 - **Profilfoto immer in Graustufen.** Das Renderskript entfärbt es selbst;
   CSS-Filter setzt WeasyPrint nicht um.
 - **Keine Schatten auf den Folien.** Karten sind flach, wie in Figma. Die
