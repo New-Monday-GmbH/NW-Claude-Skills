@@ -384,7 +384,37 @@ def pruefe_ordner(lauf: Path, dateien: bool = True) -> tuple[list[str], list[str
                       for x in pruefe_uebergabe("\n" + text + "\n")]
             except (OSError, UnicodeDecodeError) as e:
                 f.append(f"{kurz}/uebergabe.md: nicht lesbar – {e}")
-    return f, w
+    ff, ww = pruefe_tools(lauf, auftrag)
+    return f + ff, w + ww
+
+
+def _tools(datei: Path, lesen):
+    """Toolnamen aus cv.json (skillset.tools) bzw. skillmatrix.json (tools[].name),
+    oder None, wenn die Datei fehlt oder keine Liste traegt."""
+    if not datei.exists():
+        return None
+    try:
+        return lesen(json.loads(datei.read_text(encoding="utf-8")))
+    except (OSError, ValueError, AttributeError, KeyError, TypeError):
+        return None
+
+
+def pruefe_tools(lauf: Path, auftrag) -> tuple[list[str], list[str]]:
+    """Lebenslauf und Skill Matrix fuehren dieselbe Tool-Liste – gleiche Namen,
+    gleiche Reihenfolge. Massgeblich ist die Skill Matrix. Fehler erst, wenn
+    beide gebaut sind; vorher eine Warnung, damit ein laufender Bau nicht an
+    einem Dokument scheitert, das noch nicht dran war."""
+    cv = _tools(lauf / "cv" / "cv.json",
+                lambda d: [str(t) for t in d["skillset"]["tools"]])
+    sm = _tools(lauf / "skillmatrix" / "skillmatrix.json",
+                lambda d: [str(t["name"]) for t in d["tools"]])
+    if cv is None or sm is None or cv == sm:
+        return [], []
+    text = (f"Tools weichen ab – Skill Matrix {sm}, Lebenslauf {cv}. Der Lebenslauf "
+            "übernimmt die Liste der Skill Matrix wörtlich (skillset.tools).")
+    gebaut = all(_phase(auftrag, s, "bauen") == "fertig"
+                 for s in ("newmonday-cv", "newmonday-skillmatrix"))
+    return ([text], []) if gebaut else ([], [text])
 
 
 def main(args: list[str]) -> int:
