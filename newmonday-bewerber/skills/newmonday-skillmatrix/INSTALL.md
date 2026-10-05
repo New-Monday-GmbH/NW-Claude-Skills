@@ -51,8 +51,8 @@ python3 ../scripts/render_skillmatrix.py skillmatrix.json /tmp/
 Läuft das durch, stehen unter „Pruefen:“ genau zwei Hinweise („Product
 Thinking“ und „Workshop Facilitation“ stehen in der nächstverwandten Kategorie
 „User Research & Insights“), und meldet es
-`Seitenformat: 1444 x 3788pt, 33 Kartenschatten`,
-`Zertifikatssektion: 805pt hoch (8 Kacheln, geplant 805, Grenze 924)`
+`Seitenformat: 1444 x 3786pt, 33 Kartenschatten`,
+`Zertifikatssektion: 803pt hoch (8 Kacheln, geplant 803, Grenze 924)`
 und zuletzt `Design System eingehalten`, funktioniert die ganze Kette:
 Template, Tokens, Schriften, Schatten, Bilder, Qualifikationskarte,
 Zertifikatsplanung, Katalogprüfung, Höhenmessung und Designprüfung.

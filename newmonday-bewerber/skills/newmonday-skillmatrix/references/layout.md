@@ -36,8 +36,9 @@ Schritt 2).
 | `neutral/80` | `#48575a` | Hero-Beschreibung, Kartentexte, Kategorielabel und -linie, Satz, Tag-Text und Tag-Rahmen der Qualifikationskarte |
 | `neutral/60` | `#738082` | Badge-Text und -Rahmen, „Aussteller · Datum" der Zertifikate |
 | `neutral/40` | `#9ea8aa` | Rahmen der Skill-Karten, Zertifikatskacheln, Zertifikatsbilder, Qualifikationskarte und Fotokarte |
+| `neutral/20` | `#c9cfd1` | leere Punkte der Skill-Karten (Variable `neutral/20` aus „Foundation – Colors“; vorher `neutral/10`, zu wenig Kontrast) |
 | `neutral/15` | `#ebf2f5` | Linie über dem Rumpf |
-| `neutral/10` | `#f8fafc` | Rumpf, Badge, Bühne unter den Zertifikatsbildern, leere Punkte, Texte auf dem Verlauf |
+| `neutral/10` | `#f8fafc` | Rumpf, Badge, Bühne unter den Zertifikatsbildern, Texte auf dem Verlauf |
 | `Colors/Background/bg-primary_hover` | `#ebf2f5` | Grund der Fotokarte |
 | `#22c55e` (ohne Token) | | Punkt im Verfügbarkeits-Badge |
 
@@ -104,12 +105,12 @@ Ränder `spacing-10xl`. Von oben:
     - **Qualifikationskarte** volle Breite 1188, Rahmen 1 `neutral/40` innen,
       Radius 16, weiß, kein Schatten, Padding 24: „Erworbene Qualifikationen“
       (`text-md/bold`) → 20 → Satz (14/20 roh, `neutral/80`, höchstens zwei
-      Zeilen, nie gekürzt) → 8 → Tags. Jedes Tag: Padding 4/8, Rahmen 2
+      Zeilen, nie gekürzt) → 8 → Tags. Jedes Tag: Padding 4/8, Rahmen 1
       `neutral/80` innen, Radius 6, weiß, Text `text-xs/reg` `neutral/80`;
-      33 hoch, 8 auseinander, mit 8 darüber, umbrechend. Mit einer Tag-Zeile und
-      einzeiligem Satz 1 + 24 + 30 + 20 + 20 + 8 + 41 + 24 + 1 = 169 – so hoch
+      31 hoch, 8 auseinander, mit 8 darüber, umbrechend. Mit einer Tag-Zeile und
+      einzeiligem Satz 1 + 24 + 30 + 20 + 20 + 8 + 39 + 24 + 1 = 167 – so hoch
       wie die Komponente „Zertifikate Erklärung“ (`2284:964`), die der Nutzer
-      in Florians Datei angelegt hat.
+      in Florians Datei angelegt und am 05.10.2026 auf 1er-Rahmen gesetzt hat.
     - **Kacheln**: vier zu 279, 24 auseinander, wie die Skill Card (Padding 16,
       Rahmen 1 `neutral/40`, Radius 16, `shadow-xs`). Bühne 245 × 140
       (`neutral/10`, Radius 8, Padding 12) mit dem Bild mittig, eingepasst –
@@ -120,7 +121,7 @@ Ränder `spacing-10xl`. Von oben:
       Auslassungszeichen) → 4 → „Aussteller · Jahr“; zusammen höchstens drei
       Zeilen, sonst zeigt der Aussteller seine Kurzform. Kachel 259, Reihen 24
       auseinander. Ohne Karte 12 Kacheln = 62 + 3 × 259 + 2 × 24 = 887, mit
-      Karte (169) 8 Kacheln = 62 + 169 + 32 + 2 × 259 + 24 = 805.
+      Karte (167) 8 Kacheln = 62 + 167 + 32 + 2 × 259 + 24 = 803.
   - *Kernkompetenzen:* Überschrift → 24 → Kategorien, 40 auseinander. Je
     Kategorie das Label (10 Padding, Versalien, 8 Luft, Linie 1 `neutral/80`) →
     16 → Karten, drei je Zeile, 24 Abstand, Zeile gleich hoch, mindestens 108
@@ -150,7 +151,7 @@ folgt dort dem System, nicht dem Fehler:
   Datei angelegt hat (Rahmen statt Kante und Schatten, Tags auf Weiß). Im
   Master gibt es dafür noch keine Komponente.
 
-Die Beispielmatrix ist 3788 hoch: Sie führt die Tools nur in der Tools-Sektion
+Die Beispielmatrix ist 3786 hoch: Sie führt die Tools nur in der Tools-Sektion
 (SKILL.md, Schritt 3), ihre Kategorien folgen dem Katalog – fünf statt vier, mit
 19 Karten –, und die acht Zertifikate stehen als zwei Kachelreihen unter der
 Qualifikationskarte statt in Karte und Raster.

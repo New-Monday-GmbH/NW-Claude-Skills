@@ -709,7 +709,7 @@ Qualifikationskarte. Die Hinweise sind zu lesen und abzuarbeiten, nicht zu
 überfliegen.
 
 Die Zertifikatssektion wird im fertigen Layout vermessen, mit Karte:
-„Zertifikatssektion: 805pt hoch (8 Kacheln, geplant 805, Grenze 924)“. Liegt
+„Zertifikatssektion: 803pt hoch (8 Kacheln, geplant 803, Grenze 924)“. Liegt
 sie über 924, steht im Hinweis, um wie viel; weicht sie von der geplanten Höhe
 ab, bricht ein Text anders um als geschätzt.
 
@@ -808,7 +808,7 @@ Frame-Höhe dagegen gehalten (±20pt sind normal, mehr ist ein Hinweis).
 Gebaut wird mit `use_figma` nach dem Rezept in `references/figma.md`. Dort stehen
 Linkauslesung, Zielseite, Schnittnamen, der Baukasten für jeden Aufruf, die
 Bauschritte und der Weg für Foto und Zertifikatsbilder. Das Skript rechnet die
-Höhen des Plans nach („Zertifikate: 8 Kacheln, Sektion 805pt“, „Rahmenhöhe
+Höhen des Plans nach („Zertifikate: 8 Kacheln, Sektion 803pt“, „Rahmenhöhe
 nachgerechnet“) – die Zertifikatssektion hält auch in Figma die 924.
 
 ---
