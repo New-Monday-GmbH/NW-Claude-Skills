@@ -274,7 +274,7 @@ Zeile – bei Subheadline 2 wie bei Body 1 genau 30 pt.
 ## Maße einzelner Seiten
 
 **Cover** (Figma Folie 1). Wortmarke x 160 / y 160, 335,5 pt breit. Titel
-(`h1`) ab y 371, darunter mit 96 pt Abstand der Name (`h2`), 40 pt darunter
+(`h1`, fest „Portfolio“) ab y 371, darunter mit 96 pt Abstand der Name (`h2`), 40 pt darunter
 die Rolle (`h4-regular`) – ein Auto-Layout: Ein zweizeiliger Titel schiebt
 Name und Rolle nach unten. Jahr fest auf y 903.
 
@@ -431,8 +431,8 @@ einem Foliendokument richtig: Jede Fläche hat eine feste Stelle, und es gibt
 keine Umbrüche, die zu erhalten wären. Diese Fallen gehören dazu:
 
 - **Jedes absolut positionierte Textelement braucht eine gesetzte Breite.**
-  Ohne `width` greift Shrink-to-fit viel zu eng, und „UI/UX Design Portfolio"
-  bricht mitten im Titel um. Wer ein neues Textelement anlegt, setzt die Breite
+  Ohne `width` greift Shrink-to-fit viel zu eng – ein mehrteiliger Titel
+  (früher „UI/UX Design Portfolio") brach mitten im Wort um. Wer ein neues Textelement anlegt, setzt die Breite
   mit.
 - **`nth-of-type` zählt alle Geschwister desselben Tags**, nicht die mit der
   Klasse. Streifen, Eyebrow, Logo und Seitenzahl sind alles `div`, also trifft

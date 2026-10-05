@@ -50,6 +50,11 @@ AGENTUR = {
     "zufriedenheit": "100%",
     "badge": ["Best 2026", "Nominated", "UX Design Agency"],
 }
+# Das Cover traegt immer nur "Portfolio" (Rueckmeldung Oktober 2026): Die Rolle
+# steht direkt darunter, ein abgeleiteter Titel ("UX Design Portfolio") wiederholt
+# sie nur. cover_titel in der JSON wird ignoriert und gemeldet.
+COVER_TITEL = "Portfolio"
+
 ANSPRECHPARTNER = {
     "name": "Manuel Klein",
     "titel_de": ["Chief Commercial Officer (CCO)", "Business Development"],
@@ -479,10 +484,12 @@ RAT_STD = "Text kürzen"
 
 def seite_cover(d, t, basis):
     p = d["person"]
+    if p.get("cover_titel") and p["cover_titel"] != COVER_TITEL:
+        merke(f"cover_titel „{p['cover_titel']}“ ignoriert – das Cover traegt immer „{COVER_TITEL}“.")
     return f'''<section class="seite seite--cover">
   <img class="cover-logo" src="{(ASSETS / 'marke/nm-logo-weiss.svg').as_uri()}">
   <div class="kopf">
-    <div class="titel t-h1">{e(p.get("cover_titel"))}</div>
+    <div class="titel t-h1">{e(COVER_TITEL)}</div>
     <div class="name t-h2">{e(p["name"])}</div>
     <div class="rolle t-h4-regular">{e(p.get("rolle"))}</div>
   </div>

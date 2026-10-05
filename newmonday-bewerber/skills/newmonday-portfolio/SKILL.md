@@ -46,14 +46,12 @@ Ein Portfolio ist Eigenwerbung. Bewertende Formulierungen des Kandidaten
 ("preisgekrönt", "führend") werden übernommen, wenn sie dort stehen – aber
 nicht von dir hinzugefügt.
 
-**Fünf Stellen sind davon ausgenommen, und nur diese fünf.** Sie stehen hier
+**Vier Stellen sind davon ausgenommen, und nur diese vier.** Sie stehen hier
 oben, damit niemand sie erst auf halber Strecke findet:
 
 - **Der Text der KI-Folie** (Seite 10), wenn im Material nichts oder nur
   Bruchstücke dazu stehen. Was er behaupten darf und was nicht, steht in
   Schritt 4 unter „Die KI-Folie".
-- **`cover_titel`**, abgeleitet aus der Rolle. Eine Zeile, und sie steht in der
-  Übergabe – siehe Schritt 3.
 - **Die Übersetzung**, wenn die gewählte Sprache nicht die des Eingangs ist. Nur
   auf ausdrückliche Ansage, nie von sich aus – siehe Schritt 0.
 - **`kunde_text`**, die Kundenbeschreibung der Projekt-Kopfseite – aber nur
@@ -145,8 +143,8 @@ In `notizen.md`:
 - je Projekt: Quelle der Texte, zugeordnete Bilder aus `arbeit/bilder/` mit
   Seitenzahl, Beleglage, Markenfarbe falls schon erkennbar;
 - die Profilfoto-Quelle;
-- die Kundenwand: alle Firmen nach der Regel in Schritt 4 (`kunden`), in ihrer
-  Reihenfolge, je Firma mit Quelle;
+- die Kundenwand: alle Firmen nach der Regel in Schritt 4 (`kunden`), nach
+  Bekanntheit sortiert, je Firma mit Quelle;
 - jede Abweichung zwischen den Quellen mit beiden Werten und anonymisierte
   Kunden; welche Fassung gilt, entscheidet beim Bauen `vorrang`;
 - bei einer Figma-Datei als Quelle: die Knoten-IDs der Screens.
@@ -224,7 +222,7 @@ liegt. Das Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    die `portfolio.json` und steuert alle Rubriken.
 
    Ist die gewählte Sprache nicht die des Eingangs, muss übersetzt werden. Das
-   ist die dritte der fünf Ausnahmen oben und braucht eine ausdrückliche
+   ist die zweite der vier Ausnahmen oben und braucht eine ausdrückliche
    Ansage – von sich aus wird nie übersetzt.
 
 1a. **Wohin die Figma-Frames sollen.** Kam mit dem Auftrag schon ein
@@ -432,13 +430,11 @@ Bauen. Vier Fragen passen hinein:
    selbst schreiben, die Werkzeugliste nicht. Weiß es niemand, bleibt die
    Kachelreihe leer.
 
-**Der Cover-Titel stand hier früher mit in der Liste.** Von den fünf Kandidaten
-hat er den schwächsten Anspruch auf einen Platz: Er folgt aus der Rolle, steht
-auf genau einer Zeile, und wer ihn anders will, sagt ein Wort und bekommt das
-PDF neu. Ein fehlender NDA-Vermerk, ein erfundenes Statement und eine erfundene
-Werkzeugliste kosten mehr als einen zweiten Lauf. Also wird `cover_titel` aus
-`rolle` abgeleitet – die zweite der fünf Ausnahmen oben – und in der Übergabe
-genannt.
+**Der Cover-Titel ist fest „Portfolio“.** Früher wurde er aus der Rolle
+abgeleitet („UX Design Portfolio“); die Rolle steht aber direkt darunter, und
+doppelt sagt sie nichts Neues. Seit Oktober 2026 trägt das Cover deshalb immer
+nur „Portfolio“ (Rückmeldung des Nutzers) – in beiden Sprachen, ohne Frage.
+`cover_titel` in der JSON wird ignoriert und gemeldet.
 
 **Bis die Antworten da sind, wird nicht gebaut.** Ein Projekt nachträglich
 herauszunehmen heißt, Seitenzahlen und Bildzuordnungen noch einmal
@@ -456,7 +452,7 @@ Tabelle unten.
 {
   "sprache": "de",
   "person": {
-    "name", "rolle", "cover_titel", "jahr", "foto", "erfahrung_jahre",
+    "name", "rolle", "jahr", "foto", "erfahrung_jahre",
     "top_kenntnisse": [3], "kenntnisse": [8],
     "sprachen": [{ "sprache", "niveau" }],
     "links":    [{ "titel", "url" }],
@@ -505,8 +501,18 @@ nicht ins Portfolio kommt: Die Wand zeigt Kunden, nicht Projekte. Auch die
 Kundenwand eines älteren Portfolios ist keine Obergrenze – Tollwerk stand als
 Arbeitgeber in Florians Lebenslauf, fehlte auf seiner alten Wand und deshalb
 auch auf der neuen; genau das kam als Rückmeldung zurück (Oktober 2026).
-Reihenfolge: die Kunden der Projekte in Projektreihenfolge, dann die übrigen,
-wie sie im Lebenslauf stehen; jede Firma einmal.
+**Reihenfolge: nach Bekanntheit, die bekannteste Firma links.** Wer die Wand
+liest, erkennt die großen Namen zuerst – also stehen sie vorn, die kleineren
+dahinter (Rückmeldung des Nutzers, Oktober 2026: Union Investment, DATEV, Green
+Planet Energy, beQ, Tollwerk). Maßstab ist, wie bekannt die Marke einem
+Entscheider im deutschsprachigen Raum ist: Endkunden- und Publikumsmarken vor
+Spezialanbietern, große Unternehmen (Mitarbeitende, Umsatz, Konzern, Börse) vor
+Mittelstand, Mittelstand vor Start-ups und Agenturen. Die Einschätzung kommt aus
+dem Allgemeinwissen über die Firmen, nicht aus Recherche; bei Gleichstand gilt
+die Reihenfolge des Lebenslaufs. Jede Firma einmal. Die gewählte Reihenfolge
+steht in der Übergabe unter „Ohne Rückfrage entschieden“, damit sie mit einem
+Satz umgestellt werden kann. Bei mehreren Logozeilen läuft sie zeilenweise von
+links oben nach rechts unten.
 
 **Textlängen — was eine Fläche trägt.** Die Werte sind aus den bestehenden
 Portfolios gemessen und am fertigen PDF nachgeprüft. Das Renderskript misst
@@ -515,7 +521,6 @@ Größenordnung zu bleiben:
 
 | Feld | Umfang |
 |---|---|
-| `cover_titel` | eine Zeile, bis ~30 Zeichen |
 | `rolle` | bis ~40 Zeichen |
 | `top_kenntnisse` | **genau 3**, je 1–4 Wörter – zusammen **eine Zeile** (rund 70 Zeichen mit den „ • “) |
 | `kenntnisse` | **8** wie in der Vorlage (weniger nur bei dünnem Material), je bis ~60 Zeichen, jeder in einer Zeile – die Liste läuft mit Trennlinien im 63-pt-Takt und endet mit acht Einträgen genau am unteren Rand der Vorlage; mehr passt nicht |
@@ -676,7 +681,7 @@ keinen Fettdruck. Ein `ki.kurztext` aus älteren Dateien wird ignoriert – er
 füllte einmal eine vierte Prozessspalte, die es nicht mehr gibt.
 
 Steht dort nichts, **schreibt der Skill den Text selbst**. Das ist die erste der
-fünf Ausnahmen ganz oben, und weil es eine Ausnahme ist, hängt sie – wie das
+vier Ausnahmen ganz oben, und weil es eine Ausnahme ist, hängt sie – wie das
 Erweitern – an zwei Bedingungen, die beide gelten müssen:
 
 - **Der Text bleibt allgemein.** Er beschreibt eine Haltung zu KI im
@@ -1100,7 +1105,6 @@ PDF ausgeben und in wenigen Zeilen berichten:
   **welche Gebäude KI-generiert sind** (selbst erzeugt oder aus dem
   Kandidatenmaterial), mit der Bitte um Freigabe oder ein echtes Foto
 - Woher die Kundentexte stammen, wenn sie nicht vom Kandidaten kommen
-- Welcher Cover-Titel aus der Rolle abgeleitet wurde
 - Ob das Statement eine gekürzte Fassung ist – mit dem Original
 - **Ob KI- oder Prozesstexte erweitert oder selbst formuliert sind**, mit der
   Bitte um Freigabe
