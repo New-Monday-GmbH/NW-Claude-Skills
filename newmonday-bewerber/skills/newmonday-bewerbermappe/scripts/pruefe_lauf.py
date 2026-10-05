@@ -400,18 +400,19 @@ def _tools(datei: Path, lesen):
 
 
 def pruefe_tools(lauf: Path, auftrag) -> tuple[list[str], list[str]]:
-    """Lebenslauf und Skill Matrix fuehren dieselbe Tool-Liste – gleiche Namen,
-    gleiche Reihenfolge. Massgeblich ist die Skill Matrix. Fehler erst, wenn
+    """Lebenslauf und Skill Matrix fuehren dieselben Tools – gleiche Eintraege,
+    gleiche Schreibweise; die Reihenfolge darf abweichen (Liste im Lebenslauf,
+    Raster in der Skill Matrix). Massgeblich ist die Skill Matrix. Fehler erst, wenn
     beide gebaut sind; vorher eine Warnung, damit ein laufender Bau nicht an
     einem Dokument scheitert, das noch nicht dran war."""
     cv = _tools(lauf / "cv" / "cv.json",
                 lambda d: [str(t) for t in d["skillset"]["tools"]])
     sm = _tools(lauf / "skillmatrix" / "skillmatrix.json",
                 lambda d: [str(t["name"]) for t in d["tools"]])
-    if cv is None or sm is None or cv == sm:
+    if cv is None or sm is None or sorted(cv) == sorted(sm):
         return [], []
     text = (f"Tools weichen ab – Skill Matrix {sm}, Lebenslauf {cv}. Der Lebenslauf "
-            "übernimmt die Liste der Skill Matrix wörtlich (skillset.tools).")
+            "übernimmt die Tools der Skill Matrix wörtlich (skillset.tools).")
     gebaut = all(_phase(auftrag, s, "bauen") == "fertig"
                  for s in ("newmonday-cv", "newmonday-skillmatrix"))
     return ([text], []) if gebaut else ([], [text])

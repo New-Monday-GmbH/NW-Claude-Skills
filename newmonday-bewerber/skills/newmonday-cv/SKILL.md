@@ -241,8 +241,8 @@ vollständige Firmierung aus LinkedIn, die feinere Angabe, solange sie nicht
 widerspricht).
 
 **`skillset.tools` kommt aus der Skill Matrix.** Lebenslauf und Skill Matrix
-führen dieselbe Tool-Liste – gleiche Einträge, gleiche Schreibweise („Figma /
-FigJam“, nicht „Figma“), gleiche Reihenfolge. Die Liste steht im Entwurf in
+führen dieselben Tools – gleiche Einträge, gleiche Schreibweise („Figma /
+FigJam“, nicht „Figma“); die Reihenfolge darf abweichen. Die Liste steht im Entwurf in
 `../skillmatrix/notizen.md` bzw. nach der Freigabe in
 `../skillmatrix/skillmatrix.json` (`tools[].name`); sie wird wörtlich
 übernommen, auch wenn der Eingang andere Tools nennt. Was dadurch gegenüber dem

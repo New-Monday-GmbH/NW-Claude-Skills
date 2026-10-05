@@ -461,8 +461,8 @@ Skill-Ordner: <laufordner>/<cv|skillmatrix|portfolio>/
      Die Ergänzungsregeln des Skills bleiben: Eine andere Quelle füllt Lücken,
      die Firmierung kommt vollständig aus LinkedIn, die feinere Angabe gilt,
      solange sie der gröberen nicht widerspricht.
-   - Tools: Lebenslauf und Skill Matrix führen dieselbe Tool-Liste – gleiche
-     Einträge, gleiche Schreibweise, gleiche Reihenfolge. Maßgeblich ist die
+   - Tools: Lebenslauf und Skill Matrix führen dieselben Tools – gleiche
+     Einträge, gleiche Schreibweise; die Reihenfolge darf abweichen. Maßgeblich ist die
      Skill Matrix (Entwurf in skillmatrix/notizen.md, nach der Freigabe in
      skillmatrix.json); der Lebenslauf übernimmt sie wörtlich als
      skillset.tools, auch wenn sein Eingang andere Tools nennt.
@@ -534,8 +534,8 @@ dieser.
 - **Eine Quelle bei Widersprüchen** für alle drei Dokumente – die, die der Nutzer
   als die aktuellere wählt; gefragt wird nur, wenn sich die Unterlagen
   widersprechen.
-- **Eine Tool-Liste** für Lebenslauf und Skill Matrix – die der Skill Matrix,
-  wörtlich und in ihrer Reihenfolge. `pruefe_lauf.py` vergleicht beide
+- **Dieselben Tools** in Lebenslauf und Skill Matrix – die der Skill Matrix,
+  wörtlich; die Reihenfolge darf abweichen. `pruefe_lauf.py` vergleicht beide
   (Warnung, solange eins noch nicht gebaut ist, danach Fehler). Ändert sich die
   Liste nach der Übergabe, werden beide Dokumente neu gebaut.
 - **Eine Figma-Seite je Kandidat**, alle Frames darauf. Figma hält kein PDF auf.

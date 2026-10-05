@@ -138,8 +138,8 @@ Erfahrung im Hero), wird er angepasst und die Änderung unter „Zur Freigabe“
 genannt.
 
 **Die Tools-Liste gilt auch für den Lebenslauf.** Im Gesamtlauf übernimmt der
-Lebenslauf `tools[].name` wörtlich und in dieser Reihenfolge als
-`skillset.tools` – Lebenslauf und Skill Matrix führen dieselben Tools. Deshalb
+Lebenslauf `tools[].name` wörtlich als `skillset.tools` (die Reihenfolge darf
+dort abweichen) – Lebenslauf und Skill Matrix führen dieselben Tools. Deshalb
 die Namen so wählen, dass sie auch als Listeneintrag im Lebenslauf stehen
 können, und eine Änderung an der Liste nach der Übergabe als Grund nennen, den
 Lebenslauf neu zu bauen. `pruefe_lauf.py` vergleicht beide Listen.
