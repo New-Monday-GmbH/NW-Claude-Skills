@@ -36,6 +36,7 @@ ASSETS = SKILL / "assets"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import design_tokens as ds  # noqa: E402
+import logo_grau  # noqa: E402
 import screens  # noqa: E402
 from logo_lib import bibliothek  # noqa: E402
 from screens import baue_screens  # noqa: E402
@@ -131,6 +132,71 @@ hinweise: list[str] = []
 
 def merke(text: str) -> None:
     hinweise.append(text)
+
+
+# Zusammengesetzte Begriffe mit englischem Bestandteil werden im deutschen Text
+# durchgekoppelt, wie im Duden: "UX-Design", "Usability-Testing",
+# "User-Centered Design" (Entscheidung des Nutzers, Oktober 2026). Das ist
+# Rechtschreibung und geschieht beim Bauen der portfolio.json (SKILL.md,
+# „Durchkopplung“). Das Skript aendert keinen Text, es meldet nur die offenen
+# Schreibweisen, die am haeufigsten durchrutschen. Eingefuehrte englische
+# Fachbegriffe ohne deutsches Grundwort ("User Research", "Wireframing") und
+# Berufsbezeichnungen ("UX Designer") stehen bewusst nicht hier.
+DURCHKOPPLUNG = {
+    "UX Design": "UX-Design",
+    "UX Konzeption": "UX-Konzeption",
+    "Usability Testing": "Usability-Testing",
+    "Stakeholder Management": "Stakeholder-Management",
+    "User Centered Design": "User-Centered Design",
+}
+# Wortgrenzen: "UX Designer" ist nicht "UX Design".
+DURCHKOPPLUNG_MUSTER = [
+    (re.compile(r"(?<!\w)" + r"\s+".join(map(re.escape, offen.split())) + r"(?!\w)",
+                re.IGNORECASE), soll)
+    for offen, soll in DURCHKOPPLUNG.items()
+]
+
+
+def durchkopplung_pruefen(d: dict) -> list[str]:
+    """Hinweise fuer offene Schreibweisen aus DURCHKOPPLUNG, aendert nichts.
+    Geprueft wird der Text, den der Skill uebernimmt oder formuliert - nicht
+    Namen, Kunden, Links und Sprachen: Eigennamen behalten ihre Schreibweise.
+    Ein englisches Portfolio koppelt nicht durch, dort gibt es keinen Hinweis."""
+    if str(d.get("sprache") or "de").strip().lower() == "en":
+        return []
+    p = d.get("person") or {}
+    texte = [("person.rolle", p.get("rolle")), ("person.statement_rolle", p.get("statement_rolle")),
+             ("person.statement.text", (p.get("statement") or {}).get("text")),
+             ("person.ki.text", (p.get("ki") or {}).get("text"))]
+    for feld in ("top_kenntnisse", "kenntnisse"):
+        texte += [(f"person.{feld}[{i}]", x) for i, x in enumerate(p.get(feld) or [])]
+    for i, s in enumerate(d.get("prozess") or []):
+        texte += [(f"prozess[{i}].{f}", s.get(f)) for f in ("titel", "kurztext", "langtext")]
+    for i, pr in enumerate(d.get("projekte") or []):
+        texte += [(f"projekte[{i}].{f}", pr.get(f)) for f in ("projektname", "projekt", "kunde_text")]
+        texte += [(f"projekte[{i}].rolle[{j}]", r) for j, r in enumerate(pr.get("rolle") or [])]
+        sm = pr.get("summary")
+        texte.append((f"projekte[{i}].summary.text", sm.get("text") if isinstance(sm, dict) else sm))
+        for k, lo in enumerate(pr.get("loesungen") or []):
+            texte += [(f"projekte[{i}].loesungen[{k}].{f}", lo.get(f)) for f in ("titel", "text")]
+            texte += [(f"projekte[{i}].loesungen[{k}].punkte[{j}]", x)
+                      for j, x in enumerate(lo.get("punkte") or [])]
+    for i, sp in enumerate(d.get("schwerpunkte") or []):
+        if not isinstance(sp, dict):
+            continue
+        texte += [(f"schwerpunkte[{i}].{f}", sp.get(f)) for f in ("titel", "text")]
+        for j, k in enumerate(sp.get("karten") or []):
+            if isinstance(k, dict):
+                texte += [(f"schwerpunkte[{i}].karten[{j}].{f}", k.get(f)) for f in ("titel", "text")]
+    raus = []
+    for pfad, text in texte:
+        if not isinstance(text, str):
+            continue
+        for muster, soll in DURCHKOPPLUNG_MUSTER:
+            for fund in muster.finditer(text):
+                raus.append(f"Durchkopplung: „{' '.join(fund.group(0).split())}“ in {pfad} – "
+                            f"im deutschen Text „{soll}“ (SKILL.md, „Durchkopplung“).")
+    return raus
 
 
 # ── Hilfen ───────────────────────────────────────────────────────────────
@@ -271,7 +337,7 @@ def helligkeit(farbe: str) -> float:
 
 def hell(farbe: str) -> bool:
     """Gilt die Flaeche als hell? Die Schwelle liegt hoch, weil sie ueber die
-    ganze Seite entscheidet (Markenfarbe, Streifen, Platzhalter) und ein knapp
+    ganze Seite entscheidet (Flaechenfarbe, Streifen, Platzhalter) und ein knapp
     dunkler Grund dort noch weisse Schrift traegt."""
     return helligkeit(farbe) > 0.36
 
@@ -289,10 +355,11 @@ BILDKANTE_BREIT = SEITE_BREIT - FLAECHENBREITE["bild--breit"]
 # nicht - zwischen 0,18 und 0,36 setzte sie Weiss auf Himmel und Glasfassaden,
 # und genau dort liegen die HQ-Fotos (0,20 bis 0,30).
 TINTENWECHSEL = 0.18
-# Auf den Screenflaechen liegen Wortmarke und Seitenzahl auf satter
-# Markenfarbe (screens.py haelt ihre Felder frei). Dort gilt die Regel der
-# Referenzen, nicht die WCAG-Mitte: Weiss auf Petrol, Blau, Magenta und selbst
-# auf Orange (#f07d00, Luminanz 0,36) - Schwarz erst auf hellen Toenen.
+# Auf den Screenflaechen liegen Wortmarke und Seitenzahl auf dem Grund der
+# Flaeche (screens.py haelt ihre Felder frei): meist neutral/15, dort steht
+# beides dunkel; auf einer Produktfarbe gilt die Regel der Referenzen, nicht
+# die WCAG-Mitte: Weiss auf Petrol, Blau, #111111 und selbst auf Orange
+# (#f07d00, Luminanz 0,36) - Schwarz erst auf hellen Toenen.
 MARKE_TINTENWECHSEL = 0.40
 
 # Wo Wortmarke und Seitenzahl auf der Folie liegen, in Folienpunkten und mit
@@ -697,7 +764,20 @@ def seite_profil(d, t, basis, nr, cache: Path):
 </section>'''
 
 
-def seite_kunden(d, t, basis, nr):
+def logo_entfaerbt(uri: str, cache: Path) -> str:
+    """Kundenlogos stehen schwarz-weiss - auf der Wand und auf allen
+    Projektseiten (Entscheidung Oktober 2026, ersetzt „Originalfarben" vom
+    September). Umgerechnet wird in den Zwischenspeicher: WeasyPrint kennt kein
+    filter, und figma_plan liest dieselbe Datei aus dem Layout - so steht das
+    Logo in Figma genauso grau wie im PDF. Die Regel steht in logo_grau.py.
+    Die Werkzeuglogos der KI-Folie laufen hier nicht durch, sie bleiben farbig."""
+    neu = logo_grau.umrechnen(uri_pfad(uri), cache)
+    for h in logo_grau.hole_hinweise():
+        merke(h)
+    return neu.resolve().as_uri()
+
+
+def seite_kunden(d, t, basis, nr, cache: Path):
     # Ein Eintrag ist {"name": "Deutsche Bank", "logo": "deutsche-bank.svg"}.
     # Ein blanker String wird als Dateiname gelesen - so bleiben von Hand
     # gepflegte Listen weiter gültig.
@@ -709,7 +789,7 @@ def seite_kunden(d, t, basis, nr):
             continue
         uri = datei_uri(quelle, basis)
         if uri:
-            dateien.append(uri)
+            dateien.append(logo_entfaerbt(uri, cache))
     # Bis fuenf Logos: eine Reihe im Referenzmass von p-03, tiefer gesetzt und
     # mit gleichmaessigen Luecken verteilt wie in der Referenz - feste Zellen
     # liessen zwei breite Wortmarken aneinanderkleben, waehrend daneben Luft
@@ -822,6 +902,35 @@ def statement_zeichen(text: str) -> int:
     return len(" ".join(nuechtern(text).split()).strip("»«"))
 
 
+def _woerter(text: str, trenner: str) -> list[str]:
+    """Die Woerter einer Rollenzeile. Ein Umbruch hinter einem Bindestrich ist
+    entweder ein weicher Trenner ("Konzept-\\nentwicklung") oder ein echter
+    ("UX-\\nDesigner") - `trenner` ist das, was an seine Stelle tritt."""
+    return str(text or "").replace("-\n", trenner).split()
+
+
+def statement_rolle(p: dict) -> str:
+    """Die grosse Rollenzeile auf Seite 4 ist die Rolle selbst („UX & AI
+    Designer"), keine Langform wie „User Experience Designer" (Rueckmeldung
+    Oktober 2026). statement_rolle bestimmt nur die Umbrueche und muss
+    dieselben Woerter tragen. Weicht sie ab, steht die Rolle - mit Meldung."""
+    rolle = str(p.get("rolle") or "").strip()
+    umbruch = str(p.get("statement_rolle") or "").strip()
+    if not umbruch:
+        return rolle
+    if not rolle:
+        merke("Seite 4: „rolle“ fehlt – die Rollenzeile steht aus „statement_rolle“. "
+              "Beide sollen dieselben Wörter tragen.")
+        return umbruch
+    soll = rolle.split()
+    if soll in (_woerter(umbruch, ""), _woerter(umbruch, "-")):
+        return umbruch
+    merke(f"Seite 4: „statement_rolle“ („{' '.join(umbruch.split())}“) trägt andere "
+          f"Wörter als „rolle“ („{rolle}“) – gesetzt wird die Rolle selbst. "
+          "statement_rolle setzt nur die Umbrüche, z. B. „UX & AI\\nDesigner“.")
+    return rolle
+
+
 def seite_statement(d, t, basis, nr):
     p = d["person"]
     st = p.get("statement") or {}
@@ -839,7 +948,7 @@ def seite_statement(d, t, basis, nr):
               f"aber im tolerierten Rahmen bis {STATEMENT_TOLERANZ}.")
     if st.get("zitat") and text and not text.startswith("»"):
         text = f"»{text}«"
-    rolle = e(p.get("statement_rolle") or p.get("rolle", "")).replace("\n", "<br>")
+    rolle = e(statement_rolle(p)).replace("\n", "<br>")
     return f'''<section class="seite seite--statement">
   <div class="streifen streifen--weiter"></div>
   <div class="halb-rechts"></div>
@@ -1110,6 +1219,79 @@ def seite_ki(d, t, basis, nr) -> tuple[str, float]:
 </section>''', zone
 
 
+# Schwerpunkt-Folien (Oktober 2026, nach Florians Folien 11-13 „Barrierefreiheit",
+# „Handover & Design-QA", „Designsystem & Edge Cases"): optional, nur wenn eine
+# Anfrage Themen nennt, die das Material belegt. Links Eyebrow, Titel und Text
+# wie auf den Arbeitsweise-Seiten (Text 640pt breit, 36pt zwischen den
+# Absaetzen), rechts das Petrol-Panel mit drei weissen Karten, als Stapel
+# vertikal mittig. Sie stehen hinter der KI-Folie, vor der Agenturseite.
+SCHWERPUNKT_MAX, SCHWERPUNKT_KARTEN, SCHWERPUNKT_KOPF_ZEILEN = 4, 3, 2
+PANEL_LINKS = 1393                                            # .panel im CSS
+SCHWERPUNKT_TEXTBREITE, SCHWERPUNKT_KARTE_INNEN = 640, 359   # Karte 407 - 2 x 24
+# Kartenstapel: Hoehe bis zum Rand der Seitenzahl, darueber laeuft er hinaus.
+SCHWERPUNKT_STAPEL_MAX = 900
+
+
+def schwerpunkte_lesen(d: dict) -> list[dict]:
+    liste = [s for s in (d.get("schwerpunkte") or []) if isinstance(s, dict)]
+    if len(liste) > SCHWERPUNKT_MAX:
+        merke(f"{len(liste)} Schwerpunkt-Folien – gezeigt werden die ersten "
+              f"{SCHWERPUNKT_MAX}. Mehr macht aus dem Profil einen Katalog; "
+              "die stärksten Themen der Anfrage auswählen.")
+        liste = liste[:SCHWERPUNKT_MAX]
+    return liste
+
+
+def seite_schwerpunkt(sp: dict, t, basis, nr) -> str:
+    titel = str(sp.get("titel") or "")
+    if not titel:
+        merke(f"Schwerpunkt-Folie {nr}: „titel“ fehlt.")
+    grad, zeilen = kopfmass(titel)
+    if zeilen > SCHWERPUNKT_KOPF_ZEILEN:
+        merke(f"Schwerpunkt „{titel.replace(chr(10), ' ')}“: der Titel braucht "
+              f"{zeilen} Zeilen, die Vorlage trägt höchstens {SCHWERPUNKT_KOPF_ZEILEN} – "
+              "kürzer fassen.")
+    gross = f' style="font-size:{grad}pt"' if grad != KOPF_GRAD else ""
+    karten = [k for k in (sp.get("karten") or []) if isinstance(k, dict)]
+    if len(karten) != SCHWERPUNKT_KARTEN:
+        merke(f"Schwerpunkt „{titel.replace(chr(10), ' ')}“: {len(karten)} Karte(n) – "
+              f"die Vorlage trägt {SCHWERPUNKT_KARTEN}"
+              + (f", gezeigt werden die ersten {SCHWERPUNKT_KARTEN}." if len(karten) > 3 else "."))
+        karten = karten[:SCHWERPUNKT_KARTEN]
+    # Die Kartenhoehen gemessen wie im Layout: Rand, Titel, 12pt, Text, Rand.
+    kt, kx = ds.stil("schwerpunkt-titel"), ds.stil("schwerpunkt-text")
+    stapel, html_karten = 0.0, []
+    for i, k in enumerate(karten, 1):
+        ktitel = str(k.get("titel") or "")
+        ktext = str(k.get("text") or "")
+        z_t = zeilenzahl(ktitel, SCHWERPUNKT_KARTE_INNEN, kt["datei"], round(kt["groesse"])) if ktitel else 0
+        z_x = zeilenzahl(ktext, SCHWERPUNKT_KARTE_INNEN, kx["datei"], round(kx["groesse"])) if ktext else 0
+        if z_t > 1 or z_x > 3:
+            merke(f"Schwerpunkt „{titel.replace(chr(10), ' ')}“, Karte {i}: Titel "
+                  f"{z_t} Zeile(n), Text {z_x} – die Vorlage trägt eine und höchstens drei. "
+                  "Kürzer fassen.")
+        stapel += 48 + z_t * kt["zeile"] + (12 + z_x * kx["zeile"] if ktext else 0)
+        # Nummerierte Karten (Ablauf wie „1 Aufbereiten", „2 Uebergeben") tragen
+        # die Ziffer im Titel, mit doppeltem Abstand wie in Figma.
+        nummer = f"{i}&nbsp; " if sp.get("nummeriert") else ""
+        html_karten.append(
+            f'<div class="pkarte"><h3 class="t-schwerpunkt-titel">{nummer}{e(ktitel)}</h3>'
+            + (f'<p class="t-schwerpunkt-text">{fett(ktext)}</p>' if ktext else "") + "</div>")
+    stapel += 32 * max(0, len(karten) - 1)
+    if stapel > SCHWERPUNKT_STAPEL_MAX:
+        merke(f"Schwerpunkt „{titel.replace(chr(10), ' ')}“: die Karten sind zusammen "
+              f"{stapel:.0f}pt hoch und laufen an den Folienrand – Kartentexte kürzen.")
+    return f'''<section class="seite seite--schwerpunkt">
+  <div class="streifen streifen--weiter"></div>
+  <div class="panel"></div>
+  <div class="eyebrow t-h6-regular">{e(t["arbeitsweise"])}</div>
+  <div class="h1 t-{KOPF_STIL}"{gross}>{e(titel).replace(chr(10), "<br>")}</div>
+  {absaetze(sp.get("text", ""), stil=f"top:{textkante(zeilen, grad):.1f}pt")}
+  <div class="pstapel pstapel--mitte"><div class="pstapel-inhalt">{"".join(html_karten)}</div></div>
+  {logo_block(True)}{seitenzahl(nr, True)}
+</section>'''
+
+
 def seite_agentur(d, t, basis, nr):
     b = AGENTUR["badge"]
     karte = lambda titel, zahl: (f'<div class="pkarte"><h3 class="t-subheadline-2-bold">'
@@ -1140,10 +1322,11 @@ LOGO_PROJEKT_HOCH = 80
 LOGO_PROJEKT_BREIT = 420
 
 
-def kundenlogo(pr, basis):
+def kundenlogo(pr, basis, cache: Path):
     # "logo" nimmt einen Dateinamen oder eine Liste: Projekte mit mehreren
     # Auftraggebern (Postbank & FYRST, Opel/Peugeot/Citroen) fuehren alle
-    # Marken nebeneinander, wie in den Showcases der Kandidaten.
+    # Marken nebeneinander, wie in den Showcases der Kandidaten. Schwarz-weiss
+    # wie auf der Kundenwand.
     logos = pr.get("logo")
     if not isinstance(logos, list):
         logos = [logos] if logos else []
@@ -1152,6 +1335,7 @@ def kundenlogo(pr, basis):
         uri = datei_uri(eintrag, basis)
         if not uri:
             continue
+        uri = logo_entfaerbt(uri, cache)
         v = seitenverhaeltnis(uri)
         b = LOGO_PROJEKT_MASS * math.sqrt(v)
         h = b / v
@@ -1167,11 +1351,37 @@ def kundenlogo(pr, basis):
     return f'<div class="kundenlogo">{"".join(imgs)}</div>'
 
 
+def flaechenfarbe(pr: dict) -> str | None:
+    """Die Farbe unter den Screens von Loesungs- und Abschlussseite. Standard
+    ist die neutrale Flaeche (neutral/15, setzt screens.py). Eine Farbe gibt es
+    nur noch, wenn sie aus dem Produkt oder den Screens kommt - DATEV-Petrol
+    #247488 der Produktoberflaeche, der dunkle Grund #111111 unter den
+    Kampagnenmotiven von Union Investment - und dann mit Quelle
+    (`markenfarbe_quelle`). Aus dem Logo nie: so steht es in Florians
+    ueberarbeitetem Deck (Entscheidung Oktober 2026), die Flaechen sind dort
+    neutral, farbig nur, wo das Produkt die Farbe mitbringt. Ohne Quelle
+    bleibt die Flaeche deshalb neutral, mit Meldung - auch fuer aeltere
+    Dateien, deren Farbe noch markenfarbe.py aus dem Logo las."""
+    farbe = str(pr.get("markenfarbe") or "").strip()
+    if not farbe:
+        return None
+    if not re.fullmatch(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})", farbe):
+        merke(f'{pr.get("kunde")}: „markenfarbe“ „{farbe}“ ist kein Hex-Wert – die '
+              "Fläche bleibt neutral.")
+        return None
+    if not str(pr.get("markenfarbe_quelle") or "").strip():
+        merke(f'{pr.get("kunde")}: „markenfarbe“ {farbe} ohne „markenfarbe_quelle“ – '
+              "nicht gesetzt, die Fläche bleibt neutral. Eine Farbe gibt es nur aus "
+              "Produkt oder Screens, mit Quelle; aus dem Logo nie (SKILL.md, Schritt 6).")
+        return None
+    return farbe
+
+
 def marken_moebel(pr, t, nr: int, bild: Path | None, farbe: str | None,
                   klasse: str = "bild--breit") -> str:
     """Wortmarke, Seitenzahl und NDA-Hinweis auf der Screenflaeche. Gemessen
     wird die Ecke des fertigen Bildes, oben und unten getrennt: dort liegt mal
-    ein dunkler Screenshot, mal die Markenflaeche, und die Markenfarbe allein
+    ein dunkler Screenshot, mal der Grund der Flaeche, und dessen Farbe allein
     sagt darueber nichts. Ist die Ecke nicht messbar, entscheidet sie doch -
     besser eine begruendete Annahme als weisse Schrift auf Gelb. screens.py
     haelt die Ecken frei, damit die Messung nicht auf einen Screenrand faellt.
@@ -1208,7 +1418,7 @@ def screens_meldungen() -> list[str]:
 
 def screenflaeche(bilder, farbe, variante: str, basis: Path, cache: Path,
                   seed: int, was: str, nda: bool = False) -> Path | None:
-    """Die markenfarbene Flaeche mit dem gekippten Screen-Raster. Das Rechnen
+    """Die Screenflaeche mit dem gekippten Raster. Das Rechnen
     kostet Sekunden, das Ergebnis haengt aber nur an den Rohbildern, der Farbe
     und dem Seed - deshalb traegt die Datei den Fingerabdruck ihrer Eingabe im
     Namen und ein zweiter Lauf greift sie einfach wieder ab."""
@@ -1306,7 +1516,7 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
                   if rolle else "")
     out.append((f'''<section class="seite seite--projekt">
   <div class="streifen streifen--start"></div>
-  {kundenlogo(pr, basis)}
+  {kundenlogo(pr, basis, cache)}
   <div class="h1 t-h1">{e(titel)}</div>
   <div class="sp-projekt" style="top:{spalten_oben:.1f}pt">{label(t["projekt"])}
     {absaetze(pr.get("projekt", ""))}{rolle_html}</div>
@@ -1331,14 +1541,14 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
   <div class="streifen streifen--weiter"></div>
   {bildflaeche(sm.get("bild"), "bild--breit", basis, t,
                was=f'{pr.get("kunde", "")} – {t["summary"]}')}
-  {kundenlogo(pr, basis)}
+  {kundenlogo(pr, basis, cache)}
   <div class="h1 t-h1">{e(t["summary"])}</div>
   {absaetze(sm.get("text", ""))}
   {kopfzeile(sm.get("bild"), basis, nr)}
 </section>''', Zone(PROJEKT_OBEN, 1010, BILDKANTE_BREIT - 12, '„summary.text“ kürzen')))
     nr += 1
 
-    farbe = pr.get("markenfarbe")
+    farbe = flaechenfarbe(pr)
     for k, lo in enumerate((pr.get("loesungen") or [])[:2]):
         was = f'{pr.get("kunde", "")} – {t["loesung"]}'
         bild = screenflaeche(lo.get("screens"), farbe, "panel", basis, cache, k, was,
@@ -1347,7 +1557,7 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
         out.append((f'''<section class="seite seite--loesung">
   <div class="streifen streifen--weiter"></div>
   {bildflaeche(bild, "bild--breit", basis, t, farbe=farbe, was=was)}
-  {kundenlogo(pr, basis)}
+  {kundenlogo(pr, basis, cache)}
   <div class="inhalt">
     <div class="einleitung t-subheadline-2-bold">{fett(lo.get("titel") or t["loesung"])}</div>
     {absaetze(lo.get("text", ""), ts="body-1-regular")}
@@ -1364,7 +1574,7 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
                          nda=pr.get("nda"))
     if voll:
         # Randlos und ohne Text - es bleiben Wortmarke, Seitenzahl und der
-        # Hinweis, alle drei nach der Markenfarbe gesetzt.
+        # Hinweis, alle drei nach dem Grund der Flaeche gesetzt.
         out.append((f'''<section class="seite seite--abschluss">
   <div class="vollflaeche"><img src="{voll.resolve().as_uri()}"></div>
   {marken_moebel(pr, t, nr, voll, farbe, "vollflaeche")}
@@ -1418,6 +1628,8 @@ def baue_html(d: dict, basis: Path, cache: Path) -> tuple[str, dict[int, Zone]]:
         sprache = "de"
     d["sprache"] = sprache
     t = TEXTE[sprache]
+    for befund in durchkopplung_pruefen(d):
+        merke(befund)
     seiten: list[str] = []
     grenzen: dict[int, Zone] = {}
 
@@ -1442,7 +1654,7 @@ def baue_html(d: dict, basis: Path, cache: Path) -> tuple[str, dict[int, Zone]]:
     lege_ab(seite_cover(d, t, basis), oben=340)
     lege_ab(seite_profil(d, t, basis, len(seiten) + 1, cache), 1060, oben=100,
             rat="weniger „kenntnisse“ oder kürzere Einträge")
-    lege_ab(seite_kunden(d, t, basis, len(seiten) + 1), 985, 1800, oben=135)
+    lege_ab(seite_kunden(d, t, basis, len(seiten) + 1, cache), 985, 1800, oben=135)
     lege_ab(seite_statement(d, t, basis, len(seiten) + 1), oben=265,
             rat='„statement.text“ kürzen')
     lege_ab(seite_divider(t["prozess"]), oben=330)
@@ -1468,6 +1680,11 @@ def baue_html(d: dict, basis: Path, cache: Path) -> tuple[str, dict[int, Zone]]:
         # wo genau, weiß nur die Seite selbst.
         aufbau, unten = seite_ki(d, t, basis, len(seiten) + 1)
         lege_ab(aufbau, unten, BILDKANTE_HALB, oben=112, rat='„person.ki.text“ kürzen')
+    # Schwerpunkt-Folien nach der KI-Folie, vor der Agenturseite - nur, wenn
+    # die JSON welche fuehrt. Die Seitenzahlen zaehlen einfach weiter.
+    for sp in schwerpunkte_lesen(d):
+        lege_ab(seite_schwerpunkt(sp, t, basis, len(seiten) + 1), oben=112,
+                rechts=PANEL_LINKS - 12, rat='„schwerpunkte[].text“ kürzen')
 
     lege_ab(seite_agentur(d, t, basis, len(seiten) + 1), oben=100)
     lege_ab(seite_divider(t["projekte"]), oben=330)

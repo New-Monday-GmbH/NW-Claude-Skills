@@ -11,6 +11,12 @@ Schwertfeger) gelten nur noch dort, wo Figma den Fall nicht zeigt: die
 einzelne Logoreihe bis fünf Logos, die KI-Folie mit ihrer Werkzeugreihe und
 die Screenflächen.
 
+Seit Oktober 2026 kommt eine zweite Quelle dazu: Florians überarbeitetes Deck
+(Datei `KoR4rzVSoMrvQot8z33gkv`, Seite „✏️ Portfolio“ `1:171`, Folien „01 v2“
+bis „35 v2“). Daraus stammen die Schwerpunkt-Folien (11–13 v2), die
+Kundenlogos in Graustufen (Folie 3 und alle Projektseiten), die neutrale
+Fläche unter den Screens und die Rollenzeile auf Folie 4.
+
 ## Design System: eine Quelle, eine Prüfung
 
 **Farben, Textstile, Schriftdateien, Linien, Kartenradius und -abstände stehen
@@ -111,6 +117,16 @@ Markierungen in der Soll-Datei, jeweils mit `grund`:
 Die ersten drei sind gewollte Abweichungen und werden nach dem Neulesen von
 Hand wieder gesetzt; `vergleich` setzt das Leseskript bei zentrierten Texten.
 
+Heute zwei Vorlagen: `02-profil.json` (Folie 2 aus `Portfolio - CV Master`)
+und `12-schwerpunkt.json` (Florians Folie „12 v2“, Datei
+`KoR4rzVSoMrvQot8z33gkv`, Knoten `2385:1431`). Deren `inhalt` setzt alle drei
+Schwerpunkte seines Decks ein – erst dann ist der Handover die Folie 12 und
+die Seitenzahl stimmt. Die Wortmarke liegt in diesem Deck als Rahmen mit
+Vektoren, nicht als Komponente; das Leseskript findet sie nicht, sie steht von
+Hand unter `logos`. Ein Umbruch hinter einem Bindestrich („Scrum-\nTeam“)
+zählt beim Textvergleich als Bindestrich: Im PDF ist er ein harter Umbruch, in
+Figma ein weicher.
+
 Dazu prüft er die Tokens (`pruefe()`) und rendert das Beispiel-Deck
 (`pruefe_pdf()`). Nach jeder Änderung an Layout, Tokens oder
 `figma_plan.py` laufen lassen; er schreibt nichts in den Skill-Ordner.
@@ -202,7 +218,7 @@ Blattnummer, nicht eine eigene Zählung: Seite 12 zeigt „12".
 |---|---|---|
 | Arbeitsweise und KI-Einsatz | 1122 pt | Folien 7–9: Bild 798 pt breit |
 | Summary (Foto der Firmenzentrale) | 932 pt | `image-wrapper` 988 pt breit |
-| Lösung (Markenfläche) | 932 pt | `image-wrapper` 988 pt breit |
+| Lösung (Screenfläche) | 932 pt | `image-wrapper` 988 pt breit |
 | Statement (Fläche, kein Bild) | 798 pt | 798 |
 | Projekt-Kopfseite | kein Bild | – |
 | Abschlussseite | randlos, 0 pt | – |
@@ -223,16 +239,20 @@ Alle aus `Foundation – Colors` des [NM] DESIGN SYSTEM v1.3, als Token in
 | `base/black` | `#111111` | Überschriften, Labels, Kartentexte, Seitenzahl |
 | `base/white` | `#ffffff` | Seiten, Karten, Schrift auf Petrol |
 | `neutral/80` | `#48575a` | Fließtext |
-| `neutral/15` | `#ebf2f5` | Streifen, Kontaktband, Statementfläche, Platzhalter |
-| `neutral/20` | `#c9cfd1` | Kontur der Karten links auf der Profilseite, Trennlinien zwischen den Kenntnissen |
+| `neutral/15` | `#ebf2f5` | Streifen, Kontaktband, Statementfläche, Platzhalter, Grund der Screenflächen |
+| `neutral/20` | `#c9cfd1` | Kontur der Karten links auf der Profilseite, Trennlinien zwischen den Kenntnissen, Kontur der Screenkarten auf hellem Grund |
 
 Nicht mehr im Einsatz: `#265d60` (Eyebrow alt), `#485758` (Fließtext alt, ein
 Blauwert neben `neutral/80`), `#dedede` (Kartenrahmen alt – heute
 `neutral/20`), `#f4ece8` (Fläche hinter dem Foto), `#fafafa`
 (Cover-Schrift).
 
-Die Markenfarben der Projekte kommen aus dem Kundenlogo und gehören nicht in
-diese Liste – siehe `scripts/markenfarbe.py`.
+Die Fläche unter den Screens ist `neutral/15`. Eine Projektfarbe gibt es nur,
+wenn Produkt oder Screens sie begründen (`markenfarbe` mit
+`markenfarbe_quelle`, SKILL.md Schritt 6) – nie aus dem Logo; sie gehört nicht
+in diese Liste. Die hellen Grautöne #f5f5f5 und #f4f4f4 auf zwei Lösungsseiten
+in Florians Deck sind keine Tokens des Design Systems (in Figma an keine
+Variable gebunden); der Skill setzt dafür `neutral/15`.
 
 ## Typografie
 
@@ -255,12 +275,14 @@ Design Systems, in `tokens.json` unter `textstile`:
 | `body-1-bold` | Text/Body 1 - Bold | Inter Semi Bold | 20 / 150 % |
 | `eyebrow` | H3 (Stil der Datei) | Inter Semi Bold, Versalien | 20 / 130 % |
 
-Dazu sieben Stile ohne Figma-Textstil, so wie die Elemente dort gesetzt sind:
+Dazu neun Stile ohne Figma-Textstil, so wie die Elemente dort gesetzt sind:
 `karten-titel` (Inter Bold 24 / 150 % – Titel der Karten links auf der
 Profilseite), `cover-jahr` (Inter 48, Zeile 56,3 pt), `seitenzahl` (Inter Bold 21,8),
 `badge-text` (Rethink Sans SemiBold 18), `person-name`/`person-rolle` (Inter
-Bold 24 / Regular 20, Zeile 140 %) und `hinweis` (Inter 15 – NDA-Hinweis und
-Platzhalter, in Figma nicht vertreten).
+Bold 24 / Regular 20, Zeile 140 %), `hinweis` (Inter 15 – NDA-Hinweis und
+Platzhalter, in Figma nicht vertreten) sowie `schwerpunkt-titel` (Inter Semi
+Bold 24, Zeilenhöhe Auto = 121 %, 29 pt) und `schwerpunkt-text` (Inter 20 /
+140 %) für die Karten der Schwerpunkt-Folien.
 
 **Rethink Sans hat einen hohen Schriftkasten** (Ober- plus Unterlänge 1,3 des
 Grades) bei 108–112 % Zeilenhöhe: Die Glyphenbox einer 96-pt-Zeile beginnt
@@ -315,7 +337,10 @@ ein Band ab x 196 / y 471, 1579 × 420 pt – siehe „Logos". Wer auf die Wand
 kommt, regelt SKILL.md (Schritt 4, `kunden`).
 
 **Statement** (Folie 4). Nebelblaue Fläche ab x 798. Rollenzeile (`h1`) x 193 /
-y 332, 520 pt breit. Das Zitat (`h2-regular`, `neutral/80`) x 964 / y 285,
+y 332, 520 pt breit. Sie trägt die Rolle selbst (`rolle`, „UX & AI
+Designer“), `statement_rolle` setzt nur die Umbrüche („UX & AI\nDesigner“, so
+in „04 v2“) – mit anderen Wörtern setzt das Renderskript die Rolle und meldet
+es (`statement_rolle()`). Das Zitat (`h2-regular`, `neutral/80`) x 964 / y 285,
 790 pt breit – oben verankert wie in Figma, nicht mehr vertikal mittig. Es
 hat höchstens 124 Zeichen, bis 130 tolerierbar (Vorgabe Oktober 2026):
 gemessen sechs Zeilen bei 121 Zeichen (Unterkante 760 pt), sieben bei 129
@@ -371,6 +396,25 @@ sagt, welche es weggelassen hat. Der Fließtext steht durchgehend mager:
 `**fett**` wird vom Renderskript entfernt, nicht gesetzt. Die Seite trägt
 **keine Schrittleiste**.
 
+**Schwerpunkt** (optional, Florians Folien 11–13 v2, hinter der KI-Folie und
+vor der Agenturseite). Streifen `neutral/15`, Petrol-Panel x 1393, 527 breit,
+wie auf der Profilseite. Links wie die Arbeitsweise: Eyebrow „Arbeitsweise“
+(`h6-regular`, `brand/primary-100`) x 193 / y 120, Titel (`h1`) x 193 / y 181,
+807 pt breit, höchstens zwei Zeilen; der Text (`subheadline-2-regular`,
+`neutral/80`) **640 pt** breit, 80 pt unter der letzten Titelzeile (y 365 bzw.
+469), zwischen den Absätzen **36 pt** – in Figma zwei Textknoten mit 36 pt
+Luft (Folien 12 und 13; Folie 11 hat 53 pt und einen Knoten mit zwei
+Absätzen, das ist von Hand verrutscht). Rechts der Kartenstapel x 1453,
+407 breit, 32 pt zwischen den Karten, **vertikal mittig** auf der Folie (Mitte
+y 540: Stapel ab y 291 bei drei gleich hohen Karten, ab y 277 bei einer
+dreizeiligen). Jede Karte weiß, Radius 16, Innenabstand 24, darin der Titel
+(`schwerpunkt-titel`, `base/black`) und 12 pt darunter der Text
+(`schwerpunkt-text`, `neutral/80`), 359 pt breit. Nummerierte Karten tragen
+„1  Aufbereiten“ – Ziffer, doppelter Abstand, Titel. Wortmarke und
+Seitenzahl weiß wie auf der Profilseite. Die Mitte setzt ein Flex-Rahmen über
+die volle Höhe mit `align-items: center` – das rechnet WeasyPrint richtig, und
+`figma_plan.py` liest die Lage daraus wie jede andere.
+
 **Agenturseite** (Folie 15). Überschrift (`h1`) x 193 / y 120, 1015 pt breit,
 zweizeilig. Subline (`subheadline-2-regular`) 40 pt darunter auf y 368.
 Kundenwand-Bild x 193 / y 497, 700 pt breit. Badge x 1120 / y 707 (110 pt),
@@ -397,8 +441,7 @@ der Firmenzentrale, `cover`. Links Kundenlogo im 80-pt-Feld ab y 120,
 Überschrift „Summary" (`h1`) auf y 232, Text (`subheadline-2-regular`) ab
 y 384, 565 pt breit.
 
-**Lösungsseite** (Folien 11_3 ff.). Rechts ab 932 pt die Markenfläche mit den
-Screens. Links Kundenlogo, dann ab y 240 (40 pt unter dem Logofeld) `titel` als
+**Lösungsseite** (Folien 11_3 ff.). Rechts ab 932 pt die Screenfläche. Links Kundenlogo, dann ab y 240 (40 pt unter dem Logofeld) `titel` als
 Einleitungszeile (`subheadline-2-bold`), eine Leerzeile darunter der Inhalt
 (`body-1-regular`), 565 pt breit. Figma setzt die Einleitung mal in
 Subheadline 2 Bold (GPE), mal in fettem Body 1 (Union Investment); der Skill
@@ -408,7 +451,7 @@ Die Einleitungszeile ersetzt das feste Label „Die Lösung", sie schafft es nic
 ab: Ohne `titel` steht das Label wieder dort. Der Platz ist derselbe, einzeilig
 wie zweizeilig – der Text darunter fließt nach.
 
-**Abschlussseite.** Die Markenfläche randlos über die ganze Folie, kein
+**Abschlussseite.** Die Screenfläche randlos über die ganze Folie, kein
 Streifen, kein Text. Es bleiben Wortmarke, Seitenzahl und der NDA-Hinweis
 (gemessen y 1016–1034).
 
@@ -463,7 +506,7 @@ keine Umbrüche, die zu erhalten wären. Diese Fallen gehören dazu:
 - **CSS-Variablen gehen, auch in Kurzschreibweisen** (`padding`, `border`,
   `background` mit Verlauf) – darauf baut das Token-CSS.
 
-## Die Markenflächen sind vorgerenderte Bilder
+## Die Screenflächen sind vorgerenderte Bilder
 
 Auf Lösungs- und Abschlussseite liegen die Screens schräg und laufen über die
 Kanten hinaus. Im Browser wäre das eine Handvoll `transform` – **WeasyPrint
@@ -473,7 +516,7 @@ die Fläche als Bild, bevor gerendert wird, und das Template setzt nur noch ein
 `panel` 1976 × 2160 px für die rechte Fläche (988 × 1080 pt, Bildkante 932 wie
 in Figma), `voll` 3840 × 2160 px für die ganze Folie. Gesichert wird als JPEG:
 Die Fläche ist ein Foto aus Fotos, und PNG speichert davon vor allem Rauschen.
-Ohne `markenfarbe` steht das New-Monday-Petrol `brand/primary` (siehe unten).
+Ohne `markenfarbe` steht die neutrale Fläche `neutral/15` (siehe unten).
 
 **Die Anordnung ist die gestalterische Entscheidung des Skills** (seit
 August 2026, seit September 2026 nach den Figma-Vorlagen unten): Das
@@ -510,12 +553,16 @@ S. 14/19, Carolin Reis S. 13/14/21, Daniel Fallack S. 13/14):
 | Ecke / Kontur | 2,8 % der Breite, 1,45 pt weiß | Gehäuse 14,7 %, Screen 12,6 % | Karte 560 × 396, r 15,5 / Container 276 × 598, r 40,6 |
 | Fassung | – | schwarz, Rand 3,25 %, Dynamic Island 35 × 8,8 % der Breite | Wissem S. 14 |
 
-- **Satte Markenfarbe, nichts darüber.** Der Grund ist die Markenfarbe, wie
-  sie ist – in den Referenzen #275fb4, #aa164a, #f07d00, nie abgedunkelt.
-  Nur fast weiße Töne (Luminanz > 0,80) werden Richtung Schwarz gezogen.
-  Ohne `markenfarbe` steht `brand/primary` aus den Tokens (#009193) – die
-  RTL-Folie der Referenz macht es so. Kein Schleier, kein Schatten: Keine
-  Referenz trägt einen Effekt auf den Screens.
+- **Neutraler Grund, nichts darüber** (seit `LAYOUT_STAND` 15, Oktober
+  2026). Ohne `markenfarbe` liegt das Raster auf `neutral/15` – so stehen die
+  Lösungsflächen in Florians überarbeitetem Deck (18/19 v2 #ebf2f5). Bis
+  dahin stand dort die Logofarbe des Kunden, ohne sie das Petrol
+  `brand/primary`; beides ist verworfen. Eine Produktfarbe (`markenfarbe` mit
+  Quelle, etwa DATEV-Petrol #247488 in 32 v2) steht, wie sie ist; nur
+  praktisch Weiß (Luminanz > 0,97) wird zu `neutral/15`. Desktop-Karten
+  tragen ihre Kontur weiß, auf hellem Grund (Luminanz > 0,80) in
+  `neutral/20` – so trennen sie sich von der Fläche wie in 18 v2. Kein
+  Schleier, kein Schatten: Keine Referenz trägt einen Effekt auf den Screens.
 - **Raster statt einzelner Kacheln.** Gleich breite Screens stehen in
   Spalten, jede Spalte gegen die vorige versetzt, von oben bis unten
   gefüllt und gemeinsam gekippt – das Raster füllt die ganze Fläche und wird
@@ -524,13 +571,14 @@ S. 14/19, Carolin Reis S. 13/14/21, Daniel Fallack S. 13/14):
   einer Reihe zeigen verschiedene Screens. Karten zeigen den Screen in
   ganzer Breite, höchstens 1,25-mal so hoch wie breit (lange Seiten von
   oben).
-- **Wortmarke, Seitenzahl und NDA-Hinweis liegen auf Markenfarbe.** Kacheln,
+- **Wortmarke, Seitenzahl und NDA-Hinweis liegen auf dem Grund.** Kacheln,
   die in ihre Felder ragen, entfallen – die Spalte beginnt dort später, wie
   die rechte Phone-Spalte in Wissem S. 14. Unter 48 Verschiebungen des
   Rasters gewinnt die, bei der dafür am wenigsten Screen wegfällt. Auf den
   Screenflächen setzt der Renderer Wortmarke und Seitenzahl weiß, solange
   die Fläche unter Luminanz 0,40 bleibt (`MARKE_TINTENWECHSEL`) – so stehen
-  sie in allen Referenzen, auch auf Orange.
+  sie in allen Referenzen, auch auf Orange; auf `neutral/15` stehen sie
+  dunkel.
 - **Phones in Fassung.** Hochformate im Displayformat (Verhältnis 1,7–2,45,
   höchstens 1 400 px breit) stecken in einer schwarzen Fassung mit Dynamic
   Island; die Fassung passt sich dem Displayformat an (1,75–2,3). Sind die
@@ -538,7 +586,7 @@ S. 14/19, Carolin Reis S. 13/14/21, Daniel Fallack S. 13/14):
   Desktop-Raster – Hochformate zwischen Desktop-Screens werden dort Karten.
 - **Die volle Abschlussseite:** Desktop-Screens gerade in drei Spalten von
   502 pt mit 40 pt Abstand ab x 67, versetzt gestartet (Carolin S. 21);
-  rechts ab x 1 653 bleibt Markenfarbe für Wortmarke und Seitenzahl. Phones
+  rechts ab x 1 653 bleibt Grund für Wortmarke und Seitenzahl. Phones
   liegen auch dort als gekipptes Raster (300 pt, 32 pt Abstand, 10°).
 - **Ein einzelner Screen** liegt groß und gekippt allein: Desktop 92 % der
   Panelbreite (62 % der Folie), Phone 86 % der Höhe.
@@ -601,9 +649,36 @@ ein. Was unlesbar bleibt, wird gemeldet. Eine Datei, die selbst gestaucht ist
 (beQ, Oktober 2026), fängt keine dieser Prüfungen: dafür die Sichtprüfung
 gegen die Quelle in SKILL.md, Schritt 5.
 
-**Die Kundenwand folgt Folie 3 der Figma-Seite.** Die Logos stehen in ihren
-**Originalfarben** – Figma zeigt sie einfarbig schwarz, der Skill bleibt bei
-den Farben (Entscheidung September 2026); Raster und Abstände kommen aus Figma:
+**Kundenlogos stehen in Graustufen** – auf der Kundenwand und auf allen
+Projektseiten (Kopf, Summary, Lösung), wie in Florians Deck (Folie „03 v2“,
+16 v2 ff.). Das ersetzt die Entscheidung „Originalfarben“ vom September 2026.
+Abgelesen an Folie 3: Union Investment (#00358e) und Green Planet Energy
+(#004743) stehen #111111, beim DATEV-Logo die Petrol-Schrift #111111 und die
+grüne Fläche #8c8c8c; Rasterlogos (beQ, Tollwerk) tragen in Figma
+„Sättigung −1“, also Grau gleicher Luminanz. Der Skill rechnet das so nach
+(`scripts/logo_grau.py`):
+
+- Grau gleicher relativer Luminanz (Rec. 709, linear) – genau Figmas
+  „Sättigung −1“ (Tollwerk #00285b → #2a2a2a);
+- je Logo gespreizt: der Hauptton – der dunkelste Ton mit mindestens 3 % der
+  Tintenfläche, damit ein ® nicht entscheidet – wird `base/black` #111111,
+  Weiß bleibt Weiß, dazwischen die Kurve t^0,78. Daraus wird das DATEV-Grün
+  #8b8b8b (Figma #8c8c8c). Nur nach Luminanz stünde Union als mattes
+  #3c3c3c auf der Wand und das Grün als blasses #bebebe;
+- SVG bleibt Vektor: Ersetzt werden nur die Farbwerte (Attribute, `style`,
+  `<style>`), Elemente ohne Füllung erben #111111 vom Wurzelelement; viewBox
+  und Pfade bleiben, also auch das Seitenverhältnis. Ein SVG mit
+  eingebettetem Bild geht als Graustufen-PNG im Seitenverhältnis der
+  viewBox. Rasterlogos behalten Pixelmaß und Alpha.
+
+WeasyPrint setzt kein CSS-`filter` um; deshalb liegen die Graustufen-Fassungen
+als Dateien im Zwischenspeicher (`logo-grau-*`), und das Layout verweist auf
+sie. `figma_plan.py` liest dasselbe Layout – PDF und Figma zeigen dieselben
+Grauwerte. Die Werkzeuglogos der KI-Folie laufen nicht durch und bleiben
+farbig.
+
+**Die Kundenwand folgt Folie 3 der Figma-Seite.** Raster und Abstände kommen
+aus Figma:
 
 - **Das Raster (ab 6 Logos)**: ein Band ab x 196 / y 471, 1579 × 420 pt.
   Zeilen zu 100 pt mit 60 pt Luft, je Zeile bis zu sieben Logos, das erste an
@@ -642,12 +717,11 @@ Dateirand darf nicht mitentscheiden. Wo der Verlauf aus `.bildschatten` liegt,
 wird er mitgerechnet (`SCHATTEN_HOCH`, `SCHATTEN_TIEF`) – er macht die untere
 Ecke dunkel, egal wie hell das Foto ist. Die Schwelle ist `TINTENWECHSEL`.
 
-Bei den Markenflächen misst `marken_moebel()` zuerst genauso die fertige, schon
-zusammengesetzte Fläche; `hell(markenfarbe)` ist nur der Rückfall, wenn nichts
-zu messen ist. Umgekehrt wäre es falsch: Ein Screen, der bis in die Ecke reicht,
+Bei den Screenflächen misst `marken_moebel()` zuerst genauso die fertige, schon
+zusammengesetzte Fläche; die Helligkeit der Flächenfarbe ist nur der Rückfall,
+wenn nichts zu messen ist. Umgekehrt wäre es falsch: Ein Screen, der bis in die Ecke reicht,
 entscheidet dort über die Lesbarkeit, nicht die Farbe darunter. `screens.py`
-hält diese Ecken über `SPERRE_OBEN` und `SPERRE_UNTEN` frei – in der Referenz
-bleibt dort immer Markenfarbe stehen.
+hält diese Ecken frei – in der Referenz bleibt dort immer der Grund stehen.
 
 Ein Fall bleibt, den keine Tinte löst: Liegt das Möbelfeld halb auf Hellem und
 halb auf Dunklem, verschwindet ein Stück Wortmarke, egal wie entschieden wird.

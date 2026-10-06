@@ -26,7 +26,7 @@ Was dabei entsteht, je Folie ein Frame 1920 × 1080 (Clip an):
 | Verlauf (`.bildschatten`) | Rechteck mit linearem Verlauf, oben nach unten |
 | Textblock | ein Textknoten mit automatischer Breite, Zeilenhöhe in Punkt, Umbrüche wie im PDF |
 | `**fett**`, Links | Bereiche mit eigenem Schnitt bzw. Hyperlink im selben Textknoten |
-| SVG-Logo, Wortmarke | Vektorknoten (`createNodeFromSvg`), in seine Box eingepasst |
+| SVG-Logo, Wortmarke | Vektorknoten (`createNodeFromSvg`), in seine Box eingepasst – Kundenlogos schon in Graustufen (siehe unten) |
 | Rasterbild, großes SVG | Rechteck `bild:<nr>`, das Bild kommt per `upload_assets` – große SVGs rendert WeasyPrint zu PNG, derselbe Renderer wie im PDF. Logos und andere eingepasste Bilder: Rechteck im Seitenverhältnis der Datei, Füllmodus FIT |
 
 **Die Zeilenumbrüche sind harte Umbrüche, die Textknoten haben automatische
@@ -67,6 +67,27 @@ Das Seitenverhältnis eines Logos kommt immer aus seiner Datei. Daraus folgt:
   Ziehen oder Skalieren-Werkzeug K), den Füllmodus eines Logos auf FIT lassen –
   im Modus „Crop“ zieht Figma das Bild mit, sobald die Fläche ihre Maße
   ändert.
+
+## Kundenlogos in Graustufen
+
+Kundenlogos stehen auf Kundenwand und Projektseiten schwarz-weiß (SKILL.md,
+Schritt 5). Das Renderskript verweist im Layout auf die umgerechneten Dateien
+im Zwischenspeicher (`arbeit/screens/logo-grau-*`), und `figma_plan.py` liest
+dieses Layout – Figma bekommt also dieselben Dateien wie das PDF:
+
+- **Vektorlogos** tragen die Grauwerte schon als Füllung im SVG; der
+  Vektorknoten in Figma hat graue Flächen, keine Filter.
+- **Rasterlogos** und große SVGs, die als Bild gehen, werden als
+  Graustufen-PNG hochgeladen, mit FIT auf ein Rechteck im Seitenverhältnis der
+  Datei wie jedes Logo.
+
+Figmas eigener Bildfilter („Sättigung −1“) wird bewusst nicht gesetzt: Er
+liefert nur das Grau gleicher Luminanz, die Regel aus Folie 3 setzt den
+Hauptton aber auf #111111 – mit dem Filter stünde Union Investment in Figma
+mittelgrau und im PDF schwarz. Wer ein Logo in Figma von Hand tauscht, nimmt
+die `logo-grau-*`-Datei aus dem Zwischenspeicher oder rechnet die neue Datei
+mit `python3 ${CLAUDE_SKILL_DIR}/scripts/logo_grau.py <datei> --aus <ordner>`
+um. Die Werkzeuglogos der KI-Folie bleiben farbig.
 
 ## Die Zieldatei
 
@@ -134,8 +155,9 @@ Lösungsseite), hat eine Nummer, aber mehrere Knoten: Es wird je Knoten einmal
 hochgeladen.
 
 **6. Kontrolle.** `get_screenshot` auf zwei, drei Folien – Cover, eine
-Arbeitsweise-Seite, eine Projekt-Kopfseite – und gegen die PDF-Seite halten.
-Dazu die Kundenwand: Jedes Logo hat dieselben Proportionen wie im PDF.
+Arbeitsweise-Seite, eine Projekt-Kopfseite, falls vorhanden eine
+Schwerpunkt-Folie – und gegen die PDF-Seite halten. Dazu die Kundenwand: Jedes
+Logo hat dieselben Proportionen und dieselben Grauwerte wie im PDF.
 Dann den Link auf den Sammelrahmen (`…?node-id=<rahmen>`) für die Übergabe.
 
 ## Einzelne Folien in einem bestehenden Deck ersetzen
@@ -153,6 +175,12 @@ Paket ersetzt die gleichnamige Folie („02") an ihrer Stelle; was Designer
 **auf dieser Folie** in Figma geändert haben, ist danach weg – vorher fragen,
 wenn das Deck schon in Arbeit ist. Pakete eines früheren Laufs im selben
 Ordner löscht das Skript vorher, damit keines davon ungewollt Folien ersetzt.
+
+**Kommen Schwerpunkt-Folien dazu oder fallen weg, geht das nicht.** Sie stehen
+vor der Agenturseite, alle Folien dahinter rücken eine Nummer weiter – „14“
+hieße im neuen Plan die Agenturseite, im alten Deck eine andere Folie. Dann
+das Deck in einem neuen Sammelrahmen ganz neu bauen und den alten erst nach
+Rückfrage entfernen.
 `99-bilder.js` sammelt nur Bildflächen ein,
 die noch den hellgrauen Platzhalter tragen, also nur die der neuen Folien;
 Upload wie in Schritt 5.

@@ -1,0 +1,261 @@
+{
+ "_zweck": "Sollwerte der Figma-Vorlage für den Selbsttest (scripts/selbsttest.py): eine Schwerpunkt-Folie. Der Test rendert das Beispiel mit genau den drei Schwerpunkten aus Florians Deck (Folien 11–13 v2) und vergleicht Folie 12 – Flächen, Radien, Texte – auf 1,5 pt. Neu lesen mit dem Skript in references/layout.md, Abschnitt »Selbsttest gegen Figma«.",
+ "quelle": {
+  "datei": "KoR4rzVSoMrvQot8z33gkv",
+  "knoten": "2385:1431",
+  "frame": "12 v2 – Handover & Design-QA",
+  "seite": "✏️ Portfolio (1:171)",
+  "gelesen": "2026-10-06"
+ },
+ "folie": 12,
+ "inhalt": {
+  "schwerpunkte": [
+   {
+    "titel": "Barrierefreiheit",
+    "text": "Barrierefreiheit denke ich von Anfang an mit – in Konzeption, Gestaltung und Übergabe.\n\nBei Tollwerk habe ich Websites im Public Sector barrierefrei gestaltet und Accessibility-Audits nach WCAG und BITV durchgeführt, inklusive konkreter Optimierungsempfehlungen.\n\nBei DATEV habe ich ein internes Accessibility-Team mit aufgebaut, erste Standards definiert und Mitarbeitende geschult.",
+    "karten": [
+     {
+      "titel": "Audits & Beratung",
+      "text": "Prüfung nach WCAG und BITV mit konkreten Empfehlungen"
+     },
+     {
+      "titel": "Testing",
+      "text": "Screenreader-Tests mit NVDA, Prüfung mit Lighthouse und PAC 2024"
+     },
+     {
+      "titel": "Zertifiziert",
+      "text": "WCAG – Barrierefrei Lehren, IAAP D-A-CH 2025"
+     }
+    ]
+   },
+   {
+    "titel": "Dev-ready Handover & QA",
+    "nummeriert": true,
+    "text": "Ich übergebe Designs so, dass die Entwicklung direkt umsetzen kann: Screens mit allen States, Spezifikationen und Edge Cases, abgestimmt auf das Designsystem. Bei DATEV habe ich dafür im Scrum-Team Umsetzungsvorgaben für meine Screens geliefert.\n\nWährend der Umsetzung prüfe ich den Stand in Design-Reviews: Entspricht der Screen dem Design und dem Designsystem? Abweichungen kläre ich direkt mit dem Entwicklungsteam – zuletzt bei beQ.",
+    "karten": [
+     {
+      "titel": "Aufbereiten",
+      "text": "Screens, States und Specs dev-ready in Figma"
+     },
+     {
+      "titel": "Übergeben",
+      "text": "Handover und laufende Abstimmung mit der Entwicklung"
+     },
+     {
+      "titel": "Prüfen",
+      "text": "Design-QA der Umsetzung gegen Design und Designsystem"
+     }
+    ]
+   },
+   {
+    "titel": "Designsystem & Edge Cases",
+    "text": "Fehlt im Designsystem ein Zustand oder eine Komponente, ergänze ich sie – konsistent zu den bestehenden Regeln. Bei beQ habe ich das vorhandene Designsystem um zusätzliche States erweitert.\n\nBei DATEV lagen Edge Cases in meinem Fokus: Ich habe Empty States erstellt und die Designs mit sehr langen Datensätzen geprüft – auf Basis des DATEV-Designsystems.",
+    "karten": [
+     {
+      "titel": "Empty States",
+      "text": "Leere Listen und fehlende Daten verständlich gestalten"
+     },
+     {
+      "titel": "Lange Inhalte",
+      "text": "Designs mit langen Datensätzen und Texten absichern"
+     },
+     {
+      "titel": "Neue States",
+      "text": "Bestehende Komponenten um fehlende Zustände erweitern"
+     }
+    ]
+   }
+  ]
+ },
+ "hintergrund": "#ffffff",
+ "flaechen": [
+  {
+   "name": "streifen",
+   "x": 0,
+   "y": 0,
+   "w": 72,
+   "h": 1080,
+   "fill": "#ebf2f5"
+  },
+  {
+   "name": "panel",
+   "x": 1393,
+   "y": 0,
+   "w": 527,
+   "h": 1080,
+   "fill": "#009193"
+  },
+  {
+   "name": "pkarte",
+   "x": 1453,
+   "y": 291,
+   "w": 407,
+   "h": 145,
+   "fill": "#ffffff",
+   "r": 16
+  },
+  {
+   "name": "pkarte",
+   "x": 1453,
+   "y": 468,
+   "w": 407,
+   "h": 145,
+   "fill": "#ffffff",
+   "r": 16
+  },
+  {
+   "name": "pkarte",
+   "x": 1453,
+   "y": 645,
+   "w": 407,
+   "h": 145,
+   "fill": "#ffffff",
+   "r": 16
+  }
+ ],
+ "texte": [
+  {
+   "text": "Arbeitsweise",
+   "x": 193,
+   "y": 120,
+   "w": 190,
+   "h": 36,
+   "familie": "Rethink Sans",
+   "schnitt": "Regular",
+   "groesse": 32,
+   "zeile": 35.8,
+   "farbe": "#004142"
+  },
+  {
+   "text": "Dev-ready Handover & QA",
+   "x": 193,
+   "y": 181,
+   "w": 673,
+   "h": 208,
+   "familie": "Rethink Sans",
+   "schnitt": "SemiBold",
+   "groesse": 96,
+   "zeile": 103.7,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Ich übergebe Designs so, dass die Entwicklung direkt umsetzen kann: Screens mit allen States, Spezifikationen und Edge Cases, abgestimmt auf das Designsystem. Bei DATEV habe ich dafür im Scrum-Team Umsetzungsvorgaben für meine Screens geliefert.",
+   "x": 193,
+   "y": 469,
+   "w": 640,
+   "h": 150,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 24,
+   "zeile": 30,
+   "farbe": "#48575a"
+  },
+  {
+   "text": "Während der Umsetzung prüfe ich den Stand in Design-Reviews: Entspricht der Screen dem Design und dem Designsystem? Abweichungen kläre ich direkt mit dem Entwicklungsteam – zuletzt bei beQ.",
+   "x": 193,
+   "y": 655,
+   "w": 640,
+   "h": 120,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 24,
+   "zeile": 30,
+   "farbe": "#48575a"
+  },
+  {
+   "text": "1 Aufbereiten",
+   "x": 1477,
+   "y": 315,
+   "w": 359,
+   "h": 29,
+   "familie": "Inter",
+   "schnitt": "Semi Bold",
+   "groesse": 24,
+   "zeile": null,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Screens, States und Specs dev-ready in Figma",
+   "x": 1477,
+   "y": 356,
+   "w": 359,
+   "h": 56,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 28,
+   "farbe": "#48575a"
+  },
+  {
+   "text": "2 Übergeben",
+   "x": 1477,
+   "y": 492,
+   "w": 359,
+   "h": 29,
+   "familie": "Inter",
+   "schnitt": "Semi Bold",
+   "groesse": 24,
+   "zeile": null,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Handover und laufende Abstimmung mit der Entwicklung",
+   "x": 1477,
+   "y": 533,
+   "w": 359,
+   "h": 56,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 28,
+   "farbe": "#48575a"
+  },
+  {
+   "text": "3 Prüfen",
+   "x": 1477,
+   "y": 669,
+   "w": 359,
+   "h": 29,
+   "familie": "Inter",
+   "schnitt": "Semi Bold",
+   "groesse": 24,
+   "zeile": null,
+   "farbe": "#111111"
+  },
+  {
+   "text": "Design-QA der Umsetzung gegen Design und Designsystem",
+   "x": 1477,
+   "y": 710,
+   "w": 359,
+   "h": 56,
+   "familie": "Inter",
+   "schnitt": "Regular",
+   "groesse": 20,
+   "zeile": 28,
+   "farbe": "#48575a"
+  },
+  {
+   "text": "12",
+   "x": 1853,
+   "y": 1011.4,
+   "w": 25,
+   "h": 27,
+   "familie": "Inter",
+   "schnitt": "Bold",
+   "groesse": 21.799999237060547,
+   "zeile": 26.2,
+   "farbe": "#ffffff",
+   "vergleich": "mitte"
+  }
+ ],
+ "bilder": [],
+ "logos": [
+  {
+   "name": "New Monday Logo (weiß)",
+   "x": 1712,
+   "y": 60,
+   "w": 148,
+   "h": 15
+  }
+ ]
+}

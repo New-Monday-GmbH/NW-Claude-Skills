@@ -200,6 +200,24 @@ ul.zeilen li + li { margin-top: var(--trenner-luft); padding-top: var(--trenner-
 .bildschatten { position: absolute; right: 0; bottom: 0; height: var(--bildschatten-hoehe);
   background: var(--bildschatten); }
 
+/* ── Schwerpunkt (optional, hinter der KI-Folie) ──────────────────────── */
+
+/* Wie Florians Folien 11–13 v2: links Eyebrow, Titel und Text wie auf den
+   Arbeitsweise-Seiten, der Text aber 640pt breit und mit 36pt zwischen den
+   Absätzen (zwei Textknoten in Figma). Die Oberkante des Textes setzt das
+   Renderskript (80pt unter der letzten Titelzeile). */
+.seite--schwerpunkt .eyebrow { position: absolute; left: 193pt; top: 120pt; width: 807pt;
+  color: var(--brand-primary-100); }
+.seite--schwerpunkt .h1 { position: absolute; left: 193pt; top: 181pt; width: 807pt; }
+.seite--schwerpunkt .fliess { position: absolute; left: 193pt; width: 640pt; }
+.seite--schwerpunkt .fliess p + p { margin-top: 36pt; }
+/* Rechts das Petrol-Panel (.panel) mit drei weißen Karten: Stapel mit 32pt
+   Abstand, vertikal mittig auf der Folie. align-items zentriert in
+   WeasyPrint zuverlässig (justify-content nicht, siehe layout.md). */
+.pstapel--mitte { top: 0; height: 1080pt; display: flex; align-items: center; }
+.pstapel--mitte .pstapel-inhalt { width: 407pt; }
+.pstapel--mitte .pkarte p { margin-top: 12pt; color: var(--neutral-80); }
+
 /* ── 11 · New Monday Agentur ──────────────────────────────────────────── */
 
 .seite--agentur .h1 { position: absolute; left: 193pt; top: 120pt; width: 1015pt; }

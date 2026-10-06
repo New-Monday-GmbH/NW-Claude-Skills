@@ -26,6 +26,16 @@ HTML, WeasyPrint rechnet daraus jede Position, jede Zeile, jeden Umbruch. Genau
 diese Rechnung wird hier ausgelesen - dieselbe, aus der das PDF entsteht. Der
 Figma-Frame kann dem PDF deshalb nicht davonlaufen: Es gibt keine zweite
 Maßtabelle, die jemand vergessen könnte nachzuziehen.
+
+Das gilt auch fuer die Kundenlogos in Graustufen und die Schwerpunkt-Folien
+(Oktober 2026): Das Layout verweist schon auf die umgerechneten Logos im
+Zwischenspeicher (logo-grau-*, render_portfolio.logo_entfaerbt), Vektorlogos
+kommen deshalb mit grauen Fuellungen an, Rasterlogos gehen als
+Graustufen-PNG hoch - kein Figma-Bildfilter, der anders rechnen wuerde als
+das PDF. Die Schwerpunkt-Folien liest der Leser wie jede andere Folie; ihren
+Kartenstapel zentriert ein Flex-Rahmen, dessen Lage WeasyPrint fertig
+ausrechnet. Wer hier eine eigene Logo- oder Farbbehandlung einbaut, laesst
+Figma und PDF auseinanderlaufen.
 """
 from __future__ import annotations
 

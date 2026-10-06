@@ -41,7 +41,7 @@
         "url": "https://www.linkedin.com/in/ansgar-rolfes/"
       }
     ],
-    "statement_rolle": "User\nInterface &\nExperience\nDesigner",
+    "statement_rolle": "Brand &\nUX/UI\nDesigner",
     "statement": {
       "zitat": true,
       "text": "Gutes Design beginnt nicht beim Screen, sondern beim Verstehen – erst die Klarheit über das Problem macht die Oberfläche einfach."
@@ -125,7 +125,6 @@
     {
       "kunde": "apoBank",
       "logo": "material/apobank.png",
-      "markenfarbe": "#012169",
       "projekt": "Wir wurden beauftragt, das **Design des neuen Kundenportals** zur Verwaltung von Finanzierungsprojekten für die Nutzer zu gestalten.\n\nNach einem fachlichen Review der bestehenden User Experience wurde vereinbart, im Rahmen eines agilen Projektes in mehreren Sprints die Konzeption der Nutzerführung und Gestaltung der Oberflächen in Zusammenarbeit mit der Marketing- und IT-Abteilung und unter Berücksichtigung des Corporate Designs zu entwerfen und zu dokumentieren.",
       "kunde_text": "Die Deutsche Apotheker- und Ärztebank eG ist die Vertrauensbank der Heilberufe mit herausragender Branchenexpertise im Gesundheitsmarkt.",
       "rolle": [
@@ -162,7 +161,6 @@
     {
       "kunde": "Yareto GmbH",
       "logo": "material/yareto.png",
-      "markenfarbe": "#f56a03",
       "projekt": "Seit dem Start im Jahr 2016 wird das Startup Yareto durch unser Büro in allen Fragen rund um User Experience Design und Usability betreut.\n\nSeitdem wurde das digitale Produktportfolio für mehr als 15.000 registrierte Händler stetig ausgebaut. Immer im Blick: Die **einfache und intuitive Nutzung** der Services.",
       "kunde_text": "Yareto.de ist das erste und marktführende B2B-Portal für den Vergleich von Fahrzeugfinanzierungen für den deutschen Kfz-Handel.\n\nDurch Yareto hat der Kfz-Handel mehr Auswahlmöglichkeiten bei der Absatzfinanzierung, bei Leasingangeboten sowie weiteren speziellen Finanzierungsprodukten.",
       "rolle": [

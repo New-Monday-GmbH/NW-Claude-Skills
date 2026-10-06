@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Baut die Markenflaeche mit den praesentierten Screens: ein gekipptes Raster.
+"""Baut die Screenflaeche mit den praesentierten Screens: ein gekipptes Raster.
 
     python3 scripts/screens.py --farbe "#0018a8" --aus panel.jpg s1.png s2.png
     python3 scripts/screens.py --farbe "#0018a8" --voll --aus ende.jpg material/*.png
@@ -14,11 +14,15 @@ Daniel Fallack S. 13/14 - vom Nutzer als "so sieht es gut aus" vorgegeben,
 nachdem die Kaskade aus Stand 9/10 bei Paul und Enrico "schlecht aussah").
 Vermessen in Figma:
 
-- **Satte Markenfarbe, nichts darueber.** Der Grund ist die Markenfarbe, wie
-  sie ist (#275fb4, #aa164a, #f07d00 in den Referenzen) - nur fast weisse
-  Toene werden abgedunkelt. Ohne Markenfarbe das New-Monday-Petrol aus den
-  Tokens (die RTL-Folie der Referenz macht es so). Kein Verlaufsschleier, kein
-  Schatten: in keiner Referenz traegt ein Screen einen Effekt.
+- **Der Grund ist neutral, nichts darueber.** Seit Oktober 2026 liegt das
+  Raster auf neutral/15 (#ebf2f5) - so stehen die Loesungsflaechen in
+  Florians ueberarbeitetem Deck. Eine Farbe kommt nur, wenn sie aus Produkt
+  oder Screens stammt (`markenfarbe` mit Quelle, z. B. DATEV-Petrol
+  #247488); sie steht dann, wie sie ist. Nur praktisch Weiss wird zur
+  neutralen Flaeche - darauf verschwaenden weisse Screens. Auf hellem Grund
+  tragen die Karten eine Kontur in neutral/20 statt in Weiss. Kein
+  Verlaufsschleier, kein Schatten: in keiner Referenz traegt ein Screen einen
+  Effekt.
 - **Ein Raster gleich breiter Screens in versetzten Spalten**, gemeinsam
   gekippt, das die ganze Flaeche fuellt und an allen Kanten angeschnitten
   wird. Desktop-Screens: 560 pt breit, 36 pt Abstand, 15 Grad (Wissem S. 19,
@@ -32,14 +36,14 @@ Vermessen in Figma:
   Container in Wissem S. 14). Browserfenster, Ampelpunkte, Tablets: nein.
 - **Die volle Abschlussseite** traegt Desktop-Screens gerade, in drei
   Spalten von 502 pt mit 40 pt Abstand ab x 67 (Carolin S. 21) - rechts
-  bleibt ein Streifen Markenfarbe fuer Wortmarke und Seitenzahl. Phones
+  bleibt ein Streifen Grund fuer Wortmarke und Seitenzahl. Phones
   liegen auch dort als gekipptes Raster.
 - **Ein einzelner Screen** liegt gross und gekippt allein auf der Flaeche.
 - **Szenen.** Ein Bild, das schon eine fertig gestaltete Showcase-Szene ist
   (mehrere Fenster ueberlappend auf eigenem Grund) und sich nicht in saubere
   Screens zerlegen laesst, fuellt die Flaeche als Ganzes, auf seinen Inhalt
   ausgerichtet - so wie das Laptop-Foto in Daniel S. 14.
-- **Wortmarke und Seitenzahl** liegen wie in den Referenzen auf Markenfarbe:
+- **Wortmarke und Seitenzahl** liegen wie in den Referenzen auf dem Grund:
   Kacheln, die in ihre Felder (und in das des NDA-Hinweises) ragen,
   entfallen - die Spalte beginnt dort spaeter, wie die rechte Spalte in
   Wissem S. 14. Unter 48 Verschiebungen des Rasters gewinnt die, bei der am
@@ -84,8 +88,9 @@ except Exception:                                   # pragma: no cover
 # Stand 11: Raster aus den Figma-Referenzen - Markenfarbe, Karten, Phones.
 # Stand 12/13: Szene nur auf dunklem/farbigem Grund; Hochformate zwischen
 # Desktop-Screens liegen als Karte. Stand 14: der Freisteller schneidet nur
-# einfarbige Unterlage weg, nie eine Kopfleiste am Bildrand.
-LAYOUT_STAND = 14
+# einfarbige Unterlage weg, nie eine Kopfleiste am Bildrand. Stand 15: Grund
+# neutral/15 statt Petrol, Karten-Kontur auf hellem Grund in neutral/20.
+LAYOUT_STAND = 15
 
 # Zwei Pixel je Punkt: die Flaeche wird im PDF nur skaliert, nie vergroessert.
 PX_JE_PUNKT = 2
@@ -101,18 +106,23 @@ HOCH_MIN = 0.40
 # Szenen fuellen die Flaeche als Foto: dort genuegt ein Pixel je Punkt.
 SZENE_MIN = 0.5
 
-# Ohne Markenfarbe: das New-Monday-Petrol aus den Tokens.
-NEUTRAL = "#009193"
+# Ohne Flaechenfarbe: die neutrale Flaeche neutral/15 aus den Tokens - so
+# stehen die Loesungsseiten in Florians Deck (Oktober 2026); die Karten
+# bekommen dort eine Kontur in neutral/20.
+NEUTRAL, KONTUR_HELL = "#ebf2f5", "#c9cfd1"
 if _ds is not None:
     try:
-        NEUTRAL = _ds.laden()["farben"]["brand/primary"]
+        NEUTRAL = _ds.laden()["farben"]["neutral/15"]
+        KONTUR_HELL = _ds.laden()["farben"]["neutral/20"]
     except Exception:                               # pragma: no cover
         pass
-# Nur fast weisse Markenfarben tragen keine weissen Screens - sie werden
-# abgedunkelt. Alles andere steht satt, wie in den Referenzen (#f07d00 hat
-# eine Luminanz um 0,55 und steht dort unveraendert).
-GRUND_HELL_MAX = 0.80
-GRUND_ZIEL = 0.55
+# Praktisch Weiss traegt keine weissen Screens - dann steht die neutrale
+# Flaeche. Alles andere steht, wie es ist: neutral/15 (0,94), eine helle
+# Produktflaeche, Petrol, #111111.
+GRUND_WEISS_AB = 0.97
+# Ab dieser Helligkeit des Grundes ist die weisse Kontur der Karten unsichtbar
+# - dann zieht neutral/20 die Kante.
+KONTUR_WECHSEL = 0.80
 
 # Die Raster je Screenart und Flaeche, in Punkt. `versatz` ist die
 # Verschiebung jeder Spalte gegen die vorige, als Anteil des Spaltentakts.
@@ -147,7 +157,7 @@ GEHAEUSE = (0, 0, 0)
 
 # Die Felder von Wortmarke und Seitenzahl auf der Folie, in Punkt, mit Luft.
 # Sie bleiben frei wie in den Referenzen: Kacheln, die hineinragen, entfallen
-# - die Spalte beginnt dort spaeter, die Ecke zeigt Markenfarbe. Unter den
+# - die Spalte beginnt dort spaeter, die Ecke zeigt den Grund. Unter den
 # Verschiebungen des Rasters gewinnt die, bei der am wenigsten entfaellt.
 # Steht ein NDA-Hinweis auf der Seite, kommt sein Feld dazu (NDA_FELD).
 FELD_LOGO = (1690, 44, 1880, 92)
@@ -210,25 +220,23 @@ def _farbe(wert: str | None) -> tuple[int, int, int]:
         return tuple(int(NEUTRAL.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4))
 
 
-def _mischen(a: tuple, b: tuple, t: float) -> tuple[int, int, int]:
-    return tuple(round(x + (y - x) * t) for x, y in zip(a, b))
-
-
 def _luminanz(farbe: tuple) -> float:
     r, g, b = farbe
     return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
 
 
 def _grundton(marke: tuple) -> tuple[int, int, int]:
-    """Der Grund ist die Markenfarbe, wie sie ist. Nur fast weisse Toene
-    werden Richtung Schwarz gezogen - auf ihnen verschwaenden helle Screens."""
-    if _luminanz(marke) <= GRUND_HELL_MAX:
+    """Der Grund ist die Flaechenfarbe, wie sie ist. Nur praktisch Weiss wird
+    zur neutralen Flaeche - auf ihm verschwaenden helle Screens."""
+    if _luminanz(marke) <= GRUND_WEISS_AB:
         return marke
-    t, ton = 0.0, marke
-    while _luminanz(ton) > GRUND_ZIEL and t < 1.0:
-        t += 0.05
-        ton = _mischen(marke, (0, 0, 0), t)
-    return ton
+    return _farbe(NEUTRAL)
+
+
+def _konturfarbe(grund: tuple) -> tuple[int, int, int]:
+    """Weisse Kontur auf dunklem und farbigem Grund wie in den Referenzen, auf
+    hellem Grund neutral/20 - sonst verschwimmt ein weisser Screen mit ihm."""
+    return (255, 255, 255) if _luminanz(grund) <= KONTUR_WECHSEL else _farbe(KONTUR_HELL)
 
 
 # --------------------------------------------------------------------------
@@ -624,9 +632,11 @@ def aufbereiten(geladen: list[tuple[str, Image.Image]], ziel_name: str) -> list[
 # --------------------------------------------------------------------------
 # Kacheln: Karte und Phone
 
-def _karte(bild: Image.Image, b: int, h: int) -> Image.Image:
+def _karte(bild: Image.Image, b: int, h: int,
+           kontur_farbe: tuple = (255, 255, 255)) -> Image.Image:
     """Ein Desktop-Screen als Karte: einmal LANCZOS auf die Spaltenbreite,
-    zu lange Seiten von oben gezeigt, 2,8 % Eckradius, feine weisse Kontur."""
+    zu lange Seiten von oben gezeigt, 2,8 % Eckradius, feine Kontur - weiss,
+    auf hellem Grund neutral/20."""
     skala = b / bild.width
     voll_h = max(1, round(bild.height * skala))
     screen = bild.resize((b, voll_h), Image.LANCZOS)
@@ -642,7 +652,7 @@ def _karte(bild: Image.Image, b: int, h: int) -> Image.Image:
     ImageDraw.Draw(maske).rounded_rectangle((0, 0, b - 1, h - 1), radius, fill=255)
     kontur = max(1, round(KARTE_KONTUR * PX_JE_PUNKT))
     ImageDraw.Draw(einheit).rounded_rectangle(
-        (0, 0, b - 1, h - 1), radius, outline=(255, 255, 255, 255), width=kontur)
+        (0, 0, b - 1, h - 1), radius, outline=tuple(kontur_farbe) + (255,), width=kontur)
     einheit.putalpha(maske)
     return einheit
 
@@ -691,10 +701,10 @@ def _kachel_hoehe(s: Stueck, b: int) -> int:
     return max(1, round(b * min(ar, KARTE_AR_MAX)))
 
 
-def _kachel(s: Stueck, b: int) -> Image.Image:
+def _kachel(s: Stueck, b: int, kontur: tuple = (255, 255, 255)) -> Image.Image:
     if s.art == "phone":
         return _phone(s.bild, b)
-    return _karte(s.bild, b, _kachel_hoehe(s, b))
+    return _karte(s.bild, b, _kachel_hoehe(s, b), kontur)
 
 
 # --------------------------------------------------------------------------
@@ -874,12 +884,13 @@ def _komponieren(plan: dict, stuecke: list[Stueck], groesse: tuple,
     W2, H2 = plan["uebermass"]
     leinwand = Image.new("RGB", (W2, H2), grund)
     fertig_kacheln: dict[tuple[int, int], Image.Image] = {}
+    kontur = _konturfarbe(grund)
     for k, x, y, b, h in plan["kacheln"]:
         if x >= W2 or y >= H2 or x + b <= 0 or y + h <= 0:
             continue
         schluessel = (k, b)
         if schluessel not in fertig_kacheln:
-            fertig_kacheln[schluessel] = _kachel(stuecke[k], b)
+            fertig_kacheln[schluessel] = _kachel(stuecke[k], b, kontur)
         einheit = fertig_kacheln[schluessel]
         leinwand.paste(einheit, (round(x), round(y)), einheit.getchannel("A"))
     if not plan["winkel"]:
@@ -960,8 +971,8 @@ def baue_screens(bilder: list[Path], farbe: str | None, ziel: Path,
     """Erzeugt die Flaeche und gibt den geschriebenen Pfad zurueck.
 
     `variante` ist "panel" fuer die rechte Haelfte einer Loesungsseite oder
-    "voll" fuer die randlose Abschlussseite. `farbe=None` nimmt das
-    New-Monday-Petrol. `seed` verschiebt nur, mit welchem Screen die Reihe
+    "voll" fuer die randlose Abschlussseite. `farbe=None` nimmt die neutrale
+    Flaeche neutral/15. `seed` verschiebt nur, mit welchem Screen die Reihe
     beginnt - so liegen Loesungs- und Abschlussseite nicht gleich. `nda`
     haelt zusaetzlich das Feld des Vertraulichkeitshinweises frei.
 

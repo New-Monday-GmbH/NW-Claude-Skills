@@ -8,7 +8,8 @@ description: Wandelt die Unterlagen eines Kandidaten in ein fertiges Portfolio i
 
 Aus den Unterlagen eines Kandidaten wird ein Portfolio im New-Monday-Layout:
 23 bis 39 Folien im Format 1920 × 1080 pt – 14 feste plus drei bis fünf je
-Projekt; ohne `person.ki` entfällt die KI-Folie und es sind 13 feste.
+Projekt; ohne `person.ki` entfällt die KI-Folie und es sind 13 feste. Liegt
+eine Anfrage bei, kommen bis zu vier Schwerpunkt-Folien dazu (Schritt 4).
 Das Layout folgt der Figma-Seite »Portfolio« in `Portfolio - CV Master`
 (Design System v1.3) und liegt als HTML/CSS im Skill. Es wird nicht neu
 erfunden und nicht "verbessert" – es wird befüllt.
@@ -29,7 +30,22 @@ zählt auch die Sprachmischung innerhalb einer sonst deutschen Wendung: „KI
 Expert" wird zu „KI Experte" geglättet – ein halb englisches Wort in einem
 deutschen Titel ist ein Grammatikfehler, kein Stilmittel. Feststehende
 englische Fachbegriffe („Senior UX Designer", „Vibe Coding") bleiben, wie sie
-sind. Jede solche Glättung steht in der Übergabe. Nicht erlaubt:
+sind. Jede solche Glättung steht in der Übergabe.
+
+**Durchkopplung.** Zusammengesetzte Begriffe mit englischem Bestandteil werden
+im deutschen Text durchgekoppelt (Duden): „UX-Design“, „UX-Konzeption“,
+„Usability-Testing“, „Stakeholder-Management“, „User-Centered Design“.
+Das gilt auch in Jobtiteln („UX/UI-Designer“). Eingeführte englische
+Fachbegriffe ohne deutsches Grundwort bleiben, wie sie sind („User Research“,
+„Wireframing“), ebenso Eigennamen (Firmen, Produkte, Zertifikate) und die Rolle,
+wie der Kandidat sie selbst führt („UX & AI Designer“) – wörtlich, in allen drei
+Dokumenten gleich. Das ist Rechtschreibung, also Glättung, und steht wie jede andere
+in der Übergabe; im englischen Portfolio wird nichts gekoppelt. Das
+Renderskript meldet die häufigsten offenen Schreibweisen („UX Design“, „UX
+Konzeption“, „Usability Testing“, „Stakeholder Management“, „User Centered
+Design“), ändert aber nichts – gekoppelt wird beim Bauen der JSON.
+
+Nicht erlaubt:
 
 - Formulierungen straffen, umstellen oder "auf den Punkt bringen"
 - Projektbeschreibungen zusammenfassen oder in andere Worte fassen
@@ -46,7 +62,7 @@ Ein Portfolio ist Eigenwerbung. Bewertende Formulierungen des Kandidaten
 ("preisgekrönt", "führend") werden übernommen, wenn sie dort stehen – aber
 nicht von dir hinzugefügt.
 
-**Vier Stellen sind davon ausgenommen, und nur diese vier.** Sie stehen hier
+**Fünf Stellen sind davon ausgenommen, und nur diese fünf.** Sie stehen hier
 oben, damit niemand sie erst auf halber Strecke findet:
 
 - **Der Text der KI-Folie** (Seite 10), wenn im Material nichts oder nur
@@ -63,6 +79,10 @@ oben, damit niemand sie erst auf halber Strecke findet:
   Schritt 4 unter „Der Design-Prozess sind drei oder vier Schritte": erst wörtlich
   übernehmen, dann aus CV, LinkedIn und Portfolio erweitern, zuletzt daraus
   ableiten – und immer in der Übergabe kennzeichnen.
+- **Die Schwerpunkt-Folien** (`schwerpunkte`), wenn eine Anfrage Themen nennt,
+  die das Material belegt. Die Fakten kommen aus dem Material, die
+  Formulierung vom Skill, und alles selbst Formulierte steht unter „Zur
+  Freigabe“ – siehe Schritt 4, „Schwerpunkt-Folien“.
 
 Alles andere kommt aus dem Material oder gar nicht. Das gilt auch für die
 Einleitungszeile der Lösungsseiten (`loesungen[].titel`): Sie sieht aus wie ein
@@ -126,7 +146,7 @@ entsteht `fragen.json`:
   - je vorgeschlagenem Projekt ohne scharfe Screens ein Posten „Screens
     <Projekt>“ – gemessen an `bilder.txt` und den Grenzen aus Schritt 0,
     Punkt 4 (Desktop ab 1 120 px, Phone ab 520 px Displaybreite); Folge: „Lösungs-
-    und Abschlussseite zeigen nur die Markenfläche“ bzw. „… werden hochgerechnet“;
+    und Abschlussseite zeigen nur die neutrale Fläche“ bzw. „… werden hochgerechnet“;
   - „Lebenslauf“, wenn er fehlt (Schritt 0, Punkt 2);
   - „Projektname <Kunde>“, wenn zwei Projekte beim selben Kunden keinen
     Projektnamen im Material haben (Schritt 4, `projektname`);
@@ -141,7 +161,12 @@ entsteht `fragen.json`:
 In `notizen.md`:
 
 - je Projekt: Quelle der Texte, zugeordnete Bilder aus `arbeit/bilder/` mit
-  Seitenzahl, Beleglage, Markenfarbe falls schon erkennbar;
+  Seitenzahl, Beleglage, eine Flächenfarbe nur, wenn Produkt oder Screens sie
+  begründen – mit Quelle (Schritt 6);
+- liegt eine Anfrage bei: ihre Themen, je Thema die Belege im Material
+  (Schritt 4, „Schwerpunkt-Folien“) – `auftrag.json` kennt dafür kein eigenes
+  Feld, die Anfrage kommt über den Auftragstext oder den Laufordner; ohne
+  Anfrage keine Schwerpunkt-Folien;
 - die Profilfoto-Quelle;
 - die Kundenwand: alle Firmen nach der Regel in Schritt 4 (`kunden`), nach
   Bekanntheit sortiert, je Firma mit Quelle;
@@ -180,9 +205,10 @@ Lebenslauf, Portfolio, LinkedIn – in allen drei Dokumenten gleich; fehlt
 
 Gerendert wird nach `<laufordner>/ausgabe/<nachname>-<vorname>-portfolio.pdf`.
 Die Übergabe aus Schritt 8 geht nach `uebergabe.md`: Cover-Titel, KI- und
-Prozesstexte, Kundentexte mit Quellen und KI-generierte Gebäude unter „Zur
-Freigabe“, Abweichungen unter „Quellen weichen ab“, Bildnachweis und alles
-Übrige unter „Hinweise“, die Schlusszeilen wörtlich unter „Fehlt noch“.
+Prozesstexte, die Texte der Schwerpunkt-Folien, Kundentexte mit Quellen und
+KI-generierte Gebäude unter „Zur Freigabe“, Abweichungen unter „Quellen
+weichen ab“, Bildnachweis und alles Übrige unter „Hinweise“, die Schlusszeilen
+wörtlich unter „Fehlt noch“.
 
 ## Gefragt wird mit Klickboxen, nicht im Fließtext
 
@@ -222,7 +248,7 @@ liegt. Das Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    die `portfolio.json` und steuert alle Rubriken.
 
    Ist die gewählte Sprache nicht die des Eingangs, muss übersetzt werden. Das
-   ist die zweite der vier Ausnahmen oben und braucht eine ausdrückliche
+   ist die zweite der fünf Ausnahmen oben und braucht eine ausdrückliche
    Ansage – von sich aus wird nie übersetzt.
 
 1a. **Wohin die Figma-Frames sollen.** Kam mit dem Auftrag schon ein
@@ -274,7 +300,7 @@ liegt. Das Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
 4. **Einzelne Screenshots der Anwendung, pro Projekt drei bis acht.**
    Das ist der Materialposten, an dem die Projektstrecke hängt: Lösungs- und
    Abschlussseite sind ein **gekipptes Raster** wie in den Figma-Vorlagen –
-   gleich breite Screens in versetzten Spalten auf der satten Markenfarbe,
+   gleich breite Screens in versetzten Spalten auf der neutralen Fläche,
    gemeinsam gekippt, bis über die Ränder; Phones in schwarzer Fassung,
    Desktop-Screens als Karten. **Wie sie dort liegen, entscheidet der
    Skill selbst**; die Regeln stehen in `references/layout.md`. Das Material
@@ -319,7 +345,7 @@ liegt. Das Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
 
    Danach fragen, weil es sonst niemand mitschickt – aber **nicht darauf
    warten**: Kommt vom Kandidaten nichts, recherchiert der Skill den Text
-   selbst im Netz. Das ist die vierte Ausnahme von der Übernahme-Regel, und sie
+   selbst im Netz. Das ist die dritte Ausnahme von der Übernahme-Regel, und sie
    hat eine feste Quellenkette: die Selbstdarstellung des Kunden (Über uns,
    Presse, LinkedIn-Unternehmensseite), dann Wikipedia. Aus dem, was dort
    steht, werden zwei bis drei kurze Absätze – wer die Firma ist, was sie tut,
@@ -334,6 +360,12 @@ liegt. Das Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    Rote Flagge: Du schreibst gerade einen Kundentext ohne offene Quelle neben
    dir. Dann steht auf einer Kundenseite eine Beschreibung dieses Kunden, die
    niemand belegt hat – und der Kunde liest sie.
+
+6. **Falls es eine gibt: die Anfrage** – Ausschreibung, Projektbeschreibung,
+   Kundenwunsch. Nennt sie Themen, die das Material belegt (Barrierefreiheit,
+   Design-QA, Designsysteme …), entstehen daraus bis zu vier
+   Schwerpunkt-Folien (Schritt 4). Ohne Anfrage gibt es keine – Themen denkt
+   sich der Skill nicht selbst aus.
 
 ### 1. Eingang auslesen
 
@@ -461,8 +493,11 @@ Tabelle unten.
   },
   "kunden":  [{ "name", "logo" }],
   "prozess": [{ "titel", "kurztext", "langtext" }],
+  "schwerpunkte": [{ "titel", "text", "nummeriert": false,
+                     "karten": [{ "titel", "text" }] }],
   "projekte": [{
-    "kunde", "projektname", "logo", "markenfarbe", "projekt", "kunde_text",
+    "kunde", "projektname", "logo", "markenfarbe", "markenfarbe_quelle",
+    "projekt", "kunde_text",
     "rolle": [], "nda": false,
     "summary":   { "text", "bild" },
     "loesungen": [{ "titel", "text", "punkte": [], "screens": [] }],
@@ -483,12 +518,12 @@ den Projektnamen beim Kandidaten zu erfragen.
 Auftraggebern („Postbank, FYRST", „Opel, Peugeot und Citroën") führen alle
 Marken nebeneinander auf der Kopfseite – so stehen sie auch in den Showcases
 der Kandidaten. Ein einzelnes Logo, wo der Kundenname mehrere Marken nennt,
-liest sich wie ein Versehen; genau das kam als Rückmeldung zurück. Die
-Markenfarbe liest `markenfarbe.py` bei einer Liste aus dem **ersten** Logo.
+liest sich wie ein Versehen; genau das kam als Rückmeldung zurück. Alle Logos
+stehen in Graustufen wie auf der Kundenwand (Schritt 5).
 
 `summary.bild` ist das **Foto der Firmenzentrale des Kunden**, nicht mehr ein
-Projektbild. `loesungen[].screens` sind die Screens, die auf der markenfarbenen
-Fläche der jeweiligen Lösungsseite fliegen, `projekte[].screens` die der
+Projektbild. `loesungen[].screens` sind die Screens, die auf der Fläche der
+jeweiligen Lösungsseite liegen, `projekte[].screens` die der
 randlosen Abschlussseite. Ältere Dateien mit `projekte[].bild` oder
 `loesungen[].bild` laufen weiter – die Felder werden ignoriert.
 
@@ -521,7 +556,8 @@ Größenordnung zu bleiben:
 
 | Feld | Umfang |
 |---|---|
-| `rolle` | bis ~40 Zeichen |
+| `rolle` | bis ~40 Zeichen – die Rolle selbst („UX & AI Designer“), sie steht auch groß auf Seite 4 |
+| `statement_rolle` | dieselben Wörter wie `rolle`, nur mit `\n` umbrochen („UX & AI\nDesigner“) – siehe „Das Statement auf Seite 4“ |
 | `top_kenntnisse` | **genau 3**, je 1–4 Wörter – zusammen **eine Zeile** (rund 70 Zeichen mit den „ • “) |
 | `kenntnisse` | **8** wie in der Vorlage (weniger nur bei dünnem Material), je bis ~60 Zeichen, jeder in einer Zeile – die Liste läuft mit Trennlinien im 63-pt-Takt und endet mit acht Einträgen genau am unteren Rand der Vorlage; mehr passt nicht |
 | `sprachen` | **Deutsch – Muttersprache und Englisch – Business Niveau stehen immer** (Vorgabe, auch ohne Angabe im Material), dazu alle weiteren Sprachen aus dem Material – bei Platznot gleiche Niveaus zusammenfassen, siehe unten |
@@ -532,7 +568,12 @@ Größenordnung zu bleiben:
 | `prozess[].langtext` | 60–100 Wörter, zwei Absätze – bei mehrzeiligem `titel` weniger |
 | `ki.text` | 50–70 Wörter, zwei Absätze, **ohne `**fett**`** – darunter steht die Werkzeugreihe |
 | `ki.tools` | bis 6 Logos – was darüber steht, zeigt die Seite nicht |
+| `schwerpunkte` | 0 bis 4 Folien – nur mit Anfrage, siehe „Schwerpunkt-Folien“ |
+| `schwerpunkte[].titel` | 1–4 Wörter, höchstens zwei Zeilen in 96 pt (rund 16 Zeichen je Zeile) |
+| `schwerpunkte[].text` | 40–70 Wörter, zwei Absätze – bei einzeiligem Titel bis ~90 |
+| `schwerpunkte[].karten` | **genau 3**, je `titel` 1–3 Wörter in einer Zeile (bis ~24 Zeichen, mit Nummer weniger) und `text` 5–10 Wörter, höchstens drei Zeilen (bis ~90 Zeichen) |
 | `projektname` | 1–3 Wörter, eine Zeile – nur aus dem Material, sonst weglassen |
+| `markenfarbe` | meist leer – nur eine Farbe aus Produkt oder Screens, mit `markenfarbe_quelle` (Schritt 6) |
 | `projekt` | 50–65 Wörter – die Spalte trägt darunter auch „Meine Rolle", siehe unten |
 | `kunde_text` | bis ~90 Wörter – volle Spaltenhöhe, siehe unten |
 | `projekte[].rolle` | **1–3 Rollenbezeichnungen, keine Aufgaben** – siehe unten |
@@ -633,10 +674,11 @@ In dieser Reihenfolge, ohne Ausnahme:
 2. **Summary.** Rechts das Foto der Firmenzentrale (`summary.bild`), links
    `summary.text`. Das Gebäude ist der einzige Ort im Dokument, an dem der Kunde
    selbst zu sehen ist; ein Stockfoto vom Schreibtisch gehört nicht dorthin.
-3. **Null bis zwei Lösungsseiten.** Rechts die Markenfarbe mit den Screens aus
-   `loesungen[].screens`, links `titel` als fette Einleitungszeile – fehlt er,
+3. **Null bis zwei Lösungsseiten.** Rechts die Fläche mit den Screens aus
+   `loesungen[].screens` – neutral, farbig nur mit Grund aus dem Produkt
+   (Schritt 6) –, links `titel` als fette Einleitungszeile – fehlt er,
    steht dort das Label „Die Lösung" –, darunter `text` und `punkte`.
-4. **Abschlussseite.** Randlos die Markenfarbe über die ganze Folie, darauf die
+4. **Abschlussseite.** Randlos die Fläche über die ganze Folie, darauf die
    Screens aus `projekte[].screens`. Kein Text außer Wortmarke, Seitenzahl und
    – falls gesetzt – dem NDA-Hinweis.
 
@@ -681,7 +723,7 @@ keinen Fettdruck. Ein `ki.kurztext` aus älteren Dateien wird ignoriert – er
 füllte einmal eine vierte Prozessspalte, die es nicht mehr gibt.
 
 Steht dort nichts, **schreibt der Skill den Text selbst**. Das ist die erste der
-vier Ausnahmen ganz oben, und weil es eine Ausnahme ist, hängt sie – wie das
+fünf Ausnahmen ganz oben, und weil es eine Ausnahme ist, hängt sie – wie das
 Erweitern – an zwei Bedingungen, die beide gelten müssen:
 
 - **Der Text bleibt allgemein.** Er beschreibt eine Haltung zu KI im
@@ -697,6 +739,50 @@ Erweitern – an zwei Bedingungen, die beide gelten müssen:
 Rote Flagge: Du hast einen KI-Text geschrieben und die Übergabe erwähnt ihn
 nicht. Dann steht im Portfolio eines echten Menschen ein Satz, den er nie gesagt
 hat, und niemand weiß es.
+
+#### Schwerpunkt-Folien
+
+Optional, höchstens vier, und **nur, wenn eine Anfrage sie trägt**: Eine
+Ausschreibung, Projektbeschreibung oder ein Kundenwunsch nennt Themen
+(„Barrierefreiheit“, „Handover an die Entwicklung“, „Designsystem“), und das
+Material des Kandidaten belegt sie. Dann bekommt jedes dieser Themen eine
+eigene Folie, die zeigt, wie der Kandidat dort arbeitet. Vorbild sind die
+Folien 11–13 in Florians überarbeitetem Deck (Oktober 2026). Ohne Anfrage gibt
+es keine; ein Thema, das die Anfrage nennt, das Material aber nicht belegt,
+bekommt auch keine – es gehört dann als Lücke in die Übergabe, nicht auf eine
+Folie. Reihenfolge wie in der Anfrage, bei mehr als vier Themen die mit der
+besten Beleglage.
+
+**Der Inhalt kommt nur aus dem Material.** Jede Aussage auf der Folie –
+Kunde, Projekt, Verfahren, Werkzeug, Norm, Zertifikat, Jahr – steht in
+Portfolio, Lebenslauf oder LinkedIn und wird dort wiedergefunden: „Bei
+Tollwerk habe ich Accessibility-Audits nach WCAG und BITV durchgeführt“ geht
+nur, wenn Tollwerk, die Audits und beide Normen im Material stehen. Formuliert
+werden darf, erfunden nicht – keine Zahl, kein Kunde, kein Werkzeug, keine
+Fähigkeit dazu, auch keine „offensichtlich gemeinte“. Das ist die fünfte
+Ausnahme ganz oben, und alles, was der Skill dafür selbst formuliert, steht in
+der Übergabe unter **„Zur Freigabe“**, je Folie mit den Belegstellen.
+
+Aufbau, wie in Figma:
+
+- **links** die Eyebrow „Arbeitsweise“, der Titel (`titel`, 96 pt, höchstens
+  zwei Zeilen) und der Text (`text`) in zwei Absätzen – erst die Haltung oder
+  das Vorgehen, dann die Belege aus den Stationen;
+- **rechts** das Petrol-Panel mit **drei weißen Karten** (`karten`): je ein
+  Titel und eine kurze Zeile. Die Karten verdichten, sie fügen nichts hinzu –
+  was dort steht, steht auch im Material. Beschreiben die Karten einen
+  Ablauf („Aufbereiten – Übergeben – Prüfen“), setzt `"nummeriert": true`
+  die Ziffern davor („1  Aufbereiten“).
+
+Sie stehen **hinter der KI-Folie und vor der Agenturseite** (ohne KI-Folie
+hinter der letzten Arbeitsweise-Seite); Seitenzahlen und Divider zählen
+weiter. Das Renderskript meldet mehr als vier Folien (es zeigt die ersten
+vier), eine andere Kartenzahl als drei, Titel über zwei Zeilen und Karten,
+deren Text über drei Zeilen läuft.
+
+Rote Flagge: Du schreibst eine Karte und suchst den Beleg erst danach. Dann
+steht auf einer Folie, die genau auf die Anfrage zielt, eine Fähigkeit, die
+der Kandidat vielleicht nicht hat – und der Kunde fragt im Gespräch danach.
 
 #### Das Statement auf Seite 4
 
@@ -748,8 +834,14 @@ Rote Flagge: Du kürzt das Zitat, damit es passt, und fragst nicht. Dann steht
 auf Seite 4 ein Satz, den der Kandidat so nie gesagt hat, und niemand hat ihn
 freigegeben.
 
-`statement_rolle` ist die große Rollenzeile links, mit `\n` von Hand umbrochen:
-`"User\nInterface &\nExperience\nDesigner"`.
+**Die große Rollenzeile links ist die Rolle selbst** – `rolle`, so wie sie auch
+auf Cover und Profilseite steht („UX & AI Designer“), keine Langform wie „User
+Experience Designer“ (Rückmeldung des Nutzers, Oktober 2026). `statement_rolle`
+setzt nur noch die Umbrüche, mit `\n` von Hand: `"UX & AI\nDesigner"`. Es muss
+dieselben Wörter tragen wie `rolle`; ein Umbruch hinter einem Bindestrich
+(„Konzept-\nentwickler“, „UX-\nDesigner“) zählt dabei nicht als neues Wort.
+Weicht es ab, setzt das Renderskript die Rolle selbst und meldet es. Ohne
+`statement_rolle` bricht die Zeile von selbst um (520 pt breit).
 
 #### Der Design-Prozess sind drei oder vier Schritte
 
@@ -860,17 +952,26 @@ Danach zu prüfen:
 
 - **Neu gefundene Logos ansehen.** Die Suche trifft manchmal eine gleichnamige
   Firma oder ein abgelegtes Altlogo.
-- **Logos in Originalfarben.** Nichts wird entfärbt oder ans Layout angeglichen.
-  Die automatische Suche liefert oft die schwarze Variante, auch wenn die Marke
-  farbig ist – dann die farbige von der Markenseite nachlegen. Einfarbig bleibt
+- **Kundenlogos stehen schwarz-weiß, in der Bibliothek liegen sie farbig.**
+  Seit Oktober 2026 zeigen Kundenwand und alle Projektseiten die Kundenlogos
+  in Graustufen, so wie in Florians überarbeitetem Deck; das ersetzt die
+  Entscheidung „Originalfarben“ vom September 2026. Entfärbt wird beim
+  Rendern (`scripts/logo_grau.py`), nicht in der Bibliothek: Grau nach
+  Luminanz, der Hauptton jeder Marke wird `base/black` (#111111), hellere
+  Farben ein entsprechend helleres Grau, Weiß bleibt Weiß – Union Investment
+  und Green Planet Energy stehen fast schwarz, das DATEV-Grün wird #8c8c8c.
+  Die Werkzeuglogos der KI-Folie bleiben farbig, die Kundenwand der
+  Agenturseite ist ohnehin schwarz-weiß. **Die farbige Fassung bleibt
+  trotzdem Pflicht**: Aus einem schwarzen DATEV wird ein schwarzer Block,
+  aus dem farbigen eine graue Fläche mit schwarzer Schrift – genau der
+  Unterschied, den Folie 3 zeigt. Die automatische Suche liefert oft die
+  schwarze Variante, auch wenn die Marke farbig ist, und die Bibliothek führt
+  aus CV-Läufen einfarbige Bestände (ein schwarzes DATEV lag dort). Deshalb vor
+  dem Rendern die ganze Wand rastern und ansehen: Jede Marke, die als
+  einfarbiger Block oder als blasses Grau steht, gegen ihren echten Auftritt
+  prüfen (Websuche oder Markenseite) und die farbige Fassung mit `add_logo.py`
+  nachlegen – sie ersetzt den Bibliothekseintrag dauerhaft. Einfarbig bleibt
   ein Logo nur, wenn die Marke selbst einfarbig auftritt (Opel, Peugeot).
-  **Das gilt ausdrücklich auch für Treffer aus der Bibliothek**: Sie führt aus
-  CV-Läufen einfarbige Bestände – ein schwarzes DATEV lag dort, die Marke ist
-  grün, und genau so ging es aufs Kundenwand-PDF. Deshalb vor dem Rendern die
-  ganze Wand rastern und ansehen: Jede schwarz gerenderte Marke gegen ihren
-  echten Auftritt prüfen (Websuche oder Markenseite), die farbige Fassung mit
-  `add_logo.py` nachlegen – sie ersetzt den Bibliothekseintrag dauerhaft, damit
-  der nächste Lauf sie gleich bekommt.
 - **Logos nie verzerrt.** Das Seitenverhältnis kommt immer aus der Datei –
   nie aus einer Kachel, einem Feld oder einer Vorlage. Render- und
   Figma-Skript rechnen jede Logofläche daraus und melden eine, die mehr als
@@ -916,7 +1017,7 @@ meldet es unter „Zweimal dasselbe Haus". `--selbsttest` prüft ohne Netz, ob d
 Namensprüfung noch trägt (Mutterkonzern, Autohaus, gleicher Ortsname); nach
 Änderungen an der Suche gehört er dazu.
 
-**Das Ergebnis ist ein Vorschlag, kein Befund** – genau wie bei der Markenfarbe.
+**Das Ergebnis ist ein Vorschlag, kein Befund** – genau wie bei der Flächenfarbe.
 Firmennamen wiederholen sich, Bildunterschriften lügen, und ein fremdes Gebäude
 auf einer Kundenseite fällt jedem auf, der beim Kunden arbeitet. Also jedes
 gefundene Foto ansehen – und dabei zwei Fragen stellen:
@@ -980,27 +1081,47 @@ Dokument, das an Kunden geht, ist das keine Formalie. Der Ausdruck wandert
 unverändert in die Übergabe. Steht dort „Herkunft unbekannt", wurde das Bild von
 Hand abgelegt: dann vor der Übergabe klären, nicht weglassen.
 
-### 6. Markenfarben der Projekte
+### 6. Die Fläche unter den Screens
 
-Die Lösungs- und die Abschlussseite liegen auf der Farbe des Kunden, auf der
-Abschlussseite randlos über die ganze Folie. Das Skript liest sie aus dem
-Logo – bei SVGs durch Rastern, damit die Fläche zählt und nicht die Zahl der
-Farbangaben im Quelltext:
+Lösungs- und Abschlussseite legen ihre Screens auf eine Fläche. **Standard ist
+die neutrale Fläche** `neutral/15` (#ebf2f5) – so stehen sie in Florians
+überarbeitetem Deck (Oktober 2026), und so rechnet `screens.py`, wenn
+`markenfarbe` fehlt. Die Karten tragen dort eine Kontur in `neutral/20`,
+Wortmarke und Seitenzahl stehen dunkel. Die hellen Grautöne #f5f5f5 und
+#f4f4f4, die in Figma auf zwei Lösungsseiten stehen, sind keine Tokens des
+Design Systems; der Skill nimmt dafür `neutral/15`.
+
+**Eine Farbe gibt es nur, wenn sie aus dem Produkt oder den Screens kommt** –
+nie aus dem Logo. Florians Deck zeigt zwei Fälle: das DATEV-Petrol #247488 der
+Produktoberfläche (Kopf- und Seitenleiste der Anwendung) und die dunkle
+Fläche #111111 unter den Kampagnenmotiven von Union Investment – dort ist das
+Material selbst ein Satz farbiger Fotomotive. Dann steht die Farbe als
+`markenfarbe` in der JSON, **mit Quelle** in `markenfarbe_quelle`
+(„Kopf- und Seitenleiste der DATEV-Anwendung, Screens 1–4“). Ohne Quelle setzt
+das Renderskript sie nicht und meldet es – das gilt auch für ältere Dateien,
+deren Farbe noch aus dem Logo kam.
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/markenfarbe.py portfolio.json
-python3 ${CLAUDE_SKILL_DIR}/scripts/markenfarbe.py portfolio.json --setzen
 ```
 
-**Das Ergebnis ist ein Vorschlag, kein Befund.** Ein Logo aus zwei Marken, ein
-Farbverlauf oder ein Sekundärton können danebenliegen, und eine falsche
-Markenfarbe auf einer Kundenseite fällt sofort auf. Deshalb: die vorgeschlagenen
-Werte gegen die Marke gegenprüfen (Presse- oder Brandseite nennt die Hex meist
-selbst) und in der Übergabe nennen.
+`markenfarbe.py` liest nicht mehr das Logo, sondern die Screens: Es zählt je
+Projekt die satten Töne nach Fläche und nennt die drei größten, mit Anteil
+und in wie vielen Screens sie vorkommen – „flächig“, wenn ein Ton im Mittel
+mindestens 8 % der Screenfläche deckt und in mindestens der Hälfte der Screens
+steht, sonst „Akzent“. Es trägt nichts ein: Ob ein flächiger Ton wirklich die
+Fläche der Oberfläche ist und nicht ein Foto im Screen, entscheidest du, und
+dann setzt du Farbe und Quelle von Hand. Der Logo-Weg ist entfernt, nicht
+abgeschaltet – ein Werkzeug, das die Logofarbe auf Knopfdruck liefert, bringt
+sie wieder auf die Folie. Weiß, Grau und Schwarz zählt das Skript nicht; eine
+dunkle Fläche für Fotomotive ist deshalb nie sein Vorschlag, sondern eine
+Entscheidung, die in der Quelle begründet steht.
 
-Findet das Skript nichts Farbiges – bei schwarzen Wortmarken der Normalfall –,
-gibt es nichts zurück. Dann bleibt `markenfarbe` weg und die Fläche neutral. Das
-ist richtiger als ein geratener Ton.
+**Lesbarkeit.** Auf der Fläche stehen nur Wortmarke, Seitenzahl und der
+NDA-Hinweis. Ihre Farbe misst das Renderskript an der fertigen Fläche: dunkel
+auf `neutral/15`, weiß auf Petrol und auf #111111. Eine sehr helle
+Produktfarbe nahe Weiß ersetzt `screens.py` durch `neutral/15` – auf ihr
+verschwänden weiße Screens.
 
 ### 7. Rendern
 
@@ -1014,14 +1135,14 @@ Lösungsseiten und aus `projekte[].screens` für die Abschlussseite. Die
 Anordnung folgt den sieben Figma-Folien, die der Nutzer im September 2026
 als Vorbild vorgegeben hat: ein **gekipptes Raster** – gleich breite Screens
 in versetzten Spalten, gemeinsam gekippt (Desktop 15°, Phone 10°), von Rand
-zu Rand, auf der **satten Markenfarbe, wie sie ist** (ohne Markenfarbe das
-New-Monday-Petrol). Desktop-Screens sind Karten mit gerundeten Ecken und
-feiner weißer Kontur, Phones stecken in einer schwarzen Fassung mit Dynamic
-Island. Kein Schatten, kein Schleier. Die Felder von Wortmarke, Seitenzahl
-und NDA-Hinweis bleiben frei: Kacheln, die hineinragen, entfallen, dort
-zeigt sich Markenfarbe. Die Abschlussseite trägt Desktop-Screens gerade in
-drei Spalten, rechts bleibt ein Streifen frei. Eine fertig gestaltete
-Showcase-Szene füllt die Fläche als Ganzes. Die Maße stehen in
+zu Rand, auf der **neutralen Fläche** `neutral/15` oder der begründeten
+Produktfarbe (Schritt 6). Desktop-Screens sind Karten mit gerundeten Ecken und
+feiner Kontur (weiß, auf hellem Grund `neutral/20`), Phones stecken in einer
+schwarzen Fassung mit Dynamic Island. Kein Schatten, kein Schleier. Die Felder
+von Wortmarke, Seitenzahl und NDA-Hinweis bleiben frei: Kacheln, die
+hineinragen, entfallen, dort zeigt sich die Fläche. Die Abschlussseite trägt
+Desktop-Screens gerade in drei Spalten, rechts bleibt ein Streifen frei. Eine
+fertig gestaltete Showcase-Szene füllt die Fläche als Ganzes. Die Maße stehen in
 `references/layout.md`. Das Ergebnis ist deterministisch und ohne Zufall:
 derselbe Eingang ergibt dieselbe Anordnung.
 
@@ -1044,10 +1165,20 @@ meldet:
   Warnung mit der Zahl.
 - **Logoflächen, die nicht zu ihrer Datei passen** (über 1 %), und Logos,
   deren Seitenverhältnis sich nicht lesen ließ.
+- **Logos, die sich nicht entfärben ließen** (unlesbare Farbangabe, keine
+  Tinte), und Logos, deren Hauptton sehr hell ist.
+- **Eine `markenfarbe` ohne `markenfarbe_quelle`** – sie wird nicht gesetzt.
+- **Eine `statement_rolle` mit anderen Wörtern als `rolle`** – dann steht die
+  Rolle selbst.
+- **Offene Schreibweisen** wie „UX Design“ oder „Stakeholder Management“ im
+  deutschen Text (Durchkopplung, ganz oben).
+- **Schwerpunkt-Folien außerhalb der Vorlage**: mehr als vier, nicht drei
+  Karten, Titel über zwei Zeilen, Kartentext über drei Zeilen.
 
 **Der Zwischenspeicher liegt neben der `portfolio.json`, nicht beim PDF.** Die
-gerechneten Markenflächen landen in `arbeit/screens/`, ein Bild je Lösungs- und
-Abschlussseite. Sie sind Arbeitsdateien: Sie sparen dem zweiten Lauf nach einer
+gerechneten Screenflächen landen in `arbeit/screens/`, ein Bild je Lösungs- und
+Abschlussseite, daneben die Graustufen-Fassungen der Kundenlogos
+(`logo-grau-*`). Sie sind Arbeitsdateien: Sie sparen dem zweiten Lauf nach einer
 Textkorrektur die Rechenzeit, sonst nichts, und dürfen weg. Im Ausgabeordner
 liegen sie mit Absicht nicht – der wird weitergereicht, und ein Zwischenspeicher
 ginge sonst mit. Zur Größenordnung: Fünf Projekte ergeben rund 6 MB
@@ -1057,17 +1188,17 @@ aus diesen Flächen; wer es per Mail schickt, prüft vorher die Größengrenze.
 **Das fertige PDF ansehen, nicht nur die Meldungen lesen.** Besonders die
 Projektseiten: ob auf der Summary-Seite wirklich das Gebäude dieses Kunden
 steht, ob es wie ein Foto aussieht und nicht wie ein Rendering und ob es
-freundlich wirkt statt grau und trist, ob die Markenfarbe zur Marke passt, ob
-das Kundenlogo lesbar und unverzerrt ist – und ob auf den Lösungs- und Abschlussseiten von
-jedem Screen genug zu sehen ist und jeder scharf steht. Die Screens laufen
-über die Kanten, die Markenfarbe zeigt sich in den Fugen und in den freien
-Ecken unter Wortmarke und Seitenzahl; beides ist gewollt – so stehen die
-Raster in den Figma-Vorlagen. Nicht gewollt wären graue Mockup-Flächen im
-Raster (dann hat das Freistellen versagt) oder eine Wortmarke, die halb auf
-einem Screen steht. Screens, die das Qualitäts-Gate ausgelassen hat, stehen in den
-Meldungen: Sie gehören mit der Bitte um Originalexporte in die Übergabe.
-Eine Lösungs- oder Abschlussseite, die nur Markenfarbe zeigt, ist kein
-Fehler, sondern das Gate – dann fehlen scharfe Screens, und genau das steht
+freundlich wirkt statt grau und trist, ob eine Flächenfarbe wirklich aus dem
+Produkt kommt, ob das Kundenlogo in Graustufen lesbar und unverzerrt ist – und
+ob auf den Lösungs- und Abschlussseiten von jedem Screen genug zu sehen ist und
+jeder scharf steht. Die Screens laufen über die Kanten, die Fläche zeigt sich in
+den Fugen und in den freien Ecken unter Wortmarke und Seitenzahl; beides ist
+gewollt – so stehen die Raster in den Figma-Vorlagen. Nicht gewollt wären graue
+Mockup-Flächen im Raster (dann hat das Freistellen versagt) oder eine Wortmarke,
+die halb auf einem Screen steht. Screens, die das Qualitäts-Gate ausgelassen
+hat, stehen in den Meldungen: Sie gehören mit der Bitte um Originalexporte in
+die Übergabe. Eine Lösungs- oder Abschlussseite, die nur die Fläche zeigt, ist
+kein Fehler, sondern das Gate – dann fehlen scharfe Screens, und genau das steht
 in der Übergabe unter „Folgende Bilder fehlen".
 
 ```bash
@@ -1099,7 +1230,10 @@ PDF ausgeben und in wenigen Zeilen berichten:
 - Welche Projekte drin sind und in welcher Reihenfolge
 - Woher das Profilfoto stammt, falls nicht aus dem Lebenslauf
 - Wo die Quellen auseinandergehen – mit beiden Werten
-- Welche Markenfarben vorgeschlagen wurden, mit der Bitte um einen Blick
+- Welche Flächenfarben gesetzt wurden, mit Quelle – fehlt die Zeile, stehen
+  alle Projekte auf der neutralen Fläche
+- **Die Texte der Schwerpunkt-Folien** unter „Zur Freigabe“, je Folie das
+  Thema der Anfrage und die Belegstellen im Material
 - **Der Bildnachweis der Firmenzentralen**, wörtlich aus `hq_bilder.py --quelle`:
   Datei, Urheber, Lizenz. Dazu die Bitte, die Gebäude anzusehen – und
   **welche Gebäude KI-generiert sind** (selbst erzeugt oder aus dem
@@ -1108,7 +1242,7 @@ PDF ausgeben und in wenigen Zeilen berichten:
 - Ob das Statement eine gekürzte Fassung ist – mit dem Original
 - **Ob KI- oder Prozesstexte erweitert oder selbst formuliert sind**, mit der
   Bitte um Freigabe
-- Welche Rechtschreibfehler korrigiert wurden
+- Welche Rechtschreibfehler korrigiert wurden, Durchkopplungen eingeschlossen
 - Was im Eingang unklar war – als Frage, nicht als stille Annahme
 
 #### Ganz zum Schluss: was zur Vollständigkeit fehlt
@@ -1163,8 +1297,9 @@ der Kaskade in Schritt 5.
 ## Was fest steht und nicht zur Disposition steht
 
 - **Seitenfolge**: Cover · Profil · Meine Kunden · Statement · Divider ·
-  Design-Prozess · Arbeitsweise 1–3 · KI-Einsatz · New Monday Agentur ·
-  Divider · Projektblöcke · Divider · Kontakt. Daran wird nicht getauscht.
+  Design-Prozess · Arbeitsweise 1–3 · KI-Einsatz · Schwerpunkte (0–4, nur
+  mit Anfrage) · New Monday Agentur · Divider · Projektblöcke · Divider ·
+  Kontakt. Daran wird nicht getauscht.
 - **Statische Seiten**: die drei Divider, die Agenturseite und die Kontaktseite.
   Ihr Inhalt kommt aus dem Skript, nicht aus dem Kandidatenmaterial.
 - **Ansprechpartner im Footer**: immer Manuel Klein, CCO.
@@ -1178,6 +1313,8 @@ der Kaskade in Schritt 5.
 - **Logos stehen nie verzerrt.** Ihr Seitenverhältnis kommt immer aus der
   Datei, im PDF wie in Figma, und jede Datei wird vor dem Rendern gegen ihre
   Quelle angesehen – siehe Schritt 5.
+- **Kundenlogos schwarz-weiß**, Werkzeuglogos der KI-Folie farbig – siehe
+  Schritt 5.
 - **Profilfoto immer in Graustufen.** Das Renderskript entfärbt es selbst;
   CSS-Filter setzt WeasyPrint nicht um.
 - **Keine Schatten auf den Folien.** Karten sind flach, wie in Figma. Die
@@ -1185,13 +1322,15 @@ der Kaskade in Schritt 5.
   (1 pt `neutral/20`), die Kenntnisse Trennlinien in derselben Farbe.
 - **Ein Projektblock hat drei bis fünf Seiten**: Kopf, Summary und Abschluss
   immer, dazu null bis zwei Lösungsseiten je nach Material.
-- **Auf den Projektseiten fest**: die Markenfläche (Lösungs- und
-  Abschlussseite) und das HQ-Foto der Summary. Die **Anordnung der Screens
-  darauf ist dagegen die gestalterische Entscheidung des Skills** –
-  `screens.py` setzt sie nach den in `references/layout.md` vermessenen
-  Regeln, das Kandidatenmaterial gibt sie nicht vor.
+- **Auf den Projektseiten fest**: die Fläche unter den Screens (Lösungs- und
+  Abschlussseite – neutral, farbig nur aus dem Produkt) und das HQ-Foto der
+  Summary. Die **Anordnung der Screens darauf ist dagegen die gestalterische
+  Entscheidung des Skills** – `screens.py` setzt sie nach den in
+  `references/layout.md` vermessenen Regeln, das Kandidatenmaterial gibt sie
+  nicht vor.
 - **Kein Umbau des Layouts.** Neue Rubriken, andere Farben, zusätzliche Seiten:
-  nur nach ausdrücklicher Ansage.
+  nur nach ausdrücklicher Ansage. Die Schwerpunkt-Folien sind keine Ausnahme
+  davon – sie sind vorgesehen und hängen an einer Anfrage.
 
 ## Wenn das Layout doch angefasst werden muss
 

@@ -48,8 +48,9 @@ python3 ~/.claude/skills/newmonday-portfolio/scripts/render_portfolio.py \
 ```
 
 Ergebnis sind 24 Seiten: 14 feste und zwei Projektblöcke zu je fünf. Das PDF
-wiegt knapp 5 MB – es besteht großenteils aus den vorgerenderten Markenflächen.
-Die legt der Lauf neben die verwendete `portfolio.json`, beim Beispiel also nach
+wiegt rund 6 MB – es besteht großenteils aus den vorgerenderten Screenflächen.
+Die legt der Lauf neben die verwendete `portfolio.json`, zusammen mit den
+Graustufen-Fassungen der Kundenlogos, beim Beispiel also nach
 `beispiel/arbeit/screens/` in den Skillordner. Rund 3 MB, reine Zwischenlage:
 Der Ordner spart nur die Rechenzeit des nächsten Laufs und kann gelöscht werden.
 
