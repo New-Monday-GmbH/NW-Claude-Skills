@@ -39,7 +39,7 @@ import tokens  # noqa: E402  — erst nach sys.path.insert moeglich
 from render_cv import (  # noqa: E402
     BESCHRIFTUNG, KONTAKT_VORGABE, VERWEISTEXT, bildung_aufbereiten, dateiname,
     logo_groessen, logo_masse, logoliste, seitenverhaeltnis, skillset_gruppen,
-    zertifikate_aufbereiten,
+    zeitraeume_setzen, zertifikate_aufbereiten,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -531,6 +531,10 @@ def main():
     if len(args) < 3:
         raise SystemExit(__doc__)
     daten = json.loads(Path(args[0]).read_text(encoding="utf-8"))
+    # Derselbe Strich im Zeitraum wie im PDF (render_cv.zeitraum_setzen) —
+    # sonst steht im Frame etwas anderes, und die Marken der Projekte, die den
+    # Zeitraum tragen, finden ihre Seite nicht.
+    zeitraeume_setzen(daten)
     pdf = Path(args[1])
     if not pdf.exists():
         raise SystemExit(f"PDF nicht gefunden: {pdf}")

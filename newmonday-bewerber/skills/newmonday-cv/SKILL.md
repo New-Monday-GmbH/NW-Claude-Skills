@@ -20,7 +20,9 @@ jedem Lauf. Gefragt wird nicht mehr, *ob* etwas nach Figma soll, nur noch *wohin
 ## Die eine Regel, die alles andere schlägt
 
 **Inhalte werden übernommen, nicht umgeschrieben.** Erlaubt ist ausschließlich das
-Glätten von Rechtschreibung, Zeichensetzung und Grammatik. Nicht erlaubt:
+Glätten von Rechtschreibung, Zeichensetzung und Grammatik – dazu gehören die
+Durchkopplung („UX-Design“) und der Strich im Zeitraum, siehe Schritt 2 unter
+„Schreibweisen“. Nicht erlaubt:
 
 - Formulierungen straffen, umstellen, "auf den Punkt bringen" oder aufwerten
 - Aufgaben ergänzen, zusammenfassen oder in andere Worte fassen
@@ -101,7 +103,7 @@ Zertifikate und Skillset stehen unverändert. Was verschwindet, ist eng umrissen
 Drei Stellen kommen dazu, die im Dokument selbst nicht zu sehen sind und genau
 deshalb übersehen werden:
 
-- **Der Dateiname.** `New-Monday - T. M. - UX Designer - CV.pdf`. Ein Anhang, der
+- **Der Dateiname.** `New-Monday - T. M. - UX-Designer - CV.pdf`. Ein Anhang, der
   im Namen den Kandidaten trägt, macht das Dokument darin sinnlos.
 - **Der PDF-Titel in den Metadaten.** Er steht in der Fensterleiste jedes
   PDF-Betrachters, noch bevor jemand die erste Seite gelesen hat.
@@ -722,6 +724,44 @@ Aus dem Text eine `cv.json` bauen. Vollständiges Beispiel: `beispiel/cv.json`.
 die Rubriken ("Bildung" / "Education", "Zertifikate" / "Certificates",
 "Kurzprofil" / "Profile") und die Footer-Beschriftungen. Der Inhalt der Stationen wird davon nicht angefasst.
 
+#### Schreibweisen: Zeiträume und Durchkopplung
+
+Zwei Regeln, beide aus dem Lebenslauf, den der Nutzer in Figma überarbeitet hat
+(Entscheidung vom 06.10.2026). Beide sind Rechtschreibung im Sinne der einen
+Regel oben, keine Umformulierung.
+
+**Zeiträume stehen mit Halbgeviertstrich und Leerzeichen**: „April 2022 –
+September 2023“, „Juni 2025 – Heute“. In Stationen, Projekten und Bildung setzt
+`render_cv.py` den Strich selbst, egal wie die `cv.json` ihn schreibt – ` - `,
+`2019-2021`, `–` oder `—`; der Figma-Plan liest dieselbe Aufbereitung, PDF und
+Frame stehen also gleich. Ein Bindestrich ohne Leerzeichen zählt nur zwischen
+zwei Datumsteilen (Jahr, Monat als Zahl oder Name, „Heute“), sonst gehört er zu
+einem Wort und bleibt. In die `cv.json` trotzdem gleich die richtige Form
+schreiben. Steht ein Zeitraum im Fließtext, wird er dort von Hand genauso
+gesetzt – Fließtext fasst das Skript nicht an.
+
+**Zusammengesetzte Begriffe mit englischem Bestandteil werden durchgekoppelt**,
+wie im Duden: „UX-Design“, „UX-Konzeption“, „UI-Design“, „Usability-Testing“,
+„Usability-Tests“, „Stakeholder-Management“, „Stakeholder-Kommunikation“,
+„User-Research-Interviews“, „User-Centered Design“. Das gilt auch in Jobtiteln
+(„Werkstudent UX-Design“, „UX/UI-Designer“). Ohne Kopplung bleiben:
+
+- **Eingeführte englische Fachbegriffe ohne deutsches Grundwort**: „User
+  Research“, „UX Research“, „Information Architecture“, „Wireframing“. Kommt
+  ein deutsches Wort dazu, wird gekoppelt: „User-Research-Interviews“.
+- **Eigennamen**: Firmen, Kunden, Einrichtungen, Studiengänge und Zertifikate
+  behalten ihre Schreibweise („Google UX Design Certificate“).
+- **Englische Lebensläufe** (`sprache: en`): Englisch koppelt nicht („UI design“).
+
+`render_cv.py` ändert daran keinen Buchstaben. Es meldet nur, wenn eine offene
+Schreibweise aus seiner kurzen Liste stehen geblieben ist (`DURCHKOPPLUNG`: „UX
+Design“, „UX Konzeption“, „UI Design“, „Usability Testing“, „Stakeholder
+Management“, „Stakeholder Kommunikation“, „User Centered Design“) – in Rolle,
+Kurzprofil, Stationen, Projekten und Skillset, nicht in Eigennamen und nicht im
+englischen Lebenslauf. Die Liste ist ein Netz für die häufigsten Fälle, nicht
+die Regel: Was nicht darauf steht, wird trotzdem gekoppelt. Gemeldetes in der
+`cv.json` korrigieren und neu rendern.
+
 #### Bildung und Zertifikate
 
 **Unter `bildung` stehen nur Abschluss, Einrichtung und Zeitraum.** Was jemand
@@ -816,9 +856,9 @@ Stichpunkte aus den beiden Textbausteinen unten.
 {
   "titel": "User Experience Design Specialist",
   "firma": "New Monday GmbH",
-  "zeitraum": "August 2026 - Heute",
+  "zeitraum": "August 2026 – Heute",
   "logo": "nm-logo.svg",
-  "zusammenfassung": "UX Design, UX Konzeption",
+  "zusammenfassung": "UX-Design, UX-Konzeption",
   "aufgaben": ["…", "…", "…"]
 }
 ```
@@ -828,14 +868,14 @@ und es noch keine Projekte zu berichten gibt. **Höchstens vier**, und sie häng
 davon ab, ob es ein UX- oder ein Entwicklerprofil ist – das entscheidet dieselbe
 Antwort, die den Titel setzt.
 
-**UX-Profil** (`"zusammenfassung": "UX Design, UX Konzeption"`):
+**UX-Profil** (`"zusammenfassung": "UX-Design, UX-Konzeption"`):
 
 | Deutsch | Englisch |
 |---|---|
 | Konzeption und Gestaltung digitaler Produkte in Kundenprojekten | Concept and design of digital products in client projects |
 | User Research, Wireframing und Prototyping | User research, wireframing and prototyping |
 | Usability-Tests und Prüfung auf Barrierefreiheit | Usability testing and accessibility reviews |
-| Abstimmung mit Stakeholdern, UI Design und Entwicklung | Coordination with stakeholders, UI design and development |
+| Abstimmung mit Stakeholdern, UI-Design und Entwicklung | Coordination with stakeholders, UI design and development |
 
 **Entwicklerprofil** (`"zusammenfassung": "Softwareentwicklung, technische Konzeption"`):
 
@@ -926,7 +966,7 @@ Zum Modell:
     Software, Tools, Werkzeuge → `tools`. Zertifikate sind Weiterbildungen und
     gehen den Weg aus Schritt 1d – drin bleiben heißt: unter `zertifikate`. Der
     Wortlaut der Einträge bleibt. Doppelte fallen weg, auch fast gleiche ("UI/UX"
-    neben "UI/UX Design": das genauere bleibt).
+    neben "UI/UX-Design": das genauere bleibt).
   - **Was nirgends passt, fällt aus dem Skillset** – eine Kundenliste etwa (die
     Kunden stehen ohnehin in Stationen und Projekten) oder Produktarten wie
     "Plattformen" und "Web und App". Nicht in eine Gruppe biegen, sondern
@@ -1257,7 +1297,9 @@ Kunden ankommt, deshalb wird hier nicht abgekürzt und nicht umbenannt.
 Das Skript sucht sich die Engine selbst: WeasyPrint, sonst headless Chrome, sonst
 wkhtmltopdf. Fehlt alles, hilft `pip install weasyprint --break-system-packages`.
 Zusätzlich prüft es die Zeiträume und meldet nach stderr: Ende vor Anfang,
-Projekte außerhalb der Anstellung, fehlende Logodateien.
+Projekte außerhalb der Anstellung, fehlende Logodateien. Den Strich im Zeitraum
+setzt es selbst, offene Schreibweisen wie „UX Design“ meldet es nur (beides
+Schritt 2 unter „Schreibweisen“).
 
 Es setzt Bildung und Skillset selbst enger, wenn sie sonst nicht neben den
 Profilkopf auf Seite 1 passen, und sagt in welcher Stufe. Dazu meldet es, was an
@@ -1361,7 +1403,9 @@ Zeilen berichten:
   meldet sie) – mit der Bitte, das Fehlende nachzureichen, falls es belegt ist.
   Im Dokument steht davon nichts, nur der Titel; gebraucht wird es trotzdem,
   siehe Schritt 2.
-- Welche Rechtschreibfehler korrigiert wurden
+- Welche Rechtschreibfehler korrigiert wurden – Durchkopplungen als eine
+  Sammelzeile („durchgekoppelt: UX-Design, Stakeholder-Management“), nicht
+  Stelle für Stelle; den Strich im Zeitraum nicht eigens
 - Was im Eingang unklar war und geraten werden müsste – als Frage, nicht als
   stille Annahme
 - **Die anonyme Fassung**: in welcher Form der Name jetzt dasteht, und –

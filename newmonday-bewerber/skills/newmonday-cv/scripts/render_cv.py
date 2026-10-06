@@ -181,6 +181,141 @@ def spanne(zeitraum):
     return parse_monat(teile[0]), parse_monat(teile[1])
 
 
+# Zeitraeume stehen mit Halbgeviertstrich und Leerzeichen: "April 2022 –
+# September 2023", "Juni 2025 – Heute" (Entscheidung des Nutzers vom
+# 06.10.2026, nach seinem ueberarbeiteten Lebenslauf in Figma). Gesetzt wird
+# das hier, egal wie die cv.json es schreibt — PDF und Figma-Plan lesen beide
+# ueber zeitraeume_setzen() und stehen deshalb gleich. Die Striche als Escape,
+# damit sie sich in der Quelle unterscheiden lassen.
+BIS_STRICH = " – "
+# Im Zeitraum immer ein Bis-Strich: Halbgeviert, Geviert, Ziffernstrich,
+# Querstrich, Minus.
+GEDANKENSTRICHE = "‒–—―−"
+# Ein Bindestrich nur mit Leerzeichen auf beiden Seiten oder zwischen zwei
+# Datumsteilen ("2019-2021") — sonst gehoert er zu einem Wort und bleibt.
+BINDESTRICHE = "-‐‑"
+DATUMSWOERTER = (
+    set(MONATE)
+    | {n.lower() for namen in MONATSNAMEN.values() for n in namen}
+    | {n.lower()[:3] for namen in MONATSNAMEN.values() for n in namen}
+    | {"sept", "mrz"} | set(LAUFEND) | {"today", "present", "now", "current"}
+)
+
+
+def datumsteil(wort):
+    """Jahr, Monat als Zahl oder Name ('2019', '04/2019', 'Sept.') oder ein
+    Wort fuer das offene Ende ('Heute', 'Present')."""
+    w = wort.strip("()[],;:").rstrip(".").lower()
+    return bool(re.fullmatch(r"\d{1,4}(?:[./]\d{1,4})*", w)) or w in DATUMSWOERTER
+
+
+def zeitraum_setzen(text):
+    """'April 2022 - September 2023' -> 'April 2022 – September 2023'.
+
+    Ein Gedankenstrich ist im Zeitraum immer der Bis-Strich, ein Bindestrich
+    nur mit Leerzeichen auf beiden Seiten oder zwischen zwei Datumsteilen
+    ('2019-2021', 'Juni-September 2023'). Ein Wort mit Bindestrich bleibt,
+    ebenso eine Kette wie '2022-04-01' — das ist ein Datum, kein Zeitraum.
+    """
+    if not isinstance(text, str):
+        return text
+    striche = re.escape(GEDANKENSTRICHE + BINDESTRICHE)
+    # Gerade Stellen: Text, ungerade: ein Strich samt Leerraum drumherum.
+    roh = re.split(rf"(\s*[{striche}]\s*)", text)
+    teile = list(roh)
+
+    def kette(i, nachbar):
+        # Der Nachbartext haengt ohne Leerraum an einem weiteren blossen
+        # Bindestrich: '2022-04-01'.
+        return (0 < i < len(roh) and roh[i] in BINDESTRICHE
+                and not re.search(r"\s", roh[nachbar]))
+
+    for i in range(1, len(roh), 2):
+        strich = roh[i]
+        links, rechts = roh[i - 1].split()[-1:], roh[i + 1].split()[:1]
+        if strich.strip() in GEDANKENSTRICHE or (strich[0].isspace() and strich[-1].isspace()):
+            teile[i] = BIS_STRICH
+        elif (links and rechts and datumsteil(links[0]) and datumsteil(rechts[0])
+              and not kette(i - 2, i - 1) and not kette(i + 2, i + 1)):
+            teile[i] = BIS_STRICH
+    return "".join(teile).strip()
+
+
+def zeitraeume_setzen(daten):
+    """Jeden Zeitraum im Dokument setzen — Stationen, Projekte, Bildung. Aendert
+    die Daten an Ort und Stelle; laeuft gefahrlos mehrmals."""
+    knoten = list(daten.get("bildung") or [])
+    for s in daten.get("stationen") or []:
+        knoten.append(s)
+        knoten += s.get("projekte") or []
+    for k in knoten:
+        if isinstance(k, dict) and k.get("zeitraum"):
+            k["zeitraum"] = zeitraum_setzen(k["zeitraum"])
+    return daten
+
+
+# Zusammengesetzte Begriffe mit englischem Bestandteil werden im deutschen Text
+# durchgekoppelt, wie im Duden: "UX-Design", "Stakeholder-Management",
+# "User-Centered Design" (Entscheidung des Nutzers vom 06.10.2026). Das ist
+# Rechtschreibung und geschieht beim Bauen der cv.json (SKILL.md, Schritt 2).
+# Das Skript aendert keinen Text, es meldet nur die offenen Schreibweisen, die
+# am haeufigsten durchrutschen. Eingefuehrte englische Fachbegriffe ohne
+# deutsches Grundwort ("User Research", "Wireframing") stehen bewusst nicht hier.
+DURCHKOPPLUNG = {
+    "UX Design": "UX-Design",
+    "UX Konzeption": "UX-Konzeption",
+    "UI Design": "UI-Design",
+    "Usability Testing": "Usability-Testing",
+    "Stakeholder Management": "Stakeholder-Management",
+    "Stakeholder Kommunikation": "Stakeholder-Kommunikation",
+    "User Centered Design": "User-Centered Design",
+}
+# Wortgrenzen: "UX Designer" ist nicht "UX Design", "UX/UI Design" enthaelt
+# "UI Design".
+DURCHKOPPLUNG_MUSTER = [
+    (re.compile(r"(?<!\w)" + r"\s+".join(map(re.escape, offen.split())) + r"(?!\w)",
+                re.IGNORECASE), soll)
+    for offen, soll in DURCHKOPPLUNG.items()
+]
+
+
+def durchkopplung_pruefen(daten):
+    """Hinweise fuer offene Schreibweisen aus DURCHKOPPLUNG. Aendert nichts.
+
+    Geprueft wird der Text, den der Skill uebernimmt: Rolle, Kurzprofil,
+    Stationen und Projekte, Skillset. Eigennamen behalten ihre Schreibweise —
+    Firma, Kunde, Einrichtung, Abschluss, Zertifikate und Verweise bleiben
+    draussen. Ein englischer Lebenslauf koppelt nicht durch, dort gibt es
+    keinen Hinweis.
+    """
+    if daten.get("sprache", "de") == "en":
+        return []
+    person = daten.get("person") or {}
+    texte = [(f"person.{f}", person.get(f)) for f in ("rolle", "kurzprofil")]
+    for i, s in enumerate(daten.get("stationen") or []):
+        texte += [(f"stationen[{i}].{f}", s.get(f))
+                  for f in ("titel", "zusammenfassung", "beschreibung")]
+        texte += [(f"stationen[{i}].aufgaben[{j}]", a)
+                  for j, a in enumerate(s.get("aufgaben") or [])]
+        for k, p in enumerate(s.get("projekte") or []):
+            texte.append((f"stationen[{i}].projekte[{k}].beschreibung", p.get("beschreibung")))
+            texte += [(f"stationen[{i}].projekte[{k}].aufgaben[{j}]", a)
+                      for j, a in enumerate(p.get("aufgaben") or [])]
+    for gruppe, eintraege in (daten.get("skillset") or {}).items():
+        if isinstance(eintraege, list):
+            texte += [(f"skillset.{gruppe}[{j}]", e) for j, e in enumerate(eintraege)]
+
+    hinweise = []
+    for pfad, text in texte:
+        if not isinstance(text, str):
+            continue
+        for muster, soll in DURCHKOPPLUNG_MUSTER:
+            for fund in muster.finditer(text):
+                hinweise.append(f"Durchkopplung: „{fund.group(0)}“ in {pfad} — im "
+                                f"deutschen Text „{soll}“ (SKILL.md, Schritt 2).")
+    return hinweise
+
+
 def logoliste(wert):
     """logo nimmt einen Dateinamen oder eine Liste davon — hier immer Liste."""
     if not wert:
@@ -927,8 +1062,13 @@ def main():
         raise SystemExit(__doc__)
     quelle = Path(args[0])
     daten = json.loads(quelle.read_text(encoding="utf-8"))
+    # Zuerst, damit alles danach den gesetzten Strich sieht — auch die Marken,
+    # an denen deckblatt_seiten() Bildung und Skillset im PDF wiederfindet.
+    zeitraeume_setzen(daten)
 
     hinweise = vorab + pruefe(daten)
+    # Offene Schreibweisen wie "UX Design" — nur gemeldet, nicht geaendert.
+    hinweise += durchkopplung_pruefen(daten)
     # Was am Skillset gesetzt, ergaenzt oder weggelassen wurde (Sprachvorgabe,
     # leere Gruppen, altes Format) — gehoert in die Uebergabe.
     hinweise += skillset_gruppen(daten)[1]

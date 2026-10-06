@@ -165,6 +165,13 @@ als eigene Zeile (10pt). Der senkrechte Strich zwischen Zeitraum und Firma ist
 entfallen. Die Aufgaben beginnen 24pt unter dem Kopf und laufen ohne
 Zwischenraum, jeder Punkt eine Zeilenhöhe unter dem vorigen.
 
+Der Zeitraum steht mit Halbgeviertstrich und Leerzeichen, „April 2022 – September
+2023“ – bei Projekten und in der Bildung genauso (Entscheidung vom 2026-10-06).
+`zeitraum_setzen()` in `render_cv.py` setzt ihn, egal wie die `cv.json` ihn
+schreibt, und `figma_plan.py` liest dieselbe Aufbereitung: Stünde im Frame ein
+anderer Strich als im PDF, fände die Seitenzuordnung die Projekte nicht wieder,
+deren Marke den Zeitraum trägt.
+
 ### Der Footer sitzt unten, gemessen statt geraten
 
 Der Footer schließt die letzte Seite am unteren Rand ab — in Figma sitzt seine

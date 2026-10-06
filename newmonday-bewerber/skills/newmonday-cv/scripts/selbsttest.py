@@ -766,6 +766,122 @@ def pruefe_zertifikate(tmp):
     return fehler
 
 
+def _pdftext(pdf):
+    """Der Text aller Seiten, Whitespace vereinheitlicht."""
+    from pypdf import PdfReader
+    return " ".join(" ".join((s.extract_text() or "").split())
+                    for s in PdfReader(str(pdf)).pages)
+
+
+def pruefe_zeitraeume(tmp):
+    """Stehen Zeitraeume mit Halbgeviertstrich und Leerzeichen, egal wie die
+    cv.json sie schreibt — in PDF und Figma-Plan gleich?
+
+    Entscheidung vom 06.10.2026: "April 2022 – September 2023", nicht "April
+    2022 - September 2023". Der Fall mischt, was Eingaenge mitbringen:
+    Bindestrich mit, ohne und mit einseitigem Leerzeichen, Halbgeviert- und
+    Geviertstrich. Bindestriche in Woertern bleiben, eine Datumskette auch.
+    """
+    sys.path.insert(0, str(WURZEL / "scripts"))
+    from render_cv import zeitraum_setzen
+    daten = json.loads((WURZEL / "beispiel" / "cv.json").read_text(encoding="utf-8"))
+    nm, projekte = daten["stationen"][0], daten["stationen"][0]["projekte"]
+    mischung = [  # (Knoten, Eingang, Soll)
+        (nm, "Juni 2025 - Heute", "Juni 2025 – Heute"),
+        (projekte[0], "Juni 2025-Mai 2026", "Juni 2025 – Mai 2026"),
+        (projekte[1], "Oktober 2025 — April 2026", "Oktober 2025 – April 2026"),
+        (projekte[2], "Oktober 2025–März 2026", "Oktober 2025 – März 2026"),
+        (daten["stationen"][1], "11/2024 -05/2025", "11/2024 – 05/2025"),
+        (daten["bildung"][0], "April 2022 - September 2023", "April 2022 – September 2023"),
+        (daten["bildung"][1], "2016-2020", "2016 – 2020"),
+    ]
+    for knoten, eingang, _ in mischung:
+        knoten["zeitraum"] = eingang
+    fehler = []
+    for eingang in ("Sommer- und Wintersemester 2020", "2022-04-01", "Seit 2019"):
+        if zeitraum_setzen(eingang) != eingang:
+            fehler.append(f"Zeitraum: „{eingang}“ wurde zu „{zeitraum_setzen(eingang)}“")
+
+    ziel, lauf, stufen = _rendern(tmp, daten, "zeitraeume")
+    if not ziel.exists():
+        return fehler + [f"Zeitraum: PDF nicht gerendert — {lauf.stderr.strip()[:200]}"]
+    text = _pdftext(ziel)
+    for _, eingang, soll in mischung:
+        if soll not in text:
+            fehler.append(f"Zeitraum: „{soll}“ steht nicht im PDF (Eingang „{eingang}“)")
+        elif eingang != soll and eingang in text:
+            fehler.append(f"Zeitraum: „{eingang}“ steht ungesetzt im PDF")
+    if "Werkstudent UX-Design" not in text:
+        fehler.append("Zeitraum: der Bindestrich in „Werkstudent UX-Design“ ist nicht mehr da")
+
+    # Der Figma-Plan setzt denselben Strich — und findet die Projekte, deren
+    # Marke den Zeitraum traegt, im PDF wieder.
+    plan_lauf = subprocess.run(
+        [sys.executable, str(WURZEL / "scripts" / "figma_plan.py"),
+         str(Path(tmp) / "zeitraeume.json"), str(ziel), str(Path(tmp) / "zeitraeume-plan"),
+         "--stufen", str(stufen)],
+        capture_output=True, text=True, cwd=str(WURZEL))
+    if plan_lauf.returncode != 0:
+        return fehler + [f"Zeitraum: figma_plan.py fehlgeschlagen — {plan_lauf.stderr.strip()[:200]}"]
+    plan = json.loads((Path(tmp) / "zeitraeume-plan" / "figma_plan.json")
+                      .read_text(encoding="utf-8"))
+    im_plan = set()
+    for frame in plan["frames"]:
+        for b in frame["bloecke"]:
+            if isinstance(b.get("zeitraum"), dict):
+                im_plan.add(b["zeitraum"]["text"])
+            for e in b.get("eintraege") or []:
+                if isinstance(e, dict):
+                    im_plan.update(z["text"] for z in e.get("zeilen") or [])
+    for _, eingang, soll in mischung:
+        if soll not in im_plan:
+            fehler.append(f"Zeitraum: „{soll}“ fehlt im Figma-Plan (Eingang „{eingang}“)")
+    if "nicht wiedergefunden" in plan_lauf.stderr:
+        fehler.append("Zeitraum: Figma-Plan findet Bloecke im PDF nicht wieder — "
+                      + plan_lauf.stderr.strip()[:200])
+    return fehler
+
+
+def pruefe_durchkopplung(tmp):
+    """Meldet das Renderskript offene Schreibweisen wie „UX Design“ — ohne den
+    Text anzufassen, nicht in Eigennamen, nicht im englischen Lebenslauf?
+
+    Entscheidung vom 06.10.2026: Zusammengesetzte Begriffe mit englischem
+    Bestandteil werden im deutschen Text durchgekoppelt. Das macht der Skill
+    beim Bauen der cv.json; das Skript gibt nur einen Hinweis.
+    """
+    sys.path.insert(0, str(WURZEL / "scripts"))
+    from render_cv import durchkopplung_pruefen
+    basis = json.loads((WURZEL / "beispiel" / "cv.json").read_text(encoding="utf-8"))
+    fehler = []
+    if durchkopplung_pruefen(basis):
+        fehler.append("Durchkopplung: das Beispiel selbst traegt offene Schreibweisen — "
+                      + "; ".join(durchkopplung_pruefen(basis)))
+
+    daten = json.loads(json.dumps(basis))
+    satz = "Stakeholder Management und UX Design im Team"
+    datev = daten["stationen"][2]
+    datev["aufgaben"].append(satz)
+    datev["titel"] = "UX Designer"                  # Wortgrenze: kein "UX Design"
+    datev["firma"] = "UX Design Studio GmbH"        # Eigenname: kein Hinweis
+    daten["skillset"]["faehigkeiten"].append("User Centered Design")
+    ziel, lauf, _ = _rendern(tmp, daten, "durchkopplung")
+    if not ziel.exists():
+        return fehler + [f"Durchkopplung: PDF nicht gerendert — {lauf.stderr.strip()[:200]}"]
+    meldungen = [z for z in lauf.stderr.splitlines() if "Durchkopplung:" in z]
+    for offen in ("Stakeholder Management", "UX Design", "User Centered Design"):
+        if not any(f"„{offen}“" in m for m in meldungen):
+            fehler.append(f"Durchkopplung: kein Hinweis auf „{offen}“")
+    if len(meldungen) != 3:
+        fehler.append(f"Durchkopplung: {len(meldungen)} Hinweise statt 3 (Titel „UX "
+                      "Designer“ und Firma duerfen nicht anschlagen) — " + " | ".join(meldungen))
+    if satz not in _pdftext(ziel):
+        fehler.append("Durchkopplung: das Skript hat den Text geaendert statt nur zu melden")
+    if durchkopplung_pruefen(dict(daten, sprache="en")):
+        fehler.append("Durchkopplung: Hinweis auch im englischen Lebenslauf")
+    return fehler
+
+
 # Seitenverhaeltnisse aus der Bibliothek, von Hand aus den Dateikoepfen
 # abgelesen. adidas schreibt die viewBox mit "1e3", Nestle hat keine viewBox
 # und height vor width — beides las der Portfolio-Skill einmal als quadratisch.
@@ -1598,6 +1714,8 @@ def main():
         fehler += pruefe_silhouette(tmp)
         fehler += pruefe_skillset(tmp)
         fehler += pruefe_zertifikate(tmp)
+        fehler += pruefe_zeitraeume(tmp)
+        fehler += pruefe_durchkopplung(tmp)
         fehler += pruefe_add_logo(tmp)
 
     fehler += pruefe_svg_verhaeltnisse()
@@ -1622,6 +1740,8 @@ def main():
     print(f"  Kanten:    Monatsnamen und Firmen bleiben heil, firma/rolle/Zertifikate werden mitgezogen")
     print(f"  Zertifikate: Tags unter Bildung, nur der Titel, umbrechend, PDF und Plan")
     print(f"  Bildung:   keine Studieninhalte, alte cv.json mit themen bricht nicht")
+    print(f"  Zeitraeume: Halbgeviertstrich mit Leerzeichen, egal wie eingegeben, PDF und Plan")
+    print(f"  Durchkopplung: offene Schreibweisen gemeldet, Text unveraendert, nicht bei en")
     print(f"  Logos:     SVG-Verhaeltnisse richtig gelesen, im Plan unverzerrt, add_logo mit Kontrollbild")
     print(f"  Adresse:   {ADRESSE} im Footer")
 
