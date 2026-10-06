@@ -33,15 +33,18 @@ Sucht sich die Render-Engine selbst: WeasyPrint (bevorzugt), sonst headless
 Chrome, sonst wkhtmltopdf - der Ausweichweg gilt nur fuer die lange Fassung,
 die A4-Fassung braucht WeasyPrint (laufende Kopfzeile, gemessener Fuss). Prueft ausserdem die Daten auf Auffaelligkeiten und
 schreibt sie nach stderr — darunter jedes Attribut ausserhalb seiner
-Katalog-Kategorie (verwandt: Hinweis, fachfremd: WARNUNG, Tabelle VERWANDT) und
+Katalog-Kategorie (verwandt: Hinweis, fachfremd: WARNUNG, Tabelle VERWANDT),
 jeder Name, der nicht der Katalogform der Dokumentsprache entspricht
-(references/attribute-katalog.md). Korrigiert wird nichts — mit zwei
+(references/attribute-katalog.md), und offene Schreibweisen wie "UX Design" im
+deutschen Text (DURCHKOPPLUNG). Korrigiert wird nichts — mit zwei
 Ausnahmen, die
-gemeldet werden und die figma_plan.py genauso anwendet: Die KI-Kategorie
-rueckt an die erste Stelle der Kernkompetenzen, und die Zertifikate werden
-nach Datum sortiert und, wo der Platz nicht reicht, je Aussteller gebuendelt
-(scripts/zertifikate.py). Die Zertifikatssektion wird im Layout vermessen;
-ueber 924pt (tokens.json) gibt es einen Hinweis mit der Ueberschreitung.
+gemeldet werden und die figma_plan.py genauso anwendet: Ohne Anfrage (Feld
+"anfrage") rueckt die KI-Kategorie an die erste Stelle der Kernkompetenzen -
+mit Anfrage bleibt die Reihenfolge der JSON und wird gemeldet -, und die
+Zertifikate werden nach Datum sortiert und, wo der Platz nicht reicht, je
+Aussteller gebuendelt (scripts/zertifikate.py). Die Zertifikatssektion wird im
+Layout vermessen; ueber 924pt (tokens.json) gibt es einen Hinweis mit der
+Ueberschreitung.
 """
 import json
 import math
@@ -221,6 +224,10 @@ def pruefe(daten):
                     hinweise.append(hinweis)
     hinweise += _doppelte(gruppen)
     hinweise += katalog_pruefen(daten)
+    hinweise += durchkopplung_pruefen(daten)
+    if daten.get("anfrage") is not None and not isinstance(daten["anfrage"], str):
+        hinweise.append("anfrage muss ein Text sein — eine Zeile, z.B. „Junior-Designer, Fokus "
+                        "Barrierefreiheit, Dev-ready Handover, Design-QA“.")
     if not daten.get("kompetenzen"):
         hinweise.append("Keine Kernkompetenzen — die Matrix besteht dann nur aus dem Hero.")
     return hinweise
@@ -326,7 +333,10 @@ def katalog_pruefen(daten):
             return None
         soll = e["deutsch"] if sprache == "de" and e["deutsch"] else e["name"]
         if name != soll:
-            if sprache == "de" and e["deutsch"] and name == e["name"]:
+            if (sprache == "de" and _ohne_trenner(name) == _ohne_trenner(soll)
+                    and soll.count("-") > str(name).count("-")):
+                grund = "im deutschen Text die durchgekoppelte Form (Duden, SKILL.md Schritt 0)"
+            elif sprache == "de" and e["deutsch"] and name == e["name"]:
                 grund = "in einer deutschen Matrix die deutsche Form"
             elif sprache != "de" and name == e["deutsch"]:
                 grund = "in einer englischen Matrix den englischen Namen"
@@ -378,25 +388,101 @@ def katalog_pruefen(daten):
         name_pruefen(t.get("name"), "Tools")
     return hinweise
 
+
+def _ohne_trenner(text):
+    """'User-Centered Design' -> 'UserCenteredDesign': gleich bis auf Leerzeichen
+    und Bindestriche."""
+    return re.sub(r"[\s-]+", "", str(text or ""))
+
+
+# Durchkopplung (SKILL.md, Schritt 0): Zusammengesetzte Begriffe mit
+# englischem Bestandteil stehen im deutschen Text mit Bindestrich (Duden).
+# Absichtlich nur die haeufigsten offenen Schreibweisen - ein Hinweis, keine
+# Rechtschreibpruefung. Eingefuehrte Fachbegriffe ohne deutsches Grundwort
+# ("User Research") bleiben offen und stehen deshalb nicht hier.
+DURCHKOPPLUNG = {
+    "UX Design": "UX-Design",
+    "UX Konzeption": "UX-Konzeption",
+    "Usability Testing": "Usability-Testing",
+    "Stakeholder Management": "Stakeholder-Management",
+    "User Centered Design": "User-Centered Design",
+}
+# Wortgrenzen an beiden Enden: "UX Designer" ist kein Treffer, "UX Design-
+# Prozess" schon. Zwischen den Woertern jeder Leerraum, auch ein Umbruch.
+_DURCHKOPPLUNG = [(re.compile(r"\b" + r"\s+".join(map(re.escape, offen.split())) + r"\b", re.I),
+                   soll) for offen, soll in DURCHKOPPLUNG.items()]
+
+
+def durchkopplung_pruefen(daten):
+    """Hinweise auf offene Schreibweisen aus DURCHKOPPLUNG. Nur in deutschen
+    Matrizen, nur im Text, den der Skill setzt oder uebernimmt: Rolle,
+    Hero-Beschreibung, Schwerpunkte, Satz und Tags der Qualifikationskarte,
+    Namen und Beschreibungen der Kernkompetenzen, Beschreibungen der Tools.
+    Nicht in Kategorienamen (immer englisch), Toolnamen (Herstellerschreibweise)
+    und Zertifikatstiteln (so, wie sie auf dem Zertifikat stehen).
+    Katalog-Attribute meldet katalog_pruefen() mit ihrer Katalogform."""
+    if daten.get("sprache", "de") != "de":
+        return []
+    katalog = katalog_laden()[0] if KATALOG.exists() else {}
+    person = daten.get("person") or {}
+    stellen = [("person.rolle", person.get("rolle")),
+               ("person.beschreibung", person.get("beschreibung"))]
+    stellen += [("Schwerpunkt", s) for s in person.get("schwerpunkte") or []]
+    quali = daten.get("qualifikationen")
+    if isinstance(quali, dict):
+        stellen.append(("qualifikationen.text", quali.get("text")))
+        stellen += [("Tag", t) for t in quali.get("tags") or []]
+    for k in daten.get("kompetenzen") or []:
+        for s in k.get("skills") or []:
+            if _schluessel(s.get("name")) not in katalog:
+                stellen.append((k.get("kategorie"), s.get("name")))
+            stellen.append((s.get("name"), s.get("beschreibung")))
+    for t in daten.get("tools") or []:
+        stellen.append((t.get("name"), t.get("beschreibung")))
+    hinweise = []
+    for wo, text in stellen:
+        for muster, soll in _DURCHKOPPLUNG:
+            for treffer in muster.finditer(str(text or "")):
+                fund = " ".join(treffer.group(0).split())
+                hinweise.append(f"„{fund}“ ({wo}): im deutschen Text durchgekoppelt "
+                                f"— „{soll}“ (Duden, SKILL.md Schritt 0).")
+    return hinweise
+
 # Eine KI-Kategorie beginnt mit "AI" oder "KI" ("AI & Emerging Tech", "KI-Tools").
 KI_KATEGORIE = re.compile(r"\s*(AI|KI)\b", re.I)
 
 
 def kompetenzen_ordnen(daten):
-    """Die KI-Kategorie steht immer an erster Stelle der Kernkompetenzen, danach
-    die Reihenfolge der JSON. Gibt (daten, hinweis) zurueck — daten ist eine
-    Kopie, wenn umsortiert wurde, sonst unveraendert und hinweis None. Rufen
-    render_skillmatrix.py und figma_plan.py gleich auf, damit PDF und Frame
-    dieselbe Reihenfolge haben."""
+    """Reihenfolge der Kategorien (SKILL.md, Schritt 2a). Gibt (daten, hinweis)
+    zurueck. Rufen render_skillmatrix.py und figma_plan.py gleich auf, damit
+    PDF und Frame dieselbe Reihenfolge haben.
+
+    Mit Anfrage (Feld "anfrage": Ausschreibung, Projektbeschreibung,
+    Kundenwunsch) steht die Kategorie zuerst, die fuer die Anfrage am
+    wichtigsten ist - das entscheidet der Skill beim Bauen der JSON, nicht
+    dieses Skript. Die Reihenfolge der JSON bleibt also, wie sie ist, und der
+    Hinweis nennt sie. Ohne Anfrage rueckt eine KI-Kategorie an die erste
+    Stelle, danach die Reihenfolge der JSON; daten ist dann eine Kopie, wenn
+    umsortiert wurde, sonst unveraendert und hinweis None."""
     kompetenzen = list(daten.get("kompetenzen") or [])
+    anfrage = " ".join(str(daten.get("anfrage") or "").split())
+    if anfrage:
+        if not kompetenzen:
+            return daten, None
+        folge = ", ".join(f"{nr}. „{k.get('kategorie')}“" for nr, k in enumerate(kompetenzen, start=1))
+        return daten, (
+            f"Anfrage „{anfrage}“: Kategorien in der Reihenfolge der JSON — {folge}. Die "
+            "wichtigste fuer die Anfrage steht zuerst, die KI-Kategorie wird nicht vorgezogen "
+            "(SKILL.md, Schritt 2a). In der Uebergabe nennen.")
     ki = [k for k in kompetenzen if KI_KATEGORIE.match(str(k.get("kategorie") or ""))]
     neu = ki + [k for k in kompetenzen if not any(k is x for x in ki)]
     if all(a is b for a, b in zip(neu, kompetenzen)):
         return daten, None
     namen = ", ".join(f"„{k.get('kategorie')}“" for k in ki)
     return dict(daten, kompetenzen=neu), (
-        f"KI-Kategorie {namen} an die erste Stelle der Kernkompetenzen gesetzt — sie "
-        "steht immer zuerst (SKILL.md, Schritt 3). In der skillmatrix.json nachziehen.")
+        f"KI-Kategorie {namen} an die erste Stelle der Kernkompetenzen gesetzt — ohne "
+        "Anfrage steht sie immer zuerst (SKILL.md, Schritt 2a). In der skillmatrix.json "
+        "nachziehen.")
 
 
 def beschriftung(daten):
@@ -937,8 +1023,8 @@ def main():
             "\nDie Schnitte nennt assets/tokens.json unter \"schriften\" "
             "(Google Fonts, OFL).")
 
-    daten, ki_hinweis = kompetenzen_ordnen(daten)
-    hinweise = ([ki_hinweis] if ki_hinweis else []) + pruefe(daten)
+    daten, reihenfolge_hinweis = kompetenzen_ordnen(daten)
+    hinweise = ([reihenfolge_hinweis] if reihenfolge_hinweis else []) + pruefe(daten)
     zplan, zert_hinweise = zertifikate.planen(daten, design, beschriftung(daten))
     hinweise += zert_hinweise
     ziel = Path(args[1]) if genau else zielpfad(Path(args[1]), daten)
@@ -985,8 +1071,8 @@ def main():
     fehler, design_hinweise = design_system.pruefe_pdf(ziel, design)
     hinweise += design_hinweise
 
-    # Die A4-Fassung aus denselben Daten: dieselbe KI-Reihenfolge, dieselben
-    # Zertifikatskacheln und Buendel.
+    # Die A4-Fassung aus denselben Daten: dieselbe Reihenfolge der Kategorien,
+    # dieselben Zertifikatskacheln und Buendel.
     try:
         seiten, _, a4_hinweise = rendern_a4(daten, design, ziel_a4, zplan)
         hinweise += a4_hinweise

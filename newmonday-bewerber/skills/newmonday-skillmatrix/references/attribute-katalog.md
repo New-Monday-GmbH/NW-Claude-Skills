@@ -11,7 +11,7 @@ im selben Stil (Muster am Ende).
 **Der Pool ist die Quelle, diese Datei die Kopie.** Bei Abweichung gewinnt
 Figma. Erzeugt wird sie mit `scripts/katalog_aus_pool.py` — nicht von Hand
 nachgepflegt. Einzige Zutat des Skills ist die Spalte „deutsch“: Sie steht im
-Skript (`DEUTSCH`, `GRENZFAELLE`), nicht im Pool.
+Skript (`DEUTSCH`, `DURCHKOPPLUNG`, `GRENZFAELLE`), nicht im Pool.
 
 ## Die harten Regeln
 
@@ -43,9 +43,19 @@ Skript (`DEUTSCH`, `GRENZFAELLE`), nicht im Pool.
   Eine englische Matrix traegt immer die englischen Namen. Beschreibungen sind
   deutsch; fuer eine englische Matrix wird beim Bauen uebersetzt und in der
   Uebergabe gemeldet.
-- **Keine Bindestriche in englischen Attributnamen.** „Microinteractions",
-  nicht „Micro-interactions"; „Data Driven Design", nicht „Data-Driven Design".
-  Deutsche Formen folgen der deutschen Rechtschreibung und koppeln englische
+- **Im deutschen Text wird durchgekoppelt (Duden).** Bleibt ein englischer
+  Name stehen, traegt die deutsche Matrix ihn mit Bindestrich, wo das Grundwort
+  auch deutsch ist oder ein mehrteiliges Bestimmungswort davor steht – dann
+  steht diese Form in der Spalte „deutsch“: „User-Centered Design“,
+  „Usability-Testing“, „Stakeholder-Management“, „UI-Design“, „Design-QA“.
+  Ohne Kopplung bleiben eingefuehrte Fachbegriffe ohne deutsches Grundwort
+  (User Research, UX Research, Information Architecture, Wireframing &
+  Prototyping) und Adjektiv plus Substantiv (Emotional Design, Responsive Web
+  Design).
+- **Keine Bindestriche in den Pool-Namen.** „Microinteractions", nicht
+  „Micro-interactions"; im Pool und in einer englischen Matrix „Data Driven
+  Design", nicht „Data-Driven Design". Die gekoppelte Form fuer deutsche
+  Matrizen steht in der Spalte „deutsch“; deutsche Formen koppeln englische
   Teile mit Bindestrich („Pain-Point-Analyse“).
 - **Produktnamen so, wie der Hersteller sie schreibt.** Belegbare
   Eigenschreibung schlaegt jede Zuruf-Variante — „Fullstory", nicht
@@ -76,7 +86,7 @@ Skript (`DEUTSCH`, `GRENZFAELLE`), nicht im Pool.
 12. **Tools** (11)
 13. **Coding Skills** (10)
 
-Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens fuenf — die, die das Profil belegt, eine KI-Kategorie zuerst, danach die staerkste — und dazu optional `Tools`.
+Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens fuenf — die, die das Profil belegt — und dazu optional `Tools`. Gibt es eine Anfrage (Ausschreibung, Projektbeschreibung, Kundenwunsch), steht die Kategorie zuerst, die fuer sie am wichtigsten ist, danach absteigend nach Bedeutung fuer die Anfrage; ohne Anfrage eine KI-Kategorie zuerst, danach die staerkste (SKILL.md, Schritt 2a).
 
 ---
 
@@ -84,8 +94,8 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 
 | Attribut | deutsch | Beschreibung |
 |---|---|---|
-| User Centered Design | *Grenzfall, bleibt englisch (dt. „Nutzerzentriertes Design“)* | Lösungen basierend auf echten Nutzerbedürfnissen und -verhalten erstellen. |
-| End to End UX Design |  | Komplette Nutzererlebnisse von der Idee bis zur Auslieferung gestalten. |
+| User Centered Design | User-Centered Design | Lösungen basierend auf echten Nutzerbedürfnissen und -verhalten erstellen. |
+| End to End UX Design | End-to-End-UX-Design | Komplette Nutzererlebnisse von der Idee bis zur Auslieferung gestalten. |
 | Product Discovery |  | Probleme identifizieren und die richtige Produktstrategie festlegen. |
 | UX Strategy | UX-Strategie | Langfristige UX-Vision und Prinzipien definieren. |
 | Experience Vision | *Grenzfall, bleibt englisch (dt. „Zielbild für das Nutzererlebnis“)* | Einen klaren Zielzustand für zukünftige Nutzererlebnisse schaffen. |
@@ -101,9 +111,9 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 | UX Research |  | Planung und Durchführung qualitativer und quantitativer Studien. |
 | Qualitative Research |  | Tiefgehende Erkenntnisse durch Interviews und Beobachtungen gewinnen. |
 | Quantitative Research |  | Analyse des Nutzerverhaltens durch Daten und Umfragen. |
-| Data Driven Design | *Grenzfall, bleibt englisch (dt. „Datengetriebenes Design“)* | Designentscheidungen auf Basis von Nutzungsdaten und Tests treffen. |
+| Data Driven Design | Data-Driven Design | Designentscheidungen auf Basis von Nutzungsdaten und Tests treffen. |
 | User Interviews & Testing |  | Moderierte und unmoderierte Sitzungen durchführen. |
-| Stakeholder Interviews |  | Geschäftsperspektiven und Einschränkungen verstehen. |
+| Stakeholder Interviews | Stakeholder-Interviews | Geschäftsperspektiven und Einschränkungen verstehen. |
 | Persona Creation | Persona-Erstellung | Modellierung wichtiger Nutzergruppen. |
 | Jobs to be Done |  | Verstehen der Nutzermotivationen und Ziele. |
 | Journey Mapping |  | Visualisierung der Nutzerreise von Anfang bis Ende. |
@@ -116,13 +126,13 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 
 | Attribut | deutsch | Beschreibung |
 |---|---|---|
-| Interaction Design |  | Gestaltung der Nutzerinteraktion mit Produkten. |
+| Interaction Design | Interaction-Design | Gestaltung der Nutzerinteraktion mit Produkten. |
 | Information Architecture |  | Komplexe Informationen klar strukturieren. |
 | User Flows |  | Nutzerreisen Schritt für Schritt abbilden. |
 | Wireframing & Prototyping |  | Von Low Fidelity Wireframes bis zu interaktiven High Fidelity Prototypen. |
 | Microinteractions | *Grenzfall, bleibt englisch (dt. „Mikrointeraktionen“)* | Gestaltung kleiner interaktiver Details. |
 | Responsive Web Design |  | Benutzerfreundlichkeit auf allen Geräten sicherstellen. |
-| Mobile First Design |  | Design für mobile Geräte als Hauptplattform. |
+| Mobile First Design | Mobile-First Design | Design für mobile Geräte als Hauptplattform. |
 | Conversion Optimization | Conversion-Optimierung | Nutzerwege verbessern, um Ergebnisse zu steigern. |
 | UX Writing |  | Klare und hilfreiche Interfacetexte verfassen. |
 | Emotional Design |  | Emotionale Ansprache der Zielgruppe. |
@@ -132,7 +142,7 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 
 | Attribut | deutsch | Beschreibung |
 |---|---|---|
-| UI Design |  | Gestaltung von User Interfaces für digitale Produkte. |
+| UI Design | UI-Design | Gestaltung von User Interfaces für digitale Produkte. |
 | Scalable UI Concepts | Skalierbare UI-Konzepte | Wiederverwendbare und anpassbare UI-Patterns erstellen. |
 | Design Guide |  | Layouts, Farben und Typografie festlegen. |
 | Consistent Interfaces | Konsistente Interfaces | Visuelle und funktionale Konsistenz sicherstellen. |
@@ -158,7 +168,7 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 
 | Attribut | deutsch | Beschreibung |
 |---|---|---|
-| Usability Testing |  | Produkte mit echten Nutzern testen. |
+| Usability Testing | Usability-Testing | Produkte mit echten Nutzern testen. |
 | Remote Testing |  | Tests online durchführen. |
 | Test Planning | Testplanung | Usabilitystudien strukturiert aufsetzen. |
 | Test Moderation | Testmoderation | Nutzer durch Testsitzungen führen. |
@@ -166,7 +176,7 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 | Heuristic Evaluation | Heuristische Evaluation | UX anhand von Best Practices prüfen. |
 | UX Audits |  | Gesamtqualität des Nutzererlebnisses bewerten. |
 | Accessibility Audits |  | Einhaltung von Accessibilitystandards prüfen. |
-| A/B Testing |  | Designvarianten vergleichen. |
+| A/B Testing | A/B-Testing | Designvarianten vergleichen. |
 | Insight Reporting | *Grenzfall, bleibt englisch (dt. „Aufbereitung von Testergebnissen“)* | Testergebnisse als umsetzbare Empfehlungen aufbereiten. |
 
 ## Accessibility & Inclusive Design
@@ -193,7 +203,7 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 
 | Attribut | deutsch | Beschreibung |
 |---|---|---|
-| Stakeholder Management |  | Abstimmung von Business und Produktteams. |
+| Stakeholder Management | Stakeholder-Management | Abstimmung von Business und Produktteams. |
 | Workshop Facilitation |  | Leitung gemeinsamer Arbeitssessions. |
 | Teamlead | *Grenzfall, bleibt englisch (dt. „Teamleitung“)* | Aufbau und Führung von Designteams. |
 | Design Presentation | Designpräsentation | Klare Vermittlung von Designideen. |
@@ -210,7 +220,7 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 | Design Handoff |  | Aufbereitung von Designs für die Entwicklung. |
 | UX Specifications | UX-Spezifikationen | Erstellung umsetzungsreifer Dokumentation. |
 | Frontend Understanding | Frontend-Verständnis | Kenntnis technischer Rahmenbedingungen. |
-| Design QA |  | Sicherstellung der korrekten Umsetzung. |
+| Design QA | Design-QA | Sicherstellung der korrekten Umsetzung. |
 | Feasibility Assessment | Machbarkeitsprüfung | Einschätzung der technischen Machbarkeit. |
 | Design to Code |  | Überführung von Designs in produktiven Code. |
 
@@ -218,15 +228,15 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 
 | Attribut | deutsch | Beschreibung |
 |---|---|---|
-| AI Powered UX |  | Gestaltung KI-getriebener Nutzererlebnisse. |
+| AI Powered UX | AI-Powered UX | Gestaltung KI-getriebener Nutzererlebnisse. |
 | Conversational Design |  | Gestaltung von Chat- und Voiceinterfaces. |
 | Generative AI UX |  | Gestaltung von Erlebnissen mit KI-generierten Inhalten. |
-| Prompt Design |  | Strukturierung wirksamer Prompts für KI-Systeme. |
+| Prompt Design | Prompt-Design | Strukturierung wirksamer Prompts für KI-Systeme. |
 | AI in Research |  | Auswertung von Nutzerdaten mit KI. |
 | Personalization with AI |  | Gestaltung adaptiver Nutzererlebnisse. |
 | Human AI Interaction |  | Gestaltung der Interaktion zwischen Nutzern und KI. |
 | Explainable AI |  | KI-Entscheidungen nachvollziehbar machen. |
-| Ethical AI Design |  | Umgang mit Bias, Fairness und Vertrauen. |
+| Ethical AI Design | Ethical-AI-Design | Umgang mit Bias, Fairness und Vertrauen. |
 | AI Prototyping |  | Schnellere Konzeptentwicklung mit KI. |
 | AI Integration |  | Einbindung von KI in Produkte. |
 
@@ -271,7 +281,8 @@ eine Spezialitaet), wird ein neues Attribut im Katalogstil angelegt:
 - **Name**: englisch, kurz, wie ein Fachbegriff — kein Satz, **kein
   Bindestrich**. Produktnamen in der Eigenschreibung des Herstellers. Ist der
   englische Name kein eingefuehrter Fachbegriff, bekommt er dazu eine deutsche
-  Form fuer deutsche Matrizen (`DEUTSCH` in `scripts/katalog_aus_pool.py`).
+  Form fuer deutsche Matrizen (`DEUTSCH` in `scripts/katalog_aus_pool.py`);
+  wird er im deutschen Text durchgekoppelt, die gekoppelte (`DURCHKOPPLUNG`).
 - **Kategorie**: die Katalog-Kategorie, zu der es inhaltlich gehoert — keine
   neue.
 - **Beschreibung**: deutsch, eine Zeile, hoechstens etwa 90 Zeichen. Sachlich

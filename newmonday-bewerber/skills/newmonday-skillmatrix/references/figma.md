@@ -21,8 +21,9 @@ nichts geschätzt und nichts nachgeschlagen — was im Plan steht, wird gesetzt.
 Der Plan bildet den Aufbau der Figma-Vorlage nach: Auto-Layout mit Abständen,
 Konturen innen, Schatten als Effekte, das Kartenraster als GRID-Layout. Die
 Zertifikatssektion plant er mit `scripts/zertifikate.py` – dieselbe
-Qualifikationskarte, Reihenfolge, Bündelung und Bildgröße wie im PDF –, die
-KI-Kategorie steht wie dort zuerst.
+Qualifikationskarte, Reihenfolge, Bündelung und Bildgröße wie im PDF –, und
+die Kategorien stehen wie dort: mit `anfrage` in der Reihenfolge der JSON,
+ohne die KI-Kategorie zuerst.
 
 ## Der Link
 
@@ -245,6 +246,12 @@ Zu den Stellen, die still danebengehen, wenn man sie anders macht:
 - **Die Fotokarte hat kein Auto-Layout**: Foto und Verlauf liegen frei darin, der
   Verlauf wird erst nach seinen Texten unten bündig gesetzt. Die Kontur der Karte
   liegt in Figma über den Kindern — wie in der Komponente.
+- **Leere Punkte sind Ringe**: Rechteck in der Größe der vollen (lang 8 × 8,
+  Radius 4; A4 6 × 6, Radius 3), Füllung weiß, Kontur 1,5 innen in
+  `roh/punkt-rahmen` (`#6b7b7e`, in Figma an keine Variable gebunden). Im Plan
+  trägt jeder leere Punkt seine `kontur`, der Baukasten setzt sie wie jede
+  andere; volle Punkte haben keine. Nicht als Ellipse und nicht mit
+  `strokeAlign = "CENTER"` – dann wäre der Ring größer als der volle Punkt.
 - **Schatten sind Effekte** mit den Werten aus `tokens.json` (`Shadows/shadow-xs`
   an den Skill-Karten und Zertifikatskacheln). Die Qualifikationskarte hat
   keinen, nur die Kontur.
@@ -289,8 +296,8 @@ Kacheln, Karte (Höhe, Tags, Tag-Zeilen), Bündel und die Höhe der Sektion –
 geplant und im Plan nachgerechnet (`hoehe_geplant`, `hoehe_plan`, beide
 höchstens `grenze` 924) –,
 `plan.rahmen.hoehe_geschaetzt` die nachgerechnete Rahmenhöhe. Die Hinweise
-(Bündelung, gekürzte Aussteller, KI-Kategorie nach vorn) sind dieselben wie
-beim Rendern. Nach jedem Schritt `get_screenshot` auf den Rahmen; stimmt etwas
+(Bündelung, gekürzte Aussteller, KI-Kategorie nach vorn bzw. die Reihenfolge
+zur Anfrage) sind dieselben wie beim Rendern. Nach jedem Schritt `get_screenshot` auf den Rahmen; stimmt etwas
 nicht, erst reparieren, dann weiterbauen.
 
 `use_figma` ist atomar: Ein Skript, das wirft, hat nichts geschrieben. Nach einem

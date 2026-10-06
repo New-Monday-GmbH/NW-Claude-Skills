@@ -13,14 +13,17 @@ Weg, sie zu erzeugen: von Hand nachgepflegt laufen die beiden nach zwei
 Aenderungen wieder auseinander — genau das war der Zustand, den der Refactor
 beendet hat.
 
-Die Spalte "deutsch" kommt nicht aus dem Pool, sondern aus DEUTSCH und
-GRENZFAELLE unten: die Namen, die eine deutsche Matrix traegt, wenn der
-englische Name kein eingefuehrter Fachbegriff ist (SKILL.md, Schritt 0,
-Namensregel). Wer dort etwas aendert, laesst das Skript neu laufen.
+Die Spalte "deutsch" kommt nicht aus dem Pool, sondern aus DEUTSCH,
+DURCHKOPPLUNG und GRENZFAELLE unten: die Namen, die eine deutsche Matrix
+traegt, wenn der englische Name kein eingefuehrter Fachbegriff ist (SKILL.md,
+Schritt 0, Namensregel), und die durchgekoppelte Form englischer Namen im
+deutschen Text (Durchkopplung, ebenda). Wer dort etwas aendert, laesst das
+Skript neu laufen.
 
 Prueft beim Schreiben mit und bricht ab, wenn der Pool die Hausregeln verletzt:
 Bindestriche in englischen Attributnamen, doppelte Namen, zu lange
-Beschreibungen, deutsche Formen zu Attributen, die es im Pool nicht gibt.
+Beschreibungen, deutsche Formen zu Attributen, die es im Pool nicht gibt, und
+Kopplungen, die mehr aendern als Leerzeichen gegen Bindestriche.
 """
 import json
 import sys
@@ -71,13 +74,42 @@ DEUTSCH = {
     "Feasibility Assessment": "Machbarkeitsprüfung",
 }
 
+# Durchkopplung (SKILL.md, Schritt 0; Entscheidung des Nutzers 2026-10-06):
+# Zusammengesetzte Begriffe mit englischem Bestandteil stehen im deutschen
+# Text mit Bindestrich, wie im Duden. Der englische Name bleibt, eine deutsche
+# Matrix traegt ihn aber gekoppelt - das ist dann ihre Form in der Spalte
+# "deutsch". Gekoppelt wird, wo das Grundwort auch deutsch ist (Design,
+# Management, Testing, Interview) oder ein mehrteiliges Bestimmungswort davor
+# steht ("User-Centered Design", "End-to-End-UX-Design"). Ohne Kopplung bleiben
+# eingefuehrte Fachbegriffe ohne deutsches Grundwort (User Research, Information
+# Architecture, Wireframing & Prototyping, UX Writing) und Adjektiv plus
+# Substantiv (Emotional Design, Responsive Web Design, Remote Testing). Der Pool
+# selbst bleibt ohne Bindestriche - so steht er in englischen Matrizen.
+DURCHKOPPLUNG = {
+    "User Centered Design": "User-Centered Design",
+    "End to End UX Design": "End-to-End-UX-Design",
+    "Data Driven Design": "Data-Driven Design",
+    "Stakeholder Interviews": "Stakeholder-Interviews",
+    "Interaction Design": "Interaction-Design",
+    "Mobile First Design": "Mobile-First Design",
+    "UI Design": "UI-Design",
+    "Usability Testing": "Usability-Testing",
+    "A/B Testing": "A/B-Testing",
+    "Stakeholder Management": "Stakeholder-Management",
+    "Design QA": "Design-QA",
+    "AI Powered UX": "AI-Powered UX",
+    "Prompt Design": "Prompt-Design",
+    "Ethical AI Design": "Ethical-AI-Design",
+}
+
 # Grenzfaelle: Der englische Name bleibt, die deutsche Alternative steht als
 # Vermerk in der Tabelle - zum Nachschauen, falls jemand anders entscheidet.
+# "User Centered Design" und "Data Driven Design" (dt. "Nutzerzentriertes
+# Design", "Datengetriebenes Design") stehen seit 2026-10-06 gekoppelt unter
+# DURCHKOPPLUNG.
 GRENZFAELLE = {
-    "User Centered Design": "Nutzerzentriertes Design",
     "Experience Vision": "Zielbild für das Nutzererlebnis",
     "Business to UX Translation": "Anforderungen in UX übersetzen",
-    "Data Driven Design": "Datengetriebenes Design",
     "Microinteractions": "Mikrointeraktionen",
     "Product Systemization": "Systematisierung im Produkt",
     "Insight Reporting": "Aufbereitung von Testergebnissen",
@@ -101,7 +133,7 @@ im selben Stil (Muster am Ende).
 **Der Pool ist die Quelle, diese Datei die Kopie.** Bei Abweichung gewinnt
 Figma. Erzeugt wird sie mit `scripts/katalog_aus_pool.py` — nicht von Hand
 nachgepflegt. Einzige Zutat des Skills ist die Spalte „deutsch“: Sie steht im
-Skript (`DEUTSCH`, `GRENZFAELLE`), nicht im Pool.
+Skript (`DEUTSCH`, `DURCHKOPPLUNG`, `GRENZFAELLE`), nicht im Pool.
 
 ## Die harten Regeln
 
@@ -133,9 +165,19 @@ Skript (`DEUTSCH`, `GRENZFAELLE`), nicht im Pool.
   Eine englische Matrix traegt immer die englischen Namen. Beschreibungen sind
   deutsch; fuer eine englische Matrix wird beim Bauen uebersetzt und in der
   Uebergabe gemeldet.
-- **Keine Bindestriche in englischen Attributnamen.** „Microinteractions",
-  nicht „Micro-interactions"; „Data Driven Design", nicht „Data-Driven Design".
-  Deutsche Formen folgen der deutschen Rechtschreibung und koppeln englische
+- **Im deutschen Text wird durchgekoppelt (Duden).** Bleibt ein englischer
+  Name stehen, traegt die deutsche Matrix ihn mit Bindestrich, wo das Grundwort
+  auch deutsch ist oder ein mehrteiliges Bestimmungswort davor steht – dann
+  steht diese Form in der Spalte „deutsch“: „User-Centered Design“,
+  „Usability-Testing“, „Stakeholder-Management“, „UI-Design“, „Design-QA“.
+  Ohne Kopplung bleiben eingefuehrte Fachbegriffe ohne deutsches Grundwort
+  (User Research, UX Research, Information Architecture, Wireframing &
+  Prototyping) und Adjektiv plus Substantiv (Emotional Design, Responsive Web
+  Design).
+- **Keine Bindestriche in den Pool-Namen.** „Microinteractions", nicht
+  „Micro-interactions"; im Pool und in einer englischen Matrix „Data Driven
+  Design", nicht „Data-Driven Design". Die gekoppelte Form fuer deutsche
+  Matrizen steht in der Spalte „deutsch“; deutsche Formen koppeln englische
   Teile mit Bindestrich („Pain-Point-Analyse“).
 - **Produktnamen so, wie der Hersteller sie schreibt.** Belegbare
   Eigenschreibung schlaegt jede Zuruf-Variante — „Fullstory", nicht
@@ -165,7 +207,8 @@ eine Spezialitaet), wird ein neues Attribut im Katalogstil angelegt:
 - **Name**: englisch, kurz, wie ein Fachbegriff — kein Satz, **kein
   Bindestrich**. Produktnamen in der Eigenschreibung des Herstellers. Ist der
   englische Name kein eingefuehrter Fachbegriff, bekommt er dazu eine deutsche
-  Form fuer deutsche Matrizen (`DEUTSCH` in `scripts/katalog_aus_pool.py`).
+  Form fuer deutsche Matrizen (`DEUTSCH` in `scripts/katalog_aus_pool.py`);
+  wird er im deutschen Text durchgekoppelt, die gekoppelte (`DURCHKOPPLUNG`).
 - **Kategorie**: die Katalog-Kategorie, zu der es inhaltlich gehoert — keine
   neue.
 - **Beschreibung**: deutsch, eine Zeile, hoechstens etwa 90 Zeichen. Sachlich
@@ -189,12 +232,21 @@ def pruefe(daten):
     namen = [n for _, attrs in daten for n, _ in attrs]
     for n in sorted({x for x in namen if namen.count(x) > 1}):
         fehler.append(f"Attributname doppelt: {n}")
-    for n in sorted((set(DEUTSCH) | set(GRENZFAELLE)) - set(namen)):
+    for n in sorted((set(DEUTSCH) | set(DURCHKOPPLUNG) | set(GRENZFAELLE)) - set(namen)):
         fehler.append(f"Deutsche Form zu einem Attribut, das der Pool nicht fuehrt: {n} "
-                      "— umbenannt oder entfernt? DEUTSCH/GRENZFAELLE nachziehen.")
-    for n in sorted(set(DEUTSCH) & set(GRENZFAELLE)):
-        fehler.append(f"{n} steht in DEUTSCH und in GRENZFAELLE — nur eins von beiden.")
-    alle = namen + list(DEUTSCH.values())
+                      "— umbenannt oder entfernt? DEUTSCH/DURCHKOPPLUNG/GRENZFAELLE nachziehen.")
+    for a, b, liste_a, liste_b in ((DEUTSCH, GRENZFAELLE, "DEUTSCH", "GRENZFAELLE"),
+                                   (DEUTSCH, DURCHKOPPLUNG, "DEUTSCH", "DURCHKOPPLUNG"),
+                                   (DURCHKOPPLUNG, GRENZFAELLE, "DURCHKOPPLUNG", "GRENZFAELLE")):
+        for n in sorted(set(a) & set(b)):
+            fehler.append(f"{n} steht in {liste_a} und in {liste_b} — nur eins davon.")
+    # Kopplung heisst: Leerzeichen werden Bindestriche, sonst aendert sich nichts.
+    ohne_trenner = lambda s: s.replace(" ", "").replace("-", "")
+    for n, gekoppelt in sorted(DURCHKOPPLUNG.items()):
+        if ohne_trenner(n) != ohne_trenner(gekoppelt) or "-" not in gekoppelt:
+            fehler.append(f"DURCHKOPPLUNG {n} -> {gekoppelt}: mehr als Leerzeichen gegen "
+                          "Bindestriche getauscht — gehoert nach DEUTSCH.")
+    alle = namen + list(DEUTSCH.values()) + list(DURCHKOPPLUNG.values())
     for n in sorted({x for x in alle if alle.count(x) > 1}):
         fehler.append(f"Name doppelt (englisch oder deutsch): {n}")
     for kat, attrs in daten:
@@ -214,13 +266,18 @@ def rendern(daten):
                            for i, (k, a) in enumerate(daten)))
     teile.append(
         "\n\nEine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, "
-        "hoechstens fuenf — die, die das Profil belegt, eine KI-Kategorie zuerst, "
-        "danach die staerkste — und dazu optional `Tools`.\n\n---\n")
+        "hoechstens fuenf — die, die das Profil belegt — und dazu optional `Tools`. "
+        "Gibt es eine Anfrage (Ausschreibung, Projektbeschreibung, Kundenwunsch), "
+        "steht die Kategorie zuerst, die fuer sie am wichtigsten ist, danach absteigend "
+        "nach Bedeutung fuer die Anfrage; ohne Anfrage eine KI-Kategorie zuerst, danach "
+        "die staerkste (SKILL.md, Schritt 2a).\n\n---\n")
     for kat, attrs in daten:
         teile.append(f"\n## {kat}\n\n| Attribut | deutsch | Beschreibung |\n|---|---|---|\n")
         for name, beschr in attrs:
             if name in DEUTSCH:
                 deutsch = DEUTSCH[name]
+            elif name in DURCHKOPPLUNG:
+                deutsch = DURCHKOPPLUNG[name]
             elif name in GRENZFAELLE:
                 deutsch = f"*Grenzfall, bleibt englisch (dt. „{GRENZFAELLE[name]}“)*"
             else:

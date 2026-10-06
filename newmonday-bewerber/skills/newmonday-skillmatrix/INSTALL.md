@@ -59,11 +59,14 @@ Sollwerte:
 
 Unter „Pruefen:“ stehen genau zwei Hinweise („Product Thinking“ und „Workshop
 Facilitation“ stehen in der nächstverwandten Kategorie „User Research &
-Insights“) – keiner mit „A4:“ –, und zuletzt steht `Design System eingehalten`.
+Insights“) – keiner mit „A4:“, keiner zur Durchkopplung –, und zuletzt steht
+`Design System eingehalten`. In der Vorschau sind die leeren Punkte Ringe,
+gleich groß wie die vollen – lang 9, A4 5 auf Seite 2 und 4 auf Seite 3.
 Dann funktioniert die ganze Kette: Templates, Tokens beider Fassungen,
 Schriften, Schatten, Bilder samt A4-Fotozuschnitt (`material/foto-karte-a4.png`),
-Qualifikationskarte, Zertifikatsplanung, Katalogprüfung, Höhenmessung,
-Seitenumbruch und Fuß der A4-Fassung und die Designprüfung beider PDFs.
+Qualifikationskarte, Zertifikatsplanung, Katalogprüfung, Durchkopplung,
+Höhenmessung, Seitenumbruch und Fuß der A4-Fassung und die Designprüfung beider
+PDFs, die den Ring (`roh/punkt-rahmen`) als Palettenfarbe kennt.
 
 Die Figma-Pläne dazu, aus dem Ordner `beispiel/` heraus (relative Bildpfade):
 
@@ -73,7 +76,12 @@ python3 ../scripts/figma_plan.py skillmatrix.json /tmp/plan/ \
 ```
 
 Soll: `figma_plan.json` mit 9 Bauschritten und 7 Bildern,
-`figma_plan_a4.json` mit 3 Seiten, 14 Bauschritten und 7 Bildern, ohne Hinweis.
+`figma_plan_a4.json` mit 3 Seiten, 14 Bauschritten und 7 Bildern, ohne Hinweis;
+in beiden Plänen tragen die 9 leeren Punkte eine `kontur` (1,5, `#6b7b7e`).
+
+Mit einem Feld `"anfrage"` in der JSON bleibt die Reihenfolge der Kategorien,
+wie sie dasteht, und beide Skripte melden sie mit einem Hinweis mehr
+(„Anfrage …: Kategorien in der Reihenfolge der JSON — 1. …“).
 
 Die Schriften (Inter und Rethink Sans, Google Fonts, OFL) liegen in
 `assets/fonts/`. Fehlt dort eine Datei, die `assets/tokens.json` nennt, bricht

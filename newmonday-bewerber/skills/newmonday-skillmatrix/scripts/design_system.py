@@ -270,6 +270,9 @@ def _schriftschluessel(name):
 
 
 def _erlaubte_farben(ds):
+    # Die Palette: jede Farbe aus "farben" - die Variablen der Library und die
+    # Rohwerte ohne Variable unter roh/... (etwa der Ring der leeren Punkte) -,
+    # dazu Schattenfarben und Hexwerte, die direkt in "komponenten" stehen.
     farben = {v.lower() for s, v in ds["farben"].items() if not _meta(s)}
     # Schattenfarben: Chrome zeichnet box-shadow selbst, als Flaeche in dieser Farbe.
     farben |= {e["farbe"].lower() for ebenen in ds["schatten"].values() for e in ebenen}

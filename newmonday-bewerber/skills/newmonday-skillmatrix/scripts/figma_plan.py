@@ -36,9 +36,11 @@ setzt nur, was im Plan steht.
 `--pdf` traegt die Seitenhoehe der langen Fassung als Sollwert ein, gegen die
 der fertige Frame gehalten wird.
 
-Wie render_skillmatrix.py setzt der Plan die KI-Kategorie an die erste Stelle
-und plant die Zertifikatskacheln mit scripts/zertifikate.py (Buendel,
-Bildgroessen) — PDF und Frame zeigen dasselbe. Zum Gegenpruefen rechnet
+Wie render_skillmatrix.py ordnet der Plan die Kategorien (mit "anfrage" in der
+JSON bleibt deren Reihenfolge, ohne steht die KI-Kategorie zuerst), zeichnet
+leere Bewertungspunkte als Ringe und plant die Zertifikatskacheln mit
+scripts/zertifikate.py (Buendel, Bildgroessen) — PDF und Frame zeigen
+dasselbe. Zum Gegenpruefen rechnet
 planhoehe() die Hoehen des Plans nach den Auto-Layout-Regeln aus (Texte
 geschaetzt) und meldet Zertifikatssektion und Gesamthoehe; planhoehe_a4() je
 A4-Seite die Hoehe des Inhalts.
@@ -179,11 +181,22 @@ def bild(name, wert, breite, hoehe, deckkraft=None, absolut=None, skalierung="FI
     return k
 
 
-def form(typ, name, breite, hoehe, fuellung, radius=0):
+def form(typ, name, breite, hoehe, fuellung, radius=0, kontur=None):
     k = {"typ": typ, "name": name, "breite": breite, "hoehe": hoehe, "fuellung": fuellung}
     if radius:
         k["radius"] = radius
+    if kontur:
+        k["kontur"] = kontur
     return k
+
+
+def punkt(p, nr, voll):
+    """Ein Bewertungspunkt (p: tokens punkte der Fassung). Voll: gefuellt in
+    p["voll"]. Leer: ein Ring - Fuellung p["leer"], Kontur innen aus
+    p["leer-rahmen"], gleiche Groesse und gleicher Radius wie der volle."""
+    return form("rechteck", f"Punkt {nr}", p["groesse"], p["groesse"],
+                f(p["voll"] if voll else p["leer"]), radius=p["radius"],
+                kontur=None if voll else kontur(p["leer-rahmen"]))
 
 
 # --- Baender ----------------------------------------------------------------
@@ -350,10 +363,8 @@ def sektion_zertifikate(zp, labels):
 def skillkarte(s):
     sk, p = KOMP["skillkarte"], KOMP["punkte"]
     punkte = s.get("punkte") if isinstance(s.get("punkte"), int) else 0
-    reihe = rahmen("Punkte", "HORIZONTAL", [
-        form("rechteck", f"Punkt {i + 1}", p["groesse"], p["groesse"],
-             f(p["voll"] if i < punkte else p["leer"]), radius=p["radius"])
-        for i in range(p["anzahl"])], abstand=m(p["abstand"]))
+    reihe = rahmen("Punkte", "HORIZONTAL", [punkt(p, i + 1, i < punkte) for i in range(p["anzahl"])],
+                   abstand=m(p["abstand"]))
     # Titel fuellt, die Punkte huggen.
     karte = rahmen("Skill Card", "VERTICAL", [
         rahmen("Kopf", "HORIZONTAL", [text("Titel", s.get("name"), "karte-titel", breite="FILL"),
@@ -445,10 +456,11 @@ def _bilder(knoten):
 def plan_bauen(daten, pdf=None):
     sprache = daten.get("sprache", "de")
     labels = beschriftung(daten)
-    # Wie im PDF: KI-Kategorie zuerst, Zertifikate geplant und gebuendelt.
-    daten, ki_hinweis = kompetenzen_ordnen(daten)
-    if ki_hinweis:
-        hinweise.append(ki_hinweis)
+    # Wie im PDF: Reihenfolge der Kategorien (mit Anfrage die der JSON, ohne
+    # die KI-Kategorie zuerst), Zertifikate geplant und gebuendelt.
+    daten, reihenfolge_hinweis = kompetenzen_ordnen(daten)
+    if reihenfolge_hinweis:
+        hinweise.append(reihenfolge_hinweis)
     zplan, zert_hinweise = zertifikate.planen(daten, DS, labels)
     hinweise.extend(zert_hinweise)
     person = daten.get("person") or {}
@@ -670,10 +682,9 @@ def a4_zeilen(skills):
         eintraege = []
         for s in skills[i:i + e["spalten"]]:
             punkte = s.get("punkte") if isinstance(s.get("punkte"), int) else 0
-            reihe = rahmen("Punkte", "HORIZONTAL", [
-                form("rechteck", f"Punkt {j + 1}", p["groesse"], p["groesse"],
-                     f(p["voll"] if j < punkte else p["leer"]), radius=p["radius"])
-                for j in range(p["anzahl"])], abstand=m(p["abstand"]), padding=(m(p["oben"]), 0, 0, 0))
+            reihe = rahmen("Punkte", "HORIZONTAL", [punkt(p, j + 1, j < punkte)
+                                                    for j in range(p["anzahl"])],
+                           abstand=m(p["abstand"]), padding=(m(p["oben"]), 0, 0, 0))
             eintraege.append(rahmen("Eintrag", "VERTICAL", [
                 rahmen("Kopf", "HORIZONTAL", [t4("Titel", s.get("name"), "eintrag-titel", "FILL"), reihe],
                        abstand=m(e["titel-abstand"]), breite="FILL"),

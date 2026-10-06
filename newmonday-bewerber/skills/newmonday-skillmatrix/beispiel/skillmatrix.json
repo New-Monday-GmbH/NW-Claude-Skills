@@ -62,7 +62,7 @@
     }
   ],
   "qualifikationen": {
-    "text": "Umfassende Weiterbildung in UX Research, Wireframing, Prototyping und Usability Testing mit praxisnahen Portfolio-Projekten.",
+    "text": "Umfassende Weiterbildung in UX Research, Wireframing, Prototyping und Usability-Testing mit praxisnahen Portfolio-Projekten.",
     "tags": [
       "AI Skills",
       "Agentic Coding",
@@ -70,7 +70,7 @@
       "User Interface",
       "Figma",
       "Design Systems",
-      "Stakeholder Management",
+      "Stakeholder-Management",
       "Prototyping"
     ]
   },
@@ -174,7 +174,7 @@
           "beschreibung": "Aufbau skalierbarer und barrierefreier Komponentenbibliotheken (Figma)."
         },
         {
-          "name": "Design System Testing",
+          "name": "Design-System-Testing",
           "punkte": 5,
           "beschreibung": "Validierung von Komponenten hinsichtlich Konsistenz, Barrierefreiheit und Edge Cases."
         }

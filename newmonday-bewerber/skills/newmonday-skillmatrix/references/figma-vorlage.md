@@ -181,8 +181,11 @@ dots.setProperties({ Filled: String(punkte) });      // "5" … "1"
 
 Nie die Füllfarben der einzelnen `Background`-Rechtecke anfassen — das bricht die
 Bindung an die Komponente und überlebt keine Änderung am Design System. (Leere
-Punkte sind in der Komponente `neutral/10` und auf der weißen Karte kaum zu sehen
-— das ist so gewollt und kein Grund, sie umzufärben.)
+Punkte sind in der Komponente flächig `neutral/10`, Stand 2026-09-28. Seit
+2026-10-06 sind sie im Skill Ringe – weiß, Rahmen 1,5 innen in
+`roh/punkt-rahmen`, `references/layout.md`. Das gehört in die Komponente `Dots`
+der Masterdatei, nicht in den Klon: Bis sie nachgezogen ist, zeigt Weg A die
+alten Punkte, und das steht in der Übergabe.)
 
 ### 5. Die Kategorien: vollständige Sektion klonen, nicht zurücksetzen
 
@@ -291,9 +294,9 @@ else {
 
 Reihenfolge im Rumpf danach: **Zertifikate → Kernkompetenzen → Tools**. Mit
 `"zertifikate_position": "ende"` die Zertifikatssektion ans Ende hängen
-(`f83.appendChild(zert)`). Die Kategorien kommen in der Reihenfolge des Plans –
-**eine KI-Kategorie zuerst** (SKILL.md, Schritt 2a), auch wenn die JSON sie
-weiter hinten führt.
+(`f83.appendChild(zert)`). Die Kategorien kommen in der Reihenfolge des Plans
+(SKILL.md, Schritt 2a): mit `anfrage` wie in der JSON, ohne **eine
+KI-Kategorie zuerst**, auch wenn die JSON sie weiter hinten führt.
 
 ### 7. Das Foto
 

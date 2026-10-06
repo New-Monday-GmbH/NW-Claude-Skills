@@ -225,14 +225,17 @@ body { font-family: "Inter"; }
 .skillkarte__name { flex: 1 1 auto; margin-right: var(--skillkarte-titel-abstand-min); }
 .skillkarte__beschreibung { margin-top: var(--skillkarte-abstand); }
 
+/* Leere Punkte sind Ringe: Rahmen innen (border-box), gleich gross wie die
+   vollen - wie die Kontur INSIDE in Figma. Volle Punkte ohne Rahmen. */
 .punkte { display: flex; flex: none; }
 .punkt {
   display: block; flex: none;
   width: var(--punkte-groesse); height: var(--punkte-groesse);
   border-radius: var(--punkte-radius); background: var(--punkte-leer);
+  border: var(--punkte-leer-rahmen);
 }
 .punkt + .punkt { margin-left: var(--punkte-abstand); }
-.punkt--voll { background: var(--punkte-voll); }
+.punkt--voll { background: var(--punkte-voll); border: none; }
 
 /* ---------- Fuss ---------- */
 

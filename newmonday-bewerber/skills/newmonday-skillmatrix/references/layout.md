@@ -27,9 +27,9 @@ endet mit Code 2, wenn etwas abweicht. Dieselbe Prüfung einzeln:
 
 Die Tabellen unten sind ein **Überblick zum Nachschlagen, Stand 2026-09-28**
 (= `_quelle.ausgelesen` in `tokens.json`), die Zertifikatssektion Stand
-2026-10-03. Maßgeblich ist immer `tokens.json`;
-wer dort etwas ändert, zieht diese Tabellen im selben Zug nach (Abgleich,
-Schritt 2).
+2026-10-03, die Bewertungspunkte Stand 2026-10-06. Maßgeblich ist immer
+`tokens.json`; wer dort etwas ändert, zieht diese Tabellen im selben Zug nach
+(Abgleich, Schritt 2).
 
 ## Farben
 
@@ -37,14 +37,15 @@ Schritt 2).
 |---|---|---|
 | `brand/primary` | `#009193` | Kopf, Fuß, Rolle, volle Punkte, „+3“ gebündelter Zertifikate, Schwerpunkt-Rahmen, Icons, Verlauf |
 | `base/black` | `#111111` | Name, Titel, Überschriften, Schwerpunkte |
-| `base/white` | `#ffffff` | Hero, Karten, Tags der Qualifikationskarte, Texte im Fuß |
+| `base/white` | `#ffffff` | Hero, Karten, Tags der Qualifikationskarte, Texte im Fuß, Füllung der leeren Punkte |
 | `neutral/80` | `#48575a` | Hero-Beschreibung, Kartentexte, Kategorielabel und -linie, Satz, Tag-Text und Tag-Rahmen der Qualifikationskarte |
 | `neutral/60` | `#738082` | Badge-Text und -Rahmen, „Aussteller · Datum" der Zertifikate |
 | `neutral/40` | `#9ea8aa` | Rahmen der Skill-Karten, Zertifikatskacheln, Zertifikatsbilder, Qualifikationskarte und Fotokarte |
-| `neutral/20` | `#c9cfd1` | leere Punkte der Skill-Karten (Variable `neutral/20` aus „Foundation – Colors“; vorher `neutral/10`, zu wenig Kontrast) |
+| `neutral/20` | `#c9cfd1` | derzeit ohne Verwendung (Variable aus „Foundation – Colors“); bis 2026-10-06 die Füllung der leeren Punkte |
 | `neutral/15` | `#ebf2f5` | Linie über dem Rumpf |
 | `neutral/10` | `#f8fafc` | Rumpf, Badge, Bühne unter den Zertifikatsbildern, Texte auf dem Verlauf |
 | `Colors/Background/bg-primary_hover` | `#ebf2f5` | Grund der Fotokarte |
+| `roh/punkt-rahmen` | `#6b7b7e` | Ring der leeren Punkte, Rahmen 1,5 innen – beide Fassungen. Rohwert ohne Figma-Variable, vom Nutzer am 2026-10-06 in Florians Datei gesetzt (`KoR4rzVSoMrvQot8z33gkv`, Frames `2384:48`, `2384:582`, `2384:737`); liegt zwischen `neutral/80` und `neutral/60` |
 | `#22c55e` (ohne Token) | | Punkt im Verfügbarkeits-Badge |
 
 ## Abstände, Radien, Schatten
@@ -133,7 +134,13 @@ Ränder `spacing-10xl`. Von oben:
     16 → Karten, drei je Zeile, 24 Abstand, Zeile gleich hoch, mindestens 108
     (Titel plus zwei Zeilen Beschreibung — so fest ist die Karte in Figma).
     Karte: Padding 16, Rahmen 1 `neutral/40`, Radius 16, `shadow-xs`; Titel und
-    fünf Punkte (8, Abstand 6) → 8 → Beschreibung.
+    fünf Punkte (8 × 8, Radius 4, Abstand 6) → 8 → Beschreibung. Volle Punkte
+    `brand/primary`, leere als **Ring**: weiß, Rahmen 1,5 innen
+    `roh/punkt-rahmen`, gleich groß und gleich rund – so hat der Nutzer sie am
+    2026-10-06 in Florians Datei gesetzt (`2384:48`). Die Reihe behält ihren
+    Takt; erreicht und offen unterscheidet nur die Füllung. Der Rahmen liegt
+    innen: im PDF `border` bei `box-sizing: border-box`, in Figma
+    `strokeAlign = "INSIDE"`.
   - *Tools:* Überschrift (Tools-Icon) → 24 → höchstens sechs Karten, ohne
     Kategorielabel, im selben Raster und mit denselben Karten wie die
     Kernkompetenzen (24 Abstand, 380 breit).
@@ -174,7 +181,7 @@ vertragen sich nicht mit Papier und 10pt.
 | Tags | Padding 3 / 6, Rahmen 1 `neutral/40`, Radius 4, ohne Grund, Text 10/13; 21 hoch, 6 auseinander | Lebenslauf `zert_tag` |
 | Kacheln | **ohne Rahmen**, vier zu 95, 16 Fuge, Reihen 20 auseinander, huggen ihren Text; Bühne 95 × 68 (Padding 6, `neutral/10`, Radius 4), Bild eingepasst mit Rahmen 1, Radius 2; 6 → Titel 10/14 fett → 2 → „Aussteller · Jahr“ 8/10 `neutral/60`. Dieselben Kacheln wie in der langen Fassung (Reihenfolge, Bündel, Kurzform des Ausstellers) | Vorschlag |
 | Kategorie | Label 8/10 Medium, Versalien, Laufweite 0,3, `neutral/80`, bündig links; 6 Luft, Linie 1 `neutral/80` über 428 – zusammen 17; Kategorien 16 auseinander | Vorschlag |
-| Einträge (Kernkompetenzen und Tools) | **Zeilen ohne Karten**, zwei Spalten zu 202, 24 Fuge; je Eintrag 7 Luft, Titel 10/14 fett und fünf Punkte (6, Radius 3, 4 Abstand, 4 von oben), 2, Beschreibung 10/14 `neutral/80`, 7 Luft; Einträge einer Zeile gleich hoch; ab der zweiten Zeile oben eine **Haarlinie 0,5 `neutral/40`** (innen, zählt mit) | Vorschlag |
+| Einträge (Kernkompetenzen und Tools) | **Zeilen ohne Karten**, zwei Spalten zu 202, 24 Fuge; je Eintrag 7 Luft, Titel 10/14 fett und fünf Punkte (6, Radius 3, 4 Abstand, 4 von oben; leere als Ring wie in der langen Fassung, Rahmen 1,5 innen `roh/punkt-rahmen`), 2, Beschreibung 10/14 `neutral/80`, 7 Luft; Einträge einer Zeile gleich hoch; ab der zweiten Zeile oben eine **Haarlinie 0,5 `neutral/40`** (innen, zählt mit) | Vorschlag; Ringe aus `2384:582`, `2384:737` (2026-10-06) |
 | Tools | ohne Label: Überschrift → 16 → Linie 1 `neutral/80` → Zeilen | Vorschlag |
 | Fuß | nur auf der letzten Seite, Unterkante bei 842 − 32 = **810**: 475 breit, Linie 1 `base/black`, 16 → Logo 78,95 × 8 links, drei Spalten zu 86,67 mit 48 Abstand rechts; Label 7/8 fett Versalien → 10 → Werte 8/10, Mail und Telefon 4 auseinander; Ansprechpartner, Kontakt und „New Monday GmbH, Stresemannstr. 23, 10963 Berlin“ wie im Lebenslauf | Lebenslauf `fuss_*` |
 
@@ -245,10 +252,14 @@ hätte das Skript oben 13 px Hintergrund ergänzt.
 
 ## Bekannte Abweichungen von der Figma-Vorlage
 
-Die Vorlage hat drei Unstimmigkeiten (Details in `figma-vorlage.md`). Das PDF
-folgt dort dem System, nicht dem Fehler:
+Die Vorlage hat drei Unstimmigkeiten (Details in `figma-vorlage.md`) und ist
+bei den Punkten älter als der Skill. Das PDF folgt dort dem System, nicht dem
+Fehler:
 
 - Die Kategorielinie endet 10 vor der rechten Kante statt 61 darüber hinaus.
+- Leere Punkte sind Ringe (2026-10-06). Die Komponente `Dots` im Master füllt
+  sie noch flächig (`neutral/10`, Stand 2026-09-28) – Weg A übernimmt das, bis
+  die Komponente nachgezogen ist.
 - Das Tools-Raster hat 24 Abstand und 380 breite Karten wie die Kernkompetenzen;
   die Vorlage zeigt dort das Master-Raster mit 16 und 385.
 - Die Zertifikatssektion hat einen anderen Aufbau (Feedback 2026-10-03): Die

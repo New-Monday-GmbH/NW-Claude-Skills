@@ -182,14 +182,16 @@ body { font-family: "Inter"; }
 .eintrag__name { flex: 1 1 auto; min-width: 0; margin-right: var(--eintraege-titel-abstand); }
 .eintrag__beschreibung { margin-top: var(--eintraege-abstand); }
 
+/* Leere Punkte als Ringe, Rahmen innen - wie in der langen Fassung. */
 .punkte { display: flex; flex: none; padding-top: var(--punkte-oben); }
 .punkt {
   display: block; flex: none;
   width: var(--punkte-groesse); height: var(--punkte-groesse);
   border-radius: var(--punkte-radius); background: var(--punkte-leer);
+  border: var(--punkte-leer-rahmen);
 }
 .punkt + .punkt { margin-left: var(--punkte-abstand); }
-.punkt--voll { background: var(--punkte-voll); }
+.punkt--voll { background: var(--punkte-voll); border: none; }
 
 /* ---------- Fuss ---------- */
 

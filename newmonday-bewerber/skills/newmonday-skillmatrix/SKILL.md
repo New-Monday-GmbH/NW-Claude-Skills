@@ -48,7 +48,8 @@ nach Freigabe gebaut (Schritt 2). Still gesetzt wird keine einzige Zahl.
 
 Für alle übernommenen Texte gilt dieselbe Regel wie im CV-Skill: Inhalte
 werden übernommen, nicht umgeschrieben; erlaubt ist nur das Glätten von
-Rechtschreibung und Grammatik. Neu formuliert werden ausschließlich die
+Rechtschreibung und Grammatik – dazu gehört die Durchkopplung („UX-Design“,
+Schritt 0). Neu formuliert werden ausschließlich die
 Hero-Beschreibung und die Karte „Erworbene Qualifikationen“ (nach den Regeln in
 Schritt 2c) sowie Beschreibungen für Attribute, die nicht im Katalog stehen
 (nach `references/attribute-katalog.md`).
@@ -95,6 +96,7 @@ Skills vor; im Einzellauf gilt er nicht.
 | Figma | Die Frames (lang und A4) entstehen, wenn `figma.aktiv` true ist – eine eigene Frage danach gibt es nicht. `figma.link` trägt die `node-id` der Kandidatenseite, also gilt „Zielseite“ mit `node-id` (`references/figma.md` bzw. `figma-vorlage.md`). |
 | Material | `material` – Zertifikate aus dem Ordner `material.zertifikate`; je Datei ein Eintrag, Titel, Aussteller und Datum vom Zertifikat abgelesen, neueste zuerst |
 | Verfügbarkeit | wandert in die Fragen der Phase *vorbereiten* |
+| Anfrage | `anfrage`, falls der Auftrag eine mitbringt (Schritt 0, Punkt 6); fehlt das Feld, gilt die Reihenfolge ohne Anfrage |
 
 **Phase vorbereiten: Schritte 1 bis 2d.** Statt der Freigabe-Nachricht aus 2e
 entsteht `fragen.json`:
@@ -174,7 +176,8 @@ Wie im CV-Skill: **Jede Frage mit überschaubarer Antwortmenge läuft über
 `AskUserQuestion`.** Material (Dateien, Links, Fotos) wird als Text derselben
 Nachricht erbeten, Freigaben und Berichte am Ende sind Text. Fragen werden
 gebündelt – dieser Skill kommt mit **zwei** Frage-Nachrichten aus: einer vor
-dem Auslesen (Schritt 0, drei Klickboxen in einem Aufruf) und einer als Freigabe
+dem Auslesen (Schritt 0, drei Klickboxen in einem Aufruf, Material und
+Anfrage als Text) und einer als Freigabe
 der Matrixinhalte (Schritt 2e). Bei jeder Frage steht die wahrscheinlichste
 Option zuerst, mit `(Empfohlen)`.
 
@@ -213,11 +216,12 @@ Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    nur dann englisch, wenn er ein eingeführter Fachbegriff ist, den man im
    deutschen UX-Alltag so sagt – "Wireframing & Prototyping", "Design Systems",
    "Information Architecture", "Journey Mapping", "Qualitative Research",
-   "Accessibility Audits", "Workshop Facilitation", "Stakeholder Management",
-   "Emotional Design". **KI-Begriffe bleiben englisch** – "AI Prototyping",
-   "AI in Research", "AI Workflows & Agents": So stehen sie in der Branche und in
-   der Vorschau, die der Nutzer gewählt hat. Ist der englische Name nur eine
-   Übersetzung, heißt das Attribut deutsch: "Frontend-Verständnis" statt
+   "Accessibility Audits", "Workshop Facilitation", "Stakeholder-Management"
+   (gekoppelt, siehe unten), "Emotional Design". **KI-Begriffe bleiben
+   englisch** – "AI Prototyping", "AI in Research", "AI Workflows & Agents": So
+   stehen sie in der Branche und in der Vorschau, die der Nutzer gewählt hat.
+   Ist der englische Name nur eine Übersetzung, heißt das Attribut deutsch:
+   "Frontend-Verständnis" statt
    "Frontend Understanding", "Zusammenarbeit mit Entwicklern" statt "Dev
    Collaboration", "Regulatorische Anforderungen" statt "Regulatory
    Compliance". Welche Form gilt, steht im Katalog in der Spalte „deutsch“ (leer = bleibt
@@ -235,6 +239,32 @@ Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    "UxPin". Wer eine Schreibweise korrigiert, nennt das in der Übergabe, statt
    es stillschweigend zu tun. Ist die Eigenschreibung nicht zu belegen, bleibt
    die vorgegebene stehen.
+
+   **Zusammengesetzte Begriffe mit englischem Bestandteil werden im deutschen
+   Text durchgekoppelt (Duden):** „UX-Design“, „UX-Konzeption“,
+   „Usability-Testing“, „Stakeholder-Management“, „User-Centered Design“ –
+   nicht „UX Design“, „Usability Testing“ oder „User Centered Design“. Ohne
+   Kopplung bleiben:
+
+   - **Eingeführte englische Fachbegriffe ohne deutsches Grundwort**: „User
+     Research“, „UX Research“, „Information Architecture“, „Wireframing &
+     Prototyping“. Kommt ein deutsches Wort dazu, wird gekoppelt:
+     „User-Research-Interviews“.
+   - **Eigennamen**: Firmen, Produkte und Zertifikate behalten ihre
+     Schreibweise („Google UX Design Certificate“).
+   - **Englische Dokumente** (`sprache: en`).
+
+   In der Skill Matrix gilt das für Hero-Beschreibung, Schwerpunkte, Satz und
+   Tags der Qualifikationskarte, jede Beschreibung und die Attributnamen. Für
+   Katalog-Attribute steht die gekoppelte Form in der Spalte „deutsch“
+   („User-Centered Design“, „UI-Design“, „Design-QA“); Adjektiv plus Substantiv
+   bleibt offen („Emotional Design“, „Responsive Web Design“). Kategorienamen
+   sind englische Bezeichner und bleiben, wie sie sind („Usability Testing &
+   Evaluation“). Das Renderskript meldet offene Schreibweisen aus einer kurzen
+   Liste (`DURCHKOPPLUNG`: „UX Design“, „UX Konzeption“, „Usability Testing“,
+   „Stakeholder Management“, „User Centered Design“) – ein Netz für die
+   häufigsten Fälle, nicht die Regel: Was nicht darauf steht, wird trotzdem
+   gekoppelt.
 
 2. **Die Verfügbarkeit.** Ebenfalls als Klickbox – sie steht als Badge ganz
    oben im Dokument und ist keine Ableitung aus dem Lebenslauf:
@@ -298,6 +328,20 @@ Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    ist groß und fast quadratisch, das LinkedIn-Thumbnail ist dafür sichtbar
    weich – und mit etwas Rand über dem Kopf, sonst wird es eng.
 
+6. **Die Anfrage, falls es eine gibt** – optional, als Text derselben
+   Nachricht, keine Klickbox:
+
+   > Ist die Skill Matrix für eine bestimmte Anfrage – eine Ausschreibung,
+   > eine Projektbeschreibung, einen Kundenwunsch? Dann schick sie mit; ich
+   > richte die Reihenfolge der Kategorien danach aus.
+
+   Kommt keine, wird ohne Anfrage gebaut (KI-Kategorie zuerst, Schritt 2a) –
+   nachgefragt wird nicht. Kommt sie später, mit dem Material oder als Satz
+   im Auftrag („für die Ausschreibung bei X“), gilt sie genauso. Aus ihr wird
+   in Schritt 1 eine Zeile für das Feld `anfrage` (Schritt 3): wer gesucht
+   wird und welche Themen zählen, etwa „Junior-Designer, Fokus
+   Barrierefreiheit, Dev-ready Handover, Design-QA“.
+
 ### 1. Eingang auslesen
 
 ```bash
@@ -324,6 +368,13 @@ nur Lücken, das Portfolio ist Eigenwerbung (Fakten übernehmen, Bewertungen
 nicht), LinkedIn-Artefakte wie "Top-Kenntnisse" ignorieren. Die Rubrik
 "Kenntnisse" im LinkedIn-Export ist trotzdem nützlich – als **Hinweis**,
 wonach im Lebenslauf und Portfolio zu suchen ist, nie als alleiniger Beleg.
+
+**Die Anfrage auslesen**, falls eine gekommen ist (Schritt 0, Punkt 6): wer
+gesucht wird und welche Themen zählen, in einer Zeile für `anfrage`. Sie ist
+eine Gewichtung, kein Beleg – was sie verlangt, der Eingang aber nicht hergibt,
+kommt nicht in die Matrix. Daraus folgt in Schritt 2 die Reihenfolge der
+Kategorien (2a) und, soweit belegt, die Ausrichtung von Schwerpunkten und
+Hero-Beschreibung (2c).
 
 **Zertifikate aufbereiten**, falls welche gekommen sind:
 
@@ -423,7 +474,7 @@ und sie decken jedes Profil ab, das dieses Haus vermittelt.
 vorkommt** – sonst in der inhaltlich nächsten Kategorie der Matrix, nie in einer
 fachfremden. Beispiele: `Accessibility Audits` (Katalog: Usability Testing)
 steht unter `Accessibility & Inclusive Design`, `Design Systems` unter
-`Interaction & Visual Design`, `User Centered Design` und `Workshop
+`Interaction & Visual Design`, `User-Centered Design` und `Workshop
 Facilitation` unter `User Research & Insights`, wenn ihre eigenen Kategorien
 fehlen. „Frontend-Verständnis“ und „Zusammenarbeit mit Entwicklern“ gehören
 dagegen nie zu Accessibility. Welche Kategorien verwandt sind, steht als
@@ -446,11 +497,25 @@ gehen nicht verloren:** Gestrichen wird nur, wenn diese Grenzen es erzwingen –
 dann die schwächsten, mit Hinweis und unter „nicht aufgenommen“ in der Freigabe
 (2e).
 
-Ausgewählt werden die Kategorien, die das Profil **belegt**. **Eine
-KI-Kategorie steht immer zuerst** (`AI & Emerging Tech`; das Skript erkennt
-jede Kategorie, deren Name mit „AI“ oder „KI“ beginnt), danach die stärkste. Ein Profil ohne KI-Belege bekommt
-keine AI-Kategorie – die Regel ordnet nur, sie ergänzt nichts. Ein
+Ausgewählt werden die Kategorien, die das Profil **belegt**. Ein
 Barrierefreiheits-Schwerpunkt bekommt `Accessibility & Inclusive Design`.
+
+**Die Reihenfolge der Kategorien folgt der Anfrage, wenn es eine gibt.**
+
+- **Mit Anfrage** (Ausschreibung, Projektbeschreibung, Kundenwunsch – Schritt
+  0, Punkt 6) steht die Kategorie zuerst, die für die Anfrage am wichtigsten
+  ist, danach absteigend nach Bedeutung für sie – auch wenn die KI-Kategorie
+  dadurch nach hinten rückt. Beispiel: Für „Junior-Designer, Fokus
+  Barrierefreiheit, Dev-ready Handover, Design-QA“ steht `Development
+  Collaboration` vorn, dann `Accessibility & Inclusive Design`, dann `AI &
+  Emerging Tech`. Was die Anfrage nicht berührt, folgt nach Stärke.
+- **Ohne Anfrage steht eine KI-Kategorie zuerst** (`AI & Emerging Tech`; das
+  Skript erkennt jede Kategorie, deren Name mit „AI“ oder „KI“ beginnt),
+  danach die stärkste.
+
+Beide Regeln ordnen nur, sie ergänzen nichts: Ein Profil ohne KI-Belege
+bekommt keine AI-Kategorie, und eine Anfrage nach Barrierefreiheit macht aus
+keinem Beleg einen.
 
 **`Tools` ist keine Kategorie, sondern eine eigene Sektion.** Sie bekommt eine
 eigene Überschrift mit dem Tools-Icon – genau wie „Kernkompetenzen" – und steht
@@ -535,6 +600,13 @@ für denselben Skill denselben Namen am selben Ort.
 - **Schwerpunkte**: **genau drei** Begriffe für die umrandeten Buttons,
   aus den stärksten belegten Themen des Profils. Kurz halten – zwei bis
   vier Wörter je Button, sonst bricht die Zeile.
+- **Mit Anfrage** dürfen sich Schwerpunkte und Hero-Beschreibung an ihr
+  ausrichten: Unter den belegten Themen kommen die nach vorn, die für die
+  Anfrage zählen (für die Anfrage oben etwa „UX-Design“, „Dev-ready Handover“,
+  „Barrierefreiheit“). **Nur mit belegtem Material, nichts erfinden** – kein
+  Schwerpunkt und kein Halbsatz, den der Eingang nicht hergibt, nur weil die
+  Anfrage ihn nennt. Was die Anfrage verlangt und fehlt, steht in der Freigabe
+  (2e), nicht im Dokument.
 - **Erworbene Qualifikationen** – die Karte über den Zertifikatskacheln, nur
   wenn es Zertifikate gibt: ein Satz und sechs bis zehn Tags. **Jedes Tag muss
   sich aus mindestens einem der aufgeführten Zertifikate ableiten lassen** –
@@ -583,7 +655,10 @@ Urteil ist:
 2. Die **drei Schwerpunkte**.
 3. Die **komplette Matrix als Tabelle**: Kategorie, Attribut, Punkte, Beleg
    (eine Zeile je Attribut, Beleg in Stichworten – "3 Jahre Design-System
-   bei X", "CPUX-F 2021", "Portfolio-Case Y"). Steht ein Attribut in einer
+   bei X", "CPUX-F 2021", "Portfolio-Case Y"), die Kategorien in der
+   Reihenfolge des Dokuments. Bei einer Anfrage darüber die Zeile für
+   `anfrage` und ein Satz, warum die erste Kategorie vorn steht – und was die
+   Anfrage verlangt, der Eingang aber nicht belegt. Steht ein Attribut in einer
    nächstverwandten Kategorie, dazu in Klammern die Katalog-Kategorie. Darunter,
    falls die Grenzen es erzwungen haben, die belegten Attribute, die **nicht
    aufgenommen** wurden – mit Punkten und Grund (2a).
@@ -626,7 +701,7 @@ Urteil ist:
 
 Aus den freigegebenen Inhalten eine `skillmatrix.json` bauen. Vollständiges
 Beispiel: `beispiel/skillmatrix.json` (das ist Wissems Matrix aus der
-Vorlage mit fünf Abweichungen: Die Hero-Beschreibung steht in der
+Vorlage mit sechs Abweichungen: Die Hero-Beschreibung steht in der
 Ich-Perspektive, das Vorlagen-PDF trägt sie noch in der dritten Person. Die
 Werkzeuge stehen nur in den Tools – `Figma / FigJam` und `Adobe CC` –, die
 Vorlage führt sie zusätzlich unter `Tools & Implementation`. Das Foto ist mit
@@ -640,11 +715,15 @@ Kategorien folgen dem Katalog (2a): Statt „AI“, „Strategie & Research“,
 Katalog-Kategorien da; „Product Thinking“ und „Workshop Facilitation“ stehen
 nächstverwandt unter `User Research & Insights`, weil ihre Kategorien fehlen,
 „Concepts“ heißt nach der Namensregel „Konzeption“ und „Micro-interactions“
-nach dem Katalog „Microinteractions“).
+nach dem Katalog „Microinteractions“. Schließlich ist durchgekoppelt (Schritt
+0): „Usability-Testing“ im Satz, „Stakeholder-Management“ unter den Tags,
+„Design-System-Testing“ unter den Kernkompetenzen. Eine `anfrage` hat das
+Beispiel nicht – die KI-Kategorie steht vorn).
 
 ```json
 {
   "sprache": "de",
+  "anfrage": "optional, eine Zeile",
   "person": {
     "name", "rolle", "verfuegbar_ab", "erfahrung",
     "beschreibung", "schwerpunkte": [], "foto", "foto_a4 (optional)"
@@ -658,6 +737,12 @@ nach dem Katalog „Microinteractions“).
 
 Dazu:
 
+- **`anfrage`** (optional): die Anfrage, für die die Matrix gebaut wird, in
+  einer Zeile (Schritt 0, Punkt 6) – etwa `"Junior-Designer, Fokus
+  Barrierefreiheit, Dev-ready Handover, Design-QA"`. Sie steht nicht im
+  Dokument; sie sagt den Skripten, dass die Reihenfolge der Kategorien in der
+  JSON gewollt ist (siehe „Reihenfolge der Kategorien“ unten). Ohne Anfrage
+  das Feld weglassen.
 - **`person.foto`**: der Zuschnitt der langen Fotokarte (`foto-<name>.png`). Den
   A4-Zuschnitt (`foto-<name>-a4.png`) findet das Renderskript daneben;
   `person.foto_a4` nur, wenn er anders heißt oder woanders liegt (Schritt 1a).
@@ -716,11 +801,16 @@ Dazu:
   Vorlage.
 - **`punkte`**: ganze Zahl 3–5, siehe Skala. Das Renderskript warnt
   darunter.
-- **Reihenfolge der Kategorien**: **die KI-Kategorie immer zuerst** (Name
-  beginnt mit „AI“ oder „KI“), danach die stärkste – sonst meist Strategie &
-  Research. Render- und Planskript setzen eine KI-Kategorie, die weiter hinten
-  steht, selbst nach vorn und melden das; die JSON dann nachziehen. Die
-  Vorlagenreihenfolge nur übernehmen, wenn sie zum Profil passt.
+- **Reihenfolge der Kategorien** (2a): **mit `anfrage`** die wichtigste für
+  die Anfrage zuerst, danach absteigend nach Bedeutung für sie. Render- und
+  Planskript lassen die Reihenfolge der JSON dann, wie sie ist, und melden sie
+  (Hinweis „Anfrage …: Kategorien in der Reihenfolge der JSON — 1. …“) – die
+  Meldung gehört in die Übergabe. **Ohne `anfrage` die KI-Kategorie immer
+  zuerst** (Name beginnt mit „AI“ oder „KI“), danach die stärkste – sonst
+  meist Strategie & Research. Dann setzen beide Skripte eine KI-Kategorie, die
+  weiter hinten steht, selbst nach vorn und melden das; die JSON dann
+  nachziehen. Die Vorlagenreihenfolge nur übernehmen, wenn sie zum Profil
+  passt.
 
 ### 4. Rendern — beide Fassungen in einem Aufruf
 
@@ -754,9 +844,11 @@ Florian Feiler drei). Welcher Block auf welcher Seite steht, legt das Skript im
 A4-PDF ab; daraus baut Schritt 4a die Seiten. Das Skript sucht sich die Engine
 selbst und meldet Auffälligkeiten nach stderr: fehlende Felder, Punkte außerhalb der
 Skala, überlange Beschreibungen, Schwerpunkte breiter als die Textspalte,
-fehlende Bilddateien, eine nach vorn gesetzte KI-Kategorie, Attribute außerhalb
+fehlende Bilddateien, eine nach vorn gesetzte KI-Kategorie oder – mit
+`anfrage` – die gewählte Reihenfolge der Kategorien, Attribute außerhalb
 ihrer Katalog-Kategorie, Namen, die nicht der Katalogform der Dokumentsprache
-entsprechen, erfundene Kategorien, umsortierte, gekürzte und gebündelte
+entsprechen, offene Schreibweisen wie „UX Design“ (Durchkopplung, Schritt 0),
+erfundene Kategorien, umsortierte, gekürzte und gebündelte
 Zertifikate, einen zu langen Satz oder zu wenige Tags in der
 Qualifikationskarte; in der A4-Fassung (Präfix „A4:“) einen Block, der höher
 ist als eine Seite, einen Fuß allein auf der letzten Seite und einen
@@ -790,10 +882,11 @@ pdftoppm -png -r 72 "ausgabe/New-Monday - Vorname Nachname - Jobtitel - Skillmat
 
 Auf der Vorschau prüfen: Steht der Kopf mittig in der Fotokarte und das
 Gesicht frei vom Farbverlauf? Stehen die
-Schwerpunkt-Buttons in einer Zeile? Läuft kein Kartentitel in die Punkte?
-Steht die KI-Kategorie zuerst, und steht jedes Attribut in seiner
-Katalog-Kategorie? Sind die Zertifikate unverzerrt, neueste zuerst, nichts
-abgeschnitten oder überlappend, passt jedes Tag der Qualifikationskarte zu einem
+Schwerpunkt-Buttons in einer Zeile? Läuft kein Kartentitel in die Punkte,
+und sind die leeren Punkte als Ringe zu sehen? Steht die richtige Kategorie
+zuerst (mit Anfrage die wichtigste für sie, sonst die KI-Kategorie), und steht
+jedes Attribut in seiner Katalog-Kategorie? Sind die Zertifikate unverzerrt,
+neueste zuerst, nichts abgeschnitten oder überlappend, passt jedes Tag der Qualifikationskarte zu einem
 der gezeigten Zertifikate, und ist die Sektion höchstens 924 hoch?
 Wirkt eine Kategoriezeile halb leer (eine einzelne Karte in der letzten Zeile
 ist in Ordnung – die Vorlage hat das auch)? In der A4-Fassung zusätzlich: Logo
@@ -856,7 +949,10 @@ den `imageHash` einsetzen. Vollständig mit allen Fallstricken in
 - **Kein Wert von Hand.** Überschrieben werden nur Inhalte — Texte,
   `Dots`-Variante, Foto, Sichtbarkeit. Farben, Abstände, Schatten und Schriften
   kommen aus den Komponenten und der Library; jede andere Überschreibung kappt
-  die Bindung ans Design System genau dort.
+  die Bindung ans Design System genau dort. Das gilt auch für die leeren
+  Punkte: Der Klon zeigt sie so, wie die Komponente `Dots` sie führt – bis sie
+  in der Masterdatei als Ringe nachgezogen ist, flächig. Das in der Übergabe
+  nennen, nicht im Klon umfärben.
 
 #### Weg B — aus dem Bauplan zeichnen (fremde Datei)
 
@@ -925,8 +1021,9 @@ Beide PDFs ausgeben und in wenigen Zeilen berichten:
   Hintergrund ergänzt oder zu wenig Luft über dem Scheitel gemeldet hat.
 - Was das Renderskript bemängelt hat und wie damit umgegangen wurde – immer
   mit dabei: welche Zertifikate gebündelt oder gekürzt wurden (Wortlaut aus
-  den Hinweisen, samt Sammelkachel) und dass eine KI-Kategorie nach vorn
-  gerückt ist, falls das Skript das gemeldet hat.
+  den Hinweisen, samt Sammelkachel) – und bei einer Anfrage die gewählte
+  Reihenfolge der Kategorien samt Anfrage, sonst dass eine KI-Kategorie nach
+  vorn gerückt ist, falls das Skript das gemeldet hat.
 - **Beide PDFs** mit ihrem Dateinamen; bei der A4-Fassung die Seitenzahl.
 - **Die Figma-Frames**, falls gewünscht: der Link auf den langen Frame und auf
   die A4-Seiten (`…?node-id=…`) und auf welcher Seite der Datei sie liegen. Ist
@@ -978,7 +1075,9 @@ Fehlt nichts, steht hier nichts.
 - **Die Tags der Qualifikationskarte kommen aus den Zertifikaten.** Jedes Tag
   ist von einem gezeigten Zertifikat belegt; was nur Lebenslauf oder Portfolio
   hergeben, steht in den Kernkompetenzen.
-- **Die KI-Kategorie steht immer zuerst** in den Kernkompetenzen.
+- **Die Reihenfolge der Kategorien folgt der Anfrage**: Mit Anfrage steht die
+  Kategorie zuerst, die für sie am wichtigsten ist, danach absteigend nach
+  Bedeutung; ohne Anfrage steht die KI-Kategorie zuerst, danach die stärkste.
 - **Jedes Attribut steht in seiner Katalog-Kategorie**, wenn die in der Matrix
   vorkommt, sonst in der nächstverwandten – nie in einer fachfremden und nie in
   der, die eine alte Matrix ihm gegeben hat. Höchstens fünf Kategorien, sechs
@@ -986,7 +1085,9 @@ Fehlt nichts, steht hier nichts.
   diese Grenzen es erzwingen.
 - **Der graue Rumpf reicht bis an den Fuß** (lange Fassung). Zwischen der letzten Sektion und
   dem Fuß liegen 64 Innenabstand im Rumpf, kein weißer Streifen.
-- **Bewertungsskala**: fünf Punkte, gefüllt in der Markenfarbe. Keine
+- **Bewertungsskala**: fünf Punkte – die erreichten gefüllt in der
+  Markenfarbe, die übrigen als Ring (weiß, Rahmen 1,5 innen in
+  `roh/punkt-rahmen`), gleich groß, in beiden Fassungen, PDF und Figma. Keine
   Prozente, keine Balken, keine Sterne.
 - **Schriften: Rethink Sans für Name und Rolle, Inter für alles andere.** Die
   Schnitte liegen in `assets/fonts/` und werden eingebettet; fehlt eine Datei,
