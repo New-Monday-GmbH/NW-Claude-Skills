@@ -1,24 +1,29 @@
 # Layout der Skillmatrix — Design System, Maße, Renderweg
 
-Die Skillmatrix folgt dem New-Monday-Design-System der Figma-Masterdatei
-`Portfolio - CV Master`, Seite **Skillmatrix** (Frame `4158:4223`, 1444 breit).
+Die Skillmatrix entsteht in **zwei Fassungen, immer beide**, aus derselben
+`skillmatrix.json`: der langen (eine Seite, 1444 breit) und der A4-Fassung
+(595 × 842, mehrseitig). Die lange folgt dem New-Monday-Design-System der
+Figma-Masterdatei `Portfolio - CV Master`, Seite **Skillmatrix** (Frame
+`4158:4223`); die A4-Fassung ist im Abschnitt „Die A4-Fassung“ unten hergeleitet.
 Alle Werte stehen **einmal**, in `assets/tokens.json`, unter den Namen der
-Figma-Library. Von dort lesen:
+Figma-Library – die der A4-Fassung im Block `a4`, der Farben, Abstände und
+Schriften von oben mitbenutzt (`design_system.fassung(ds, "a4")`). Von dort
+lesen:
 
 | Abnehmer | wie |
 |---|---|
-| PDF | `design_system.css()` erzeugt `@font-face`, `:root`-Variablen je Komponente (`--skillkarte-padding` …) und die Textklassen `.t-<verwendung>`; `skillmatrix.css` trägt nur Struktur und `var(--…)` |
-| Figma, Weg B | `figma_plan.py` baut den Knotenbaum aus denselben Einträgen |
+| PDF | `design_system.css()` erzeugt `@font-face`, `:root`-Variablen je Komponente (`--skillkarte-padding` …) und die Textklassen `.t-<verwendung>`; `skillmatrix.css` trägt nur Struktur und `var(--…)`. Für A4 dasselbe aus dem Block `a4` vor `skillmatrix-a4.css` |
+| Figma, Weg B | `figma_plan.py` baut den Knotenbaum aus denselben Einträgen, für A4 je Seite einen (`figma_plan_a4.json`) |
 | Figma, Weg A | braucht die Datei nicht — der Klon hängt an den Komponenten und der Library |
 | Zertifikate | `zertifikate.py` rechnet aus `zertifikate`, `zertkachel`, `zertbild`, `zertbuehne`, `qualikarte`, `qualitags` und `qualitag` die Sektion vor – Karte, Bündelung, Bildgrößen, Zeilengrenzen, Höhe – für PDF und Plan gleich |
-| Zuschnitt | `extract_input.py`, `zert_bilder.py`, `kopf_ausschnitt.py` und die Foto-Skripte nehmen Foto- und Kachelformat sowie die Kopflage (`kopf-oben-anteil`, `kinn-anteil`) aus `komponenten` |
+| Zuschnitt | `extract_input.py`, `zert_bilder.py`, `kopf_ausschnitt.py` und die Foto-Skripte nehmen Foto- und Kachelformat sowie die Kopflage (`kopf-oben-anteil`, `kinn-anteil`, `kopf-luft-anteil`) aus `komponenten.fotokarte` und `a4.komponenten.fotokarte` – je Fotokarte ein Zuschnitt |
 
 **Die Regel:** Ein Wert wird nur in `tokens.json` geändert — nie im CSS, im
-Template oder im Plan. Nach jedem Rendern prüft `render_skillmatrix.py` das PDF
-gegen die Tokens (Seitenbreite, eingebettete Schriften, Schrift/Schnitt/Größe/
-Farbe jeder Textzeile, Flächen- und Linienfarben) und endet mit Code 2, wenn
-etwas abweicht. Dieselbe Prüfung einzeln:
-`python3 ${CLAUDE_SKILL_DIR}/scripts/design_system.py pruefe <pdf>`.
+Template oder im Plan. Nach jedem Rendern prüft `render_skillmatrix.py` beide PDFs
+gegen die Tokens ihrer Fassung (Seitenformat jeder Seite, eingebettete Schriften,
+Schrift/Schnitt/Größe/Farbe jeder Textzeile, Flächen- und Linienfarben) und
+endet mit Code 2, wenn etwas abweicht. Dieselbe Prüfung einzeln:
+`python3 ${CLAUDE_SKILL_DIR}/scripts/design_system.py pruefe <pdf> [a4]`.
 
 Die Tabellen unten sind ein **Überblick zum Nachschlagen, Stand 2026-09-28**
 (= `_quelle.ausgelesen` in `tokens.json`), die Zertifikatssektion Stand
@@ -81,7 +86,7 @@ das Rendern ab — ohne sie setzte jede Engine still eine Ersatzschrift.
 „roh" heißt: Die Vorlage setzt dort keinen Text-Style. In `tokens.json` stehen
 diese Stile unter `roh/…`, damit auch sie nur an einer Stelle stehen.
 
-## Seitenaufbau
+## Seitenaufbau (lange Fassung)
 
 Eine einzige lange Seite, **1444pt breit**, Höhe nach Inhalt. Inhalt 1188 breit,
 Ränder `spacing-10xl`. Von oben:
@@ -93,8 +98,9 @@ Ränder `spacing-10xl`. Von oben:
   und Rolle (je 8 Luft darunter) → 24 → Beschreibung (8 darunter) → 32 →
   Schwerpunkte (je 52 hoch, 16 Abstand, einzeilig). Rechts die Fotokarte
   437,33 × 435,34: Rahmen 1 `neutral/40`, Radius 16, Foto 435,33 × 433,34 mit
-  90 % Deckkraft (Kopf waagerecht mittig, Haaransatz bei 5 %, Kinn bei 70 %),
-  unten der Verlauf mit 24 Padding, Name und Erfahrung.
+  90 % Deckkraft (Kopf waagerecht mittig, Haaransatz bei 5 %, Kinn bei 70 %,
+  mindestens 5 % Luft über dem Scheitel), unten der Verlauf mit 24 Padding,
+  Name und Erfahrung.
 - **Rumpf** `neutral/10`, oben 1pt Linie `neutral/15`, Padding oben 64, unten 64
   (`spacer/--space-64-32`), Sektionen 64 auseinander. Der Rumpf reicht bis an
   den Fuß — kein weißer Streifen dazwischen.
@@ -134,6 +140,108 @@ Ränder `spacing-10xl`. Von oben:
 - **Fuß** `brand/primary`, Padding 54 / 104: Frage (Breite 840) mit 32 Luft und
   Linie 1 weiß auf den untersten 1pt → 32 → Logo und drei Kontaktspalten, 160
   auseinander; Label → 10 → Werte (Mail und Telefon 4 auseinander).
+
+## Die A4-Fassung
+
+Vorlage ist der vom Nutzer am 2026-10-06 abgenommene Vorschlag in Florians
+Datei (`KoR4rzVSoMrvQot8z33gkv`, Seite „Skillmatrix“, Frames `2347:48`,
+`2348:48`, `2349:48`). Rand, Kopfzeile und Fuß kommen aus dem Lebenslauf
+(`newmonday-cv/assets/tokens.json`), damit Lebenslauf und Skill Matrix im Set
+gleich aussehen. Die Werte stehen in `tokens.json` unter `a4`.
+
+**Warum diese Maße.** A4 hoch in Punkt ist 595 × 842 (1 Figma-px = 1pt, wie im
+Lebenslauf). Der Satzspiegel des Lebenslaufs – oben 60, links 60, rechts 107,
+unten 32 – lässt **428** Breite. Darin teilt sich alles ohne Rest: zwei Spalten
+zu **202** mit **24** Fuge (202 + 24 + 202), vier Kacheln zu **95** mit 16 Fuge
+(4 × 95 + 3 × 16), Textspalte und Fotokarte im Hero 296 + 24 + 108. Die
+Schriftgrade folgen dem Lebenslauf: **10pt Fließtext** (14pt Zeile), Name 32/36
+Rethink Sans, Rubriken 14/19, Labels 8/10. Was in der langen Fassung eine Karte
+mit Schatten ist, ist hier eine Zeile mit Haarlinie – Schatten und viele Karten
+vertragen sich nicht mit Papier und 10pt.
+
+| Element | Maß | Herkunft |
+|---|---|---|
+| Seite | 595 × 842, Rand 60 / 107 / 32 / 60, Inhalt 428 | Lebenslauf `seite` |
+| Kopfzeile | auf jeder Seite: Logo `nm-logo.svg` 133,231 × 13,5 links bei 60 / 60; auf Seite 1 rechts das Badge | Lebenslauf `kopflogo_*` |
+| Badge | Padding 4 / 8, Punkt 6, Abstand 6, Rahmen 1 `neutral/60`, Grund `neutral/10`, Text 8/10 Versalien, Laufweite 0,3, `neutral/60`; 20 hoch, senkrecht mittig in der Kopfzeile | Badge der langen Fassung, verkleinert |
+| Inhalt beginnt | 60 + 13,5 + 35,5 = **109** | Lebenslauf `kopf_intro` |
+| Blöcke | 32 auseinander (Hero, Zertifikate, Kernkompetenzen, Tools) | `spacing-4xl` |
+| Hero | Name 32/36 → 8 → Rolle Inter 10/12 `base/black` (klein wie im Lebenslauf) → 16 → Schwerpunkte; rechts die Fotokarte; darunter 12 → Beschreibung 10/14 `neutral/80` über 428 | Vorschlag, Name und Rolle aus dem Lebenslauf |
+| Schwerpunkte | Padding 5 / 8, Rahmen 1,5 `brand/primary`, Radius 4, Text 10/14 fett; 27 hoch, 6 auseinander, brechen um | Vorschlag |
+| Fotokarte | 108 × 99 (= Höhe der Textspalte: 36 + 8 + 12 + 16 + 27), Radius 8, Rahmen 1 `neutral/40` obenauf, Grund `bg-primary_hover`, Foto 90 %, **kein Verlauf, kein Name** | Vorschlag |
+| Sektionstitel | Icon 14, 6 Abstand, Inter 14/19 fett, Laufweite −0,07; 16 bis zum Inhalt | Lebenslauf `rubrik` |
+| Qualifikationskarte | die **einzige Karte mit Rahmen**: Padding 14, Rahmen 1 `neutral/40`, Radius 8; Titel 10/14 fett → 8 → Satz 10/14 `neutral/80` → 8 → Tags; 16 bis zu den Kacheln | Vorschlag |
+| Tags | Padding 3 / 6, Rahmen 1 `neutral/40`, Radius 4, ohne Grund, Text 10/13; 21 hoch, 6 auseinander | Lebenslauf `zert_tag` |
+| Kacheln | **ohne Rahmen**, vier zu 95, 16 Fuge, Reihen 20 auseinander, huggen ihren Text; Bühne 95 × 68 (Padding 6, `neutral/10`, Radius 4), Bild eingepasst mit Rahmen 1, Radius 2; 6 → Titel 10/14 fett → 2 → „Aussteller · Jahr“ 8/10 `neutral/60`. Dieselben Kacheln wie in der langen Fassung (Reihenfolge, Bündel, Kurzform des Ausstellers) | Vorschlag |
+| Kategorie | Label 8/10 Medium, Versalien, Laufweite 0,3, `neutral/80`, bündig links; 6 Luft, Linie 1 `neutral/80` über 428 – zusammen 17; Kategorien 16 auseinander | Vorschlag |
+| Einträge (Kernkompetenzen und Tools) | **Zeilen ohne Karten**, zwei Spalten zu 202, 24 Fuge; je Eintrag 7 Luft, Titel 10/14 fett und fünf Punkte (6, Radius 3, 4 Abstand, 4 von oben), 2, Beschreibung 10/14 `neutral/80`, 7 Luft; Einträge einer Zeile gleich hoch; ab der zweiten Zeile oben eine **Haarlinie 0,5 `neutral/40`** (innen, zählt mit) | Vorschlag |
+| Tools | ohne Label: Überschrift → 16 → Linie 1 `neutral/80` → Zeilen | Vorschlag |
+| Fuß | nur auf der letzten Seite, Unterkante bei 842 − 32 = **810**: 475 breit, Linie 1 `base/black`, 16 → Logo 78,95 × 8 links, drei Spalten zu 86,67 mit 48 Abstand rechts; Label 7/8 fett Versalien → 10 → Werte 8/10, Mail und Telefon 4 auseinander; Ansprechpartner, Kontakt und „New Monday GmbH, Stresemannstr. 23, 10963 Berlin“ wie im Lebenslauf | Lebenslauf `fuss_*` |
+
+Nachgemessen an Florians Daten: Name 109, Zertifikate 294, Kacheln 481 (Reihen
+128 und 142), Kategorien auf Seite 2 bei 144 / 394 / 602 (234, 192, 192 hoch),
+Tools auf Seite 3 bei 424, Fuß 745–810 – auf den Punkt wie im Vorschlag.
+
+**Seitenumbruch.** Kein Block bricht in sich um: Kategorie, Tools,
+Qualifikationskarte und jede Kachelreihe stehen ganz auf einer Seite
+(`break-inside: avoid`), eine Überschrift bleibt bei dem, was ihr folgt
+(`break-after: avoid`). Folgt eine Kategorie auf einer neuen Seite, steht sie
+oben ohne Wiederholung der Überschrift; der Abstand davor fällt am
+Seitenanfang weg. Weil die Reihenfolge feststeht, ist das Füllen Seite für Seite
+schon die kleinste Seitenzahl.
+
+**Der Fuß sitzt unten**, wie im Lebenslauf: Vor ihm steht eine Luft
+(`.fussluft`), im ersten Durchgang 32 (`fuss.abstand-min`); dann misst das
+Renderskript im Layout, wo der Fuß endet, und setzt die Luft so, dass er bei 810
+aufsitzt. Passt der Fuß nicht mehr auf die letzte Inhaltsseite, rückt er mit
+seiner Luft auf eine eigene – das meldet das Skript. In Figma füllt der Inhalt
+der letzten Seite die Höhe (FILL), der Fuß steht darunter am Rand.
+
+**Die Kopfzeile läuft mit.** Sie steht im Template zweimal, als laufende
+Elemente (`position: running(kopferste)` mit Badge, `running(kopf)` ohne), und
+`@page` setzt sie in den oberen Rand – `:first` mit Badge, alle weiteren nur mit
+Logo. Der obere Rand ist deshalb 109, die Kopfzeile sitzt mit `padding-top` 60
+darin. Das kann nur WeasyPrint; ohne WeasyPrint entsteht die A4-Fassung nicht.
+
+**Die Seitenaufteilung steht im PDF.** Jeder Block trägt im Template ein
+`data-block`; das Renderskript liest aus dem Layout, auf welcher Seite er
+steht, und legt das in der Dokumentinfo des A4-PDFs ab (`/NewMondaySeiten`,
+etwa `{"seiten": 3, "bloecke": {"hero": 1, "kategorie-4": 3, "fuss": 3}}`).
+`figma_plan.py` baut die Seiten daraus und hält die Kategorielabels gegen den
+Seitentext – wie der Lebenslauf liest es die Aufteilung aus dem PDF, statt sie
+zu raten.
+
+**Bewusste Abweichungen vom Vorschlag:** Die Tools stehen in der Reihenfolge
+der JSON (im Vorschlag waren ChatGPT und Lighthouse vertauscht), der Fuß sitzt
+in Figma per FILL des Inhalts unten statt über einen festen Abstandsrahmen, die
+Kachelreihen haben in Figma feste Kachelbreiten (95) statt FILL, und das Foto ist
+eigens für 108 : 99 geschnitten, mit Luft über dem Haar (im Vorschlag war der
+lange Zuschnitt eingesetzt und die Haare oben angeschnitten).
+
+## Der Fotozuschnitt je Fotokarte
+
+Beide Fotokarten haben ein eigenes Seitenverhältnis (lang 435,33 : 433,34, A4
+108 : 99). Ein Zuschnitt für beide hieße: In der breiteren A4-Karte schneidet
+`object-fit: cover` oben und unten weg – genau so waren im Vorschlag die Haare
+angeschnitten. Deshalb schneidet `kopf_ausschnitt.py` je Karte eigens, aus dem
+Original (`foto-<name>.png`, `foto-<name>-a4.png`):
+
+| Token (`fotokarte`) | lang | A4 | Bedeutung |
+|---|---|---|---|
+| `kopf-oben-anteil` | 0,05 | 0,10 | Ziel: Scheitel bei diesem Anteil der Bildhöhe |
+| `kinn-anteil` | 0,70 | 0,82 | Ziel: Kinn |
+| `kopf-luft-anteil` | 0,05 | 0,08 | **Mindestluft über dem Scheitel** – darüber wird nie geschnitten |
+| Kinngrenze | Beginn des Verlaufs (0,78, gerechnet) | `kinn-max-anteil` 0,92 | tiefer darf das Kinn nicht |
+
+Reicht das Original nicht, in dieser Reihenfolge: größer schneiden (mehr
+Schultern, notfalls nicht ganz mittig), dann oben Hintergrund ergänzen – nur bei
+einfarbigem oberem Bildrand (Streuung bis 3 Grauwerte, sonst sähe man die Naht)
+–, sonst melden. Die Luft geht dabei dem Kinn vor. Die A4-Karte verträgt einen
+größeren Kopf als die lange (Ziel 72 % statt 65 % der Höhe): Sie ist klein, und
+kein Verlauf deckt das Kinn. Geprüft an Florians Foto, das oben wenig Rand hat
+(Scheitel 55 px unter der Bildkante): lang Scheitel 5 %, Kinn 77 %; A4 Scheitel
+8 %, Kinn 86 % – ohne Ergänzung, der Kopf ganz im Bild. Mit 10 % Mindestluft
+hätte das Skript oben 13 px Hintergrund ergänzt.
 
 ## Bekannte Abweichungen von der Figma-Vorlage
 
@@ -198,7 +306,9 @@ Vorlagentexten sieht man keinen Unterschied, sie greifen erst bei langen Texten:
 ## Renderweg
 
 WeasyPrint zuerst, sonst headless Chrome, sonst wkhtmltopdf — dieselbe Kette wie
-im CV-Skill. Das Layout ist auf WeasyPrint abgestimmt:
+im CV-Skill; der Ausweichweg gilt nur für die lange Fassung (die A4-Fassung
+braucht laufende Elemente und die Layoutmessung, siehe oben). Das Layout ist auf
+WeasyPrint abgestimmt:
 
 - **Kein box-shadow.** WeasyPrint kennt die Eigenschaft nicht und ignoriert sie
   wortlos. `render_skillmatrix.py` vermisst deshalb im ersten Durchgang jede

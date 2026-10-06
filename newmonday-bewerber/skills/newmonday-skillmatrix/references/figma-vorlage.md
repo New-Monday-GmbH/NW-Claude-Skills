@@ -7,7 +7,10 @@ Vorlage geklont und befüllt.
 `references/figma.md` beschreibt den anderen Weg — Aufbau aus
 `arbeit/figma_plan.json` in eine fremde, leere Datei. Der bleibt gültig für
 Kundendateien ohne New-Monday-Komponenten. **Sobald die Masterdatei im Spiel ist,
-gilt dieses Dokument.**
+gilt dieses Dokument** – für den langen Frame. Die A4-Seiten der zweiten Fassung
+haben keine Vorlage und kommen auch hier aus dem Bauplan
+(`arbeit/figma_plan_a4.json`, `references/figma.md`, „Die A4-Seiten“), rechts
+neben den geklonten Frame.
 
 ## Warum klonen und nicht zeichnen
 

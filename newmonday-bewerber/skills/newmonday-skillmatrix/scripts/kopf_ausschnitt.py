@@ -1,30 +1,39 @@
 #!/usr/bin/env python3
-"""Schneidet ein Portraet so zu, dass der Kopf in der Fotokarte zentriert steht.
+"""Schneidet ein Portraet je Fotoflaeche so zu, dass der Kopf ganz im Bild steht.
 
     python3 scripts/kopf_ausschnitt.py <original> <ziel-ordner> [--kopf x0,y0,x1,y1]
 
-Die Regel (Masse aus assets/tokens.json, komponenten.fotokarte):
+Die Skillmatrix hat zwei Fassungen und damit zwei Fotoflaechen mit eigenem
+Seitenverhaeltnis (assets/tokens.json):
+
+- lang: die Fotokarte im Hero, 435,33 x 433,34 (komponenten.fotokarte)
+  -> <ziel>/foto-<name>.png
+- a4:   die Fotokarte der A4-Fassung, 108 x 99 (a4.komponenten.fotokarte)
+  -> <ziel>/foto-<name>-a4.png
+
+Fuer jede Flaeche wird der Ausschnitt eigens gerechnet, nach denselben Regeln
+mit den Werten der Flaeche:
 
 - **Waagerecht** steht die Kopfmitte in der Bildmitte.
-- **Senkrecht** sitzt der Haaransatz bei kopf-oben-anteil (5 %) und das Kinn
-  bei kinn-anteil (70 %) der Bildhoehe - so wie im Figma-Master. Der Kopf steht
-  damit mittig in der freien Flaeche ueber dem Farbverlauf mit Name und
-  Erfahrung.
-- Gibt das Original links oder rechts nicht genug Rand her, wird enger
-  geschnitten (der Kopf wird groesser), aber nur so weit, dass Haare und Kinn
-  nicht angeschnitten werden und das Kinn nicht im Verlauf verschwindet.
-  Reicht auch das nicht, steht der Kopf so mittig wie moeglich und das Skript
-  meldet die Abweichung.
+- **Senkrecht** sitzt der Haaransatz bei kopf-oben-anteil und das Kinn bei
+  kinn-anteil der Bildhoehe.
+- **Nie angeschnitten:** Ueber dem Scheitel bleibt mindestens kopf-luft-anteil
+  Luft, das Kinn steht hoechstens bei der Kinngrenze (lang: Beginn des
+  Verlaufs, a4: kinn-max-anteil). Die Luft geht vor.
+- Passt der Kopf mit dieser Luft nicht in den Ausschnitt, wird der Ausschnitt
+  groesser (der Kopf kleiner, mehr Schultern) - notfalls auf Kosten der
+  waagerechten Mitte. Hat das Original oben zu wenig Rand, wird oben Flaeche in
+  der Hintergrundfarbe ergaenzt, aber nur, wenn der obere Bildrand einfarbig
+  ist (sonst saehe man die Naht). Reicht beides nicht, meldet das Skript es.
 
 Den Kopf findet macOS Vision (scripts/gesicht.swift: Gesicht, Kinn,
-Personenmaske fuer Haaransatz und Kopfumriss). Ohne macOS gibt man den Kopf
-von Hand an: --kopf x0,y0,x1,y1 in Pixeln des Originals, von Haaransatz bis
-Kinn und von Ohr zu Ohr.
+Personenmaske fuer Scheitel und Kopfumriss). Ohne macOS gibt man den Kopf von
+Hand an: --kopf x0,y0,x1,y1 in Pixeln des Originals, vom Scheitel bis zum Kinn
+und von Ohr zu Ohr.
 
-Schreibt <ziel>/foto-<name>.png (Graustufen, Kartenformat) und
-<ziel>/kontrolle/foto-<name>.png - das Bild so, wie es auf der Karte sitzt,
-mit Mittellinie und Kopfrahmen. Das Kontrollbild wird angesehen, bevor das
-Foto ins Dokument geht.
+Je Flaeche entsteht ein Kontrollbild in <ziel>/kontrolle/ - das Foto, wie es
+auf der Karte sitzt, mit Mittellinie, Kopfrahmen und der Mindestluft als
+blauer Linie. Es wird angesehen, bevor das Foto ins Dokument geht.
 """
 import hashlib
 import json
@@ -40,12 +49,11 @@ import design_system  # noqa: E402  — nach sys.path.insert
 HIER = Path(__file__).resolve().parent
 _DS = design_system.laden()
 _FK = _DS["komponenten"]["fotokarte"]
-BILD_B, BILD_H = _FK["bild-breite"], _FK["bild-hoehe"]
-SEITENVERHAELTNIS = BILD_B / BILD_H
-OBEN = _FK["kopf-oben-anteil"]            # Haaransatz, Anteil der Bildhoehe
-KINN = _FK["kinn-anteil"]                 # Kinn, Anteil der Bildhoehe
 MITTE_TOLERANZ = 0.02                     # 2 % der Breite gelten als mittig
-OBEN_MIN = 0.02                           # Haare nie naeher als 2 % an die Kante
+DPI_MIN = 100
+FLAECHEN = ("lang", "a4")
+ENDUNG = {"lang": "", "a4": "-a4"}        # foto-<name>.png, foto-<name>-a4.png
+GRUND_STREUUNG = 3.0                      # Grauwert-Streuung, bis zu der der obere Rand als einfarbig gilt
 
 
 def _verlauf_oben():
@@ -57,9 +65,25 @@ def _verlauf_oben():
     return 1 - (2 * pad + zeilen) / _FK["hoehe"]
 
 
+def flaeche(name="lang"):
+    """Mass und Kopfregeln einer Fotoflaeche aus tokens.json."""
+    if name == "lang":
+        fk, kinn_max = _FK, _verlauf_oben()
+    else:
+        fk = _DS[name]["komponenten"]["fotokarte"]
+        kinn_max = fk["kinn-max-anteil"]
+    b, h = fk["bild-breite"], fk["bild-hoehe"]
+    return {"name": name, "breite_pt": b, "hoehe_pt": h, "r": b / h,
+            "oben": fk["kopf-oben-anteil"], "kinn": fk["kinn-anteil"],
+            "luft": fk["kopf-luft-anteil"], "kinn_max": kinn_max,
+            "verlauf": name == "lang",
+            "ausgabe_max": round(b / 72 * 300)}       # mehr als 300 dpi braucht keine Karte
+
+
+# Fuer Aufrufer, die nur die lange Fotokarte kennen (extract_input, Foto-Skripte).
+BILD_B, BILD_H = _FK["bild-breite"], _FK["bild-hoehe"]
+SEITENVERHAELTNIS = BILD_B / BILD_H
 KINN_MAX = _verlauf_oben()
-AUSGABE_MAX = round(BILD_B / 72 * 300)    # mehr als 300 dpi braucht die Karte nicht
-DPI_MIN = 100
 
 
 # --- Kopf finden -------------------------------------------------------------
@@ -187,44 +211,67 @@ def kopf_finden(bild):
 
 # --- Ausschnitt ------------------------------------------------------------
 
-def ausschnitt_berechnen(breite, hoehe, kopf):
-    """Kartenformat-Ausschnitt (links, oben, rechts, unten) um den Kopf."""
-    r = SEITENVERHAELTNIS
-    cx, oben, kinn = kopf["mitte"], kopf["oben"], kopf["kinn"]
+def ausschnitt_berechnen(breite, hoehe, kopf, fl=None, polster=0.0):
+    """Ausschnitt (links, oben, rechts, unten) im Format der Flaeche fl um den
+    Kopf. polster: so viele Zeilen darf oben Hintergrund ergaenzt werden; die
+    Box steht dann in Koordinaten des gepolsterten Bilds (Original um polster
+    nach unten verschoben)."""
+    fl = fl or flaeche("lang")
+    r = fl["r"]
+    cx = kopf["mitte"]
+    oben, kinn = kopf["oben"] + polster, kopf["kinn"] + polster
+    hoehe = hoehe + polster
     kopf_h = max(1.0, kinn - oben)
-    s_ziel = kopf_h / (KINN - OBEN)                 # Kopf so gross wie im Master
-    s_min = kopf_h / (KINN_MAX - OBEN_MIN)          # groesser geht nicht ohne Anschnitt
+    band = fl["kinn_max"] - fl["luft"]                 # Platz fuer den Kopf mit Luft
+    s_ziel = kopf_h / (fl["kinn"] - fl["oben"])         # Kopf so gross wie vorgesehen
+    s_band = kopf_h / band                              # kleiner geht nicht ohne Anschnitt
     s_bild = min(hoehe, breite / r)
-    s_mitte = 2 * max(0.0, min(cx, breite - cx)) / r   # breitester Ausschnitt mit Kopf mittig
+    s_mitte = 2 * max(0.0, min(cx, breite - cx)) / r    # breitester Ausschnitt mit Kopf mittig
     s = min(s_ziel, s_bild, s_mitte)
-    if s < s_min:
-        s = min(s_min, s_bild)
+    if s < s_band:
+        # Mit Luft passt der Kopf nicht: groesser schneiden (mehr Schultern),
+        # die waagerechte Mitte gibt nach.
+        s = min(s_band, s_bild)
     w = s * r
     links = min(max(cx - w / 2, 0), breite - w)
-    # senkrecht: Kopfmitte dort, wo sie im Master steht; bei groesserem Kopf
-    # Haare und Kinn im erlaubten Band halten. Passt der Kopf gar nicht in das
-    # Band (Original zu klein), steht er mittig darin und wird oben wie unten
-    # gleich angeschnitten - bewerten() meldet das.
-    mitte_y = (oben + kinn) / 2
-    if kopf_h / s <= KINN_MAX - OBEN_MIN:
-        oben_px = mitte_y - (OBEN + KINN) / 2 * s
-        oben_px = min(oben_px, oben - OBEN_MIN * s)
-        oben_px = max(oben_px, kinn - KINN_MAX * s)
+    # Senkrecht: Kopfmitte dort, wo die Regel sie will; Luft ueber dem Scheitel
+    # und Kinngrenze halten. Passt der Kopf nicht ins Band (Original zu klein),
+    # geht die Luft vor - lieber steht das Kinn tief als der Scheitel am Rand.
+    ideal = (oben + kinn) / 2 - (fl["oben"] + fl["kinn"]) / 2 * s
+    hoechstens = oben - fl["luft"] * s
+    if kopf_h / s <= band + 1e-9:
+        oben_px = min(max(ideal, kinn - fl["kinn_max"] * s), hoechstens)
     else:
-        oben_px = mitte_y - (OBEN_MIN + KINN_MAX) / 2 * s
+        oben_px = hoechstens
     oben_px = min(max(oben_px, 0), hoehe - s)
     return (round(links), round(oben_px), round(links + w), round(oben_px + s))
 
 
-def bewerten(box, kopf):
+def grund_oben(bild):
+    """Grauwert des oberen Bildrands, wenn er einfarbig ist - sonst None. Nur
+    dann laesst sich oben Flaeche ergaenzen, ohne dass man die Naht sieht."""
+    from PIL import ImageStat
+    grau = bild.convert("L")
+    b, h = grau.size
+    streifen = grau.crop((0, 0, b, max(4, round(0.03 * h))))
+    stat = ImageStat.Stat(streifen)
+    haelften = [ImageStat.Stat(streifen.crop(k)).mean[0]
+                for k in ((0, 0, b // 2, streifen.height), (b // 2, 0, b, streifen.height))]
+    if stat.stddev[0] > GRUND_STREUUNG or abs(haelften[0] - haelften[1]) > GRUND_STREUUNG:
+        return None
+    return round(stat.mean[0])
+
+
+def bewerten(box, kopf, fl=None, polster=0):
     """Wo der Kopf im Ausschnitt steht, und was davon zu melden ist."""
+    fl = fl or flaeche("lang")
     l, o, r_, u = box
     w, h = r_ - l, u - o
     lage = {
         "mitte_x": (kopf["mitte"] - l) / w,
-        "oben": (kopf["oben"] - o) / h,
-        "kinn": (kopf["kinn"] - o) / h,
-        "dpi": w / (BILD_B / 72),
+        "oben": (kopf["oben"] + polster - o) / h,
+        "kinn": (kopf["kinn"] + polster - o) / h,
+        "dpi": w / (fl["breite_pt"] / 72),
         "breite_px": w,
     }
     hinweise = []
@@ -235,19 +282,49 @@ def bewerten(box, kopf):
             f"Kopf nicht mittig: steht bei {lage['mitte_x']:.0%} der Breite, "
             f"{abs(abweichung):.0%} nach {seite} - das Original hat auf der Gegenseite "
             "zu wenig Rand. Besseres Foto anfragen oder so lassen.")
-    if lage["oben"] < OBEN_MIN - 0.005:
-        hinweise.append(f"Haare oben angeschnitten (Haaransatz bei {lage['oben']:.0%}).")
-    if lage["kinn"] > KINN_MAX + 0.005:
-        hinweise.append(f"Kinn im Verlauf (bei {lage['kinn']:.0%}, Verlauf ab {KINN_MAX:.0%}).")
+    if lage["oben"] < 0.005:
+        hinweise.append(f"Haare oben angeschnitten (Scheitel bei {lage['oben']:.0%}).")
+    elif lage["oben"] < fl["luft"] - 0.005:
+        hinweise.append(f"Zu wenig Luft ueber dem Scheitel ({lage['oben']:.0%}, Soll mindestens "
+                        f"{fl['luft']:.0%}) - das Original hat oben zu wenig Rand und keinen "
+                        "einfarbigen Hintergrund zum Ergaenzen. Besseres Foto anfragen.")
+    if lage["kinn"] > 1.0:
+        hinweise.append(f"Kinn unten angeschnitten (bei {lage['kinn']:.0%}).")
+    elif lage["kinn"] > fl["kinn_max"] + 0.005:
+        wo = "im Verlauf" if fl["verlauf"] else "nah an der Unterkante"
+        hinweise.append(f"Kinn {wo} (bei {lage['kinn']:.0%}, Grenze {fl['kinn_max']:.0%}).")
     if lage["dpi"] < DPI_MIN:
         hinweise.append(f"Nur {lage['dpi']:.0f} dpi auf der Karte ({w}px breit) - "
                         f"unter {DPI_MIN} dpi wird das Foto sichtbar weich.")
     return lage, hinweise
 
 
-def _ohne_kopf(breite, hoehe):
+def ausschnitt_mit_luft(bild, kopf, fl):
+    """(box, polster, grund): erst ohne Ergaenzung; fehlt dann Luft ueber dem
+    Scheitel, weil das Original oben zu knapp ist, mit Hintergrund oben - nur
+    bei einfarbigem oberen Rand."""
+    breite, hoehe = bild.size
+    box = ausschnitt_berechnen(breite, hoehe, kopf, fl)
+    luft = (kopf["oben"] - box[1]) / (box[3] - box[1])
+    if luft >= fl["luft"] - 0.005:
+        return box, 0, None
+    grund = grund_oben(bild)
+    if grund is None:
+        return box, 0, None
+    # So viel Rand oben, wie die Luft verlangt - gerechnet mit grosszuegigem
+    # Polster, dann auf das gekuerzt, was der Ausschnitt wirklich nutzt.
+    vorrat = hoehe
+    probe = ausschnitt_berechnen(breite, hoehe, kopf, fl, polster=vorrat)
+    polster = max(0, vorrat - probe[1])
+    if polster <= 0:
+        return box, 0, None
+    box = ausschnitt_berechnen(breite, hoehe, kopf, fl, polster=polster)
+    return box, polster, grund
+
+
+def _ohne_kopf(breite, hoehe, fl=None):
     """Rueckfall ohne Kopf: waagerecht mittig, oben buendig."""
-    r = SEITENVERHAELTNIS
+    r = (fl or flaeche("lang"))["r"]
     if breite / hoehe > r:
         w = round(hoehe * r)
         links = (breite - w) // 2
@@ -257,35 +334,44 @@ def _ohne_kopf(breite, hoehe):
 
 # --- Ausgabe -----------------------------------------------------------------
 
-def kontrollbild(foto, box, kopf, ziel):
+def kontrollbild(foto, box, kopf, ziel, fl=None, polster=0):
     """Das Foto, wie es auf der Karte sitzt: 90 % Deckkraft auf dem
-    Kartengrund, Verlauf unten, dazu Mittellinie und Kopfrahmen."""
+    Kartengrund, bei der langen Karte der Verlauf unten, dazu Mittellinie,
+    Kopfrahmen und die Mindestluft ueber dem Scheitel (blau)."""
     from PIL import Image, ImageDraw
+    fl = fl or flaeche("lang")
+    fk = _FK if fl["name"] == "lang" else _DS[fl["name"]]["komponenten"]["fotokarte"]
     b = 600
-    h = round(b / SEITENVERHAELTNIS)
-    grund = design_system.rgb(design_system.farbe(_DS, _FK["hintergrund"]))
+    h = round(b / fl["r"])
+    grund = design_system.rgb(design_system.farbe(_DS, fk["hintergrund"]))
     karte = Image.new("RGB", (b, h), grund)
-    karte = Image.blend(karte, foto.convert("RGB").resize((b, h)), _FK["bild-deckkraft"])
-    farbe = design_system.rgb(design_system.farbe(_DS, _FK["verlauf"]["farbe"]))
-    voll = _FK["verlauf"]["voll-anteil"]
-    verlauf_h = round((1 - KINN_MAX) * h)
+    karte = Image.blend(karte, foto.convert("RGB").resize((b, h)), fk["bild-deckkraft"])
     schicht = Image.new("RGBA", (b, h), (0, 0, 0, 0))
     zeichnen = ImageDraw.Draw(schicht)
-    for y in range(verlauf_h):
-        a = min(1.0, y / (voll * verlauf_h))
-        zeichnen.line([(0, h - verlauf_h + y), (b, h - verlauf_h + y)], fill=farbe + (round(255 * a),))
+    if fl["verlauf"]:
+        farbe = design_system.rgb(design_system.farbe(_DS, _FK["verlauf"]["farbe"]))
+        voll = _FK["verlauf"]["voll-anteil"]
+        verlauf_h = round((1 - fl["kinn_max"]) * h)
+        for y in range(verlauf_h):
+            a = min(1.0, y / (voll * verlauf_h))
+            zeichnen.line([(0, h - verlauf_h + y), (b, h - verlauf_h + y)],
+                          fill=farbe + (round(255 * a),))
     karte = Image.alpha_composite(karte.convert("RGBA"), schicht)
     linien = ImageDraw.Draw(karte)
     for y in range(0, h, 12):                       # Mittellinie gestrichelt
         linien.line([(b / 2, y), (b / 2, y + 6)], fill=(230, 40, 40, 255), width=2)
+    luft_y = fl["luft"] * h                         # Mindestluft: Haare nicht darueber
+    for x in range(0, b, 12):
+        linien.line([(x, luft_y), (x + 6, luft_y)], fill=(40, 110, 230, 255), width=2)
     if kopf:
         l, o, r_, u = box
         sx, sy = b / (r_ - l), h / (u - o)
-        linien.rectangle([((kopf["links"] - l) * sx, (kopf["oben"] - o) * sy),
-                          ((kopf["rechts"] - l) * sx, (kopf["kinn"] - o) * sy)],
+        oben, kinn = kopf["oben"] + polster, kopf["kinn"] + polster
+        linien.rectangle([((kopf["links"] - l) * sx, (oben - o) * sy),
+                          ((kopf["rechts"] - l) * sx, (kinn - o) * sy)],
                          outline=(255, 170, 0, 255), width=2)
         mx = (kopf["mitte"] - l) * sx
-        linien.line([(mx, (kopf["oben"] - o) * sy), (mx, (kopf["kinn"] - o) * sy)],
+        linien.line([(mx, (oben - o) * sy), (mx, (kinn - o) * sy)],
                     fill=(255, 170, 0, 255), width=2)
     ziel.parent.mkdir(parents=True, exist_ok=True)
     karte.convert("RGB").save(ziel)
@@ -326,9 +412,11 @@ def kopf_von_hand_pruefen(kopf, breite, hoehe):
     return x0, y0, x1, y1
 
 
-def zuschneiden(pfad, ziel_ordner, kopf_von_hand=None, kontrolle=True):
-    """Original -> foto-<name>.png im Kartenformat, Kopf zentriert.
-    Gibt (ausgabe, bericht) zurueck; bericht["hinweise"] ist zu melden."""
+def zuschneiden(pfad, ziel_ordner, kopf_von_hand=None, kontrolle=True, flaechen=FLAECHEN):
+    """Original -> je Fotoflaeche ein Zuschnitt in Graustufen, Kopf ganz im Bild:
+    foto-<name>.png (lang) und foto-<name>-a4.png (a4). Gibt (ausgabe der
+    ersten Flaeche, bericht) zurueck; bericht["hinweise"] ist zu melden,
+    bericht["flaechen"] traegt je Flaeche Datei, Ausschnitt und Lage."""
     from PIL import Image
     pfad, ziel_ordner = Path(pfad), Path(ziel_ordner)
     bild = vorbereiten(pfad)
@@ -341,47 +429,72 @@ def zuschneiden(pfad, ziel_ordner, kopf_von_hand=None, kontrolle=True):
                 "mitte": (x0 + x1) / 2, "quelle": "von Hand"}
     else:
         kopf, hinweise = kopf_finden(bild)
-
-    if kopf:
-        box = ausschnitt_berechnen(breite, hoehe, kopf)
-        lage, weitere = bewerten(box, kopf)
-        hinweise += weitere
-    else:
-        box, lage = _ohne_kopf(breite, hoehe), None
+    if not kopf:
         hinweise.append("Kopf nicht gefunden - Rueckfall: waagerecht mittig, oben buendig. "
-                        "Kontrollbild ansehen; sitzt der Kopf nicht mittig, mit "
-                        "--kopf x0,y0,x1,y1 (Haaransatz bis Kinn, Ohr zu Ohr) neu schneiden.")
+                        "Kontrollbilder ansehen; sitzt der Kopf nicht mittig, mit "
+                        "--kopf x0,y0,x1,y1 (Scheitel bis Kinn, Ohr zu Ohr) neu schneiden.")
 
-    foto = bild.convert("L").crop(box)
-    if foto.width > AUSGABE_MAX:
-        foto = foto.resize((AUSGABE_MAX, round(AUSGABE_MAX / SEITENVERHAELTNIS)), Image.LANCZOS)
-        if lage:                          # gemeldet wird, was in der Datei steht
-            lage["dpi"], lage["breite_px"] = foto.width / (BILD_B / 72), foto.width
+    grau = bild.convert("L")
     ziel_ordner.mkdir(parents=True, exist_ok=True)
-    ausgabe = ziel_ordner / f"foto-{pfad.stem}.png"
-    foto.save(ausgabe)
-    kontroll_pfad = None
-    if kontrolle:
-        kontroll_pfad = ziel_ordner / "kontrolle" / ausgabe.name
-        kontrollbild(foto, box, kopf, kontroll_pfad)
-
-    bericht = {"quelle": str(pfad), "original": [breite, hoehe], "ausschnitt": list(box),
-               "kopf": {k: (round(v, 1) if isinstance(v, float) else v) for k, v in (kopf or {}).items()},
-               "lage": {k: round(v, 3) for k, v in (lage or {}).items()},
-               "kontrollbild": str(kontroll_pfad) if kontroll_pfad else None,
-               "hinweise": hinweise}
-    return ausgabe, bericht
+    bericht = {"quelle": str(pfad), "original": [breite, hoehe],
+               "kopf": {k: (round(v, 1) if isinstance(v, float) else v)
+                        for k, v in (kopf or {}).items()},
+               "hinweise": list(hinweise), "flaechen": {}}
+    erste = None
+    for name in flaechen:
+        fl = flaeche(name)
+        polster, grund = 0, None
+        if kopf:
+            box, polster, grund = ausschnitt_mit_luft(bild, kopf, fl)
+            lage, weitere = bewerten(box, kopf, fl, polster)
+        else:
+            box, lage, weitere = _ohne_kopf(breite, hoehe, fl), None, []
+        quelle = grau
+        if polster:
+            quelle = Image.new("L", (breite, hoehe + polster), grund)
+            quelle.paste(grau, (0, polster))
+            weitere.insert(0, f"Oben {polster}px Hintergrund ergaenzt (Grauwert {grund}) - das "
+                              "Original hat ueber dem Scheitel zu wenig Rand. Kontrollbild ansehen.")
+        foto = quelle.crop(box)
+        if foto.width > fl["ausgabe_max"]:
+            foto = foto.resize((fl["ausgabe_max"], round(fl["ausgabe_max"] / fl["r"])), Image.LANCZOS)
+            if lage:                      # gemeldet wird, was in der Datei steht
+                lage["dpi"], lage["breite_px"] = foto.width / (fl["breite_pt"] / 72), foto.width
+        ausgabe = ziel_ordner / f"foto-{pfad.stem}{ENDUNG[name]}.png"
+        foto.save(ausgabe)
+        kontroll_pfad = None
+        if kontrolle:
+            kontroll_pfad = ziel_ordner / "kontrolle" / ausgabe.name
+            kontrollbild(foto, box, kopf, kontroll_pfad, fl, polster)
+        bericht["flaechen"][name] = {
+            "datei": str(ausgabe), "ausschnitt": list(box), "polster_oben": polster,
+            "lage": {k: round(v, 3) for k, v in (lage or {}).items()},
+            "kontrollbild": str(kontroll_pfad) if kontroll_pfad else None,
+            "hinweise": weitere}
+        bericht["hinweise"] += [f"{name}: {h}" for h in weitere]
+        erste = erste or ausgabe
+    # Die lange Flaeche wie bisher auch oben im Bericht.
+    vorne = bericht["flaechen"].get("lang") or next(iter(bericht["flaechen"].values()))
+    bericht.update(ausschnitt=vorne["ausschnitt"], lage=vorne["lage"],
+                   kontrollbild=vorne["kontrollbild"])
+    return erste, bericht
 
 
 def kurzbericht(ausgabe, bericht):
-    lage = {k: round(v, 2) + 0.0 for k, v in bericht["lage"].items()}   # kein "-0%"
-    if lage:
-        zeile = (f"{ausgabe.name}: Kopf bei {lage['mitte_x']:.0%} der Breite, Haaransatz "
-                 f"{lage['oben']:.0%}, Kinn {lage['kinn']:.0%}, {lage['dpi']:.0f} dpi "
-                 f"({bericht['kopf'].get('quelle')})")
-    else:
-        zeile = f"{ausgabe.name}: ohne Kopferkennung zugeschnitten"
-    return "\n".join([zeile] + [f"  ! {h}" for h in bericht["hinweise"]])
+    zeilen = []
+    for name, f in bericht["flaechen"].items():
+        lage = {k: round(v, 2) + 0.0 for k, v in f["lage"].items()}   # kein "-0%"
+        datei = Path(f["datei"]).name
+        if lage:
+            zeilen.append(f"{datei}: Kopf bei {lage['mitte_x']:.0%} der Breite, Scheitel "
+                          f"{lage['oben']:.0%}, Kinn {lage['kinn']:.0%}, {lage['dpi']:.0f} dpi "
+                          f"({bericht['kopf'].get('quelle')})")
+        else:
+            zeilen.append(f"{datei}: ohne Kopferkennung zugeschnitten")
+        zeilen += [f"  ! {h}" for h in f["hinweise"]]
+    allgemein = [h for h in bericht["hinweise"]
+                 if not any(h.startswith(f"{n}: ") for n in bericht["flaechen"])]
+    return "\n".join(zeilen + [f"  ! {h}" for h in allgemein])
 
 
 def main():
@@ -399,7 +512,8 @@ def main():
     (ausgabe.parent / "kontrolle" / f"{ausgabe.stem}.json").write_text(
         json.dumps(bericht, ensure_ascii=False, indent=1), encoding="utf-8")
     print(kurzbericht(ausgabe, bericht))
-    print(f"Kontrollbild: {bericht['kontrollbild']}")
+    for f in bericht["flaechen"].values():
+        print(f"Kontrollbild: {f['kontrollbild']}")
 
 
 if __name__ == "__main__":

@@ -1,8 +1,14 @@
 # Figma-Referenz — Weg B: aus dem Bauplan zeichnen
 
-Wie aus `arbeit/figma_plan.json` ein bearbeitbarer Frame in einer **fremden**
-Datei wird — einer, in der es die New-Monday-Komponenten nicht gibt. Für die
-Masterdatei gilt `references/figma-vorlage.md` (Weg A).
+Wie aus den Bauplänen bearbeitbare Frames werden. Es gibt **zwei Fassungen, und
+beide kommen nach Figma**:
+
+- **lang**: `arbeit/figma_plan.json` → ein Frame 1444 breit, in einer **fremden**
+  Datei — einer, in der es die New-Monday-Komponenten nicht gibt. Für die
+  Masterdatei gilt dafür `references/figma-vorlage.md` (Weg A).
+- **A4**: `arbeit/figma_plan_a4.json` → je PDF-Seite ein Frame 595 × 842,
+  rechts neben dem langen. Immer aus dem Plan, in jeder Datei – auch in der
+  Masterdatei gibt es für sie keine Vorlage. Abschnitt „Die A4-Seiten“ unten.
 
 **Vor dem ersten `use_figma`-Aufruf den Skill `figma-use` laden** — dort stehen
 die Fallstricke des Plugin-API im Einzelnen, und `skillNames: "figma-use"` gehört
@@ -27,7 +33,7 @@ https://www.figma.com/design/<fileKey>/<Name>?node-id=1-32
 `fileKey` ist der Teil nach `/design/`, `node-id` wird von `1-32` auf `1:32`
 gedreht. **Nur `/design/`.** `/board/` ist FigJam, `/slides/` sind Slides, `/make/`
 und `/proto/` können gar nicht beschrieben werden — dann nicht probieren, sondern
-sagen, dass eine Design-Datei gebraucht wird. Das PDF ist da längst fertig.
+sagen, dass eine Design-Datei gebraucht wird. Die PDFs sind da längst fertig.
 
 ## Vorflug
 
@@ -68,13 +74,14 @@ ihm fällt jeder Textknoten des Aufrufs aus.
 
 ## Der Baukasten
 
-Steht unverändert am Anfang **jedes** Bau-Aufrufs. Oben kommen drei Werte hinein,
-alles andere ist fest.
+Steht unverändert am Anfang **jedes** Bau-Aufrufs, für beide Pläne. Oben kommen
+vier Werte hinein, alles andere ist fest.
 
 ```js
 const SEITE_ID  = "<ID der Zielseite>";
-const ELTERN_ID = null;   // Schritt 1: null. Danach die ID aus `ids` eines früheren Schritts.
-const KNOTEN    = {};     // Ausgabe von: python3 figma_plan.py --schritt <nr> arbeit/figma_plan.json
+const ELTERN_ID = null;   // Rahmen-Schritt: null. Danach die ID aus `ids` eines früheren Schritts.
+const POSITION  = null;   // Rahmen-Schritt: {x, y} (A4-Seiten, siehe unten) oder null = rechts neben allem
+const KNOTEN    = {};     // Ausgabe von: python3 figma_plan.py --schritt <nr> arbeit/figma_plan[_a4].json
 
 const hex = h => ({ r: parseInt(h.slice(1, 3), 16) / 255,
                     g: parseInt(h.slice(3, 5), 16) / 255,
@@ -212,10 +219,13 @@ const seite = await figma.getNodeByIdAsync(SEITE_ID);
 await figma.setCurrentPageAsync(seite);
 const eltern = ELTERN_ID ? await figma.getNodeByIdAsync(ELTERN_ID) : seite;
 const neu = await bau(KNOTEN, eltern);
-if (!ELTERN_ID) {                                   // Schritt 1: freie Stelle, Arbeitsanzeige an
-  const andere = seite.children.filter(c => c.id !== neu.id);
-  neu.x = andere.length ? Math.max(...andere.map(c => c.x + c.width)) + 100 : 0;
-  neu.y = 0;
+if (!ELTERN_ID) {                                   // Rahmen-Schritt: Stelle, Arbeitsanzeige an
+  if (POSITION) { neu.x = POSITION.x; neu.y = POSITION.y; }
+  else {
+    const andere = seite.children.filter(c => c.id !== neu.id);
+    neu.x = andere.length ? Math.max(...andere.map(c => c.x + c.width)) + 100 : 0;
+    neu.y = 0;
+  }
   neu.placeholder = true;
 }
 return { ids, knoten: neu.id, hoehe: neu.height };
@@ -253,8 +263,8 @@ Zu den Stellen, die still danebengehen, wenn man sie anders macht:
 
 ## Die Bauschritte
 
-`python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py skillmatrix.json arbeit/ --pdf "<pdf>"`
-listet die Schritte. Je Schritt ein `use_figma`-Aufruf: Baukasten, `KNOTEN` aus
+`python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py skillmatrix.json arbeit/ --pdf "<pdf>" --pdf-a4 "<A4-pdf>"`
+schreibt beide Pläne und listet ihre Schritte. Je Schritt ein `use_figma`-Aufruf: Baukasten, `KNOTEN` aus
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py --schritt <nr> arbeit/figma_plan.json
@@ -319,6 +329,61 @@ und nahe `plan.zertifikate.hoehe_plan`. Darüber stimmt etwas am Bau, nicht an d
 Daten – nichts von Hand stauchen, den Schritt prüfen. Dann ein `get_screenshot`
 über den ganzen Rahmen.
 
+## Die A4-Seiten
+
+Derselbe Baukasten, derselbe Ablauf, mit `arbeit/figma_plan_a4.json`. Der Plan
+bildet den abgenommenen Vorschlag nach (Frames `2347:48` ff. in Florians Datei,
+Maße in `references/layout.md`, „Die A4-Fassung“) und nimmt jeden Wert aus dem
+Block `a4` in `tokens.json`.
+
+**Die Seitenaufteilung kommt aus dem PDF**, wie beim Lebenslauf:
+`render_skillmatrix.py` legt beim Rendern in der Dokumentinfo des A4-PDFs ab,
+welcher Block auf welcher Seite steht, und `figma_plan.py` baut genau diese
+Seiten (und meldet, wenn ein Kategorielabel nicht auf seiner Seite im Text
+steht). Ohne A4-PDF gibt es keinen A4-Plan – geraten wird nicht.
+
+| Schritt | Eltern | liefert in `ids` |
+|---|---|---|
+| je Seite: Rahmen mit Kopfzeile, leerem Inhalt – Seite 1 mit Hero, die letzte mit Fuß | Seite (`null`), `POSITION` siehe unten | Rahmen, `Inhalt — Seite n`, auf Seite 1 `Foto` |
+| Zertifikate auf Seite n: Überschrift, Karte, leere Kacheln (je Seite, auf der etwas davon steht) | `Inhalt — Seite n` | `Kacheln — Seite n` |
+| je Kachelreihe einer | `Kacheln — Seite n` | `Zertifikat 1` … (nur Einträge mit Bild) |
+| Kernkompetenzen: Überschrift und leere Liste – auf Folgeseiten nur die Liste („Fortsetzung“) | `Inhalt — Seite n` | `Kategorien — Seite n` |
+| je Kategorie einer | `Kategorien — Seite n` | — |
+| Tools | `Inhalt — Seite n` | — |
+
+**Wohin.** Seite 1 steht rechts neben dem langen Frame (L), oben bündig, jede
+weitere 100 rechts daneben:
+
+```js
+const POSITION = { x: L.x + L.width + 100 + (n - 1) * (595 + 100), y: L.y };
+```
+
+`L` ist der lange Frame aus Schritt 1 des langen Plans (`knoten` in dessen
+Rückgabe). Liegt in dieser Reihe schon etwas (ein früherer Lauf), rückt die
+ganze Reihe rechts neben alles, was auf der Seite steht – überschrieben und
+verschoben wird nichts.
+
+Drei Stellen, die sonst still danebengehen:
+
+- **Einträge einer Zeile gleich hoch**: Die Zeile huggt, die Einträge stehen
+  senkrecht auf `FILL` – Figma nimmt den höchsten als Maß. Ab der zweiten Zeile
+  trägt jeder Eintrag die Haarlinie als Kontur oben (`strokeTopWeight` 0,5,
+  innen, im Layout).
+- **Der Fuß sitzt unten**, weil der Inhalt der letzten Seite die Höhe füllt
+  (`hoehe: "FILL"`) – keine feste Luft, kein Abstandsrahmen wie im Vorschlag.
+- **Die Kopfzeile ist 13,5 hoch**, das Badge auf Seite 1 20: Es ragt oben und
+  unten gleich weit hinaus, wie im PDF. Nicht auf HUG stellen.
+
+**Bilder:** `plan.uploads` nennt `Foto` (der A4-Zuschnitt `foto-<name>-a4.png`,
+**FILL** – er hat schon das Format 108 : 99, Kopf mit Luft über dem Haar) und die
+Zertifikate (**FIT**). Wie oben, getrennt nach `scaleMode`.
+
+**Abschluss:** `placeholder = false` an jeder Seite. Je Seite zurückgeben, wo der
+Inhalt endet – höchstens bei 810, auf der letzten Seite über dem Fuß, und nahe
+`plan.rahmen.inhalt_geschaetzt` (+ 60) – und dass der Fuß bei 745–810 steht.
+Dann ein `get_screenshot` je Seite und neben die PDF-Seiten legen: nichts
+abgeschnitten, das Porträt mit Luft über dem Haar, Bilder unverzerrt.
+
 ## Was in einer fremden Datei nicht passiert
 
 - **Keine Text-Styles, keine Variablen, keine Komponenten.** Der Frame trägt rohe
@@ -330,7 +395,7 @@ Daten – nichts von Hand stauchen, den Schritt prüfen. Dann ein `get_screensho
 
 ## Wenn es schiefgeht
 
-Alles hier ist Zugabe. Das PDF ist fertig und geht so oder so raus — mit einem
+Alles hier ist Zugabe. Die PDFs sind fertig und gehen so oder so raus — mit einem
 Satz dazu, was an Figma nicht ging:
 
 | Symptom | Was dahintersteckt |
@@ -345,3 +410,6 @@ Satz dazu, was an Figma nicht ging:
 | Zertifikatssektion höher als 924 | `maxLines` fehlt an einem Titel, eine feste Höhe (Textfeld 73, Bühne 140) wurde zu HUG, oder die Tag-Reihe bricht nicht um (`layoutWrap` fehlt, Reihe nicht auf FILL) |
 | Karten einer Zeile ungleich hoch | Kartenraster nicht als GRID gebaut oder Zeilen nicht auf `HUG` |
 | Upload hängt oder bricht ab | im Browser-Chat blockt der Proxy fremde Domains |
+| „keine Seitenaufteilung im PDF“ | A4-PDF nicht mit `render_skillmatrix.py` gerendert oder nachträglich neu gespeichert – neu rendern |
+| A4-Seite unten abgeschnitten | Inhalt der Seite höher als 750 (letzte: über dem Fuß) – das PDF bricht dort anders; Plan neu aus dem aktuellen PDF erzeugen |
+| Einträge einer Zeile ungleich hoch | Eintrag nicht auf `FILL` gesetzt oder Zeile nicht auf `HUG` |

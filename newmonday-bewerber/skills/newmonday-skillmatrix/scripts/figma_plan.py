@@ -1,14 +1,24 @@
 #!/usr/bin/env python3
-"""Baut aus skillmatrix.json den Bauplan fuer den Figma-Frame (Weg B).
+"""Baut aus skillmatrix.json die Bauplaene fuer die Figma-Frames (Weg B).
 
-    python3 scripts/figma_plan.py skillmatrix.json arbeit/
-    python3 scripts/figma_plan.py skillmatrix.json arbeit/ --pdf "ausgabe/… .pdf"
+    python3 scripts/figma_plan.py skillmatrix.json arbeit/ \
+            --pdf "ausgabe/… - Skillmatrix.pdf" --pdf-a4 "ausgabe/… - Skillmatrix A4.pdf"
     python3 scripts/figma_plan.py --schritt 3 arbeit/figma_plan.json
 
-Die dritte Form gibt den Knotenbaum eines Bauschritts kompakt aus — genau so,
-wie er als KNOTEN in den use_figma-Aufruf gehoert.
+Die zweite Form gibt den Knotenbaum eines Bauschritts kompakt aus — genau so,
+wie er als KNOTEN in den use_figma-Aufruf gehoert (fuer beide Plaene).
 
-Schreibt arbeit/figma_plan.json mit
+Zwei Plaene, einer je Fassung:
+
+  - arbeit/figma_plan.json: die lange Fassung, ein Frame 1444 breit.
+  - arbeit/figma_plan_a4.json: die A4-Fassung, je PDF-Seite ein Frame
+    595 x 842. Die Seitenaufteilung kommt aus dem A4-PDF (Dokumentinfo
+    /NewMondaySeiten, von render_skillmatrix.py beim Rendern abgelegt) und wird
+    gegen den Seitentext gehalten. Ohne A4-PDF entsteht dieser Plan nicht -
+    geraten wird die Aufteilung nicht. Fehlt --pdf-a4, sucht das Skript das
+    A4-PDF neben dem langen (--pdf).
+
+Jeder Plan traegt
 
   - schritte: die Bauschritte, je einer ein use_figma-Aufruf. Jeder Schritt
     traegt einen fertigen Knotenbaum und nennt den Elternknoten, in den er
@@ -16,20 +26,22 @@ Schreibt arbeit/figma_plan.json mit
   - uploads:  welche Rasterbilder (Foto, Zertifikate) auf welchen Platzhalter
     gehoeren.
 
-Der Knotenbaum bildet den Aufbau der Figma-Vorlage nach — Auto-Layout mit
+Der lange Knotenbaum bildet den Aufbau der Figma-Vorlage nach — Auto-Layout mit
 Abstaenden, Konturen innen, Schatten als Effekte, das Kartenraster als
-GRID-Layout. Jeder Wert kommt aus assets/tokens.json, derselben Quelle wie das
+GRID-Layout; der A4-Baum den abgenommenen A4-Vorschlag (Zeilen ohne Karten,
+Eintraege einer Zeile gleich hoch, der Fuss unten auf der letzten Seite). Jeder Wert kommt aus assets/tokens.json, derselben Quelle wie das
 PDF; hier wird nichts erfunden. Das use_figma-Skript aus references/figma.md
 setzt nur, was im Plan steht.
 
-`--pdf` ist optional und traegt nur die Seitenhoehe als Sollwert ein, gegen die
+`--pdf` traegt die Seitenhoehe der langen Fassung als Sollwert ein, gegen die
 der fertige Frame gehalten wird.
 
 Wie render_skillmatrix.py setzt der Plan die KI-Kategorie an die erste Stelle
 und plant die Zertifikatskacheln mit scripts/zertifikate.py (Buendel,
 Bildgroessen) — PDF und Frame zeigen dasselbe. Zum Gegenpruefen rechnet
 planhoehe() die Hoehen des Plans nach den Auto-Layout-Regeln aus (Texte
-geschaetzt) und meldet Zertifikatssektion und Gesamthoehe.
+geschaetzt) und meldet Zertifikatssektion und Gesamthoehe; planhoehe_a4() je
+A4-Seite die Hoehe des Inhalts.
 """
 import json
 import re
@@ -39,20 +51,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import design_system  # noqa: E402  — nach sys.path.insert
 import zertifikate  # noqa: E402
-from render_skillmatrix import beschriftung, kompetenzen_ordnen  # noqa: E402
+from render_skillmatrix import (  # noqa: E402
+    KONTAKT_VORGABE, beschriftung, dateiname, foto_a4, kompetenzen_ordnen, seiten_lesen, zert_a4)
 
 ASSETS = design_system.ASSETS
 DS = design_system.laden()
 KOMP = DS["komponenten"]
-
-# Muss der Vorgabe in render_skillmatrix.html_bauen() entsprechen — der
-# Ansprechpartner steht als Vorgabe im Skill, nicht in der skillmatrix.json.
-KONTAKT_VORGABE = {
-    "name": "Manuel Klein", "rolle": "CCO",
-    "mail": "manuel.klein@newmonday.co", "telefon": "+49 (0)155 1148 0130",
-    "firma": "New Monday GmbH", "strasse": "Stresemannstr. 23",
-    "ort": "10963 Berlin",
-}
+DS4 = design_system.fassung(DS, "a4")       # A4-Fassung: eigene Texte und Komponenten
+K4 = DS4["komponenten"]
 
 hinweise = []
 
@@ -127,10 +133,11 @@ def _typo(s):
             "versalien": s["versalien"]}
 
 
-def text(name, inhalt, verwendung, breite="HUG", mehrzeilig=False, max_zeilen=None):
+def text(name, inhalt, verwendung, breite="HUG", mehrzeilig=False, max_zeilen=None, ds=None):
     """max_zeilen: nach so vielen Zeilen mit Auslassungszeichen kuerzen
-    (textTruncation ENDING) — wie line-clamp im PDF."""
-    s = design_system.textstil(DS, verwendung)
+    (textTruncation ENDING) — wie line-clamp im PDF. ds: die Fassung, deren
+    Textstile gelten (Vorgabe: die lange)."""
+    s = design_system.textstil(ds or DS, verwendung)
     inhalt = str(inhalt or "")
     if not mehrzeilig:
         inhalt = " ".join(inhalt.split())
@@ -516,6 +523,374 @@ def plan_bauen(daten, pdf=None):
     return plan
 
 
+# --- A4-Fassung ------------------------------------------------------------
+#
+# Je PDF-Seite ein Frame 595 x 842, aufgebaut wie der abgenommene Vorschlag
+# (Frames 2347:48 ff.): Kopfzeile, Inhalt (35,5 oben, Bloecke 32 auseinander),
+# auf der letzten Seite der Fuss. Der Inhalt der letzten Seite fuellt die Hoehe
+# (FILL), so sitzt der Fuss unten - in Figma die Entsprechung der gemessenen
+# Fussluft im PDF. Alle Werte aus tokens.json, Block "a4".
+
+def t4(name, inhalt, verwendung, breite="HUG", **rest):
+    return text(name, inhalt, verwendung, breite, ds=DS4, **rest)
+
+
+def a4_kopfzeile(person, labels, erste):
+    k, b = K4["kopf"], K4["badge"]
+    kinder = [svg("Logo", "nm-logo.svg", k["logo-breite"], k["logo-hoehe"])]
+    if erste:
+        kinder.append(rahmen("Badge", "HORIZONTAL", [
+            form("ellipse", "Punkt", b["punkt"], b["punkt"], f(b["punkt-farbe"])),
+            t4("Verfuegbarkeit",
+               f"{labels['verfuegbar']} {person.get('verfuegbar_ab', '')}".strip(), "badge"),
+        ], abstand=m(b["abstand"]), padding=(m(b["padding-y"]), m(b["padding-x"])), quer="CENTER",
+            fuellung=f(b["hintergrund"]), kontur=kontur(b["rahmen"]), radius=m(b["radius"])))
+    # Feste Hoehe 13,5: das Badge (20) ragt oben und unten gleich weit hinaus.
+    return rahmen("Kopfzeile", "HORIZONTAL", kinder, haupt="SPACE_BETWEEN" if erste else "MIN",
+                  quer="CENTER", breite="FILL", hoehe=k["hoehe"])
+
+
+def a4_hero(person, foto):
+    h, sp, fk = K4["hero"], K4["schwerpunkt"], K4["fotokarte"]
+    textspalte = [rahmen("Name und Rolle", "VERTICAL", [
+        t4("Name", person.get("name"), "hero-name", "FILL"),
+        t4("Rolle", person.get("rolle"), "hero-rolle", "FILL"),
+    ], abstand=m(h["name-unten"]), breite="FILL")]
+    if person.get("schwerpunkte"):
+        textspalte.append(rahmen("Schwerpunkte", "HORIZONTAL", [
+            rahmen("Schwerpunkt", "HORIZONTAL", [t4("Schwerpunkt", s, "schwerpunkt")],
+                   padding=(m(sp["padding-y"]), m(sp["padding-x"])), fuellung=f(sp["hintergrund"]),
+                   kontur=kontur(sp["rahmen"]), radius=m(sp["radius"]))
+            for s in person["schwerpunkte"]],
+            abstand=m(K4["schwerpunkte"]["abstand"]), breite="FILL",
+            umbruch=m(K4["schwerpunkte"]["abstand"])))
+        textspalte[-1]["umbruch_gap"] = True          # wie im A4-PDF (gap)
+    if not foto:
+        hinweise.append("A4: Kein Foto — die Fotokarte bleibt leer.")
+    # Fotokarte ohne Verlauf: das Foto fuellt sie, die Kontur liegt obenauf.
+    fotokarte = rahmen("Fotokarte", None, [
+        bild("Foto", foto, fk["bild-breite"], fk["bild-hoehe"], deckkraft=fk["bild-deckkraft"])],
+        breite=fk["breite"], hoehe=fk["hoehe"], radius=m(fk["radius"]), clip=True,
+        fuellung=f(fk["hintergrund"]), kontur=kontur(fk["rahmen"]))
+    profil = rahmen("Profil", "HORIZONTAL", [
+        rahmen("Text", "VERTICAL", textspalte, abstand=m(h["abstand-schwerpunkte"]), breite="FILL"),
+        fotokarte], abstand=m(h["spaltenabstand"]), breite="FILL")
+    return rahmen("Hero", "VERTICAL", [
+        profil, t4("Beschreibung", person.get("beschreibung"), "hero-beschreibung", "FILL")],
+        abstand=m(h["abstand-beschreibung"]), breite="FILL")
+
+
+def a4_ueberschrift(icon, titel):
+    st = K4["sektionstitel"]
+    return rahmen("Ueberschrift", "HORIZONTAL", [
+        svg("Icon", icon, st["icon"], st["icon"]), t4("Titel", titel, "sektion-titel")],
+        abstand=m(st["abstand"]), quer="CENTER")
+
+
+def a4_zertbild(e):
+    zb = K4["zertbild"]
+    if e.get("bild"):
+        k = bild(f"Zertifikat {e['nr']}", e["bild"], e["a4_breite"], e["a4_hoehe"], skalierung="FIT")
+        k.update(radius=zb["radius"], kontur=kontur(zb["rahmen"]))
+        return k
+    inhalt = (t4("Anzahl", f"+{e['anzahl']}", "zert-anzahl") if e["art"] == "buendel"
+              else svg("Icon", "icon-zertifikat.svg", zb["icon"], zb["icon"]))
+    return rahmen(f"Platzhalter {e['nr']}", "HORIZONTAL", [inhalt], breite=e["a4_breite"],
+                  hoehe=e["a4_hoehe"], haupt="CENTER", quer="CENTER",
+                  fuellung=f(zb["platz-hintergrund"]), kontur=kontur(zb["rahmen"]),
+                  radius=zb["radius"])
+
+
+def a4_kachelzeile(nr, eintraege):
+    t, b = K4["zertkachel"], K4["zertbuehne"]
+    kacheln = []
+    for e in eintraege:
+        texte = [t4("Titel", e["titel"], "zert-titel", "FILL", max_zeilen=t["titel-zeilen"])]
+        if e.get("meta"):
+            texte.append(t4("Aussteller und Jahr", e["meta"], "zert-aussteller", "FILL",
+                            max_zeilen=t["meta-zeilen"]))
+        kacheln.append(rahmen("Kachel", "VERTICAL", [
+            rahmen("Buehne", "HORIZONTAL", [a4_zertbild(e)], padding=m(b["padding"]), breite="FILL",
+                   hoehe=t["buehne-hoehe"], haupt="CENTER", quer="CENTER",
+                   fuellung=f(b["hintergrund"]), radius=m(b["radius"])),
+            rahmen("Text", "VERTICAL", texte, abstand=t["text-abstand"], breite="FILL"),
+        ], abstand=m(t["abstand"]), breite=t["breite"]))
+    return rahmen(f"Zeile {nr}", "HORIZONTAL", kacheln, abstand=m(t["spaltenabstand"]), breite="FILL")
+
+
+def a4_qualikarte(karte, labels):
+    q, qt, qg = K4["qualikarte"], K4["qualitag"], K4["qualitags"]
+    block = []
+    if karte["text"]:
+        block.append(t4("Satz", karte["text"], "quali-text", "FILL"))
+    if karte["tags"]:
+        block.append(rahmen("Tags", "HORIZONTAL", [
+            rahmen("Tag", "HORIZONTAL", [t4("Tag", tag, "quali-tag")],
+                   padding=(m(qt["padding-y"]), m(qt["padding-x"])), kontur=kontur(qt["rahmen"]),
+                   radius=m(qt["radius"]))
+            for tag in karte["tags"]],
+            abstand=m(qg["abstand"]), breite="FILL", umbruch=m(qg["abstand"])))
+        block[-1]["umbruch_gap"] = True               # wie im A4-PDF (gap)
+    return rahmen("Qualifikationskarte", "VERTICAL", [
+        t4("Titel", labels["qualifikationen"], "quali-titel", "FILL"),
+        rahmen("Satz und Tags", "VERTICAL", block, abstand=m(q["gruppen-abstand"]), breite="FILL")],
+        abstand=m(q["abstand"]), padding=m(q["padding"]), breite="FILL", radius=m(q["radius"]),
+        fuellung=f(q["hintergrund"]), kontur=kontur(q["rahmen"]))
+
+
+def a4_zertifikate(za4, labels, auf_seite, nr, fortsetzung):
+    """Was von der Zertifikatssektion auf Seite nr steht: Ueberschrift, Karte
+    und ein leerer Rahmen "Kacheln — Seite nr" fuer die Reihen (je Reihe ein
+    eigener Bauschritt, damit kein Aufruf zu gross wird). auf_seite: die
+    data-block-Namen dieser Seite. Gibt (knoten, reihen) zurueck."""
+    kinder = []
+    if "zert-titel" in auf_seite:
+        kinder.append(a4_ueberschrift("icon-zertifikat.svg", labels["zertifikate"]))
+    if za4.get("karte") and "zert-karte" in auf_seite:
+        kinder.append(a4_qualikarte(za4["karte"], labels))
+    spalten = K4["zertkachel"]["spalten"]
+    reihen = [a4_kachelzeile(z, za4["eintraege"][i:i + spalten])
+              for z, i in enumerate(range(0, len(za4["eintraege"]), spalten), start=1)
+              if f"zert-zeile-{z}" in auf_seite]
+    if reihen:
+        kinder.append(rahmen(f"Kacheln — Seite {nr}", "VERTICAL", [],
+                             abstand=m(K4["zertkachel"]["zeilenabstand"]), breite="FILL", merken=True))
+    name = "Zertifikate (Fortsetzung)" if fortsetzung else "Zertifikate"
+    return (rahmen(name, "VERTICAL", kinder, abstand=m(K4["sektionstitel"]["unten"]), breite="FILL"),
+            reihen)
+
+
+def a4_zeilen(skills):
+    """Kernkompetenzen und Tools als Zeilen ohne Karten: zwei Spalten, Eintraege
+    einer Zeile gleich hoch (Zeile huggt, Eintraege fuellen), ab der zweiten
+    Zeile mit Haarlinie oben."""
+    e, p = K4["eintraege"], K4["punkte"]
+    zeilen = []
+    for nr, i in enumerate(range(0, len(skills), e["spalten"]), start=1):
+        eintraege = []
+        for s in skills[i:i + e["spalten"]]:
+            punkte = s.get("punkte") if isinstance(s.get("punkte"), int) else 0
+            reihe = rahmen("Punkte", "HORIZONTAL", [
+                form("rechteck", f"Punkt {j + 1}", p["groesse"], p["groesse"],
+                     f(p["voll"] if j < punkte else p["leer"]), radius=p["radius"])
+                for j in range(p["anzahl"])], abstand=m(p["abstand"]), padding=(m(p["oben"]), 0, 0, 0))
+            eintraege.append(rahmen("Eintrag", "VERTICAL", [
+                rahmen("Kopf", "HORIZONTAL", [t4("Titel", s.get("name"), "eintrag-titel", "FILL"), reihe],
+                       abstand=m(e["titel-abstand"]), breite="FILL"),
+                t4("Beschreibung", s.get("beschreibung"), "eintrag-beschreibung", "FILL"),
+            ], abstand=e["abstand"], padding=(e["padding-y"], 0, e["padding-y"], 0), breite=e["breite"],
+                hoehe="FILL", kontur=kontur(e["linie"], seiten=[1, 0, 0, 0]) if nr > 1 else None))
+        zeilen.append(rahmen(f"Zeile {nr}", "HORIZONTAL", eintraege,
+                             abstand=m(e["spaltenabstand"]), breite="FILL"))
+    return zeilen
+
+
+def a4_kategorie(k):
+    ka = K4["kategorie"]
+    label = rahmen("Label", "VERTICAL", [t4("Kategorie", k.get("kategorie"), "kategorie")],
+                   padding=(0, 0, m(ka["text-unten"]), 0), breite="FILL",
+                   kontur=kontur(ka["linie"], seiten=[0, 0, 1, 0]))
+    return rahmen(f"Kategorie — {k.get('kategorie')}", "VERTICAL", [
+        label, rahmen("Zeilen", "VERTICAL", a4_zeilen(k.get("skills") or []), breite="FILL")],
+        breite="FILL")
+
+
+def a4_tools(tools, labels):
+    return rahmen("Tools", "VERTICAL", [
+        a4_ueberschrift("icon-tools.svg", labels["tools"]),
+        rahmen("Eintraege", "VERTICAL", a4_zeilen(tools), breite="FILL",
+               kontur=kontur(K4["tools"]["linie"], seiten=[1, 0, 0, 0]))],
+        abstand=m(K4["sektionstitel"]["unten"]), breite="FILL")
+
+
+def a4_fuss(daten, labels):
+    """Wie der Fuss des Lebenslaufs: Linie, darunter Logo und drei Spalten."""
+    fu = K4["fuss"]
+    k = dict(KONTAKT_VORGABE)
+    k.update(daten.get("kontakt") or {})
+    spalte_b = round((fu["block"] - 2 * fu["spaltenabstand"]) / 3, 2)
+
+    def spalte(name, werte):
+        return rahmen(name, "VERTICAL", [
+            t4("Label", labels[name.lower()], "fuss-label"),
+            rahmen("Werte", "VERTICAL", werte, abstand=fu["werte-abstand"],
+                   padding=(fu["label-abstand"], 0, 0, 0))], breite=spalte_b)
+
+    return rahmen("Fuss", "VERTICAL", [
+        form("rechteck", "Trennlinie", fu["breite"], fu["linie"]["breite"], f(fu["linie"]["farbe"])),
+        rahmen("Fuss-Reihe", "HORIZONTAL", [
+            svg("Logo", "nm-logo.svg", fu["logo-breite"], fu["logo-hoehe"]),
+            rahmen("Spalten", "HORIZONTAL", [
+                spalte("Ansprechpartner", [rahmen("Name und Rolle", "VERTICAL", [
+                    t4("Name", k["name"], "fuss-name"), t4("Rolle", k["rolle"], "fuss-wert")])]),
+                spalte("Kontakt", [t4("Mail", k["mail"], "fuss-wert"),
+                                   t4("Telefon", k["telefon"], "fuss-wert")]),
+                spalte("Adresse", [t4("Adresse", f"{k['firma']}\n{k['strasse']}\n{k['ort']}",
+                                      "fuss-wert", mehrzeilig=True)]),
+            ], abstand=fu["spaltenabstand"]),
+        ], haupt="SPACE_BETWEEN", padding=(fu["abstand"], 0, 0, 0), breite=fu["breite"]),
+    ], breite=fu["breite"])
+
+
+def a4_seiten_aus_pdf(pdf, daten, labels):
+    """Seitenaufteilung aus dem A4-PDF: {block: seite} und die Seitenzahl.
+    Gegengeprueft am Seitentext (Kategorielabels stehen auf ihrer Seite)."""
+    info = seiten_lesen(pdf)
+    if not info:
+        raise SystemExit(
+            f"{pdf}: keine Seitenaufteilung im PDF (/NewMondaySeiten). Das A4-PDF mit "
+            "render_skillmatrix.py neu rendern - geraten wird die Aufteilung nicht.")
+    from pypdf import PdfReader
+    texte = [" ".join((seite.extract_text() or "").split()).casefold()
+             for seite in PdfReader(str(pdf)).pages]
+    if len(texte) != info["seiten"]:
+        hinweise.append(f"A4: Das PDF hat {len(texte)} Seiten, abgelegt sind {info['seiten']} — "
+                        "neu rendern.")
+    for nr, k in enumerate(daten.get("kompetenzen") or [], start=1):
+        seite = info["bloecke"].get(f"kategorie-{nr}")
+        label = " ".join(str(k.get("kategorie") or "").split()).casefold()
+        if seite and label and seite <= len(texte) and label not in texte[seite - 1]:
+            hinweise.append(f"A4: Kategorie „{k.get('kategorie')}“ steht laut PDF auf Seite {seite}, "
+                            "ihr Label ist dort aber nicht zu finden — PDF und JSON passen nicht "
+                            "zusammen, neu rendern.")
+    return info["bloecke"], info["seiten"]
+
+
+def plan_bauen_a4(daten, pdf_a4):
+    """Der Bauplan der A4-Fassung: je Seite ein Rahmen-Schritt, dann die Bloecke
+    der Seite in ihren Inhalt."""
+    labels = beschriftung(daten)
+    daten, _ = kompetenzen_ordnen(daten)              # gemeldet schon im langen Plan
+    zplan, _ = zertifikate.planen(daten, DS, labels)
+    za4 = zert_a4(zplan, DS4)
+    person = daten.get("person") or {}
+    name = " ".join(str(person.get("name") or "Skillmatrix").split())
+    foto, foto_hinweise = foto_a4(daten)
+    hinweise.extend(f"A4: {h}" for h in foto_hinweise)
+    bloecke, seiten = a4_seiten_aus_pdf(pdf_a4, daten, labels)
+    S, ik = K4["seite"], K4["inhalt"]
+
+    def auf(nr):
+        return {b for b, s in bloecke.items() if s == nr}
+
+    schritte, inhalt_von = [], {}
+    for nr in range(1, seiten + 1):
+        letzte = nr == seiten
+        inhalt = rahmen(f"Inhalt — Seite {nr}", "VERTICAL",
+                        [a4_hero(person, foto)] if "hero" in auf(nr) else [],
+                        abstand=m(ik["sektionsabstand"]),
+                        padding=(K4["kopf"]["abstand-inhalt"], 0, 0, 0), breite="FILL",
+                        hoehe="FILL" if letzte else "HUG", merken=True)
+        inhalt_von[nr] = inhalt["name"]
+        kinder = [a4_kopfzeile(person, labels, nr == 1), inhalt]
+        if letzte:
+            kinder.append(a4_fuss(daten, labels))
+        seite = rahmen(f"Skillmatrix A4 — {name} — Seite {nr}", "VERTICAL", kinder,
+                       padding=(S["rand-oben"], S["rand-rechts"], S["rand-unten"], S["rand-links"]),
+                       breite=S["breite"], hoehe=S["hoehe"], fuellung=f(S["hintergrund"]),
+                       clip=True, merken=True)
+        schritte.append({"was": f"Seite {nr}: Rahmen mit Kopfzeile"
+                                + (", Hero" if "hero" in auf(nr) else "")
+                                + ", leerem Inhalt" + (" und Fuss" if letzte else ""),
+                         "eltern": "SEITE", "seite": nr, "knoten": seite})
+
+    # Die Bloecke in Dokumentreihenfolge, je Seite in deren Inhalt.
+    zert_seiten = sorted({s for b, s in bloecke.items() if b.startswith("zert-")})
+    zert_schritte = []
+    for nr in (zert_seiten if za4 else []):
+        knoten, reihen = a4_zertifikate(za4, labels, auf(nr), nr, nr != zert_seiten[0])
+        zert_schritte.append({"was": f"Zertifikate auf Seite {nr}: Ueberschrift, Karte, leere Kacheln",
+                              "eltern": inhalt_von[nr], "seite": nr, "knoten": knoten})
+        zert_schritte += [{"was": f"Kachelreihe {r['name'].split()[-1]}",
+                           "eltern": f"Kacheln — Seite {nr}", "seite": nr, "knoten": r}
+                          for r in reihen]
+    kompetenz_schritte = []
+    kat_seiten = {}
+    for nr, k in enumerate(daten.get("kompetenzen") or [], start=1):
+        kat_seiten.setdefault(bloecke.get(f"kategorie-{nr}", 1), []).append((nr, k))
+    for seite_nr in sorted(kat_seiten):
+        erste = "kompetenzen-titel" in auf(seite_nr)
+        liste = f"Kategorien — Seite {seite_nr}"
+        kinder = [rahmen(liste, "VERTICAL", [], abstand=m(K4["kompetenzen"]["kategorie-abstand"]),
+                         breite="FILL", merken=True)]
+        if erste:
+            knoten = rahmen("Kernkompetenzen", "VERTICAL",
+                            [a4_ueberschrift("icon-kernkompetenzen.svg", labels["kernkompetenzen"])]
+                            + kinder, abstand=m(K4["sektionstitel"]["unten"]), breite="FILL")
+        else:
+            knoten = kinder[0]
+            knoten["name"] = liste
+        kompetenz_schritte.append({
+            "was": ("Kernkompetenzen: Ueberschrift und leere Kategorienliste" if erste
+                    else "Kernkompetenzen (Fortsetzung): leere Kategorienliste") + f", Seite {seite_nr}",
+            "eltern": inhalt_von[seite_nr], "seite": seite_nr, "knoten": knoten})
+        for nr, k in kat_seiten[seite_nr]:
+            kompetenz_schritte.append({"was": f"Kategorie {k.get('kategorie')}", "eltern": liste,
+                                       "seite": seite_nr, "knoten": a4_kategorie(k)})
+    if daten.get("tools"):
+        nr = bloecke.get("tools", seiten)
+        kompetenz_schritte.append({"was": "Tools", "eltern": inhalt_von[nr], "seite": nr,
+                                   "knoten": a4_tools(daten["tools"], labels)})
+    if daten.get("zertifikate_position") == "ende":
+        schritte += kompetenz_schritte + zert_schritte
+    else:
+        schritte += zert_schritte + kompetenz_schritte
+
+    schriften = {}
+    for familie, schnitte in DS4["figma_schnitte"].items():
+        if not familie.startswith("_"):
+            schriften[familie] = sorted(set(schnitte.values()))
+    return {
+        "fassung": "a4", "pdf": str(pdf_a4), "datei": dateiname(daten, "a4"),
+        "rahmen": {"name": f"Skillmatrix A4 — {name} — Seite n", "breite": S["breite"],
+                   "hoehe": S["hoehe"], "seiten": seiten},
+        "anordnung": {"neben": f"Skillmatrix — {name}", "abstand": 100,
+                      "_regel": "Seite 1 rechts neben dem langen Frame, 100 Abstand, oben buendig; "
+                                "jede weitere Seite 100 rechts daneben (references/figma.md)."},
+        "sprache": daten.get("sprache", "de"),
+        "schriften": schriften,
+        "schritte": [{"nr": i + 1, **s} for i, s in enumerate(schritte)],
+        "uploads": [b for s in schritte for b in _bilder(s["knoten"])],
+    }
+
+
+def planhoehe_a4(plan):
+    """Rechnet je Seite die Hoehe von Kopfzeile und Inhalt nach (Texte
+    geschaetzt) und meldet, wo sie den Satzspiegel ueberschreitet - im Frame
+    wuerde dort abgeschnitten."""
+    import copy
+    schaetzer = zertifikate.Schaetzer(DS4, sicherheit=1.0)
+    S = K4["seite"]
+    rahmen_je_seite, gemerkt = {}, {}
+
+    def merken(k):
+        if k.get("merken") and k.get("typ") == "rahmen":
+            gemerkt[k["name"]] = k
+        for kind in k.get("kinder", []):
+            merken(kind)
+    for schritt in plan["schritte"]:
+        knoten = copy.deepcopy(schritt["knoten"])
+        if schritt["eltern"] == "SEITE":
+            rahmen_je_seite[schritt["seite"]] = knoten
+        else:
+            gemerkt[schritt["eltern"]]["kinder"].append(knoten)
+        merken(knoten)
+    hoehen = {}
+    for nr, seite in rahmen_je_seite.items():
+        innen = S["breite"] - S["rand-links"] - S["rand-rechts"]
+        kopf, inhalt = seite["kinder"][0], dict(seite["kinder"][1], hoehe="HUG")
+        belegt = masse(kopf, innen, schaetzer)[1] + masse(inhalt, innen, schaetzer)[1]
+        frei = S["hoehe"] - S["rand-oben"] - S["rand-unten"]
+        if len(seite["kinder"]) > 2:
+            frei -= masse(seite["kinder"][2], innen, schaetzer)[1]
+        hoehen[nr] = round(belegt, 1)
+        if belegt > frei + 1:
+            hinweise.append(f"A4: Seite {nr} nachgerechnet {belegt:.0f}pt hoch, Platz ist {frei:.0f}pt "
+                            "— im Frame koennte unten etwas abgeschnitten werden. Nach dem Bau "
+                            "ansehen.")
+    plan["rahmen"]["inhalt_geschaetzt"] = hoehen
+
+
 # --- Hoehen nachrechnen -----------------------------------------------------
 
 def _zeile_pt(typo):
@@ -564,9 +939,13 @@ def masse(k, verfuegbar, schaetzer):
         groessen = [masse(c, innen, schaetzer) for c in kinder]
         h, b = sum(g[1] for g in groessen) + abstand, max([g[0] for g in groessen] or [0])
     elif layout == "HORIZONTAL" and k.get("umbruch"):
-        # Umbrechende Reihe (Tags): Zeilen wie zertifikate.tag_reihen.
+        # Umbrechende Reihe (Tags): Zeilen wie das PDF umbricht - lange
+        # Fassung mit Rand je Tag (zertifikate.tag_reihen), A4 mit gap.
         breiten = [_hug_breite(c, schaetzer) for c in kinder]
-        reihen = zertifikate.tag_reihen(breiten, innen, k.get("abstand", 0))
+        if k.get("umbruch_gap"):
+            reihen = _reihen_gap(breiten, innen, k.get("abstand", 0))
+        else:
+            reihen = zertifikate.tag_reihen(breiten, innen, k.get("abstand", 0))
         zeile = max([masse(c, None, schaetzer)[1] for c in kinder] or [0])
         h, b = reihen * zeile + max(reihen - 1, 0) * k["umbruch"], innen or 0
     elif layout == "HORIZONTAL":
@@ -590,6 +969,18 @@ def masse(k, verfuegbar, schaetzer):
     if k.get("min_hoehe"):
         hoehe = max(hoehe, k["min_hoehe"])
     return (breite if breite is not None else b + links + rechts), hoehe
+
+
+def _reihen_gap(breiten, innen, abstand):
+    """Zeilen einer umbrechenden Reihe mit Abstand nur zwischen den Elementen
+    (CSS gap, Figma itemSpacing) - so bricht die A4-Fassung um."""
+    reihen, x = (1 if breiten else 0), 0.0
+    for b in breiten:
+        if x and x + abstand + b > innen:
+            reihen, x = reihen + 1, b
+        else:
+            x += (abstand if x else 0) + b
+    return reihen
 
 
 def _hug_breite(k, schaetzer):
@@ -666,6 +1057,16 @@ def pdf_hoehe(pfad):
         return None
 
 
+def _arg(args, name):
+    """Wert einer Option (--pdf <pfad>) und die Argumente ohne sie."""
+    if name not in args:
+        return None, args
+    i = args.index(name)
+    if i + 1 >= len(args):
+        raise SystemExit(f"{name} braucht einen Pfad")
+    return args[i + 1], args[:i] + args[i + 2:]
+
+
 def main():
     args = sys.argv[1:]
     if args[:1] == ["--schritt"] and len(args) == 3:
@@ -675,27 +1076,22 @@ def main():
             raise SystemExit(f"Keinen Schritt {args[1]} im Plan.")
         print(json.dumps(schritt["knoten"], ensure_ascii=False, separators=(",", ":")))
         return
-    pdf = None
-    if "--pdf" in args:
-        i = args.index("--pdf")
-        if i + 1 >= len(args):
-            raise SystemExit("--pdf braucht einen Pfad")
-        pdf = args[i + 1]
-        args = args[:i] + args[i + 2:]
+    pdf, args = _arg(args, "--pdf")
+    pdf_a4, args = _arg(args, "--pdf-a4")
     if len(args) < 2:
         raise SystemExit(__doc__)
 
     daten = json.loads(Path(args[0]).read_text(encoding="utf-8"))
     ziel = Path(args[1])
-    if ziel.suffix.lower() != ".json":
-        ziel = ziel / "figma_plan.json"
-    ziel.parent.mkdir(parents=True, exist_ok=True)
+    if ziel.suffix.lower() == ".json":
+        ziel = ziel.parent
+    ziel.mkdir(parents=True, exist_ok=True)
 
     plan = plan_bauen(daten, pdf)
     planhoehe(plan)
-    ziel.write_text(json.dumps(plan, ensure_ascii=False, indent=1), encoding="utf-8")
-
-    print(f"{ziel} geschrieben — {len(plan['schritte'])} Bauschritte, "
+    datei = ziel / "figma_plan.json"
+    datei.write_text(json.dumps(plan, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"{datei} geschrieben — {len(plan['schritte'])} Bauschritte, "
           f"{len(plan['uploads'])} Bilder zum Hochladen")
     for s in plan["schritte"]:
         groesse = len(json.dumps(s["knoten"], ensure_ascii=False, separators=(",", ":")))
@@ -707,6 +1103,34 @@ def main():
     print(f"Rahmenhoehe nachgerechnet (Texte geschaetzt): {plan['rahmen']['hoehe_geschaetzt']:g}pt")
     if plan["rahmen"].get("hoehe_pdf"):
         print(f"Sollhoehe aus dem PDF: {plan['rahmen']['hoehe_pdf']}pt")
+
+    # A4: die Seitenaufteilung kommt aus dem A4-PDF. Ohne --pdf-a4 liegt es
+    # neben dem langen PDF.
+    if not pdf_a4 and pdf:
+        kandidat = Path(pdf).with_name(dateiname(kompetenzen_ordnen(daten)[0], "a4"))
+        pdf_a4 = str(kandidat) if kandidat.exists() else None
+    plan4 = None
+    if pdf_a4 and Path(pdf_a4).exists():
+        try:
+            plan4 = plan_bauen_a4(daten, pdf_a4)
+        except ImportError:
+            hinweise.append("A4-Plan nicht geschrieben: pypdf fehlt — ohne es laesst sich die "
+                            "Seitenaufteilung nicht aus dem PDF lesen (pip3 install pypdf).")
+    if plan4:
+        planhoehe_a4(plan4)
+        datei4 = ziel / "figma_plan_a4.json"
+        datei4.write_text(json.dumps(plan4, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"\n{datei4} geschrieben — {plan4['rahmen']['seiten']} Seiten, "
+              f"{len(plan4['schritte'])} Bauschritte, {len(plan4['uploads'])} Bilder zum Hochladen")
+        for s in plan4["schritte"]:
+            groesse = len(json.dumps(s["knoten"], ensure_ascii=False, separators=(",", ":")))
+            print(f"  {s['nr']:2}. {s['was']}  (in: {s['eltern']}, {groesse / 1000:.0f} KB)")
+        print("Inhalt je Seite nachgerechnet (Texte geschaetzt): " + ", ".join(
+            f"Seite {n} {h:g}pt" for n, h in plan4["rahmen"]["inhalt_geschaetzt"].items()))
+    elif not (pdf_a4 and Path(pdf_a4).exists()):
+        hinweise.append("A4-Plan nicht geschrieben: --pdf-a4 \"<… - Skillmatrix A4.pdf>\" angeben "
+                        "(die Seitenaufteilung kommt aus dem A4-PDF)."
+                        + (f" Nicht gefunden: {pdf_a4}" if pdf_a4 else ""))
     if hinweise:
         print("\nPruefen:", file=sys.stderr)
         for h in hinweise:

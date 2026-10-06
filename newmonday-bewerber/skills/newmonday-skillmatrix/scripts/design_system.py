@@ -2,12 +2,16 @@
 """Das Design System der Skillmatrix — eine Quelle fuer PDF und Figma.
 
     python3 scripts/design_system.py pruefe "ausgabe/New-Monday - … - Skillmatrix.pdf"
-    python3 scripts/design_system.py css          # erzeugtes CSS ansehen
+    python3 scripts/design_system.py pruefe "ausgabe/New-Monday - … - Skillmatrix A4.pdf" a4
+    python3 scripts/design_system.py css [a4]     # erzeugtes CSS ansehen
 
 Alle Farben, Abstaende, Radien, Schatten, Schriften und Masse stehen einmal, in
 assets/tokens.json — gespiegelt aus der Figma-Library der Masterdatei. Dieses
 Modul liest sie und gibt sie in der Form weiter, die der jeweilige Abnehmer
-braucht:
+braucht. Es gibt zwei Fassungen: die lange (oberste Ebene von tokens.json) und
+die A4-Fassung (Block "a4" mit eigenen textstilen, texten und komponenten);
+fassung(ds, "a4") legt den Block ueber die gemeinsamen Farben, Abstaende und
+Schriften, und alle Funktionen hier nehmen das Ergebnis wie ds selbst:
 
   - css()          @font-face, :root-Variablen je Komponente, .t-*-Textklassen
                    fuer template.html und skillmatrix.css
@@ -36,6 +40,10 @@ def _meta(schluessel):
     return str(schluessel).startswith("_")
 
 
+FASSUNGEN = ("lang", "a4")
+GEMEINSAM = ("farben", "abstaende", "radien", "schatten", "schriften", "figma_schnitte")
+
+
 def laden(pfad=TOKENS):
     ds = json.loads(Path(pfad).read_text(encoding="utf-8"))
     seite = ds["komponenten"]["seite"]
@@ -44,7 +52,30 @@ def laden(pfad=TOKENS):
         raise SystemExit(
             f"tokens.json ist in sich unstimmig: seite.breite {seite['breite']} "
             f"- 2 x {rand} ist nicht seite.inhalt {seite['inhalt']}.")
+    a4 = ds["a4"]["komponenten"]["seite"]
+    if abs(a4["breite"] - a4["rand-links"] - a4["rand-rechts"] - a4["inhalt"]) > 0.01:
+        raise SystemExit(
+            f"tokens.json ist in sich unstimmig: a4.seite.breite {a4['breite']} - Raender "
+            f"{a4['rand-links']} + {a4['rand-rechts']} ist nicht a4.seite.inhalt {a4['inhalt']}.")
     return ds
+
+
+def fassung(ds, name="lang"):
+    """Die Tokens einer Fassung in der Form von ds: fuer "lang" ds selbst, fuer
+    "a4" die gemeinsamen Farben, Abstaende, Radien, Schatten und Schriften mit
+    den textstilen, texten und komponenten aus dem Block "a4". Die Textstile der
+    langen Fassung bleiben sichtbar (Namen mit "a4/" stossen nicht an)."""
+    if name in (None, "lang"):
+        return ds
+    if name not in ds:
+        raise KeyError(f"Keine Fassung {name!r} in tokens.json (bekannt: {', '.join(FASSUNGEN)}).")
+    block = ds[name]
+    sicht = {k: ds[k] for k in GEMEINSAM}
+    sicht["textstile"] = {**ds["textstile"], **block["textstile"]}
+    sicht["texte"] = block["texte"]
+    sicht["komponenten"] = block["komponenten"]
+    sicht["_fassung"] = name
+    return sicht
 
 
 # --- Aufloesen --------------------------------------------------------------
@@ -261,75 +292,88 @@ def _nah(a, b, toleranz=1):
 
 
 def pruefe_pdf(pdf, ds):
-    """(fehler, hinweise). Ein Fehler heisst: Das PDF weicht vom Design System ab."""
+    """(fehler, hinweise). Ein Fehler heisst: Das PDF weicht vom Design System ab.
+    ds ist die Fassung (fassung()); geprueft wird jede Seite, bei fester
+    Seitenhoehe (A4) auch die Hoehe."""
     fehler, hinweise = [], []
     try:
         import fitz                                   # PyMuPDF
     except ImportError:
         return [], ["PyMuPDF fehlt — Designpruefung uebersprungen "
                     "(pip3 install pymupdf)."]
-    seite = fitz.open(str(pdf))[0]
+    dokument = fitz.open(str(pdf))
+    seite_soll = ds["komponenten"]["seite"]
+    soll, soll_h = seite_soll["breite"], seite_soll.get("hoehe")
+    for nr, seite in enumerate(dokument, start=1):
+        if abs(seite.rect.width - soll) > 0.5:
+            fehler.append(f"Seite {nr}: Breite {seite.rect.width:g}pt statt {soll}pt.")
+        if soll_h and abs(seite.rect.height - soll_h) > 0.5:
+            fehler.append(f"Seite {nr}: Hoehe {seite.rect.height:g}pt statt {soll_h}pt.")
+    _pruefe_seiten(dokument, ds, fehler)
+    return fehler, hinweise
 
-    soll = ds["komponenten"]["seite"]["breite"]
-    if abs(seite.rect.width - soll) > 0.5:
-        fehler.append(f"Seitenbreite {seite.rect.width:g}pt statt {soll}pt.")
 
+def _pruefe_seiten(dokument, ds, fehler):
+    """Schriften, Textstile und Farben auf allen Seiten."""
     # Schriften: jede eingebettete Schrift muss eine aus tokens.json sein.
     schnitte = {}
     for familie, dateien in ds["schriften"].items():
         for gewicht, datei in dateien.items():
             schnitte[_schriftschluessel(datei)] = (familie, int(gewicht))
-    fremde = sorted({e[3].split("+", 1)[-1] for e in seite.get_fonts()
+    fremde = sorted({e[3].split("+", 1)[-1] for seite in dokument for e in seite.get_fonts()
                      if _schriftschluessel(e[3]) not in schnitte})
     for name in fremde:
         fehler.append(f"Fremde Schrift im PDF: {name} — Ersatzschrift? "
                       "Schriftdatei fehlt oder font-family ist falsch geschrieben.")
 
     # Textstile: Schrift, Schnitt, Groesse und Farbe jeder Zeile muessen einer
-    # Verwendung aus tokens.json entsprechen.
+    # Verwendung aus tokens.json (der Fassung) entsprechen.
     erlaubt = set()
     for verwendung in ds["texte"]:
         s = textstil(ds, verwendung)
         erlaubt.add((s["familie"], s["gewicht"], float(s["groesse"]), s["farbe"]))
     gemeldet = set()
-    for block in seite.get_text("dict")["blocks"]:
-        for zeile in block.get("lines", []):
-            for span in zeile["spans"]:
-                if not span["text"].strip():
-                    continue
-                familie, gewicht = schnitte.get(_schriftschluessel(span["font"]), (span["font"], None))
-                hexwert = f"#{span['color']:06x}"
-                treffer = any(f == familie and g == gewicht and abs(gr - span["size"]) < 0.05
-                              and _nah(fa, hexwert) for f, g, gr, fa in erlaubt)
-                schluessel = (familie, gewicht, round(span["size"], 1), hexwert)
-                if not treffer and schluessel not in gemeldet:
-                    gemeldet.add(schluessel)
-                    schrift = f"{familie} {gewicht}" if gewicht else familie
-                    fehler.append(f"Textstil ohne Token: {schrift} {span['size']:.4g}pt "
-                                  f"{hexwert} — „{span['text'][:40]}“")
+    for seite in dokument:
+        for block in seite.get_text("dict")["blocks"]:
+            for zeile in block.get("lines", []):
+                for span in zeile["spans"]:
+                    if not span["text"].strip():
+                        continue
+                    familie, gewicht = schnitte.get(_schriftschluessel(span["font"]),
+                                                    (span["font"], None))
+                    hexwert = f"#{span['color']:06x}"
+                    treffer = any(f == familie and g == gewicht and abs(gr - span["size"]) < 0.05
+                                  and _nah(fa, hexwert) for f, g, gr, fa in erlaubt)
+                    schluessel = (familie, gewicht, round(span["size"], 1), hexwert)
+                    if not treffer and schluessel not in gemeldet:
+                        gemeldet.add(schluessel)
+                        schrift = f"{familie} {gewicht}" if gewicht else familie
+                        fehler.append(f"Textstil ohne Token: {schrift} {span['size']:.4g}pt "
+                                      f"{hexwert} — „{span['text'][:40]}“")
 
     # Flaechen und Linien: nur Farben aus tokens.json.
     palette = _erlaubte_farben(ds)
     fremd = set()
-    for zeichnung in seite.get_drawings():
-        for schluessel in ("fill", "color"):
-            wert = zeichnung.get(schluessel)
-            if wert is None:
-                continue
-            hexwert = "#" + "".join(f"{round(c * 255):02x}" for c in wert[:3])
-            if not any(_nah(hexwert, p) for p in palette):
-                fremd.add(hexwert)
+    for seite in dokument:
+        for zeichnung in seite.get_drawings():
+            for schluessel in ("fill", "color"):
+                wert = zeichnung.get(schluessel)
+                if wert is None:
+                    continue
+                hexwert = "#" + "".join(f"{round(c * 255):02x}" for c in wert[:3])
+                if not any(_nah(hexwert, p) for p in palette):
+                    fremd.add(hexwert)
     if fremd:
         fehler.append("Farben ohne Token in Flaechen oder Linien: " + ", ".join(sorted(fremd)))
-    return fehler, hinweise
 
 
 def main():
     if len(sys.argv) >= 2 and sys.argv[1] == "css":
-        print(css(laden()))
+        print(css(fassung(laden(), sys.argv[2] if len(sys.argv) > 2 else "lang")))
         return
     if len(sys.argv) >= 3 and sys.argv[1] == "pruefe":
-        fehler, hinweise = pruefe_pdf(sys.argv[2], laden())
+        name = sys.argv[3] if len(sys.argv) > 3 else "lang"
+        fehler, hinweise = pruefe_pdf(sys.argv[2], fassung(laden(), name))
         for h in hinweise:
             print(f"Hinweis: {h}")
         for f in fehler:

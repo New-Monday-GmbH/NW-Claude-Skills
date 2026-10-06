@@ -1,16 +1,26 @@
 ---
 name: newmonday-skillmatrix
-description: Erstellt aus Lebenslauf, Portfolio und LinkedIn-Export eine Skill Matrix im New-Monday-Layout als PDF – eine einseitige, weblayoutartige Kompetenzübersicht mit Hero (Name, Rolle, Verfügbarkeit, Foto), Zertifikaten und nach Kategorien gruppierten Kernkompetenzen mit 1–5-Punkte-Bewertung. Nutze diesen Skill immer, wenn eine Skill Matrix, Skillmatrix, Kompetenzmatrix, Kompetenzübersicht oder ein Skill-Profil erstellt, aufbereitet, vereinheitlicht oder "ins New Monday Layout gebracht" werden soll – auch wenn nur "Skill Matrix für <Name>" mit ein paar PDFs geschickt wird und das Wort "New Monday" gar nicht fällt. Gilt auch, wenn die Skill Matrix zusätzlich in ein Figma-File, als Figma-Frame oder als bearbeitbare Datei für Designer abgelegt werden soll. Für Lebensläufe ist newmonday-cv zuständig, für Portfolios newmonday-portfolio; die Skillmatrix ist das dritte Dokument im Set.
+description: Erstellt aus Lebenslauf, Portfolio und LinkedIn-Export eine Skill Matrix im New-Monday-Layout, immer in zwei Fassungen als PDF – eine lange, weblayoutartige Seite (1444 breit) und eine kompakte A4-Fassung im Format des Lebenslaufs – mit Hero (Name, Rolle, Verfügbarkeit, Foto), Zertifikaten und nach Kategorien gruppierten Kernkompetenzen mit 1–5-Punkte-Bewertung. Nutze diesen Skill immer, wenn eine Skill Matrix, Skillmatrix, Kompetenzmatrix, Kompetenzübersicht oder ein Skill-Profil erstellt, aufbereitet, vereinheitlicht oder "ins New Monday Layout gebracht" werden soll – auch wenn nur "Skill Matrix für <Name>" mit ein paar PDFs geschickt wird und das Wort "New Monday" gar nicht fällt. Gilt auch, wenn die Skill Matrix zusätzlich in ein Figma-File, als Figma-Frame oder als bearbeitbare Datei für Designer abgelegt werden soll. Für Lebensläufe ist newmonday-cv zuständig, für Portfolios newmonday-portfolio; die Skillmatrix ist das dritte Dokument im Set.
 ---
 
 # New Monday Skillmatrix
 
 Aus Lebenslauf, LinkedIn-Export und Portfolio wird eine Skill Matrix im
-New-Monday-Layout: eine einzige lange PDF-Seite mit Hero, Zertifikaten und
-bewerteten Kernkompetenzen. Das Layout folgt dem New-Monday-Design-System der
-Figma-Masterdatei (Seite „Skillmatrix“). Farben, Abstände, Radien, Schatten und
-Schriften stehen einmal, in `assets/tokens.json` – gespiegelt aus der
-Figma-Library. PDF und Figma-Frame lesen beide von dort, und das Renderskript
+New-Monday-Layout mit Hero, Zertifikaten und bewerteten Kernkompetenzen – in
+**zwei Fassungen, immer beide**, aus derselben `skillmatrix.json`:
+
+| Fassung | Format | Wofür |
+|---|---|---|
+| **lang** | eine einzige Seite, 1444pt breit, so hoch wie der Inhalt | die Webseiten-Ansicht aus dem Figma-Master, Karten mit Schatten |
+| **A4** | 595 × 842pt, mehrseitig, Rand, Kopf und Fuß wie im Lebenslauf | zum Drucken und Anhängen; Zeilen statt Karten, 10pt Fließtext |
+
+Beide haben denselben Inhalt – dieselbe Auswahl, Reihenfolge, Bündelung der
+Zertifikate und dieselben Texte; nur die Form unterscheidet sich. Die lange
+Fassung folgt dem New-Monday-Design-System der Figma-Masterdatei (Seite
+„Skillmatrix“), die A4-Fassung dem vom Nutzer abgenommenen Vorschlag
+(2026-10-06, Herleitung in `references/layout.md`). Farben, Abstände, Radien,
+Schatten und Schriften stehen einmal, in `assets/tokens.json` – die A4-Werte im
+Block `a4`. PDF und Figma-Frames lesen beide von dort, und das Renderskript
 prüft jedes PDF dagegen. Das Template wird nicht neu erfunden und nicht
 "verbessert" – es wird befüllt.
 
@@ -58,7 +68,11 @@ Ausweichweg), im Browser-Chat blockt der Proxy fremde Domains (betrifft
 LinkedIn- und Website-Foto), Ausgabe gehört ins Arbeitsverzeichnis des
 Nutzers bzw. nach `/mnt/user-data/outputs/`, nie in den Skill-Ordner.
 
-Für den Figma-Frame (Schritt 4a) braucht es zusätzlich das Figma-MCP-Werkzeug
+**Die A4-Fassung braucht WeasyPrint** (laufende Kopfzeile, gemessener Fuß);
+auf dem Ausweichweg über Chrome entsteht nur die lange, und das Renderskript
+sagt das.
+
+Für die Figma-Frames (Schritt 4a) braucht es zusätzlich das Figma-MCP-Werkzeug
 und ein angemeldetes Konto mit **Bearbeitungsrechten** auf der Zieldatei.
 `whoami` sagt, welches Konto verbunden ist – das ist bei Zugriffsfehlern die
 erste Frage, nicht die letzte. Fehlt das Werkzeug, entfällt nur der Frame.
@@ -78,7 +92,7 @@ Skills vor; im Einzellauf gilt er nicht.
 | Schritt 0 | aus `auftrag.json` |
 |---|---|
 | Sprache | `sprache` |
-| Figma | Der Frame entsteht, wenn `figma.aktiv` true ist – eine eigene Frage danach gibt es nicht. `figma.link` trägt die `node-id` der Kandidatenseite, also gilt „Zielseite“ mit `node-id` (`references/figma.md` bzw. `figma-vorlage.md`). |
+| Figma | Die Frames (lang und A4) entstehen, wenn `figma.aktiv` true ist – eine eigene Frage danach gibt es nicht. `figma.link` trägt die `node-id` der Kandidatenseite, also gilt „Zielseite“ mit `node-id` (`references/figma.md` bzw. `figma-vorlage.md`). |
 | Material | `material` – Zertifikate aus dem Ordner `material.zertifikate`; je Datei ein Eintrag, Titel, Aussteller und Datum vom Zertifikat abgelesen, neueste zuerst |
 | Verfügbarkeit | wandert in die Fragen der Phase *vorbereiten* |
 
@@ -109,7 +123,8 @@ In `notizen.md`:
 
 - der vollständige Entwurf als JSON-Block im Aufbau der `skillmatrix.json`
   (Schritt 3), mit dem Beleg je Skill und Tool als zusätzlichem Feld `beleg`;
-- die Fotoquelle mit Datei, dpi und Kontrollbild, und ob der Kopf mittig steht;
+- die Fotoquelle mit Datei, dpi und den beiden Kontrollbildern (lang, A4), und
+  ob der Kopf mittig und mit Luft über dem Haar steht;
 - jede Abweichung zwischen den Quellen mit beiden Werten.
 
 Jeder Widerspruch zwischen den Quellen kommt außerdem als Eintrag unter
@@ -144,7 +159,10 @@ die Namen so wählen, dass sie auch als Listeneintrag im Lebenslauf stehen
 können, und eine Änderung an der Liste nach der Übergabe als Grund nennen, den
 Lebenslauf neu zu bauen. `pruefe_lauf.py` vergleicht beide Listen.
 
-Schritt 4a läuft, wenn `figma.aktiv` true ist. Die Übergabe aus Schritt 5 geht
+Schritt 4 rendert beide Fassungen nach `<laufordner>/ausgabe/` – zwei PDFs. Schritt
+4a läuft, wenn `figma.aktiv` true ist, und legt beide ab: den langen Frame und
+rechts daneben die A4-Seiten. Die Rückgabe nennt beide PDFs und als node-id den
+langen Frame und die A4-Seiten. Die Übergabe aus Schritt 5 geht
 nach `uebergabe.md`: Hero-Beschreibung und die **endgültige** Matrix-Tabelle
 unter „Zur Freigabe“ – nach einer Änderung ist das die einzige Stelle, an der der
 Nutzer sie sieht –, Abweichungen unter „Quellen weichen ab“, der Rest unter
@@ -234,11 +252,11 @@ Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
 3. **Zusätzlich als Figma-Frame?** Die dritte Klickbox derselben Nachricht:
 
    ```
-   Frage:   Soll die Skill Matrix zusätzlich als bearbeitbarer Frame in einem
+   Frage:   Soll die Skill Matrix zusätzlich als bearbeitbare Frames in einem
             Figma-File landen?
    Header:  Figma
    Optionen: Ja, zusätzlich ins Figma-File (Empfohlen)
-           | Nein, nur das PDF
+           | Nein, nur die PDFs
    ```
 
    Bei „Ja" braucht es den Link – Material, also im Text derselben Nachricht,
@@ -249,11 +267,12 @@ Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    > sie dort ab, sonst auf einer neuen Seite. Ich brauche **Bearbeitungs**rechte
    > auf der Datei – Leserechte reichen nicht.
 
-   Der Frame entsteht erst nach dem Rendern, siehe Schritt 4a. Drei Regeln dazu:
+   Die Frames entstehen erst nach dem Rendern, siehe Schritt 4a – der lange und
+   daneben die A4-Seiten. Drei Regeln dazu:
 
    - **Kommt „Ja" ohne Link**, wird er einmal im Fließtext nachgefragt – nicht
      über eine dritte `AskUserQuestion`-Nachricht.
-   - **Der Link blockiert nichts.** Bleibt er aus, entsteht trotzdem das PDF,
+   - **Der Link blockiert nichts.** Bleibt er aus, entstehen trotzdem die PDFs,
      und der Figma-Teil entfällt mit einem Satz in der Übergabe. Eine Skill
      Matrix ohne Figma-Frame ist vollständig.
    - **Nur Design-Dateien.** `figma.com/design/…` ja; `/board/` (FigJam),
@@ -277,7 +296,7 @@ Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    erst nach Schritt 1a anfragen, nicht hier. Hier nur erwähnen, dass ein
    richtiges Foto in guter Auflösung willkommen ist: die Fotokarte im Hero
    ist groß und fast quadratisch, das LinkedIn-Thumbnail ist dafür sichtbar
-   weich.
+   weich – und mit etwas Rand über dem Kopf, sonst wird es eng.
 
 ### 1. Eingang auslesen
 
@@ -288,9 +307,9 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/extract_input.py <portfolio.pdf> arbeit/port
 ```
 
 Schreibt je Quelle `text.txt` und legt Porträtkandidaten in `fotos/` ab –
-bereits in Graustufen, im Format der Fotokarte (laut `tokens.json`, fast
-quadratisch) und mit dem Kopf in der Mitte (siehe 1a); je Kandidat liegt ein
-Kontrollbild in `fotos/kontrolle/`. Bei einem Portfolio-Link die Seite abrufen und die
+bereits in Graustufen, je Fassung im Format ihrer Fotokarte (`foto-<name>.png`
+für die lange, `foto-<name>-a4.png` für die A4-Fassung) und mit dem Kopf ganz
+im Bild (siehe 1a); je Zuschnitt liegt ein Kontrollbild in `fotos/kontrolle/`. Bei einem Portfolio-Link die Seite abrufen und die
 Projektseiten dazu.
 
 **Bleibt `text.txt` leer, ist das PDF als Bild gesetzt** (häufig bei gestalteten
@@ -329,7 +348,8 @@ Verifizierungs-Adressen kommen nicht ins Dokument.
 3. sonst **Portfolio/Website**: `python3 ${CLAUDE_SKILL_DIR}/scripts/website_foto.py "<url>" arbeit/`,
 4. sonst **beim Kandidaten anfragen**.
 
-Alle Wege legen das Foto fertig beschnitten in `arbeit/fotos/` ab. Die
+Alle Wege legen das Foto fertig beschnitten in `arbeit/fotos/` ab, zweimal:
+`foto-<name>.png` und `foto-<name>-a4.png`. Die
 Warnungen der Skripte ernst nehmen: die Fotokarte ist sechsmal so breit wie
 der Fotokasten im CV, **unter 100 dpi wird das Bild sichtbar weich** – das
 400px-Thumbnail von LinkedIn kommt nach dem Kopfzuschnitt meist auf 40–60 dpi
@@ -339,20 +359,35 @@ automatisch gefundene Foto ansehen, bevor es ins Dokument geht (fremde
 Gesichter, siehe CV-Skill). Ohne Foto funktioniert das Layout – die Karte
 zeigt dann nur den Farbverlauf mit Name und Erfahrung – aber es wirkt leer.
 
-**Der Kopf steht in der Mitte.** Den Ausschnitt setzt
-`scripts/kopf_ausschnitt.py`, das alle Foto-Wege aufrufen. Es findet den Kopf
-(macOS Vision: Gesicht, Kinn und Personenmaske für Haaransatz und Kopfumriss)
-und schneidet so, dass die **Kopfmitte waagerecht in der Bildmitte** steht, der
-Haaransatz bei 5 % und das Kinn bei 70 % der Bildhöhe – wie im Figma-Master
-(`kopf-oben-anteil`, `kinn-anteil` in `tokens.json`). Damit steht der Kopf auch
-senkrecht mittig in der freien Fläche über dem Verlauf mit Name und Erfahrung.
-Je Foto meldet das Skript eine Zeile, etwa „Kopf bei 50 % der Breite, Haaransatz
-5 %, Kinn 70 %, 147 dpi“.
+**Der Kopf steht ganz im Bild, mittig, mit Luft über dem Haar.** Den Ausschnitt
+setzt `scripts/kopf_ausschnitt.py`, das alle Foto-Wege aufrufen – **je Fotokarte
+eigens**, denn die beiden Fassungen haben verschiedene Formate (lang 435 × 433,
+fast quadratisch; A4 108 × 99, breiter). Es findet den Kopf (macOS Vision:
+Gesicht, Kinn und Personenmaske für Scheitel und Kopfumriss) und schneidet so,
+dass die **Kopfmitte waagerecht in der Bildmitte** steht und Scheitel und Kinn
+dort sitzen, wo `tokens.json` es für die Karte vorgibt (`kopf-oben-anteil`,
+`kinn-anteil`; lang wie im Figma-Master 5 % und 70 %, A4 10 % und 82 %).
+**Angeschnitten wird der Kopf nie:** Über dem Scheitel bleibt mindestens
+`kopf-luft-anteil` frei (lang 5 %, A4 8 % der Bildhöhe), das Kinn bleibt über der
+Kinngrenze (lang: Beginn des Verlaufs, A4: `kinn-max-anteil`). Passt das nicht,
+geht das Skript in dieser Reihenfolge vor:
 
-- **Das Kontrollbild ansehen**, bevor das Foto in die JSON kommt:
-  `fotos/kontrolle/foto-<name>.png` zeigt das Foto so, wie es auf der Karte
-  sitzt – mit Verlauf, roter Mittellinie und orangem Kopfrahmen. Die Kopfmitte
-  liegt auf der roten Linie.
+1. **Größer schneiden** – der Kopf wird kleiner, es zeigt mehr Schultern; die
+   waagerechte Mitte gibt dafür nach.
+2. **Oben Hintergrund ergänzen**, wenn das Original über dem Kopf zu wenig Rand
+   hat – nur bei einfarbigem oberen Bildrand (Streuung höchstens 3 Grauwerte),
+   sonst sähe man die Naht. Das Skript meldet, wie viele Pixel es ergänzt hat.
+3. **Melden**: „Zu wenig Luft über dem Scheitel“ – dann ein anderes Foto nehmen
+   oder anfragen.
+
+Je Zuschnitt meldet das Skript eine Zeile, etwa „Kopf bei 50 % der Breite,
+Scheitel 8 %, Kinn 86 %, 300 dpi“.
+
+- **Die Kontrollbilder ansehen**, bevor das Foto in die JSON kommt:
+  `fotos/kontrolle/foto-<name>.png` und `…-a4.png` zeigen das Foto so, wie es
+  auf der jeweiligen Karte sitzt – mit Verlauf (lang), roter Mittellinie, orangem
+  Kopfrahmen und der Mindestluft als blauer Linie. Die Kopfmitte liegt auf der
+  roten Linie, die Haare unter der blauen.
 - **„Kopf nicht mittig“** heißt: Das Original hat auf einer Seite zu wenig Rand.
   Dann nicht von Hand schieben, sondern ein anderes Bild nehmen (größere Fassung
   aus Lebenslauf, Portfolio oder Website) oder beim Kandidaten eins anfragen –
@@ -367,6 +402,11 @@ Je Foto meldet das Skript eine Zeile, etwa „Kopf bei 50 % der Breite, Haaransa
   ```bash
   python3 ${CLAUDE_SKILL_DIR}/scripts/kopf_ausschnitt.py <original> arbeit/fotos/ --kopf x0,y0,x1,y1
   ```
+
+In die JSON kommt nur `person.foto` (der lange Zuschnitt); den A4-Zuschnitt
+findet das Renderskript daneben (`<foto>-a4.png`). Fehlt er, schneidet es ihn
+aus dem langen Foto und meldet, dass er aus dem Original besser wäre.
+`person.foto_a4` setzt ihn ausdrücklich, falls er anders heißt.
 
 ### 2. Attribute auswählen und bewerten
 
@@ -590,7 +630,8 @@ Vorlage mit fünf Abweichungen: Die Hero-Beschreibung steht in der
 Ich-Perspektive, das Vorlagen-PDF trägt sie noch in der dritten Person. Die
 Werkzeuge stehen nur in den Tools – `Figma / FigJam` und `Adobe CC` –, die
 Vorlage führt sie zusätzlich unter `Tools & Implementation`. Das Foto ist mit
-dem Kopf in der Mitte zugeschnitten, `material/foto-karte.png`. Die
+dem Kopf in der Mitte zugeschnitten, `material/foto-karte.png`, daneben der
+A4-Zuschnitt `material/foto-karte-a4.png`. Die
 Zertifikate stehen einzeln als Kacheln statt als gebündelte Karte über einem
 Bilderraster – zwei davon ohne Bild, wie die Vorlage sie nennt –, darüber die
 Karte „Erworbene Qualifikationen“ mit Satz und Tags der Vorlagenkarte. Und die
@@ -606,7 +647,7 @@ nach dem Katalog „Microinteractions“).
   "sprache": "de",
   "person": {
     "name", "rolle", "verfuegbar_ab", "erfahrung",
-    "beschreibung", "schwerpunkte": [], "foto"
+    "beschreibung", "schwerpunkte": [], "foto", "foto_a4 (optional)"
   },
   "zertifikate": [{ "titel", "aussteller", "datum", "bild" }],
   "qualifikationen": { "text", "tags": [] },
@@ -617,6 +658,9 @@ nach dem Katalog „Microinteractions“).
 
 Dazu:
 
+- **`person.foto`**: der Zuschnitt der langen Fotokarte (`foto-<name>.png`). Den
+  A4-Zuschnitt (`foto-<name>-a4.png`) findet das Renderskript daneben;
+  `person.foto_a4` nur, wenn er anders heißt oder woanders liegt (Schritt 1a).
 - **`tools`**: die Tools-Sektion nach den Kernkompetenzen, höchstens sechs
   Einträge, gleicher Aufbau wie ein Skill. Fehlt der Schlüssel oder ist die
   Liste leer, entfällt die Sektion (PDF und Figma).
@@ -656,8 +700,9 @@ Dazu:
   sichtbar. Reicht auch das nicht – mehr Aussteller als Kacheln –, kommen die
   ältesten Kacheln in eine **Sammelkachel** („+ 5 weitere Zertifikate“).
   Gestrichen wird nichts. Render- und Planskript planen gleich, PDF und Figma
-  zeigen also dasselbe; beide melden jede Bündelung – sie gehört in die
-  Übergabe, und die Tags der Karte werden danach abgeglichen. Gekürzt wird
+  zeigen also dasselbe – und die A4-Fassung dieselben Kacheln, nur kleiner;
+  beide melden jede Bündelung – sie gehört in die Übergabe, und die Tags der
+  Karte werden danach abgeglichen. Gekürzt wird
   sonst nur mit Auslassungszeichen (Titel über zwei Zeilen) oder auf die
   Kurzform des Ausstellers; das Jahr bleibt immer stehen.
 - **`qualifikationen`** (optional): die Karte „Erworbene Qualifikationen“
@@ -677,18 +722,19 @@ Dazu:
   steht, selbst nach vorn und melden das; die JSON dann nachziehen. Die
   Vorlagenreihenfolge nur übernehmen, wenn sie zum Profil passt.
 
-### 4. Rendern
+### 4. Rendern — beide Fassungen in einem Aufruf
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/render_skillmatrix.py skillmatrix.json ausgabe/
 ```
 
-**Den Dateinamen setzt das Skript**, nicht der Aufruf: es baut ihn aus
-`person.name` und `person.rolle` zusammen und legt die Datei im
+**Die Dateinamen setzt das Skript**, nicht der Aufruf: es baut sie aus
+`person.name` und `person.rolle` zusammen und legt beide Dateien im
 angegebenen Ordner ab.
 
 ```
-New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf
+New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf      (lang)
+New-Monday - Vorname Nachname - Jobtitel - Skillmatrix A4.pdf   (A4)
 ```
 
 Steht im Aufruf trotzdem ein Dateiname, gilt davon nur der Ordner — das
@@ -697,16 +743,25 @@ den das Skript ausgibt, nicht der aus dem Aufruf. Die Datei heißt so, wie
 sie beim Kunden ankommt, deshalb wird hier nicht abgekürzt und nicht
 umbenannt.
 
-Das Skript rendert zweimal (Vorratshöhe, dann exakte Inhaltshöhe – die
-Matrix ist eine einzige lange Seite), sucht sich die Engine selbst und
-meldet Auffälligkeiten nach stderr: fehlende Felder, Punkte außerhalb der
+Die lange Fassung rendert es zweimal (Vorratshöhe, dann exakte Inhaltshöhe –
+sie ist eine einzige lange Seite). Die A4-Fassung ebenfalls zweimal: erst mit
+32pt Mindestluft vor dem Fuß, dann mit so viel Luft, dass der Fuß auf dem
+unteren Rand der letzten Seite aufsitzt (wie im Lebenslauf). Kein Block bricht
+dort in sich um – Kategorie, Tools, Qualifikationskarte, Kachelreihe stehen
+ganz auf einer Seite, Überschriften bei dem, was folgt –, und weil die
+Reihenfolge feststeht, kommt sie mit so wenigen Seiten aus wie möglich (für
+Florian Feiler drei). Welcher Block auf welcher Seite steht, legt das Skript im
+A4-PDF ab; daraus baut Schritt 4a die Seiten. Das Skript sucht sich die Engine
+selbst und meldet Auffälligkeiten nach stderr: fehlende Felder, Punkte außerhalb der
 Skala, überlange Beschreibungen, Schwerpunkte breiter als die Textspalte,
 fehlende Bilddateien, eine nach vorn gesetzte KI-Kategorie, Attribute außerhalb
 ihrer Katalog-Kategorie, Namen, die nicht der Katalogform der Dokumentsprache
 entsprechen, erfundene Kategorien, umsortierte, gekürzte und gebündelte
 Zertifikate, einen zu langen Satz oder zu wenige Tags in der
-Qualifikationskarte. Die Hinweise sind zu lesen und abzuarbeiten, nicht zu
-überfliegen.
+Qualifikationskarte; in der A4-Fassung (Präfix „A4:“) einen Block, der höher
+ist als eine Seite, einen Fuß allein auf der letzten Seite und einen
+nachträglich geschnittenen A4-Fotozuschnitt. Die Hinweise sind zu lesen und
+abzuarbeiten, nicht zu überfliegen.
 
 Die Zertifikatssektion wird im fertigen Layout vermessen, mit Karte:
 „Zertifikatssektion: 803pt hoch (8 Kacheln, geplant 803, Grenze 924)“. Liegt
@@ -714,21 +769,23 @@ sie über 924, steht im Hinweis, um wie viel; weicht sie von der geplanten Höhe
 ab, bricht ein Text anders um als geschätzt.
 
 Dabei zeichnet es die Kartenschatten (WeasyPrint kennt kein `box-shadow`) und
-prüft zum Schluss das fertige PDF gegen `assets/tokens.json`: Seitenbreite,
-eingebettete Schriften, Schrift, Schnitt, Größe und Farbe jeder Textzeile,
-Flächen- und Linienfarben. **Endet es mit „FEHLER — das PDF weicht vom Design
-System ab" (Code 2), geht das PDF nicht raus.** Die Ursache ist fast immer ein
+prüft zum Schluss beide PDFs gegen `assets/tokens.json` (die A4-Fassung gegen
+den Block `a4`): Seitenformat jeder Seite, eingebettete Schriften, Schrift,
+Schnitt, Größe und Farbe jeder Textzeile, Flächen- und Linienfarben. **Endet es
+mit „FEHLER — das PDF weicht vom Design System ab" (Code 2), geht kein PDF
+raus.** Die Ursache ist fast immer ein
 Wert, der außerhalb von `tokens.json` gesetzt wurde, oder eine Ersatzschrift
 (etwa eine falsch geschriebene Schriftfamilie) – beheben, nicht übergehen.
 Fehlende Schriftdateien fängt das Skript schon vor dem Rendern ab; dann
 entsteht gar kein PDF. Die letzte Zeile eines sauberen Laufs lautet „Design
 System eingehalten".
 
-**Das Ergebnis ansehen, bevor es rausgeht** – immer, nicht nur bei
+**Beide Ergebnisse ansehen, bevor sie rausgehen** – immer, nicht nur bei
 Warnungen:
 
 ```bash
 pdftoppm -png -r 40 "ausgabe/New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf" arbeit/vorschau
+pdftoppm -png -r 72 "ausgabe/New-Monday - Vorname Nachname - Jobtitel - Skillmatrix A4.pdf" arbeit/vorschau-a4
 ```
 
 Auf der Vorschau prüfen: Steht der Kopf mittig in der Fotokarte und das
@@ -739,14 +796,25 @@ Katalog-Kategorie? Sind die Zertifikate unverzerrt, neueste zuerst, nichts
 abgeschnitten oder überlappend, passt jedes Tag der Qualifikationskarte zu einem
 der gezeigten Zertifikate, und ist die Sektion höchstens 924 hoch?
 Wirkt eine Kategoriezeile halb leer (eine einzelne Karte in der letzten Zeile
-ist in Ordnung – die Vorlage hat das auch)?
+ist in Ordnung – die Vorlage hat das auch)? In der A4-Fassung zusätzlich: Logo
+auf jeder Seite, Badge nur auf Seite 1, keine Kategorie über einen
+Seitenumbruch, der Fuß unten auf der letzten Seite, das Porträt mit Luft über
+dem Haar?
 
-### 4a. Den Figma-Frame ablegen — nur wenn danach gefragt wurde
+### 4a. Die Figma-Frames ablegen — nur wenn danach gefragt wurde
 
-Entfällt, wenn in Schritt 0 „Nein" kam oder kein Link vorliegt. **Das PDF ist an
-dieser Stelle fertig** und geht so oder so raus.
+Entfällt, wenn in Schritt 0 „Nein" kam oder kein Link vorliegt. **Die PDFs sind
+an dieser Stelle fertig** und gehen so oder so raus.
 
-**Es gibt zwei Wege, und die Wahl ist keine Geschmacksfrage.** Zuerst nachsehen,
+Auch in Figma entstehen **beide Fassungen**: der lange Frame und **rechts
+daneben die A4-Seiten** – je PDF-Seite ein Frame 595 × 842 („Skillmatrix A4 —
+Vorname Nachname — Seite n“), 100 Abstand zum langen Frame und untereinander,
+oben bündig mit ihm. Die Seitenaufteilung kommt aus dem A4-PDF, wie beim
+Lebenslauf. Die A4-Seiten werden immer aus dem Bauplan gezeichnet
+(`arbeit/figma_plan_a4.json`, Rezept in `references/figma.md`) – auch in der
+Masterdatei, denn dort gibt es für sie keine Vorlage.
+
+**Für den langen Frame gibt es zwei Wege, und die Wahl ist keine Geschmacksfrage.** Zuerst nachsehen,
 ob die Zieldatei die New-Monday-Komponenten führt:
 
 ```js
@@ -792,18 +860,22 @@ den `imageHash` einsetzen. Vollständig mit allen Fallstricken in
 
 #### Weg B — aus dem Bauplan zeichnen (fremde Datei)
 
-Erst den Bauplan, dann bauen:
+Erst die Baupläne, dann bauen:
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py skillmatrix.json arbeit/ \
-        --pdf "ausgabe/New-Monday - … - Skillmatrix.pdf"
+        --pdf "ausgabe/New-Monday - … - Skillmatrix.pdf" \
+        --pdf-a4 "ausgabe/New-Monday - … - Skillmatrix A4.pdf"
 ```
 
-Das schreibt `arbeit/figma_plan.json`: die Bauschritte mit fertigen
-Knotenbäumen, die den Aufbau der Vorlage nachbilden — alle Werte aus
-`assets/tokens.json`, dieselben wie im PDF. `--pdf` ist optional und trägt nur
-die gemessene Seitenhöhe als **Sollwert** in den Plan; am Ende wird die
-Frame-Höhe dagegen gehalten (±20pt sind normal, mehr ist ein Hinweis).
+Das schreibt `arbeit/figma_plan.json` (lang) und `arbeit/figma_plan_a4.json`
+(A4): die Bauschritte mit fertigen Knotenbäumen — alle Werte aus
+`assets/tokens.json`, dieselben wie im PDF. `--pdf` trägt die gemessene
+Seitenhöhe als **Sollwert** in den langen Plan; am Ende wird die Frame-Höhe
+dagegen gehalten (±20pt sind normal, mehr ist ein Hinweis). `--pdf-a4` liefert
+die Seitenaufteilung der A4-Fassung – ohne das A4-PDF entsteht kein A4-Plan
+(fehlt die Option, sucht das Skript das A4-PDF neben dem langen). Den A4-Plan
+braucht auch Weg A.
 
 Gebaut wird mit `use_figma` nach dem Rezept in `references/figma.md`. Dort stehen
 Linkauslesung, Zielseite, Schnittnamen, der Baukasten für jeden Aufruf, die
@@ -818,9 +890,9 @@ ohne ihn sind die Fallstricke des Plugin-API nicht zu umgehen.
 
 Vier Dinge stehen fest:
 
-- **Figma hält das PDF nicht auf.** Schlägt irgendetwas fehl — Werkzeug nicht
+- **Figma hält die PDFs nicht auf.** Schlägt irgendetwas fehl — Werkzeug nicht
   verbunden, nicht angemeldet, keine Bearbeitungsrechte, falscher Dateityp, Proxy
-  blockt —, wird das PDF trotzdem übergeben und der Grund genannt. Nicht
+  blockt —, werden die PDFs trotzdem übergeben und der Grund genannt. Nicht
   abbrechen, nicht nachträglich am PDF drehen, und keinen zweiten Anlauf mit
   anderen Daten.
 - **In eine fremde Datei kommt nichts Globales.** Keine Text-Styles, keine
@@ -833,7 +905,7 @@ Vier Dinge stehen fest:
 
 ### 5. Übergeben
 
-PDF ausgeben und in wenigen Zeilen berichten:
+Beide PDFs ausgeben und in wenigen Zeilen berichten:
 
 - Die generierte Hero-Beschreibung im Wortlaut (falls seit der Freigabe
   geändert), mit Bitte um finalen Blick – ebenso Satz und Tags der Karte
@@ -849,14 +921,16 @@ PDF ausgeben und in wenigen Zeilen berichten:
   der Lebenslauf.
 - Woher das Foto stammt (falls automatisch geholt) und die dpi-Zahl, falls
   unter 100. Steht der Kopf nicht mittig, weil das Original zu wenig Rand hat,
-  auch das – mit der Bitte um ein anderes Foto.
+  auch das – mit der Bitte um ein anderes Foto; ebenso, wenn das Skript oben
+  Hintergrund ergänzt oder zu wenig Luft über dem Scheitel gemeldet hat.
 - Was das Renderskript bemängelt hat und wie damit umgegangen wurde – immer
   mit dabei: welche Zertifikate gebündelt oder gekürzt wurden (Wortlaut aus
   den Hinweisen, samt Sammelkachel) und dass eine KI-Kategorie nach vorn
   gerückt ist, falls das Skript das gemeldet hat.
-- **Der Figma-Frame**, falls einer gewünscht war: der Link auf den Frame
-  (`…?node-id=…`) und auf welcher Seite der Datei er liegt. Ist er nicht
-  zustande gekommen, steht hier stattdessen der Grund in einem Satz. Weicht
+- **Beide PDFs** mit ihrem Dateinamen; bei der A4-Fassung die Seitenzahl.
+- **Die Figma-Frames**, falls gewünscht: der Link auf den langen Frame und auf
+  die A4-Seiten (`…?node-id=…`) und auf welcher Seite der Datei sie liegen. Ist
+  einer nicht zustande gekommen, steht hier stattdessen der Grund in einem Satz. Weicht
   die Frame-Höhe um mehr als 20pt von der PDF-Höhe ab, gehört auch das hierher
   – dann bricht in Figma ein Text anders um als im PDF und sollte nachgesehen
   werden.
@@ -871,6 +945,17 @@ Fehlt nichts, steht hier nichts.
 
 ## Was fest steht und nicht zur Disposition steht
 
+- **Zwei Fassungen, immer beide**, aus derselben `skillmatrix.json`: die lange
+  (1444 breit, eine Seite) und die A4-Fassung (595 × 842, mehrseitig) – als PDF
+  und, wenn gewünscht, als Figma-Frames. Keine Fassung allein, kein Inhalt, der
+  nur in einer steht.
+- **A4: Rand, Kopf und Fuß wie im Lebenslauf.** Logo auf jeder Seite, das Badge
+  oben rechts auf Seite 1, der Fuß unten auf der letzten Seite; Fließtext 10pt;
+  Kernkompetenzen und Tools als Zeilen ohne Karten in zwei Spalten, die
+  Qualifikationskarte die einzige Karte mit Rahmen, Zertifikatskacheln ohne
+  Rahmen; keine Kategorie und kein Eintrag über einen Seitenumbruch.
+- **Das Porträt ist nie angeschnitten** – in keiner Fassung: Luft über dem
+  Scheitel (`kopf-luft-anteil`), je Fotokarte ein eigener Zuschnitt.
 - **Eine Sprache im ganzen Dokument.** Die gewählte Sprache gilt für jeden
   Satz – Rubriken, Hero-Beschreibung, jede Kartenbeschreibung. Gemischte
   Dokumente gibt es nicht. Ausgenommen sind Kategorienamen, Toolnamen und
@@ -881,7 +966,7 @@ Fehlt nichts, steht hier nichts.
 - **Hero-Beschreibung in der Ich-Perspektive.** In der Skill Matrix spricht
   der Kandidat selbst.
 - **Sektionsreihenfolge**: Hero → Zertifikate → Kernkompetenzen → Tools →
-  Fuß, wie in der Figma-Vorlage. Einzige zulässige Abweichung ist die
+  Fuß, wie in der Figma-Vorlage – in beiden Fassungen. Einzige zulässige Abweichung ist die
   Florian-Variante mit den Zertifikaten am Ende:
   `"zertifikate_position": "ende"` in der JSON. Nur auf Wunsch des Nutzers,
   Standard ist vorn.
@@ -899,7 +984,7 @@ Fehlt nichts, steht hier nichts.
   der, die eine alte Matrix ihm gegeben hat. Höchstens fünf Kategorien, sechs
   Skills je Kategorie, 24 insgesamt; belegte Attribute fallen nur weg, wenn
   diese Grenzen es erzwingen.
-- **Der graue Rumpf reicht bis an den Fuß.** Zwischen der letzten Sektion und
+- **Der graue Rumpf reicht bis an den Fuß** (lange Fassung). Zwischen der letzten Sektion und
   dem Fuß liegen 64 Innenabstand im Rumpf, kein weißer Streifen.
 - **Bewertungsskala**: fünf Punkte, gefüllt in der Markenfarbe. Keine
   Prozente, keine Balken, keine Sterne.
@@ -914,8 +999,8 @@ Fehlt nichts, steht hier nichts.
 - **Ansprechpartner im Fuß**: immer Manuel Klein, CCO. Steht als Vorgabe im
   Renderskript.
 - **Keine anonymisierte Variante.** Name und Foto gehören ins Dokument.
-- **Das PDF ist der Ausgang, der Figma-Frame die Zugabe.** Er wird nie statt
-  des PDFs geliefert und nie vor ihm gebaut.
+- **Die PDFs sind der Ausgang, die Figma-Frames die Zugabe.** Sie werden nie
+  statt der PDFs geliefert und nie vor ihnen gebaut.
 - **Kein Inhalt aus der Vorlage bleibt stehen.** Weder ein Name noch ein
   Zertifikatsbild noch eine Beispielbeschreibung. Was das Material nicht
   hergibt, wird entfernt oder ausgeblendet – nie mit fremdem Inhalt
@@ -933,7 +1018,8 @@ gelegt.
 
 Ändert sich der Aufbau (ein neues Element, eine andere Verschachtelung), ziehen
 `assets/template.html`, `assets/skillmatrix.css` und `scripts/figma_plan.py`
-gemeinsam nach. Die WeasyPrint-Eigenheiten (kein `box-shadow`, kein Grid, kein
+gemeinsam nach – für die A4-Fassung `assets/template-a4.html`,
+`assets/skillmatrix-a4.css` und die `a4_*`-Funktionen in `figma_plan.py`. Die WeasyPrint-Eigenheiten (kein `box-shadow`, kein Grid, kein
 CSS-Filter, warum `body` keinen Hintergrund haben darf) stehen in
 `references/layout.md` – vor jeder Änderung lesen.
 

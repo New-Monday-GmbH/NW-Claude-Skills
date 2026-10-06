@@ -1,28 +1,37 @@
 #!/usr/bin/env python3
-"""Rendert skillmatrix.json ueber das New-Monday-Template zu einem PDF.
+"""Rendert skillmatrix.json in beiden Fassungen zu zwei PDFs.
 
     python3 scripts/render_skillmatrix.py daten/skillmatrix.json ausgabe/
 
-Den Dateinamen setzt das Skript selbst aus den Daten:
-"New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf". Das zweite
-Argument bestimmt nur den Ordner — ein dort angehaengter Dateiname wird
-ersetzt (Ausnahme: --pfad-genau, siehe main()).
+Es entstehen immer beide Fassungen, aus derselben JSON:
 
-Die Skillmatrix ist eine einzige lange Seite: so breit wie der Figma-Frame der
-Vorlage (1444pt, aus assets/tokens.json), so hoch wie ihr Inhalt — sie bildet
-eine Webseite ab, kein A4-Dokument. Weil CSS keine Seite "so hoch wie der
-Inhalt" kennt, wird zweimal gerendert: erst auf Vorrat hoch, dann mit der
-gemessenen Inhaltshoehe.
+  - lang: "New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf" - eine
+    einzige lange Seite, so breit wie der Figma-Frame der Vorlage (1444pt), so
+    hoch wie ihr Inhalt; sie bildet eine Webseite ab. Weil CSS keine Seite "so
+    hoch wie der Inhalt" kennt, wird zweimal gerendert: erst auf Vorrat hoch,
+    dann mit der gemessenen Inhaltshoehe.
+  - A4:   "New-Monday - Vorname Nachname - Jobtitel - Skillmatrix A4.pdf" -
+    595 x 842pt, mehrseitig, im Format des Lebenslaufs (Template
+    template-a4.html, Tokens im Block "a4"). Kein Block bricht in sich um; der
+    Fuss sitzt unten auf der letzten Seite (Luft davor gemessen, zweiter
+    Durchgang). Welcher Block auf welcher Seite steht, legt das Skript im PDF
+    ab (Dokumentinfo /NewMondaySeiten) - daraus baut figma_plan.py die Seiten.
+
+Den Dateinamen setzt das Skript selbst aus den Daten. Das zweite Argument
+bestimmt nur den Ordner — ein dort angehaengter Dateiname wird ersetzt
+(Ausnahme: --pfad-genau, siehe main()).
 
 Alle Farben, Abstaende, Radien, Schatten und Schriften kommen aus
 assets/tokens.json (design_system.py erzeugt daraus das CSS). WeasyPrint kennt
 kein box-shadow; im ersten Durchgang werden deshalb die Karten vermessen und
 ihre Schatten als Bild gezeichnet, im zweiten liegen sie hinter den Karten.
-Zum Schluss wird das fertige PDF gegen die Tokens geprueft — Seitenbreite,
-Schriften, Textstile, Farben. Weicht es ab, endet das Skript mit Code 2.
+Zum Schluss wird jedes PDF gegen die Tokens seiner Fassung geprueft —
+Seitenformat, Schriften, Textstile, Farben. Weicht eins ab, endet das Skript
+mit Code 2.
 
 Sucht sich die Render-Engine selbst: WeasyPrint (bevorzugt), sonst headless
-Chrome, sonst wkhtmltopdf. Prueft ausserdem die Daten auf Auffaelligkeiten und
+Chrome, sonst wkhtmltopdf - der Ausweichweg gilt nur fuer die lange Fassung,
+die A4-Fassung braucht WeasyPrint (laufende Kopfzeile, gemessener Fuss). Prueft ausserdem die Daten auf Auffaelligkeiten und
 schreibt sie nach stderr — darunter jedes Attribut ausserhalb seiner
 Katalog-Kategorie (verwandt: Hinweis, fachfremd: WARNUNG, Tabelle VERWANDT) und
 jeder Name, der nicht der Katalogform der Dokumentsprache entspricht
@@ -54,6 +63,15 @@ KATALOG = ROOT / "references" / "attribute-katalog.md"
 
 VORRAT_HOEHE = 12000         # pt, erster Durchgang — reicht fuer jede Matrix
 PT_JE_PX = 0.75              # WeasyPrint rechnet intern in CSS-px (96 dpi)
+
+# Der Ansprechpartner im Fuss steht als Vorgabe im Skill, nicht in der JSON.
+# figma_plan.py liest ihn von hier. Telefonnummer und Adresse genau wie im
+# Lebenslauf (newmonday-cv, KONTAKT_VORGABE) - beide Fassungen gleich.
+KONTAKT_VORGABE = {
+    "name": "Manuel Klein", "rolle": "CCO",
+    "mail": "manuel.klein@newmonday.co", "telefon": "+49 (0) 155 1148 0130",
+    "firma": "New Monday GmbH", "strasse": "Stresemannstr. 23", "ort": "10963 Berlin",
+}
 
 BESCHRIFTUNG = {
     "de": {
@@ -463,11 +481,7 @@ def html_bauen(daten, hoehe, design, schatten=None, zplan=None):
         zplan = dict(zplan, eintraege=[dict(e, src=_pfad_zu_uri(e["bild"]) if e.get("bild") else None)
                                        for e in zplan["eintraege"]])
 
-    daten.setdefault("kontakt", {
-        "name": "Manuel Klein", "rolle": "CCO",
-        "mail": "manuel.klein@newmonday.co", "telefon": "+49 (0)155 1148 0130",
-        "firma": "New Monday GmbH", "strasse": "Stresemannstr. 23", "ort": "10963 Berlin",
-    })
+    daten["kontakt"] = dict(KONTAKT_VORGABE, **(daten.get("kontakt") or {}))
     komponenten = design["komponenten"]
     return env.get_template("template.html").render(
         hoehe=hoehe, t=labels,
@@ -694,8 +708,9 @@ def seitenzahl(pdf):
     return len(PdfReader(str(pdf)).pages)
 
 
-def dateiname(daten):
-    """New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf
+def dateiname(daten, fassung="lang"):
+    """New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf, fuer die
+    A4-Fassung "... - Skillmatrix A4.pdf".
 
     Der Name kommt aus den Daten, nicht aus dem Aufrufargument: so heisst jede
     Matrix beim Kunden gleich, egal wie der Zielpfad getippt war. Fehlt ein
@@ -708,18 +723,197 @@ def dateiname(daten):
         wert = re.sub(r"\s+", " ", wert).strip(" .")
         if wert:
             teile.append(wert)
-    teile.append("Skillmatrix")
+    teile.append("Skillmatrix" if fassung == "lang" else "Skillmatrix A4")
     return " - ".join(teile) + ".pdf"
 
 
-def zielpfad(argument, daten):
+def zielpfad(argument, daten, fassung="lang"):
     """Ordner aus dem Argument, Dateiname aus den Daten."""
-    name = dateiname(daten)
+    name = dateiname(daten, fassung)
     pdf_gemeint = argument.suffix.lower() == ".pdf"
     ordner = argument.parent if pdf_gemeint else argument
-    if pdf_gemeint and argument.name != name:
+    if pdf_gemeint and argument.name != name and fassung == "lang":
         print(f"Dateiname gesetzt: {argument.name} -> {name}")
     return ordner / name
+
+
+# --- A4-Fassung --------------------------------------------------------------
+
+SEITEN_SCHLUESSEL = "/NewMondaySeiten"     # Dokumentinfo: Block -> Seite, fuer figma_plan.py
+
+
+def a4_seitenmasse(ds_a4):
+    """@page-Werte der A4-Fassung in pt, aus den Tokens: oben Rand, Kopfzeile
+    und Abstand zum Inhalt; rechts nur bis zur Kante des Fusses."""
+    K = ds_a4["komponenten"]
+    s, k = K["seite"], K["kopf"]
+    return {"breite": s["breite"], "hoehe": s["hoehe"], "inhalt": s["inhalt"],
+            "oben": s["rand-oben"] + k["hoehe"] + k["abstand-inhalt"],
+            "rechts": s["breite"] - s["rand-links"] - K["fuss"]["breite"],
+            "unten": s["rand-unten"], "links": s["rand-links"],
+            "kopf_oben": s["rand-oben"]}
+
+
+def foto_a4(daten):
+    """(Pfad des A4-Fotos, hinweise). Reihenfolge: person.foto_a4, sonst
+    foto-<name>-a4.png neben person.foto (kopf_ausschnitt.py legt ihn dort ab),
+    sonst ein Zuschnitt aus person.foto selbst - mit Hinweis, denn aus dem
+    Original haette der Kopf mehr Luft."""
+    person = daten.get("person") or {}
+    if person.get("foto_a4"):
+        return person["foto_a4"], []
+    foto = person.get("foto")
+    if not foto or str(foto).startswith(("http:", "https:", "file:")):
+        return foto, []
+    p = Path(foto).expanduser()
+    if not p.is_absolute():
+        p = Path.cwd() / p
+    neben = p.with_name(f"{p.stem}-a4.png")
+    if neben.exists():
+        return str(neben), []
+    if not p.exists():
+        return foto, []                      # pruefe() meldet das fehlende Foto
+    import hashlib
+    import kopf_ausschnitt
+    kennung = hashlib.sha1(p.read_bytes()).hexdigest()[:12]
+    ordner = Path(tempfile.gettempdir()) / "newmonday-skillmatrix" / "a4-fotos" / kennung
+    ausgabe, bericht = kopf_ausschnitt.zuschneiden(p, ordner, flaechen=("a4",), kontrolle=False)
+    return str(ausgabe), [
+        f"A4-Foto: {neben.name} fehlt neben dem Foto — aus {p.name} zugeschnitten. Besser aus "
+        "dem Original: kopf_ausschnitt.py <original> arbeit/fotos/ legt beide Zuschnitte ab."
+        + "".join(f" {h}" for h in bericht["hinweise"])]
+
+
+def zert_a4(zplan, ds_a4):
+    """Die Kacheln der langen Fassung (dieselben Eintraege, Buendel und
+    Kurzformen) mit den Bildmassen der A4-Buehne. None ohne Zertifikate."""
+    if not zplan:
+        return None
+    K = ds_a4["komponenten"]
+    T, B = K["zertkachel"], K["zertbuehne"]
+    bp = design_system.aufloesen(ds_a4, B["padding"])
+    platz = (T["breite"] - 2 * bp, T["buehne-hoehe"] - 2 * bp)
+    eintraege = []
+    for e in zplan["eintraege"]:
+        _, px = zertifikate._bildgroesse(e.get("bild"))
+        format_ = (px[0] / px[1]) if px else K["zertbild"]["platz-format"]
+        breite, hoehe = zertifikate._einpassen(format_, *platz)
+        eintraege.append(dict(e, a4_breite=breite, a4_hoehe=hoehe,
+                              src=_pfad_zu_uri(e["bild"]) if e.get("bild") else None))
+    return dict(zplan, eintraege=eintraege)
+
+
+def html_bauen_a4(daten, ds_a4, za4, fussluft):
+    """Das HTML der A4-Fassung. fussluft: Hoehe der Luft vor dem Fuss in pt."""
+    from jinja2 import Environment, FileSystemLoader, select_autoescape
+    env = Environment(loader=FileSystemLoader(str(ASSETS)),
+                      autoescape=select_autoescape(["html"]))
+    daten = dict(daten)
+    person = dict(daten.get("person") or {})
+    person["foto"] = _pfad_zu_uri(foto_a4(daten)[0])
+    daten["person"] = person
+    daten["kontakt"] = dict(KONTAKT_VORGABE, **(daten.get("kontakt") or {}))
+    K = ds_a4["komponenten"]
+    g = {"spalten": K["zertkachel"]["spalten"], "titel_zeilen": K["zertkachel"]["titel-zeilen"],
+         "meta_zeilen": K["zertkachel"]["meta-zeilen"]}
+    return env.get_template("template-a4.html").render(
+        t=beschriftung(daten), design_css=design_system.css(ds_a4), p=a4_seitenmasse(ds_a4),
+        spalten=K["eintraege"]["spalten"], punkte_anzahl=K["punkte"]["anzahl"],
+        z=za4, g=g, fussluft=round(fussluft, 2),
+        **{k: v for k, v in daten.items() if k not in ("zertifikate", "zertifikat_bilder")})
+
+
+def _bloecke_je_seite(doc):
+    """{block: [seiten]} aus dem Layout: jedes Element mit data-block und die
+    Seiten, auf denen es steht (1-basiert)."""
+    bloecke = {}
+    for nr, seite in enumerate(doc.pages, start=1):
+        for element, _ in _elemente(seite._page_box):
+            name = element.get("data-block")
+            if name and nr not in bloecke.setdefault(name, []):
+                bloecke[name].append(nr)
+    return bloecke
+
+
+def _fuss_unterkante(doc):
+    """(Seite, Unterkante des Fusses in pt) im gelayouteten Dokument."""
+    for nr in range(len(doc.pages), 0, -1):
+        for element, box in _elemente(doc.pages[nr - 1]._page_box):
+            if "fuss" in (element.get("class") or "").split():
+                k = _kasten(box)
+                return nr, k["y"] + k["hoehe"]
+    return None, None
+
+
+def seiten_ablegen(pdf, bloecke):
+    """Legt die Seitenaufteilung im PDF ab (Dokumentinfo /NewMondaySeiten):
+    {"seiten": n, "bloecke": {block: seite}}. figma_plan.py liest sie dort.
+    Gibt einen Hinweis zurueck, wenn pypdf fehlt, sonst None."""
+    try:
+        from pypdf import PdfReader, PdfWriter
+    except ImportError:
+        return ("A4: pypdf fehlt — die Seitenaufteilung steht nicht im PDF, figma_plan.py "
+                "kann die A4-Seiten nicht bauen (pip3 install pypdf).")
+    leser = PdfReader(str(pdf))
+    schreiber = PdfWriter(clone_from=leser)
+    schreiber.add_metadata({SEITEN_SCHLUESSEL: json.dumps(
+        {"fassung": "a4", "seiten": len(leser.pages),
+         "bloecke": {k: v[0] for k, v in bloecke.items()}}, ensure_ascii=False)})
+    with tempfile.NamedTemporaryFile(suffix=".pdf", dir=str(Path(pdf).parent), delete=False) as tmp:
+        schreiber.write(tmp)
+    os.replace(tmp.name, pdf)
+    return None
+
+
+def seiten_lesen(pdf):
+    """Die Seitenaufteilung aus der Dokumentinfo eines A4-PDFs, None ohne."""
+    from pypdf import PdfReader
+    info = PdfReader(str(pdf)).metadata or {}
+    wert = info.get(SEITEN_SCHLUESSEL)
+    return json.loads(str(wert)) if wert else None
+
+
+def rendern_a4(daten, design, ziel, zplan):
+    """A4-Fassung mit WeasyPrint: erster Durchgang mit Mindestluft vor dem Fuss,
+    zweiter mit so viel Luft, dass der Fuss auf dem unteren Rand aufsitzt.
+    Gibt (seiten, bloecke, hinweise) zurueck; ImportError ohne WeasyPrint."""
+    from weasyprint import HTML
+    ds = design_system.fassung(design, "a4")
+    K = ds["komponenten"]
+    basis = ASSETS.as_uri() + "/"
+    za4 = zert_a4(zplan, ds)
+    hinweise = list(foto_a4(daten)[1])
+    luft_min = design_system.aufloesen(ds, K["fuss"]["abstand-min"])
+    soll = K["seite"]["hoehe"] - K["seite"]["rand-unten"]
+
+    erster = HTML(string=html_bauen_a4(daten, ds, za4, luft_min), base_url=basis).render()
+    seite, unten = _fuss_unterkante(erster)
+    doc = erster
+    if unten is not None and soll - unten > 0.05:
+        # Knapp unter dem Soll bleiben: fuellt die Luft die Seite auf den Punkt,
+        # kippt der Fuss auf eine neue Seite.
+        zweiter = HTML(string=html_bauen_a4(daten, ds, za4, luft_min + soll - unten - 0.02),
+                       base_url=basis).render()
+        seite2, unten2 = _fuss_unterkante(zweiter)
+        if len(zweiter.pages) == len(erster.pages) and seite2 == seite:
+            doc, unten = zweiter, unten2
+        else:
+            hinweise.append("A4: Der Fuss liess sich nicht an den unteren Rand setzen, ohne eine "
+                            "Seite mehr zu brauchen — er steht mit Mindestabstand unter dem Inhalt.")
+    bloecke = _bloecke_je_seite(doc)
+    for name, seiten in bloecke.items():
+        if len(seiten) > 1 and name != "fuss":
+            hinweise.append(f"A4: Block „{name}“ bricht ueber die Seiten {seiten} — er ist hoeher "
+                            "als eine Seite. Inhalt kuerzen.")
+    letzte = [b for b, s in bloecke.items() if s[0] == len(doc.pages)]
+    if letzte == ["fuss"] and len(doc.pages) > 1:
+        hinweise.append("A4: Auf der letzten Seite steht nur der Fuss — der Inhalt endet knapp "
+                        "zu tief. Ein Eintrag weniger oder eine kuerzere Beschreibung spart die Seite.")
+    doc.write_pdf(str(ziel))
+    hinweis = seiten_ablegen(ziel, bloecke)
+    if hinweis:
+        hinweise.append(hinweis)
+    return len(doc.pages), bloecke, hinweise
 
 
 def main():
@@ -748,6 +942,8 @@ def main():
     zplan, zert_hinweise = zertifikate.planen(daten, design, beschriftung(daten))
     hinweise += zert_hinweise
     ziel = Path(args[1]) if genau else zielpfad(Path(args[1]), daten)
+    ziel_a4 = (ziel.with_name(ziel.stem + " A4.pdf") if genau
+               else zielpfad(Path(args[1]), daten, "a4"))
     ziel.parent.mkdir(parents=True, exist_ok=True)
     breite = design["komponenten"]["seite"]["breite"]
 
@@ -788,6 +984,21 @@ def main():
 
     fehler, design_hinweise = design_system.pruefe_pdf(ziel, design)
     hinweise += design_hinweise
+
+    # Die A4-Fassung aus denselben Daten: dieselbe KI-Reihenfolge, dieselben
+    # Zertifikatskacheln und Buendel.
+    try:
+        seiten, _, a4_hinweise = rendern_a4(daten, design, ziel_a4, zplan)
+        hinweise += a4_hinweise
+        print(f"Seitenformat A4: 595 x 842pt, {seiten} Seite{'n' if seiten != 1 else ''}")
+        print(f"{ziel_a4} geschrieben (Engine: WeasyPrint)")
+        a4_fehler, a4_design = design_system.pruefe_pdf(ziel_a4, design_system.fassung(design, "a4"))
+        fehler += [f"A4: {f}" for f in a4_fehler]
+        hinweise += [f"A4: {h}" for h in a4_design]
+    except ImportError:
+        hinweise.append("A4-Fassung nicht erzeugt — sie braucht WeasyPrint (laufende Kopfzeile, "
+                        "gemessener Fuss). python3 scripts/pruefe_umgebung.py zeigt die Installation.")
+
     if hinweise:
         print("\nPruefen:", file=sys.stderr)
         for h in hinweise:
@@ -798,7 +1009,7 @@ def main():
         for f in fehler:
             print(f"  - {f}", file=sys.stderr)
         sys.exit(2)
-    print("Design System eingehalten: Seitenbreite, Schriften, Textstile, Farben.")
+    print("Design System eingehalten: Seitenformat, Schriften, Textstile, Farben.")
 
 
 if __name__ == "__main__":

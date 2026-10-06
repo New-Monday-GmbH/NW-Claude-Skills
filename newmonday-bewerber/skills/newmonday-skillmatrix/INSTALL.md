@@ -41,21 +41,39 @@ Ergebnis dann einmal ganz durchsehen.
 
 ## Selbsttest
 
-Die mitgelieferte Beispielmatrix (Wissems Vorlage) rendern:
+Die mitgelieferte Beispielmatrix (Wissems Vorlage) rendern – es entstehen
+beide Fassungen:
 
 ```bash
 cd ~/.claude/skills/newmonday-skillmatrix/beispiel
 python3 ../scripts/render_skillmatrix.py skillmatrix.json /tmp/
 ```
 
-Läuft das durch, stehen unter „Pruefen:“ genau zwei Hinweise („Product
-Thinking“ und „Workshop Facilitation“ stehen in der nächstverwandten Kategorie
-„User Research & Insights“), und meldet es
-`Seitenformat: 1444 x 3786pt, 33 Kartenschatten`,
-`Zertifikatssektion: 803pt hoch (8 Kacheln, geplant 803, Grenze 924)`
-und zuletzt `Design System eingehalten`, funktioniert die ganze Kette:
-Template, Tokens, Schriften, Schatten, Bilder, Qualifikationskarte,
-Zertifikatsplanung, Katalogprüfung, Höhenmessung und Designprüfung.
+Sollwerte:
+
+| | lang | A4 |
+|---|---|---|
+| Datei | `New-Monday - Wissem Kordi - Senior UX-UI Designer - Skillmatrix.pdf` | `… - Skillmatrix A4.pdf` |
+| Meldung | `Seitenformat: 1444 x 3786pt, 33 Kartenschatten` und `Zertifikatssektion: 803pt hoch (8 Kacheln, geplant 803, Grenze 924)` | `Seitenformat A4: 595 x 842pt, 3 Seiten` |
+| Inhalt | eine Seite | Seite 1 Hero und Zertifikate, Seite 2 Kernkompetenzen bis „User Research & Insights“, Seite 3 „Design Systems & Scaling“, „Coding Skills“, Tools und Fuß |
+
+Unter „Pruefen:“ stehen genau zwei Hinweise („Product Thinking“ und „Workshop
+Facilitation“ stehen in der nächstverwandten Kategorie „User Research &
+Insights“) – keiner mit „A4:“ –, und zuletzt steht `Design System eingehalten`.
+Dann funktioniert die ganze Kette: Templates, Tokens beider Fassungen,
+Schriften, Schatten, Bilder samt A4-Fotozuschnitt (`material/foto-karte-a4.png`),
+Qualifikationskarte, Zertifikatsplanung, Katalogprüfung, Höhenmessung,
+Seitenumbruch und Fuß der A4-Fassung und die Designprüfung beider PDFs.
+
+Die Figma-Pläne dazu, aus dem Ordner `beispiel/` heraus (relative Bildpfade):
+
+```bash
+python3 ../scripts/figma_plan.py skillmatrix.json /tmp/plan/ \
+        --pdf "/tmp/New-Monday - Wissem Kordi - Senior UX-UI Designer - Skillmatrix.pdf"
+```
+
+Soll: `figma_plan.json` mit 9 Bauschritten und 7 Bildern,
+`figma_plan_a4.json` mit 3 Seiten, 14 Bauschritten und 7 Bildern, ohne Hinweis.
 
 Die Schriften (Inter und Rethink Sans, Google Fonts, OFL) liegen in
 `assets/fonts/`. Fehlt dort eine Datei, die `assets/tokens.json` nennt, bricht

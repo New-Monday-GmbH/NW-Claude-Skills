@@ -4,10 +4,11 @@
     python3 scripts/extract_input.py eingang.pdf arbeit/
 
 Schreibt arbeit/text.txt (Layout erhalten) und arbeit/fotos/*.png. Fotos werden
-nach Portraetformat gefiltert, auf das Format der Fotokarte (Bildbereich laut
-assets/tokens.json, 435 x 433pt, fast quadratisch) beschnitten - mit dem Kopf in
-der Mitte, siehe kopf_ausschnitt.py - und in Graustufen gewandelt, so wie im
-New-Monday-Skillmatrix-Layout. Kontrollbilder liegen in arbeit/fotos/kontrolle/.
+nach Portraetformat gefiltert, je Fassung auf das Format ihrer Fotokarte
+beschnitten (laut assets/tokens.json: lang 435 x 433pt, fast quadratisch ->
+foto-<name>.png; A4 108 x 99pt -> foto-<name>-a4.png) - mit dem Kopf in der
+Mitte und Luft ueber dem Scheitel, siehe kopf_ausschnitt.py - und in Graustufen
+gewandelt. Kontrollbilder liegen in arbeit/fotos/kontrolle/.
 
 Die inhaltliche Zuordnung macht das Modell, nicht dieses Skript.
 """
@@ -52,10 +53,11 @@ def portraet_zuschneiden(pfad, ziel, pruefen=True):
     pruefen=False bei einem bewusst gelieferten Foto — dann greifen die
     Heuristiken nicht, die aus einem PDF Logos aussortieren.
 
-    Den Ausschnitt setzt kopf_ausschnitt.py: Kopf waagerecht in der Mitte,
-    Haaransatz bei 5 %, Kinn bei 70 % der Bildhoehe - so wie im Figma-Master,
-    und frei vom Farbverlauf mit Name und Erfahrung unten auf der Karte. Das
-    Kontrollbild dazu liegt in <ziel>/kontrolle/.
+    Den Ausschnitt setzt kopf_ausschnitt.py, je Fotokarte eigens: Kopf
+    waagerecht in der Mitte, Scheitel und Kinn an der Stelle, die tokens.json
+    fuer die Karte vorgibt, nie angeschnitten (kopf-luft-anteil). Ausgabe ist der
+    Zuschnitt der langen Fassung; der A4-Zuschnitt liegt daneben
+    (foto-<name>-a4.png). Die Kontrollbilder liegen in <ziel>/kontrolle/.
     """
     import kopf_ausschnitt
     pfad = Path(pfad)

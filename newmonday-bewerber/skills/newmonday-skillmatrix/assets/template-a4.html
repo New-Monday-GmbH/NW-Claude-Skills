@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="{{ sprache or 'de' }}">
+<head>
+<meta charset="utf-8">
+<title>{{ person.name }} — Skill Matrix A4</title>
+{# Die A4-Fassung: dieselbe skillmatrix.json wie die lange, mehrseitig im
+   Format des Lebenslaufs. Schriften, Token-Variablen und Textklassen kommen
+   aus dem Block "a4" in assets/tokens.json (design_system.css()). #}
+<style>{{ design_css | safe }}</style>
+<link rel="stylesheet" href="skillmatrix-a4.css">
+{# Seite und Raender aus den Tokens (render_skillmatrix.py rechnet p): oben
+   Rand + Kopfzeile + Abstand zum Inhalt, rechts nur bis zur Kante des Fusses
+   (wie im Lebenslauf - ragte er ueber den Druckbereich, verkleinerte Chrome
+   die Seite). Die Kopfzeile ist ein laufendes Element im oberen Rand. #}
+<style>
+@page {
+  size: {{ p.breite }}pt {{ p.hoehe }}pt;
+  margin: {{ p.oben }}pt {{ p.rechts }}pt {{ p.unten }}pt {{ p.links }}pt;
+  @top-left { content: element(kopf); vertical-align: top; padding-top: {{ p.kopf_oben }}pt; width: {{ p.inhalt }}pt; }
+}
+@page :first { @top-left { content: element(kopferste); } }
+</style>
+</head>
+<body>
+
+{# Kopfzeile: auf Seite 1 Logo und Badge, auf jeder weiteren nur das Logo. #}
+<header class="kopf kopf--erste">
+  <img class="kopf__logo" src="nm-logo.svg" alt="New Monday">
+  <span class="badge t-badge"><i class="badge__punkt"></i>{{ t.verfuegbar }} {{ person.verfuegbar_ab }}</span>
+</header>
+<header class="kopf kopf--folge">
+  <img class="kopf__logo" src="nm-logo.svg" alt="New Monday">
+</header>
+
+{# data-block benennt jeden Block, der als Ganzes auf einer Seite steht.
+   render_skillmatrix.py liest daraus die Seitenaufteilung und legt sie im PDF
+   ab; figma_plan.py baut die Seiten danach. #}
+<main class="inhalt">
+
+<section class="hero" data-block="hero">
+  <div class="profil">
+    <div class="profil__text">
+      <h1 class="profil__name t-hero-name">{{ person.name }}</h1>
+      <div class="t-hero-rolle">{{ person.rolle }}</div>
+      {% if person.schwerpunkte %}
+      <div class="schwerpunkte">
+        {% for s in person.schwerpunkte %}<span class="schwerpunkt t-schwerpunkt">{{ s }}</span>{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="fotokarte">
+      {% if person.foto %}<img class="fotokarte__bild" src="{{ person.foto }}" alt="">{% endif %}
+    </div>
+  </div>
+  <p class="hero__beschreibung t-hero-beschreibung">{{ person.beschreibung }}</p>
+</section>
+
+{# Bild eingepasst (Seitenverhaeltnis der Datei), sonst Platzhalterfeld. #}
+{% macro zertbild(e) -%}
+  {%- if e.src -%}
+  <img class="zertbild" src="{{ e.src }}" alt="" style="width: {{ e.a4_breite }}pt; height: {{ e.a4_hoehe }}pt">
+  {%- else -%}
+  <div class="zertplatz" style="width: {{ e.a4_breite }}pt; height: {{ e.a4_hoehe }}pt">
+    {%- if e.art == 'buendel' %}<span class="t-zert-anzahl">+{{ e.anzahl }}</span>
+    {%- else %}<img class="zertplatz__icon" src="icon-zertifikat.svg" alt="">{% endif -%}
+  </div>
+  {%- endif -%}
+{%- endmacro %}
+
+{# Zertifikate: dieselben Kacheln, Buendel und Kurzformen wie in der langen
+   Fassung (scripts/zertifikate.py), nur in den Massen der A4-Fassung. #}
+{% macro zertsektion() %}
+  {% if z %}
+  <section class="sektion zertsektion">
+    <h2 class="sektionstitel t-sektion-titel" data-block="zert-titel">
+      <img class="sektionstitel__icon" src="icon-zertifikat.svg" alt=""><span>{{ t.zertifikate }}</span>
+    </h2>
+    {% if z.karte %}
+    <div class="qualikarte" data-block="zert-karte">
+      <div class="t-quali-titel">{{ t.qualifikationen }}</div>
+      <div class="qualikarte__block">
+        {% if z.karte.text %}<p class="t-quali-text">{{ z.karte.text }}</p>{% endif %}
+        {% if z.karte.tags %}
+        <div class="qualikarte__tags{% if z.karte.text %} qualikarte__tags--nach-text{% endif %}">
+          {% for tag in z.karte.tags %}<span class="qualitag t-quali-tag">{{ tag }}</span>{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+    <div class="zk">
+      {% for zeile in z.eintraege | batch(g.spalten) %}
+      <div class="zk__zeile" data-block="zert-zeile-{{ loop.index }}">
+        {% for e in zeile %}
+        <div class="zk__kachel">
+          <div class="zk__buehne">{{ zertbild(e) }}</div>
+          <div class="zk__titel t-zert-titel" style="line-clamp: {{ g.titel_zeilen }}">{{ e.titel }}</div>
+          {%- if e.meta %}<div class="zk__meta t-zert-aussteller" style="line-clamp: {{ g.meta_zeilen }}">{{ e.meta }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+{% endmacro %}
+
+{# Zeilen ohne Karten, zwei Spalten: Kernkompetenzen und Tools gleich. #}
+{% macro eintraege(skills) %}
+      {% for zeile in skills | batch(spalten) %}
+      <div class="eintraege__zeile">
+        {% for s in zeile %}
+        <div class="eintrag">
+          <div class="eintrag__kopf">
+            <div class="eintrag__name t-eintrag-titel">{{ s.name }}</div>
+            <div class="punkte">
+              {% for i in range(punkte_anzahl) %}<i class="punkt{% if i < s.punkte %} punkt--voll{% endif %}"></i>{% endfor %}
+            </div>
+          </div>
+          <p class="eintrag__beschreibung t-eintrag-beschreibung">{{ s.beschreibung }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+{% endmacro %}
+
+{% if zertifikate_position != 'ende' %}{{ zertsektion() }}{% endif %}
+
+{% if kompetenzen %}
+<section class="sektion kompetenzen">
+  <h2 class="sektionstitel t-sektion-titel" data-block="kompetenzen-titel">
+    <img class="sektionstitel__icon" src="icon-kernkompetenzen.svg" alt=""><span>{{ t.kernkompetenzen }}</span>
+  </h2>
+  {% for kategorie in kompetenzen %}
+  <div class="kategorie" data-block="kategorie-{{ loop.index }}">
+    <div class="kategorie__label t-kategorie">{{ kategorie.kategorie }}</div>
+    {{ eintraege(kategorie.skills) }}
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% if tools %}
+<section class="sektion tools" data-block="tools">
+  <h2 class="sektionstitel t-sektion-titel">
+    <img class="sektionstitel__icon" src="icon-tools.svg" alt=""><span>{{ t.tools }}</span>
+  </h2>
+  <div class="tools__eintraege">
+    {{ eintraege(tools) }}
+  </div>
+</section>
+{% endif %}
+
+{% if zertifikate_position == 'ende' %}{{ zertsektion() }}{% endif %}
+
+{# Fuss wie im Lebenslauf, unten auf der letzten Seite. Die Luft davor setzt
+   render_skillmatrix.py: erst die Mindestluft, dann so viel, dass der Fuss
+   auf dem unteren Rand aufsitzt. #}
+<div class="fussbereich" data-block="fuss">
+  <div class="fussluft" style="height: {{ fussluft }}pt"></div>
+  <footer class="fuss">
+    <div class="fuss__linie"></div>
+    <div class="fuss__zeile">
+      <img class="fuss__logo" src="nm-logo.svg" alt="New Monday">
+      <div class="fuss__spalten">
+        <div class="fuss__spalte">
+          <div class="t-fuss-label">{{ t.ansprechpartner }}</div>
+          <div class="fuss__wert t-fuss-wert"><span class="t-fuss-name">{{ kontakt.name }}</span><br>{{ kontakt.rolle }}</div>
+        </div>
+        <div class="fuss__spalte">
+          <div class="t-fuss-label">{{ t.kontakt }}</div>
+          <div class="fuss__wert t-fuss-wert">{{ kontakt.mail }}</div>
+          <div class="fuss__wert t-fuss-wert">{{ kontakt.telefon }}</div>
+        </div>
+        <div class="fuss__spalte">
+          <div class="t-fuss-label">{{ t.adresse }}</div>
+          <div class="fuss__wert t-fuss-wert">{{ kontakt.firma }}<br>{{ kontakt.strasse }}<br>{{ kontakt.ort }}</div>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+</main>
+</body>
+</html>

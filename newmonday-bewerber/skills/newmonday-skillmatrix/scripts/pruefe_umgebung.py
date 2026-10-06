@@ -16,9 +16,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import design_system  # noqa: E402  — nach sys.path.insert
 
 PY_PAKETE = [
-    ("weasyprint", "Rendert das PDF. Ohne sie faellt der Skill auf Chrome zurueck."),
+    ("weasyprint", "Rendert die PDFs. Ohne sie faellt die lange Fassung auf Chrome zurueck, "
+                   "die A4-Fassung entfaellt."),
     ("jinja2", "Fuellt das Template. Zwingend."),
-    ("pypdf", "Zaehlt Seiten zur Kontrolle. Empfohlen."),
+    ("pypdf", "Zaehlt Seiten und legt die Seitenaufteilung der A4-Fassung ab (fuer Figma). Empfohlen."),
     ("PIL", "Bearbeitet Fotos und misst die Seitenhoehe. Zwingend."),
     ("fitz", "PyMuPDF — schnellste Hoehenmessung. Sonst pdftoppm+Pillow."),
 ]

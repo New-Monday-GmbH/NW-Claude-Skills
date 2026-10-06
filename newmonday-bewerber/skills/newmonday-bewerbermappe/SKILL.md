@@ -367,7 +367,10 @@ Skill-Repos vorher festhalten und danach vergleichen wie in Phase 3. Nach jedem:
    falsch, gilt trotzdem die Rückgabe; Phase 6 nimmt die Datei, wie sie ist.
 2. Status in `auftrag.json` setzen und die gemeldeten PDFs in `ausgabe/`
    nachsehen.
-3. Eine Statuszeile: „Lebenslauf fertig – 2 PDFs, Figma auf der Seite.“
+3. Eine Statuszeile: „Lebenslauf fertig – 2 PDFs, Figma auf der Seite.“ Die
+   Skill Matrix liefert ebenfalls zwei PDFs, die lange und die A4-Fassung, und
+   in Figma den langen Frame mit den A4-Seiten rechts daneben: „Skill Matrix
+   fertig – 2 PDFs (lang, A4), Figma auf der Seite.“
 
 Scheitert einer, geht es mit dem nächsten weiter; nachgefragt wird nicht.
 
@@ -378,8 +381,8 @@ Die drei `uebergabe.md` ganz lesen. Sie haben dieselben sechs Abschnitte
 für Abschnitt zusammen, Punkt 6 kommt aus `status` in `auftrag.json`. Alles in
 einer Nachricht:
 
-1. **Fertig: Vorname Nachname** – die Dateien aus `ausgabe/` und der Link auf die
-   Figma-Seite. Ist Figma bei einem Dokument gescheitert, steht hier der Grund –
+1. **Fertig: Vorname Nachname** – die Dateien aus `ausgabe/` (von der Skill
+   Matrix beide Fassungen, lang und A4) und der Link auf die Figma-Seite. Ist Figma bei einem Dokument gescheitert, steht hier der Grund –
    die PDFs sind trotzdem da.
 2. **Zur Freigabe** – je Dokument, was dort steht, im Wortlaut: Kurzprofil,
    abgeleitete Skillset-Einträge mit Beleg und die Prüf-Meldungen von

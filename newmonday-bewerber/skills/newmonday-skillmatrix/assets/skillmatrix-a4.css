@@ -1,0 +1,214 @@
+/* New Monday Skillmatrix, A4-Fassung — nur Struktur.
+
+   Wie skillmatrix.css: Jeder Wert kommt als var(--komponente-eigenschaft) bzw.
+   als Textklasse .t-<verwendung> aus assets/tokens.json, hier aus dem Block
+   "a4" (design_system.fassung(ds, "a4")). render_skillmatrix.py setzt das
+   erzeugte CSS vor dieses Stylesheet. Seitengroesse und Raender stehen als
+   @page im Template, gerechnet aus denselben Tokens.
+
+   Der Aufbau folgt dem Lebenslauf: A4 in pt, Satzspiegel 428 breit, der Fuss
+   475 breit unten auf der letzten Seite. Neu ist die Kopfzeile auf jeder
+   Seite: zwei laufende Elemente (position: running), die @page in den oberen
+   Rand setzt - auf Seite 1 mit Badge, danach nur das Logo. */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Kein Hintergrund auf html/body, wie in der langen Fassung. */
+body { font-family: "Inter"; }
+
+.inhalt, .hero, .sektion { width: var(--seite-inhalt); }
+
+/* ---------- Kopfzeile (laufend) ---------- */
+
+.kopf {
+  display: flex; align-items: center; justify-content: space-between;
+  width: var(--seite-inhalt); height: var(--kopf-hoehe);
+}
+.kopf--erste { position: running(kopferste); }
+.kopf--folge { position: running(kopf); }
+.kopf__logo { display: block; flex: none; width: var(--kopf-logo-breite); height: var(--kopf-logo-hoehe); }
+
+/* Das Badge huggt seinen Inhalt und steht senkrecht mittig in der Kopfzeile;
+   es ist hoeher als sie und ragt oben und unten gleich weit hinaus. */
+.badge {
+  display: flex; align-items: center; flex: none; white-space: nowrap;
+  padding: var(--badge-padding-y) var(--badge-padding-x);
+  border: var(--badge-rahmen); border-radius: var(--badge-radius);
+  background: var(--badge-hintergrund);
+}
+.badge__punkt {
+  display: block; flex: none;
+  width: var(--badge-punkt); height: var(--badge-punkt);
+  border-radius: var(--badge-radius); background: var(--badge-punkt-farbe);
+  margin-right: var(--badge-abstand);
+}
+
+/* ---------- Hero ---------- */
+
+/* Zeile Profil: Textspalte (Name, Rolle, Schwerpunkte) und Fotokarte, darunter
+   die Beschreibung ueber die volle Breite. */
+.profil { display: flex; align-items: flex-start; }
+.profil__text { flex: 1 1 auto; min-width: 0; margin-right: var(--hero-spaltenabstand); }
+.profil__name { padding-bottom: var(--hero-name-unten); }
+
+/* Schwerpunkte brechen um, statt ueber die Spalte zu laufen. */
+.schwerpunkte {
+  display: flex; flex-wrap: wrap; gap: var(--schwerpunkte-abstand);
+  margin-top: var(--hero-abstand-schwerpunkte);
+}
+.schwerpunkt {
+  display: block; flex: none; white-space: nowrap;
+  padding: var(--schwerpunkt-padding-y) var(--schwerpunkt-padding-x);
+  border: var(--schwerpunkt-rahmen); border-radius: var(--schwerpunkt-radius);
+  background: var(--schwerpunkt-hintergrund);
+}
+
+/* Fotokarte ohne Verlauf: das Foto fuellt die Karte, die Kontur liegt obenauf
+   (::after) - wie in Figma, wo sie ueber dem Bild gezeichnet wird. Das Foto
+   ist eigens im Format der Karte zugeschnitten (foto-<name>-a4.png). */
+.fotokarte {
+  flex: none; position: relative; overflow: hidden;
+  width: var(--fotokarte-breite); height: var(--fotokarte-hoehe);
+  border-radius: var(--fotokarte-radius);
+  background: var(--fotokarte-hintergrund);
+}
+.fotokarte::after {
+  content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+  border: var(--fotokarte-rahmen); border-radius: var(--fotokarte-radius);
+}
+.fotokarte__bild {
+  display: block; object-fit: cover;
+  width: var(--fotokarte-bild-breite); height: var(--fotokarte-bild-hoehe);
+  opacity: var(--fotokarte-bild-deckkraft);
+}
+.hero__beschreibung { margin-top: var(--hero-abstand-beschreibung); }
+
+/* ---------- Sektionen und Seitenumbruch ---------- */
+
+/* Sektionen 32 auseinander. Am Seitenanfang wirft WeasyPrint den Rand weg,
+   der erste Block einer Seite steht also oben am Satzspiegel. */
+.sektion { margin-top: var(--inhalt-sektionsabstand); }
+
+/* Kein Block bricht in sich um: Kategorie, Tools, Qualifikationskarte und jede
+   Kachelreihe stehen ganz auf einer Seite. Eine Ueberschrift bleibt bei dem,
+   was ihr folgt. Die Reihenfolge bleibt, also kommt das Dokument mit so wenig
+   Seiten aus, wie es in dieser Reihenfolge geht. */
+.kategorie, .tools, .qualikarte, .zk__zeile, .fussbereich { break-inside: avoid; }
+.sektionstitel { break-after: avoid; }
+
+.sektionstitel { display: flex; align-items: center; margin-bottom: var(--sektionstitel-unten); }
+.sektionstitel__icon {
+  display: block; flex: none;
+  width: var(--sektionstitel-icon); height: var(--sektionstitel-icon);
+  margin-right: var(--sektionstitel-abstand);
+}
+/* Die Rubrik traegt negative Laufweite (wie im Lebenslauf); damit misst
+   WeasyPrint die Breite eines Flex-Elements zu knapp und bricht das letzte
+   Wort um ("Core / Skills"). Eine Rubrik ist einzeilig. */
+.sektionstitel > span { flex: none; white-space: nowrap; }
+
+/* ---------- Zertifikate ---------- */
+
+/* Erworbene Qualifikationen: die einzige Karte mit Rahmen. */
+.qualikarte {
+  padding: var(--qualikarte-padding);
+  border: var(--qualikarte-rahmen); border-radius: var(--qualikarte-radius);
+  background: var(--qualikarte-hintergrund);
+}
+.qualikarte__block { margin-top: var(--qualikarte-abstand); }
+.qualikarte__tags {
+  display: flex; flex-wrap: wrap; gap: var(--qualitags-abstand);
+}
+.qualikarte__tags--nach-text { margin-top: var(--qualikarte-gruppen-abstand); }
+/* Wie die Zertifikats-Tags im Lebenslauf: ohne Grund, Laufweite 0 - mit
+   negativer misst WeasyPrint die Breite zu knapp und bricht das letzte Wort um. */
+.qualitag {
+  display: block; flex: none; max-width: 100%;
+  padding: var(--qualitag-padding-y) var(--qualitag-padding-x);
+  border: var(--qualitag-rahmen); border-radius: var(--qualitag-radius);
+}
+
+/* Kacheln ohne Rahmen: Buehne mit dem Bild, darunter Titel und
+   "Aussteller · Jahr". Reihen huggen ihren Text. */
+.qualikarte + .zk { margin-top: var(--zertifikate-karte-abstand); }
+.zk__zeile { display: flex; align-items: flex-start; }
+.zk__zeile + .zk__zeile { margin-top: var(--zertkachel-zeilenabstand); }
+.zk__kachel { flex: none; width: var(--zertkachel-breite); }
+.zk__kachel + .zk__kachel { margin-left: var(--zertkachel-spaltenabstand); }
+.zk__buehne {
+  display: flex; align-items: center; justify-content: center;
+  height: var(--zertkachel-buehne-hoehe);
+  padding: var(--zertbuehne-padding); border-radius: var(--zertbuehne-radius);
+  background: var(--zertbuehne-hintergrund);
+}
+.zk__titel { margin-top: var(--zertkachel-abstand); }
+.zk__meta { margin-top: var(--zertkachel-text-abstand); }
+
+/* Bild eingepasst (Flaeche im Seitenverhaeltnis der Datei), mit margin: auto
+   zentriert - WeasyPrint richtet Bilder in Flex-Zeilen nicht nach
+   justify-content aus. */
+.zertbild {
+  display: block; flex: none; margin: auto; object-fit: contain;
+  border: var(--zertbild-rahmen); border-radius: var(--zertbild-radius);
+  background: var(--zertbild-platz-hintergrund);
+}
+.zertplatz {
+  display: flex; flex: none; margin: auto; align-items: center; justify-content: center;
+  border: var(--zertbild-rahmen); border-radius: var(--zertbild-radius);
+  background: var(--zertbild-platz-hintergrund);
+}
+.zertplatz__icon { display: block; margin: auto; width: var(--zertbild-icon); height: var(--zertbild-icon); }
+
+/* ---------- Kernkompetenzen und Tools: Zeilen ohne Karten ---------- */
+
+.kategorie + .kategorie { margin-top: var(--kompetenzen-kategorie-abstand); }
+.kategorie__label {
+  padding-bottom: var(--kategorie-text-unten);
+  border-bottom: var(--kategorie-linie);
+}
+.tools__eintraege { border-top: var(--tools-linie); }
+
+/* Zwei Spalten zu 202 mit 24 Fuge. Eintraege einer Zeile sind gleich hoch
+   (align-items: stretch); ab der zweiten Zeile traegt jeder Eintrag oben eine
+   Haarlinie, die im Kasten mitzaehlt - wie die Kontur innen in Figma. */
+.eintraege__zeile { display: flex; }
+.eintrag {
+  flex: none; width: var(--eintraege-breite);
+  padding: var(--eintraege-padding-y) 0;
+}
+.eintrag + .eintrag { margin-left: var(--eintraege-spaltenabstand); }
+.eintraege__zeile + .eintraege__zeile .eintrag { border-top: var(--eintraege-linie); }
+.eintrag__kopf { display: flex; align-items: flex-start; }
+.eintrag__name { flex: 1 1 auto; min-width: 0; margin-right: var(--eintraege-titel-abstand); }
+.eintrag__beschreibung { margin-top: var(--eintraege-abstand); }
+
+.punkte { display: flex; flex: none; padding-top: var(--punkte-oben); }
+.punkt {
+  display: block; flex: none;
+  width: var(--punkte-groesse); height: var(--punkte-groesse);
+  border-radius: var(--punkte-radius); background: var(--punkte-leer);
+}
+.punkt + .punkt { margin-left: var(--punkte-abstand); }
+.punkt--voll { background: var(--punkte-voll); }
+
+/* ---------- Fuss ---------- */
+
+/* Wie im Lebenslauf: Der Fuss schliesst die letzte Seite unten ab. Die Luft
+   davor (.fussluft) misst render_skillmatrix.py im ersten Durchgang und setzt
+   sie im zweiten als Hoehe; Luft und Fuss bleiben zusammen. Breiter als der
+   Satzspiegel, bis an die gespiegelte rechte Randlinie. */
+.fussluft { width: 100%; }
+.fuss { width: var(--fuss-breite); }
+.fuss__linie { border-top: var(--fuss-linie); }
+.fuss__zeile {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-top: var(--fuss-abstand);
+}
+.fuss__logo { display: block; flex: none; width: var(--fuss-logo-breite); height: var(--fuss-logo-hoehe); }
+.fuss__spalten { display: flex; flex: none; width: var(--fuss-block); }
+/* Drei gleich breite Spalten; die Mailadresse ist breiter als ihre Spalte und
+   ragt in den Zwischenraum - umbrechen darf sie nicht. */
+.fuss__spalte { flex: 1 1 0; min-width: 0; }
+.fuss__spalte + .fuss__spalte { margin-left: var(--fuss-spaltenabstand); }
+.fuss__wert { white-space: nowrap; margin-top: var(--fuss-label-abstand); }
+.fuss__wert + .fuss__wert { margin-top: var(--fuss-werte-abstand); }
