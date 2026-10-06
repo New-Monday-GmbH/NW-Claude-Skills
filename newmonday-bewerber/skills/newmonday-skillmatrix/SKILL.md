@@ -243,8 +243,8 @@ Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    **Zusammengesetzte Begriffe mit englischem Bestandteil werden im deutschen
    Text durchgekoppelt (Duden):** „UX-Design“, „UX-Konzeption“,
    „Usability-Testing“, „Stakeholder-Management“, „User-Centered Design“ –
-   nicht „UX Design“, „Usability Testing“ oder „User Centered Design“. Ohne
-   Kopplung bleiben:
+   nicht „UX Design“, „Usability Testing“ oder „User Centered Design“. Das
+   gilt auch in Jobtiteln („UX/UI-Designer“). Ohne Kopplung bleiben:
 
    - **Eingeführte englische Fachbegriffe ohne deutsches Grundwort**: „User
      Research“, „UX Research“, „Information Architecture“, „Wireframing &
@@ -252,6 +252,8 @@ Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
      „User-Research-Interviews“.
    - **Eigennamen**: Firmen, Produkte und Zertifikate behalten ihre
      Schreibweise („Google UX Design Certificate“).
+   - **Die Rolle, wie der Kandidat sie selbst führt** („UX & AI Designer“):
+     wörtlich, in allen drei Dokumenten gleich.
    - **Englische Dokumente** (`sprache: en`).
 
    In der Skill Matrix gilt das für Hero-Beschreibung, Schwerpunkte, Satz und

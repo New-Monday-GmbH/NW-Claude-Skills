@@ -740,8 +740,8 @@ einem Wort und bleibt. In die `cv.json` trotzdem gleich die richtige Form
 schreiben. Steht ein Zeitraum im Fließtext, wird er dort von Hand genauso
 gesetzt – Fließtext fasst das Skript nicht an.
 
-**Zusammengesetzte Begriffe mit englischem Bestandteil werden durchgekoppelt**,
-wie im Duden: „UX-Design“, „UX-Konzeption“, „UI-Design“, „Usability-Testing“,
+**Zusammengesetzte Begriffe mit englischem Bestandteil werden im deutschen
+Text durchgekoppelt (Duden):** „UX-Design“, „UX-Konzeption“, „UI-Design“, „Usability-Testing“,
 „Usability-Tests“, „Stakeholder-Management“, „Stakeholder-Kommunikation“,
 „User-Research-Interviews“, „User-Centered Design“. Das gilt auch in Jobtiteln
 („Werkstudent UX-Design“, „UX/UI-Designer“). Ohne Kopplung bleiben:
@@ -751,6 +751,8 @@ wie im Duden: „UX-Design“, „UX-Konzeption“, „UI-Design“, „Usabilit
   ein deutsches Wort dazu, wird gekoppelt: „User-Research-Interviews“.
 - **Eigennamen**: Firmen, Kunden, Einrichtungen, Studiengänge und Zertifikate
   behalten ihre Schreibweise („Google UX Design Certificate“).
+- **Die Rolle, wie der Kandidat sie selbst führt** („UX & AI Designer“): Sie
+  steht wörtlich da, in allen drei Dokumenten gleich.
 - **Englische Lebensläufe** (`sprache: en`): Englisch koppelt nicht („UI design“).
 
 `render_cv.py` ändert daran keinen Buchstaben. Es meldet nur, wenn eine offene
