@@ -1207,26 +1207,36 @@ pdftoppm -png -r 60 ausgabe/nachname-vorname-portfolio.pdf arbeit/blick
 
 ### 7a. Die Figma-Frames ablegen
 
-Erst wenn das PDF fertig und angesehen ist. Die Frames entstehen aus demselben
-Layout wie das PDF – `figma_plan.py` liest die Rechnung von WeasyPrint aus und
-schreibt fertige `use_figma`-Skripte, eine zweite Maßtabelle gibt es nicht:
+Erst wenn das PDF fertig und angesehen ist. Jede Folie entsteht als **Instanz
+der Master-Bibliothek** „Portfolio - CV Master“ – nie gelöst, befüllt über
+Properties, exponierte Instanzen und Bildfüllungen. So erreicht eine Änderung
+im Master per Bibliotheks-Update auch dieses Deck. Die Inhalte liest
+`figma_plan.py` aus demselben HTML und derselben Layoutrechnung wie das PDF,
+die Keys und Property-Namen stehen in `assets/master-bibliothek.json`:
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py portfolio.json arbeit/figma/ --knoten <node-id aus dem Link>
 ```
 
-Dann der Reihe nach: `00-start.js` an `use_figma`, IDs mit `--einsetzen`
-eintragen, jedes `NN-folien.js` an `use_figma`, zum Schluss die Bilder über
-`99-bilder.js`, `upload_assets` und `figma_assets.py`. Das Rezept mit allen
-Fallstricken steht in `references/figma.md`; vor dem ersten Aufruf den Skill
-`figma-use` laden.
+Dann der Reihe nach: `00-start.js` an `use_figma` (Vorflug: ein Import per Key,
+dann Zielseite, Sammelrahmen und Bildablage), die Antwort als `start.json`
+und `figma_plan.py --einsetzen arbeit/figma/ --antwort arbeit/figma/start.json`,
+die Bilder über `upload_assets` und `figma_assets.py`, zuletzt jedes
+`NN-folien.js` an `use_figma`. Meldet der Vorflug „Bibliothek nicht
+erreichbar“, entstehen die Folien als rohe Frames (`--roh`) – das steht dann in
+der Übergabe. Mengengrenzen der Komponenten (z. B. 28 Kundenlogos, 10
+Kenntnisse) meldet das Skript; auch sie gehören in die Übergabe. Das Rezept mit
+allen Fallstricken steht in `references/figma.md`; vor dem ersten Aufruf den
+Skill `figma-use` laden.
 
 ### 8. Übergeben
 
 PDF ausgeben und in wenigen Zeilen berichten:
 
 - **Den Figma-Link** auf den Sammelrahmen (`…?node-id=…`) und auf welcher Seite
-  er liegt – oder in einem Satz, warum die Frames nicht zustande kamen
+  er liegt – oder in einem Satz, warum die Frames nicht zustande kamen; dazu,
+  falls die Folien roh statt aus der Bibliothek entstanden, und welche
+  Mengengrenzen der Komponenten überschritten sind
 - Welche Projekte drin sind und in welcher Reihenfolge
 - Woher das Profilfoto stammt, falls nicht aus dem Lebenslauf
 - Wo die Quellen auseinandergehen – mit beiden Werten
@@ -1361,10 +1371,11 @@ vergleicht jede Fläche, Kontur, Trennlinie und Textzeile mit Figma – auf
 (`references/layout.md`, „Selbsttest gegen Figma"): Der Test muss dann rot
 werden, und erst die Änderung am Skill macht ihn wieder grün.
 
-Decks, die schon in Figma stehen, werden danach nicht neu aufgebaut: Nur die
-betroffenen Folien neu bauen (`figma_plan.py … --folien 2`), sie ersetzen die
-gleichnamigen Folien im vorhandenen Sammelrahmen – siehe
-`references/figma.md`, „Einzelne Folien in einem bestehenden Deck ersetzen".
+Decks aus der Bibliothek ziehen Änderungen am Master per Bibliotheks-Update
+nach. Ändert sich nur der Skill, werden sie nicht neu aufgebaut: Nur die
+betroffenen Folien neu bauen (`figma_plan.py … --folien 2 --rahmen
+<Sammelrahmen>`), sie ersetzen die gleichnamigen Folien im vorhandenen
+Sammelrahmen – siehe `references/figma.md`, „Einzelne Folien neu bauen".
 
 Positionen, Maße und die Begründungen dahinter stehen in
 `references/layout.md`. Dort steht auch, warum die Seiten absolut positioniert

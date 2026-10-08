@@ -50,6 +50,11 @@
 13. Durchkopplung: offene Schreibweisen („UX Design“, „Usability Testing“ …)
    werden gemeldet, nie geändert; nicht bei sprache „en“, nicht bei „UX
    Designer“ oder „User Research“, und das Beispiel ist frei davon.
+14. Bibliotheksweg: Das Beispiel mit Schwerpunkten wird ohne Figma geplant –
+   jede Folie bekommt eine Komponente aus assets/master-bibliothek.json, jede
+   Property und Variante steht im Katalog, jede Bildebene hat ihr Bild,
+   Logos stehen im Seitenverhältnis ihrer Datei, kein Paket über dem Deckel
+   von use_figma; zu viele Kenntnisse werden als Mengengrenze gemeldet.
 
 Schreibt nichts in den Skill-Ordner. Rückgabe 1, wenn etwas abweicht.
 """
@@ -64,6 +69,7 @@ from pathlib import Path
 HIER = Path(__file__).resolve().parent
 sys.path.insert(0, str(HIER))
 import design_tokens as ds  # noqa: E402
+import figma_bibliothek as fb  # noqa: E402
 import figma_plan as fp  # noqa: E402
 import render_portfolio as rp  # noqa: E402
 import screens as sc  # noqa: E402
@@ -670,6 +676,52 @@ def durchkopplung_pruefen() -> list[str]:
     return befunde
 
 
+def bibliothek_pruefen() -> list[str]:
+    befunde = []
+    kat = fb.katalog()
+    d = json.loads((BEISPIEL / "portfolio.json").read_text(encoding="utf-8"))
+    d["schwerpunkte"] = json.loads((SOLL / "12-schwerpunkt.json").read_text(
+        encoding="utf-8"))["inhalt"]["schwerpunkte"]
+    d["person"]["kenntnisse"] = list(d["person"]["kenntnisse"]) + [f"Kenntnis {i}" for i in range(9, 13)]
+    rp.hinweise.clear()
+    with tempfile.TemporaryDirectory() as tmp:
+        html_text, _ = rp.baue_html(d, BEISPIEL, Path(tmp))
+        folien, _ = fp.folien_lesen(html_text)
+        plaene, gebraucht = fb.plaene_bauen(folien, d)
+        if len(plaene) != len(folien):
+            befunde.append(f"{len(folien)} Folien, aber {len(plaene)} Baupläne")
+        liste = fp.bilder_vorbereiten(list(gebraucht.values()), Path(tmp) / "bilder", folien,
+                                      alles_raster=True)
+        for p in plaene:
+            for b in p.bilder:
+                e = gebraucht.get(b.get("e")) if "e" in b else None
+                if "e" in b and (e is None or "bild" not in e):
+                    befunde.append(f"Folie {p.nr:02d}: Bildebene {'/'.join(b['pfad'])} ohne Bild")
+                if e is not None and b.get("lage"):
+                    datei = next(x["quelle"] for x in liste if x["nr"] == e["bild"])
+                    v = rp.seitenverhaeltnis(Path(datei).resolve().as_uri())
+                    if abs((e["w"] / e["h"]) / v - 1) > 0.01:
+                        befunde.append(f"Folie {p.nr:02d}: Logo {Path(datei).name} verzerrt")
+        try:
+            dateien = fb.skripte_schreiben(plaene, gebraucht, liste, "Test", Path(tmp))
+        except SystemExit as fehler:
+            return befunde + [str(fehler)]
+        for datei in dateien:
+            if len(datei.read_text(encoding="utf-8")) > 50000:
+                befunde.append(f"{datei.name} über 50 000 Zeichen")
+    typen = {p.typ for p in plaene}
+    for erwartet in ("Cover", "Profil", "Kundenwand", "Statement", "Trenner", "Prozess-Übersicht",
+                     "Prozess-Schritt", "Schwerpunkt", "Agentur", "Projekt-Kopf",
+                     "Projekt-Summary", "Lösung", "Vollbild", "Kontakt"):
+        if erwartet not in typen:
+            befunde.append(f"Folientyp {erwartet} kommt im Beispiel nicht vor")
+        if erwartet not in kat["folie"]:
+            befunde.append(f"Folientyp {erwartet} fehlt im Katalog")
+    if not any("Kenntnisse" in h and "Bibliothek" in h for h in rp.hinweise):
+        befunde.append("12 Kenntnisse ohne Meldung der Mengengrenze (10)")
+    return befunde
+
+
 def main() -> None:
     fehler = []
     fehler += [f"Tokens: {b}" for b in ds.pruefe()]
@@ -701,6 +753,7 @@ def main() -> None:
     fehler += [f"Schwerpunkte: {b}" for b in schwerpunkte_pruefen()]
     fehler += [f"Rollenzeile: {b}" for b in rollenzeile_pruefen()]
     fehler += [f"Durchkopplung: {b}" for b in durchkopplung_pruefen()]
+    fehler += [f"Bibliotheksweg: {b}" for b in bibliothek_pruefen()]
 
     if fehler:
         print(f"Selbsttest: {len(fehler)} Abweichung(en)")
@@ -710,7 +763,7 @@ def main() -> None:
     print("Selbsttest bestanden: Tokens, Beispiel-PDF, Figma-Abgleich "
           f"({len(list(SOLL.glob('*.json')))} Vorlage(n)), Sprachen, Arbeitsjahre, "
           "Screen-Stil, Statement-Länge, Logo-Proportionen, Graustufen, Fläche, "
-          "Schwerpunkte, Rollenzeile und Durchkopplung ohne Abweichung.")
+          "Schwerpunkte, Rollenzeile, Durchkopplung und Bibliotheksweg ohne Abweichung.")
 
 
 if __name__ == "__main__":

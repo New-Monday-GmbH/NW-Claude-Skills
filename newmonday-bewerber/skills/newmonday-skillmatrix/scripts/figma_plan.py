@@ -1,24 +1,40 @@
 #!/usr/bin/env python3
-"""Baut aus skillmatrix.json die Bauplaene fuer die Figma-Frames (Weg B).
+"""Baut aus skillmatrix.json die Figma-Plaene beider Fassungen.
 
     python3 scripts/figma_plan.py skillmatrix.json arbeit/ \
             --pdf "ausgabe/… - Skillmatrix.pdf" --pdf-a4 "ausgabe/… - Skillmatrix A4.pdf"
+    python3 scripts/figma_plan.py --skript vorflug|lang|a4 arbeit/ --seite 1:147 \
+            [--bilder arbeit/bilder.json]
     python3 scripts/figma_plan.py --schritt 3 arbeit/figma_plan.json
 
-Die zweite Form gibt den Knotenbaum eines Bauschritts kompakt aus — genau so,
-wie er als KNOTEN in den use_figma-Aufruf gehoert (fuer beide Plaene).
+Standard ist der Bibliotheksweg (references/figma.md): Die Frames entstehen aus
+Instanzen der veroeffentlichten Master-Bibliothek ("Portfolio - CV Master",
+Keys in assets/master-bibliothek.json) und werden ueber Component-Properties,
+exponierte Instanzen und Bild-Overrides befuellt. Dafuer schreibt die erste
+Form arbeit/figma_bibliothek.json (je Fassung der Befuellungsplan und die
+hochzuladenden Bilder), und --skript gibt den fertigen use_figma-Code aus:
+"vorflug" (Seiten, Schriften, ein Import per Key), "lang" (ein 1444er
+Seitenrahmen aus Kopfzeile, Hero, Rumpf, Fuss) und "a4" (je Seite eine
+Instanz "Skillmatrix A4/Seite"). --bilder ist die Ausgabe von
+figma_assets.py --bilder (Datei -> imageHash).
 
-Zwei Plaene, einer je Fassung:
+Rueckfall, wenn die Bibliothek nicht erreichbar ist (Vorflug) oder eine
+Fassung die Mengen der Komponenten sprengt: der rohe Weg aus den Bauplaenen
+(figma_plan.json, figma_plan_a4.json, Schritte per --schritt).
+
+Die rohen Plaene, einer je Fassung:
 
   - arbeit/figma_plan.json: die lange Fassung, ein Frame 1444 breit.
   - arbeit/figma_plan_a4.json: die A4-Fassung, je PDF-Seite ein Frame
-    595 x 842. Die Seitenaufteilung kommt aus dem A4-PDF (Dokumentinfo
-    /NewMondaySeiten, von render_skillmatrix.py beim Rendern abgelegt) und wird
-    gegen den Seitentext gehalten. Ohne A4-PDF entsteht dieser Plan nicht -
-    geraten wird die Aufteilung nicht. Fehlt --pdf-a4, sucht das Skript das
-    A4-PDF neben dem langen (--pdf).
+    595 x 842.
 
-Jeder Plan traegt
+Die Seitenaufteilung der A4-Fassung kommt in beiden Wegen aus dem A4-PDF
+(Dokumentinfo /NewMondaySeiten, von render_skillmatrix.py beim Rendern
+abgelegt) und wird gegen den Seitentext gehalten. Ohne A4-PDF entsteht kein
+A4-Plan - geraten wird die Aufteilung nicht. Fehlt --pdf-a4, sucht das Skript
+das A4-PDF neben dem langen (--pdf).
+
+Jeder rohe Plan traegt
 
   - schritte: die Bauschritte, je einer ein use_figma-Aufruf. Jeder Schritt
     traegt einen fertigen Knotenbaum und nennt den Elternknoten, in den er
@@ -52,6 +68,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import design_system  # noqa: E402  — nach sys.path.insert
+import figma_bibliothek  # noqa: E402
 import zertifikate  # noqa: E402
 from render_skillmatrix import (  # noqa: E402
     KONTAKT_VORGABE, beschriftung, dateiname, foto_a4, kompetenzen_ordnen, seiten_lesen, zert_a4)
@@ -1078,8 +1095,78 @@ def _arg(args, name):
     return args[i + 1], args[:i] + args[i + 2:]
 
 
+# --- Bibliotheksweg ---------------------------------------------------------
+
+def bibliothek_plaene(daten, pdf_a4=None):
+    """Die Befuellungsplaene beider Fassungen fuer den Bibliotheksweg
+    (figma_bibliothek.py) - dieselbe Ordnung, dieselben Kacheln und dieselbe
+    Seitenaufteilung wie PDF und rohe Plaene."""
+    labels = beschriftung(daten)
+    daten, _ = kompetenzen_ordnen(daten)              # gemeldet schon im rohen Plan
+    zplan, _ = zertifikate.planen(daten, DS, labels)
+    kontakt = dict(KONTAKT_VORGABE)
+    kontakt.update(daten.get("kontakt") or {})
+    eigene = []
+    lang = figma_bibliothek.plan_lang(daten, labels, zplan, kontakt, eigene)
+    a4 = None
+    if pdf_a4 and Path(pdf_a4).exists():
+        info = seiten_lesen(pdf_a4)
+        if info:
+            foto, _ = foto_a4(daten)
+            a4 = figma_bibliothek.plan_a4(daten, labels, zert_a4(zplan, DS4), kontakt, foto,
+                                          info["bloecke"], info["seiten"], eigene)
+    r = KOMP["rumpf"]
+    rumpf = {"padding": [m(r["padding-oben"]), m(r["padding-x"]), m(r["padding-unten"]), m(r["padding-x"])],
+             "abstand": m(r["sektionsabstand"]), "fuellung": f(r["hintergrund"]),
+             "linie": {"breite": r["linie-oben"]["breite"], "farbe": f(r["linie-oben"]["farbe"])}}
+    dateien = figma_bibliothek.bilder(lang) + [d for d in (figma_bibliothek.bilder(a4) if a4 else [])
+                                               if d not in figma_bibliothek.bilder(lang)]
+    hinweise.extend(eigene)
+    return {"lang": lang, "a4": a4, "rumpf": rumpf, "uploads": dateien, "hinweise": eigene}
+
+
+def skript_ausgeben(args):
+    """--skript vorflug|lang|a4 <arbeit> [--seite ID] [--bilder bilder.json]"""
+    seite, args = _arg(args, "--seite")
+    bilder_datei, args = _arg(args, "--bilder")
+    if len(args) != 3:
+        raise SystemExit(__doc__)
+    was, ordner = args[1], Path(args[2])
+    if was == "vorflug":
+        print(figma_bibliothek.vorflug_skript(seite))
+        return
+    if not seite:
+        raise SystemExit("--seite <ID der Zielseite> fehlt (aus dem Link, 1-147 -> 1:147).")
+    bib = json.loads((ordner / "figma_bibliothek.json").read_text(encoding="utf-8"))
+    plan = bib.get(was)
+    if not plan:
+        raise SystemExit(f"Kein Plan „{was}“ in {ordner / 'figma_bibliothek.json'}"
+                         + (" — ohne A4-PDF entsteht keiner." if was == "a4" else "."))
+    if plan.get("zu_viel"):
+        raise SystemExit(f"Fassung {was}: mehr Eintraege, als die Komponenten tragen (Hinweise beim "
+                         "Planen) — diese Fassung roh bauen (figma_plan.json bzw. figma_plan_a4.json).")
+    hashes = json.loads(Path(bilder_datei).read_text(encoding="utf-8")) if bilder_datei else {}
+    fehlen = [d for d in figma_bibliothek.bilder(plan) if d not in hashes]
+    if fehlen:
+        print(f"// ACHTUNG: {len(fehlen)} Bild(er) ohne Upload - die Ebenen werden ausgeblendet: "
+              + ", ".join(Path(d).name for d in fehlen), file=sys.stderr)
+    # Temporaere Upload-Rahmen raeumt der letzte Bauaufruf weg; lang nur die,
+    # die A4 nicht mehr braucht.
+    a4_dateien = figma_bibliothek.bilder(bib["a4"]) if bib.get("a4") else []
+    entfernen = (bib["uploads"] if was == "a4" or not bib.get("a4")
+                 else [d for d in bib["uploads"] if d not in a4_dateien])
+    code = figma_bibliothek.skript(plan, seite, hashes, entfernen, bib["uploads"],
+                                   bib["rumpf"] if was == "lang" else None)
+    if len(code) > 50000:
+        raise SystemExit(f"Skript {len(code)} Zeichen — ueber der Grenze von use_figma (50000).")
+    print(code)
+
+
 def main():
     args = sys.argv[1:]
+    if args[:1] == ["--skript"]:
+        skript_ausgeben(args)
+        return
     if args[:1] == ["--schritt"] and len(args) == 3:
         plan = json.loads(Path(args[2]).read_text(encoding="utf-8"))
         schritt = next((s for s in plan["schritte"] if str(s["nr"]) == args[1]), None)
@@ -1142,6 +1229,15 @@ def main():
         hinweise.append("A4-Plan nicht geschrieben: --pdf-a4 \"<… - Skillmatrix A4.pdf>\" angeben "
                         "(die Seitenaufteilung kommt aus dem A4-PDF)."
                         + (f" Nicht gefunden: {pdf_a4}" if pdf_a4 else ""))
+
+    bib = bibliothek_plaene(daten, pdf_a4 if plan4 else None)
+    datei_b = ziel / "figma_bibliothek.json"
+    datei_b.write_text(json.dumps(bib, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"\n{datei_b} geschrieben — Bibliotheksweg: lang"
+          + (f" und A4 ({len(bib['a4']['instanzen'])} Seiten)" if bib["a4"] else "")
+          + f", {len(bib['uploads'])} Bilder zum Hochladen"
+          + "".join(f"; {f} sprengt die Komponenten — roh bauen" for f in ("lang", "a4")
+                    if bib.get(f) and bib[f]["zu_viel"]))
     if hinweise:
         print("\nPruefen:", file=sys.stderr)
         for h in hinweise:

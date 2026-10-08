@@ -37,6 +37,7 @@ Beispiel: `beispiel/lauf/auftrag.json`.
 | `figma.link` | Link auf die Kandidatenseite mit `node-id` (`…?node-id=12-34`) – den geben die Skills als ihren Figma-Link aus Schritt 0 |
 | `figma.file_key`, `figma.seite_id` | Teil nach `/design/`; Seiten-ID `12:34` (passt zur `node-id`) |
 | `figma.neues_file` | `true`, wenn der Orchestrator das File angelegt hat |
+| `figma.bibliothek` | Ergebnis des Bibliotheks-Vorflugs (Import per Key): `true` = Frames aus Instanzen der Master-Bibliothek, `false` = die Skills bauen roh; fehlt es, macht jeder Skill nur seinen eigenen Vorflug |
 | `material.*` | `lebenslauf`, `linkedin_export`, `portfolio_pdf`, `foto`: Dateien; `logos`, `screens`, `zertifikate`: Ordner; `linkedin_url`, `xing_url`, `portfolio_url`: Adressen; `kundentexte`: Datei oder Text. Pfade relativ zum Laufordner. Nicht Vorhandenes fehlt oder ist `null`. |
 | `vorrang` | welche Quelle bei Widersprüchen gilt – in allen drei Dokumenten: `lebenslauf`, `portfolio`, `linkedin_export`, oder `Anweisung: <Text>` (Antwort über „Other“); fehlt es oder ist es `null`, gilt `lebenslauf`. Danach gelten die übrigen Quellen in der Reihe Lebenslauf, Portfolio, LinkedIn-Export |
 | `ohne` | Posten, die der Nutzer bewusst nicht liefert – Materialschlüssel wie unter `material`, bei Lücken ohne Schlüssel deren `was`-Text (Tabelle unten); werden nicht mehr erbeten und nicht mehr als Lücke gemeldet |

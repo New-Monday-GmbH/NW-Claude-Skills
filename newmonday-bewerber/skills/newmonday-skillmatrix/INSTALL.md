@@ -75,9 +75,22 @@ python3 ../scripts/figma_plan.py skillmatrix.json /tmp/plan/ \
         --pdf "/tmp/New-Monday - Wissem Kordi - Senior UX-UI Designer - Skillmatrix.pdf"
 ```
 
-Soll: `figma_plan.json` mit 9 Bauschritten und 7 Bildern,
-`figma_plan_a4.json` mit 3 Seiten, 14 Bauschritten und 7 Bildern, ohne Hinweis;
-in beiden Plänen tragen die 9 leeren Punkte eine `kontur` (1,5, `#6b7b7e`).
+Soll: `figma_bibliothek.json` für den Bibliotheksweg – „lang und A4 (3
+Seiten), 8 Bilder zum Hochladen“ –, daneben die rohen Pläne für den Rückfall:
+`figma_plan.json` mit 9 Bauschritten und 7 Bildern, `figma_plan_a4.json` mit 3
+Seiten, 14 Bauschritten und 7 Bildern; in beiden tragen die 9 leeren Punkte
+eine `kontur` (1,5, `#6b7b7e`). Unter „Pruefen:“ stehen genau zwei Hinweise
+„lang: Kachel … ohne Bild“ (Google, Microsoft – die lange Kachel hat im Master
+keine Platzhalter-Variante). Danach erzeugt
+
+```bash
+python3 ../scripts/figma_plan.py --skript lang /tmp/plan/ --seite 1:2
+python3 ../scripts/figma_plan.py --skript a4 /tmp/plan/ --seite 1:2
+```
+
+je ein `use_figma`-Skript (ohne `--bilder` mit dem Hinweis „7 Bild(er) ohne
+Upload“) – damit sind Katalog, Property-Namen und Mengen geprüft, ohne Figma
+anzufassen.
 
 Mit einem Feld `"anfrage"` in der JSON bleibt die Reihenfolge der Kategorien,
 wie sie dasteht, und beide Skripte melden sie mit einem Hinweis mehr

@@ -2,7 +2,7 @@
 """Schiebt Bilddateien in die Upload-URLs, die `upload_assets` zurueckgibt.
 
     python3 scripts/figma_assets.py <url> <datei> [<url> <datei> ...]
-    python3 scripts/figma_assets.py --paare arbeit/uploads.json
+    python3 scripts/figma_assets.py --paare arbeit/uploads.json [--bilder arbeit/bilder.json]
 
 Die JSON-Form ist der sichere Weg: Die signierten URLs sind lang und tragen
 Sonderzeichen, die in der Kommandozeile leicht zerbrechen.
@@ -11,6 +11,15 @@ Sonderzeichen, die in der Kommandozeile leicht zerbrechen.
 
 Warum ein eigenes Skript und kein curl: Es prueft Groesse und Content-Type vor
 dem Senden und funktioniert auch dort, wo curl nicht freigegeben ist.
+
+--bilder schreibt fuer den Bibliotheksweg (references/figma.md) je Datei den
+imageHash und den Hilfsrahmen, den upload_assets ohne Zielknoten anlegt:
+
+    {"/abs/pfad/foto.png": {"hash": "…", "temp": "12:34"}}
+
+figma_plan.py --skript setzt die Hashes damit auf die Bildebenen der
+Instanzen (deren IDs nimmt upload_assets nicht an) und raeumt die Hilfsrahmen
+weg.
 
 Nur fuer Rasterbilder und dort, wo `upload_assets` gebraucht wird. SVG-Logos
 gehen nicht diesen Weg, sondern direkt ueber figma.createNodeFromSvg() —
@@ -62,6 +71,41 @@ def hochladen(url, datei):
         return {"datei": str(datei), "ok": False, "fehler": f"kein Netz: {fehler}"}
 
 
+def _suche(wert, teil):
+    """Erster Wert, dessen Schluessel `teil` enthaelt (Antwort von upload_assets)."""
+    if isinstance(wert, dict):
+        for k, v in wert.items():
+            if teil in k.lower() and isinstance(v, (str, int)):
+                return str(v)
+        for v in wert.values():
+            treffer = _suche(v, teil)
+            if treffer:
+                return treffer
+    if isinstance(wert, list):
+        for v in wert:
+            treffer = _suche(v, teil)
+            if treffer:
+                return treffer
+    return None
+
+
+def hashes(ergebnisse):
+    """{absoluter Pfad: {"hash", "temp"}} aus den Antworten."""
+    aus = {}
+    for e in ergebnisse:
+        if not e["ok"]:
+            continue
+        try:
+            antwort = json.loads(e["antwort"])
+        except ValueError:
+            continue
+        h = _suche(antwort, "hash")
+        if h:
+            aus[str(Path(e["datei"]).expanduser().resolve())] = {
+                "hash": h, "temp": _suche(antwort, "nodeid") or _suche(antwort, "placed")}
+    return aus
+
+
 def paare_lesen(argv):
     if argv[:1] == ["--paare"]:
         if len(argv) < 2:
@@ -74,9 +118,20 @@ def paare_lesen(argv):
 
 
 def main():
-    paare = paare_lesen(sys.argv[1:])
+    argv = sys.argv[1:]
+    ziel = None
+    if "--bilder" in argv:
+        i = argv.index("--bilder")
+        if i + 1 >= len(argv):
+            raise SystemExit("--bilder braucht eine Ausgabedatei")
+        ziel, argv = Path(argv[i + 1]), argv[:i] + argv[i + 2:]
+    paare = paare_lesen(argv)
     ergebnisse = [hochladen(url, datei) for url, datei in paare]
     print(json.dumps(ergebnisse, ensure_ascii=False, indent=2))
+    if ziel:
+        h = hashes(ergebnisse)
+        ziel.write_text(json.dumps(h, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"{ziel}: {len(h)} von {len(ergebnisse)} Hashes", file=sys.stderr)
     fehler = [e for e in ergebnisse if not e["ok"]]
     if fehler:
         print(f"\n{len(fehler)} von {len(ergebnisse)} nicht hochgeladen.",

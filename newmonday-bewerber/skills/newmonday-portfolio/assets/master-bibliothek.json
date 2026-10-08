@@ -1,0 +1,1228 @@
+{
+ "_quelle": "Figma-Master „Portfolio - CV Master“, Seite „Components – Portfolio“ 4359:3574, gelesen am 8. Oktober 2026 per use_figma (componentPropertyDefinitions, exposedInstances, Bildebenen). Vorbild der Befüllung: Seite „Portfolio“ 4158:3775, Section „Test – Portfolio (Florian)“ 4387:9764. Property-Namen sind fest – der Skill sucht sie über den Namen vor dem #, der Schlüssel dahinter steht hier zur Kontrolle.",
+ "fileKey": "oezbaw261xDwxthPuX3ZpS",
+ "datei": "Portfolio - CV Master",
+ "seite": "4359:3574",
+ "vorflug": "Chrome",
+ "folie": {
+  "Cover": {
+   "name": "Portfolio/Folie/Cover",
+   "id": "4381:4018",
+   "key": "0bca8cce8f9e07849f756e44c15a3337dc6526eb",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Titel": {
+     "art": "TEXT",
+     "schluessel": "Titel#4381:0"
+    },
+    "Name": {
+     "art": "TEXT",
+     "schluessel": "Name#4381:1"
+    },
+    "Rolle": {
+     "art": "TEXT",
+     "schluessel": "Rolle#4381:2"
+    },
+    "Jahr": {
+     "art": "TEXT",
+     "schluessel": "Jahr#4381:3"
+    }
+   }
+  },
+  "Trenner": {
+   "name": "Portfolio/Folie/Trenner",
+   "id": "4380:4018",
+   "key": "0869afa916fe5c656c1f1e41eab37e1a814b0755",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Titel": {
+     "art": "TEXT",
+     "schluessel": "Titel#4380:0"
+    }
+   }
+  },
+  "Profil": {
+   "name": "Portfolio/Folie/Profil",
+   "id": "4381:9571",
+   "key": "2511621e53c645032f734a372142eac35c787f78",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Name": {
+     "art": "TEXT",
+     "schluessel": "Name#4381:67"
+    },
+    "Rolle": {
+     "art": "TEXT",
+     "schluessel": "Rolle#4381:68"
+    },
+    "Top-Kenntnisse anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Top-Kenntnisse anzeigen#4396:13",
+     "standard": true
+    },
+    "Arbeitserfahrung anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Arbeitserfahrung anzeigen#4396:14",
+     "standard": true
+    },
+    "Sprachen anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Sprachen anzeigen#4396:15",
+     "standard": true
+    },
+    "Connect anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Connect anzeigen#4396:16",
+     "standard": true
+    }
+   },
+   "exponiert": [
+    "Top-Kenntnisse <Kenntnis-Karte Inhalt=Fließtext>",
+    "Kenntnisse <Kenntnis-Karte Inhalt=Liste> mit Kenntnis 1–10 <Kenntnis-Zeile>",
+    "Arbeitserfahrung <Panel-Karte Art=Kennzahl>",
+    "Sprachen <Panel-Karte Art=Sprachen>",
+    "Connect <Panel-Karte Art=Link>"
+   ],
+   "bilder": [
+    "Foto 320×429 FILL"
+   ]
+  },
+  "Kundenwand": {
+   "name": "Portfolio/Folie/Kundenwand",
+   "id": "4381:9909",
+   "key": "4293859ae2a5845f08b4ae01b19551bcaa84a68a",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Titel": {
+     "art": "TEXT",
+     "schluessel": "Titel#4381:69"
+    },
+    "Logo 2": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 2#4381:70",
+     "standard": true
+    },
+    "Logo 3": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 3#4381:71",
+     "standard": true
+    },
+    "Logo 4": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 4#4381:72",
+     "standard": true
+    },
+    "Logo 5": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 5#4381:73",
+     "standard": true
+    },
+    "Logo 6": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 6#4381:74",
+     "standard": false
+    },
+    "Logo 7": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 7#4381:75",
+     "standard": false
+    },
+    "Logo 8": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 8#4381:76",
+     "standard": false
+    },
+    "Logo 9": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 9#4381:77",
+     "standard": false
+    },
+    "Logo 10": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 10#4381:78",
+     "standard": false
+    },
+    "Logo 11": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 11#4381:79",
+     "standard": false
+    },
+    "Logo 12": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 12#4381:80",
+     "standard": false
+    },
+    "Logo 13": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 13#4381:81",
+     "standard": false
+    },
+    "Logo 14": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 14#4381:82",
+     "standard": false
+    },
+    "Logo 15": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 15#4381:83",
+     "standard": false
+    },
+    "Logo 16": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 16#4381:84",
+     "standard": false
+    },
+    "Logo 17": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 17#4381:85",
+     "standard": false
+    },
+    "Logo 18": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 18#4381:86",
+     "standard": false
+    },
+    "Logo 19": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 19#4381:87",
+     "standard": false
+    },
+    "Logo 20": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 20#4381:88",
+     "standard": false
+    },
+    "Logo 21": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 21#4381:89",
+     "standard": false
+    },
+    "Logo 22": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 22#4381:90",
+     "standard": false
+    },
+    "Logo 23": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 23#4381:91",
+     "standard": false
+    },
+    "Logo 24": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 24#4381:92",
+     "standard": false
+    },
+    "Logo 25": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 25#4381:93",
+     "standard": false
+    },
+    "Logo 26": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 26#4381:94",
+     "standard": false
+    },
+    "Logo 27": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 27#4381:95",
+     "standard": false
+    },
+    "Logo 28": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 28#4381:96",
+     "standard": false
+    }
+   },
+   "exponiert": [
+    "Logo 1–28 <Logo-Slot> in Logowand (193/397, 1607×640, ohne Auto-Layout)"
+   ],
+   "bilder": [
+    "Logo-Slot/Logo FIT"
+   ]
+  },
+  "Statement": {
+   "name": "Portfolio/Folie/Statement",
+   "id": "4381:8600",
+   "key": "30ac89214749151408a7db98aed887bf591947d9",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Rolle": {
+     "art": "TEXT",
+     "schluessel": "Rolle#4381:43"
+    },
+    "Zitat": {
+     "art": "TEXT",
+     "schluessel": "Zitat#4381:44"
+    }
+   }
+  },
+  "Prozess-Übersicht": {
+   "name": "Portfolio/Folie/Prozess-Übersicht",
+   "id": "4381:9450",
+   "key": "aa337a6ae4986554ccd181d28e850d8830b0a257",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Dachzeile": {
+     "art": "TEXT",
+     "schluessel": "Dachzeile#4381:45"
+    }
+   },
+   "exponiert": [
+    "Prozess-Reihe <Prozess-Reihe> mit Spalte 1–4 <Prozess-Spalte>"
+   ]
+  },
+  "Prozess-Schritt": {
+   "name": "Portfolio/Folie/Prozess-Schritt",
+   "id": "4382:9461",
+   "key": "490fa109253ab794d690fff62b084a6dc81def5f",
+   "typ": "set",
+   "eigenschaften": {
+    "Dachzeile": {
+     "art": "TEXT",
+     "schluessel": "Dachzeile#4382:8"
+    },
+    "Titel": {
+     "art": "TEXT",
+     "schluessel": "Titel#4382:11"
+    },
+    "Untertitel": {
+     "art": "TEXT",
+     "schluessel": "Untertitel#4382:14"
+    },
+    "Text 1": {
+     "art": "TEXT",
+     "schluessel": "Text 1#4382:17"
+    },
+    "Text 2": {
+     "art": "TEXT",
+     "schluessel": "Text 2#4382:20"
+    },
+    "Text 3": {
+     "art": "TEXT",
+     "schluessel": "Text 3#4382:23"
+    },
+    "Untertitel anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Untertitel anzeigen#4382:26",
+     "standard": true
+    },
+    "Text 2 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Text 2 anzeigen#4382:29",
+     "standard": false
+    },
+    "Text 3 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Text 3 anzeigen#4382:32",
+     "standard": false
+    },
+    "Art": {
+     "art": "VARIANT",
+     "werte": [
+      "Werkzeuge",
+      "Schritt 1",
+      "Schritt 2",
+      "Schritt 3"
+     ]
+    }
+   },
+   "exponiert": [
+    "Fortschritt <Prozess-Fortschritt> (Art=Schritt 1–3)",
+    "Werkzeuge <Werkzeug-Reihe> mit Werkzeug 1–6 <Werkzeugkachel> (Art=Werkzeuge)"
+   ],
+   "bilder": [
+    "Bild 798×1080 FILL – festes Foto je Art, wird nicht übergeben"
+   ]
+  },
+  "Schwerpunkt": {
+   "name": "Portfolio/Folie/Schwerpunkt",
+   "id": "4381:4120",
+   "key": "da22f9a15799d2b6b27e70e0b0c0d408fd72a618",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Dachzeile": {
+     "art": "TEXT",
+     "schluessel": "Dachzeile#4381:31"
+    },
+    "Titel": {
+     "art": "TEXT",
+     "schluessel": "Titel#4381:32"
+    },
+    "Absatz 1": {
+     "art": "TEXT",
+     "schluessel": "Absatz 1#4381:33"
+    },
+    "Absatz 2": {
+     "art": "TEXT",
+     "schluessel": "Absatz 2#4381:34"
+    },
+    "Absatz 3": {
+     "art": "TEXT",
+     "schluessel": "Absatz 3#4381:35"
+    },
+    "Absatz 4": {
+     "art": "TEXT",
+     "schluessel": "Absatz 4#4381:36"
+    },
+    "Absatz 2 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Absatz 2 anzeigen#4381:37",
+     "standard": true
+    },
+    "Absatz 3 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Absatz 3 anzeigen#4381:38",
+     "standard": false
+    },
+    "Absatz 4 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Absatz 4 anzeigen#4381:39",
+     "standard": false
+    },
+    "Karte 2 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Karte 2 anzeigen#4381:40",
+     "standard": true
+    },
+    "Karte 3 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Karte 3 anzeigen#4381:41",
+     "standard": true
+    },
+    "Karte 4 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Karte 4 anzeigen#4381:42",
+     "standard": false
+    }
+   },
+   "exponiert": [
+    "Karte 1–4 <Panel-Karte Art=Text, Titelgröße=klein>"
+   ]
+  },
+  "Agentur": {
+   "name": "Portfolio/Folie/Agentur",
+   "id": "4383:11493",
+   "key": "5b03c397bb1a74a8965f50c9b5d986e3be07214a",
+   "typ": "set",
+   "eigenschaften": {
+    "Sprache": {
+     "art": "VARIANT",
+     "werte": [
+      "Deutsch",
+      "Englisch"
+     ]
+    }
+   },
+   "bilder": [
+    "Kundenwand, Badge – fest"
+   ]
+  },
+  "Projekt-Kopf": {
+   "name": "Portfolio/Folie/Projekt-Kopf",
+   "id": "4382:4146",
+   "key": "d03f8d812cc62ed00a5454951f454c37df05877f",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Titel": {
+     "art": "TEXT",
+     "schluessel": "Titel#4382:0"
+    },
+    "Label Projekt": {
+     "art": "TEXT",
+     "schluessel": "Label Projekt#4382:1"
+    },
+    "Projekttext": {
+     "art": "TEXT",
+     "schluessel": "Projekttext#4382:2"
+    },
+    "Label Rolle": {
+     "art": "TEXT",
+     "schluessel": "Label Rolle#4382:3"
+    },
+    "Meine Rolle anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Meine Rolle anzeigen#4382:4",
+     "standard": true
+    },
+    "Label Kunde": {
+     "art": "TEXT",
+     "schluessel": "Label Kunde#4382:5"
+    },
+    "Kundentext": {
+     "art": "TEXT",
+     "schluessel": "Kundentext#4382:6"
+    },
+    "Kunde anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Kunde anzeigen#4382:7",
+     "standard": true
+    }
+   },
+   "exponiert": [
+    "Kundenlogo <Kundenlogos> mit Logo 1–3 <Logo-Slot>",
+    "Rollen <Aufzählung Größe=24> mit Punkt 1–6"
+   ]
+  },
+  "Projekt-Summary": {
+   "name": "Portfolio/Folie/Projekt-Summary",
+   "id": "4382:9904",
+   "key": "f5d8945b07567dd1ba1e2b64c5d6c9b105d60483",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Titel": {
+     "art": "TEXT",
+     "schluessel": "Titel#4382:35"
+    },
+    "Absatz 1": {
+     "art": "TEXT",
+     "schluessel": "Absatz 1#4382:36"
+    },
+    "Absatz 2": {
+     "art": "TEXT",
+     "schluessel": "Absatz 2#4396:4"
+    },
+    "Absatz 2 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Absatz 2 anzeigen#4396:5",
+     "standard": true
+    },
+    "Absatz 3": {
+     "art": "TEXT",
+     "schluessel": "Absatz 3#4396:6"
+    },
+    "Absatz 3 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Absatz 3 anzeigen#4396:7",
+     "standard": false
+    },
+    "Absatz 4": {
+     "art": "TEXT",
+     "schluessel": "Absatz 4#4396:8"
+    },
+    "Absatz 4 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Absatz 4 anzeigen#4396:9",
+     "standard": false
+    },
+    "Bild anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Bild anzeigen#4402:0",
+     "standard": true
+    }
+   },
+   "exponiert": [
+    "Kundenlogo <Kundenlogos>"
+   ],
+   "bilder": [
+    "Bild 988×1080 FILL"
+   ]
+  },
+  "Lösung": {
+   "name": "Portfolio/Folie/Lösung",
+   "id": "4383:10799",
+   "key": "89b91868f897860fef3e95ea86ee8245cca2e66a",
+   "typ": "set",
+   "eigenschaften": {
+    "Einleitung": {
+     "art": "TEXT",
+     "schluessel": "Einleitung#4383:2"
+    },
+    "Text": {
+     "art": "TEXT",
+     "schluessel": "Text#4383:5"
+    },
+    "Text anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Text anzeigen#4383:8",
+     "standard": true
+    },
+    "Aufzählung anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Aufzählung anzeigen#4383:11",
+     "standard": true
+    },
+    "NDA-Hinweis anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "NDA-Hinweis anzeigen#4383:14",
+     "standard": false
+    },
+    "Bild anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Bild anzeigen#4396:10",
+     "standard": true
+    },
+    "Fläche": {
+     "art": "VARIANT",
+     "werte": [
+      "Standard",
+      "breit"
+     ]
+    }
+   },
+   "exponiert": [
+    "Kundenlogo <Kundenlogos>",
+    "Aufzählung <Aufzählung Größe=20> mit Punkt 1–6",
+    "NDA-Hinweis <NDA-Hinweis>"
+   ],
+   "bilder": [
+    "Bild 988×1080 FILL"
+   ]
+  },
+  "Vollbild": {
+   "name": "Portfolio/Folie/Vollbild",
+   "id": "4383:4266",
+   "key": "013754a8f1ee96283527f5b2449fc0745a07fcad",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Bild anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Bild anzeigen#4383:0",
+     "standard": true
+    },
+    "NDA-Hinweis anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "NDA-Hinweis anzeigen#4383:1",
+     "standard": false
+    }
+   },
+   "exponiert": [
+    "NDA-Hinweis <NDA-Hinweis>"
+   ],
+   "bilder": [
+    "Bild 1920×1080 FILL"
+   ]
+  },
+  "Kontakt": {
+   "name": "Portfolio/Folie/Kontakt",
+   "id": "4383:12116",
+   "key": "5ce6e8f5e14dca2e80c7c38cec9d0aa8becb425a",
+   "typ": "set",
+   "eigenschaften": {
+    "Sprache": {
+     "art": "VARIANT",
+     "werte": [
+      "Deutsch",
+      "Englisch"
+     ]
+    }
+   },
+   "bilder": [
+    "Ansprechpartner-Foto – fest"
+   ]
+  }
+ },
+ "baustein": {
+  "Seitenzahl": {
+   "name": "Portfolio/Baustein/Seitenzahl",
+   "id": "4369:6395",
+   "key": "6c8db03a8678b176add14dddaaab58acb821d3eb",
+   "typ": "set",
+   "eigenschaften": {
+    "Nummer": {
+     "art": "TEXT",
+     "schluessel": "Nummer#4369:7"
+    },
+    "Farbe": {
+     "art": "VARIANT",
+     "werte": [
+      "dunkel",
+      "hell"
+     ]
+    }
+   }
+  },
+  "Chrome": {
+   "name": "Portfolio/Baustein/Chrome",
+   "id": "4369:6910",
+   "key": "30f28899ecc4b56ee2323668155ea07a3e6684a1",
+   "typ": "set",
+   "eigenschaften": {
+    "Logo": {
+     "art": "VARIANT",
+     "werte": [
+      "aus",
+      "farbig",
+      "hell"
+     ]
+    },
+    "Seitenzahl": {
+     "art": "VARIANT",
+     "werte": [
+      "dunkel",
+      "hell",
+      "aus"
+     ]
+    }
+   },
+   "exponiert": [
+    "Seitenzahl <Seitenzahl>"
+   ]
+  },
+  "Panel-Karte": {
+   "name": "Portfolio/Baustein/Panel-Karte",
+   "id": "4369:7039",
+   "key": "1c07975aaa7c9337130d97eb0005dfff26289534",
+   "typ": "set",
+   "eigenschaften": {
+    "Titel": {
+     "art": "TEXT",
+     "schluessel": "Titel#4369:172"
+    },
+    "Text": {
+     "art": "TEXT",
+     "schluessel": "Text#4369:181"
+    },
+    "Zahl": {
+     "art": "TEXT",
+     "schluessel": "Zahl#4369:190"
+    },
+    "Fußtext": {
+     "art": "TEXT",
+     "schluessel": "Fußtext#4369:199"
+    },
+    "Fußtext anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Fußtext anzeigen#4369:208",
+     "standard": true
+    },
+    "Sprache 1": {
+     "art": "TEXT",
+     "schluessel": "Sprache 1#4369:217"
+    },
+    "Niveau 1": {
+     "art": "TEXT",
+     "schluessel": "Niveau 1#4369:226"
+    },
+    "Sprache 2": {
+     "art": "TEXT",
+     "schluessel": "Sprache 2#4369:235"
+    },
+    "Niveau 2": {
+     "art": "TEXT",
+     "schluessel": "Niveau 2#4369:244"
+    },
+    "Sprache 3": {
+     "art": "TEXT",
+     "schluessel": "Sprache 3#4369:253"
+    },
+    "Niveau 3": {
+     "art": "TEXT",
+     "schluessel": "Niveau 3#4369:262"
+    },
+    "Sprache 4": {
+     "art": "TEXT",
+     "schluessel": "Sprache 4#4396:17"
+    },
+    "Niveau 4": {
+     "art": "TEXT",
+     "schluessel": "Niveau 4#4396:26"
+    },
+    "Sprache 2 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Sprache 2 anzeigen#4369:271",
+     "standard": true
+    },
+    "Sprache 3 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Sprache 3 anzeigen#4369:280",
+     "standard": false
+    },
+    "Sprache 4 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Sprache 4 anzeigen#4396:35",
+     "standard": false
+    },
+    "Link 1": {
+     "art": "TEXT",
+     "schluessel": "Link 1#4369:289"
+    },
+    "Link 2": {
+     "art": "TEXT",
+     "schluessel": "Link 2#4369:298"
+    },
+    "Link 3": {
+     "art": "TEXT",
+     "schluessel": "Link 3#4369:307"
+    },
+    "Link 4": {
+     "art": "TEXT",
+     "schluessel": "Link 4#4396:44"
+    },
+    "Link 2 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Link 2 anzeigen#4369:316",
+     "standard": false
+    },
+    "Link 3 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Link 3 anzeigen#4369:325",
+     "standard": false
+    },
+    "Link 4 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Link 4 anzeigen#4396:53",
+     "standard": false
+    },
+    "Art": {
+     "art": "VARIANT",
+     "werte": [
+      "Text",
+      "Kennzahl",
+      "Sprachen",
+      "Link"
+     ]
+    },
+    "Titelgröße": {
+     "art": "VARIANT",
+     "werte": [
+      "klein",
+      "groß"
+     ]
+    }
+   }
+  },
+  "Kenntnis-Zeile": {
+   "name": "Portfolio/Baustein/Kenntnis-Zeile",
+   "id": "4369:7059",
+   "key": "8bbe2dff36f48dbc9029b64acf5a8eaddd0f9d7c",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Trennlinie anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Trennlinie anzeigen#4369:334",
+     "standard": true
+    },
+    "Kenntnis": {
+     "art": "TEXT",
+     "schluessel": "Kenntnis#4369:335"
+    }
+   }
+  },
+  "Kenntnis-Karte": {
+   "name": "Portfolio/Baustein/Kenntnis-Karte",
+   "id": "4369:7098",
+   "key": "937596fc7add2664ba640bc80692c024c581f15f",
+   "typ": "set",
+   "eigenschaften": {
+    "Titel": {
+     "art": "TEXT",
+     "schluessel": "Titel#4369:336"
+    },
+    "Text": {
+     "art": "TEXT",
+     "schluessel": "Text#4369:339"
+    },
+    "Kenntnis 2": {
+     "art": "BOOLEAN",
+     "schluessel": "Kenntnis 2#4369:342",
+     "standard": true
+    },
+    "Kenntnis 3": {
+     "art": "BOOLEAN",
+     "schluessel": "Kenntnis 3#4369:345",
+     "standard": true
+    },
+    "Kenntnis 4": {
+     "art": "BOOLEAN",
+     "schluessel": "Kenntnis 4#4369:348",
+     "standard": true
+    },
+    "Kenntnis 5": {
+     "art": "BOOLEAN",
+     "schluessel": "Kenntnis 5#4369:351",
+     "standard": true
+    },
+    "Kenntnis 6": {
+     "art": "BOOLEAN",
+     "schluessel": "Kenntnis 6#4369:354",
+     "standard": true
+    },
+    "Kenntnis 7": {
+     "art": "BOOLEAN",
+     "schluessel": "Kenntnis 7#4369:357",
+     "standard": true
+    },
+    "Kenntnis 8": {
+     "art": "BOOLEAN",
+     "schluessel": "Kenntnis 8#4369:360",
+     "standard": true
+    },
+    "Kenntnis 9": {
+     "art": "BOOLEAN",
+     "schluessel": "Kenntnis 9#4369:363",
+     "standard": false
+    },
+    "Kenntnis 10": {
+     "art": "BOOLEAN",
+     "schluessel": "Kenntnis 10#4369:366",
+     "standard": false
+    },
+    "Inhalt": {
+     "art": "VARIANT",
+     "werte": [
+      "Fließtext",
+      "Liste"
+     ]
+    }
+   },
+   "exponiert": [
+    "Kenntnis 1–10 <Kenntnis-Zeile> (Inhalt=Liste)"
+   ]
+  },
+  "Aufzählungspunkt": {
+   "name": "Portfolio/Baustein/Aufzählungspunkt",
+   "id": "4370:3774",
+   "key": "aec6bf2fef9c6504c6f09f611b3ba42aa0e70afe",
+   "typ": "set",
+   "eigenschaften": {
+    "Text": {
+     "art": "TEXT",
+     "schluessel": "Text#4370:0"
+    },
+    "Größe": {
+     "art": "VARIANT",
+     "werte": [
+      "24",
+      "20"
+     ]
+    }
+   }
+  },
+  "Aufzählung": {
+   "name": "Portfolio/Baustein/Aufzählung",
+   "id": "4370:4105",
+   "key": "a1bf104c231df6bfdb8e4cf0b733f10c74e551b0",
+   "typ": "set",
+   "eigenschaften": {
+    "Punkt 2": {
+     "art": "BOOLEAN",
+     "schluessel": "Punkt 2#4370:3",
+     "standard": true
+    },
+    "Punkt 3": {
+     "art": "BOOLEAN",
+     "schluessel": "Punkt 3#4370:6",
+     "standard": true
+    },
+    "Punkt 4": {
+     "art": "BOOLEAN",
+     "schluessel": "Punkt 4#4370:9",
+     "standard": true
+    },
+    "Punkt 5": {
+     "art": "BOOLEAN",
+     "schluessel": "Punkt 5#4370:12",
+     "standard": false
+    },
+    "Punkt 6": {
+     "art": "BOOLEAN",
+     "schluessel": "Punkt 6#4370:15",
+     "standard": false
+    },
+    "Größe": {
+     "art": "VARIANT",
+     "werte": [
+      "24",
+      "20"
+     ]
+    }
+   },
+   "exponiert": [
+    "Punkt 1–6 <Aufzählungspunkt>"
+   ]
+  },
+  "Prozess-Spalte": {
+   "name": "Portfolio/Baustein/Prozess-Spalte",
+   "id": "4370:7522",
+   "key": "23eec69fc443c491f4459957a8be9169391fc112",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Titel": {
+     "art": "TEXT",
+     "schluessel": "Titel#4370:18"
+    },
+    "Text": {
+     "art": "TEXT",
+     "schluessel": "Text#4370:19"
+    }
+   }
+  },
+  "Prozess-Reihe": {
+   "name": "Portfolio/Baustein/Prozess-Reihe",
+   "id": "4370:7527",
+   "key": "51a63cb950b09551180a3f884bacc8e89877045b",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Spalte 4": {
+     "art": "BOOLEAN",
+     "schluessel": "Spalte 4#4370:20",
+     "standard": false
+    }
+   },
+   "exponiert": [
+    "Spalte 1–4 <Prozess-Spalte>"
+   ]
+  },
+  "Prozess-Fortschritt": {
+   "name": "Portfolio/Baustein/Prozess-Fortschritt",
+   "id": "4370:7692",
+   "key": "0d91f50acf8b8dc3998bbb3b3a295e517f3801b2",
+   "typ": "set",
+   "eigenschaften": {
+    "Label 1": {
+     "art": "TEXT",
+     "schluessel": "Label 1#4370:21"
+    },
+    "Label 2": {
+     "art": "TEXT",
+     "schluessel": "Label 2#4370:25"
+    },
+    "Label 3": {
+     "art": "TEXT",
+     "schluessel": "Label 3#4370:29"
+    },
+    "Schritt": {
+     "art": "VARIANT",
+     "werte": [
+      "1",
+      "2",
+      "3"
+     ]
+    }
+   }
+  },
+  "Werkzeugkachel": {
+   "name": "Portfolio/Baustein/Werkzeugkachel",
+   "id": "4370:7783",
+   "key": "be6eb89f61562ca60a70119146ab1a53ef54eee7",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Logo anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo anzeigen#4396:1",
+     "standard": true
+    }
+   },
+   "bilder": [
+    "Logo 52×52 FIT"
+   ]
+  },
+  "Werkzeug-Reihe": {
+   "name": "Portfolio/Baustein/Werkzeug-Reihe",
+   "id": "4370:7785",
+   "key": "3ec76783202a02011210720eb2f995cc38f84dc3",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Werkzeug 2": {
+     "art": "BOOLEAN",
+     "schluessel": "Werkzeug 2#4370:38",
+     "standard": true
+    },
+    "Werkzeug 3": {
+     "art": "BOOLEAN",
+     "schluessel": "Werkzeug 3#4370:39",
+     "standard": true
+    },
+    "Werkzeug 4": {
+     "art": "BOOLEAN",
+     "schluessel": "Werkzeug 4#4370:40",
+     "standard": false
+    },
+    "Werkzeug 5": {
+     "art": "BOOLEAN",
+     "schluessel": "Werkzeug 5#4370:41",
+     "standard": false
+    },
+    "Werkzeug 6": {
+     "art": "BOOLEAN",
+     "schluessel": "Werkzeug 6#4370:42",
+     "standard": false
+    }
+   },
+   "exponiert": [
+    "Werkzeug 1–6 <Werkzeugkachel>"
+   ]
+  },
+  "Kontakt-Box": {
+   "name": "Portfolio/Baustein/Kontakt-Box",
+   "id": "4371:3799",
+   "key": "5626280e491b490bc542e9421b439185f68777d7",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Titel": {
+     "art": "TEXT",
+     "schluessel": "Titel#4371:0"
+    },
+    "Label E-Mail": {
+     "art": "TEXT",
+     "schluessel": "Label E-Mail#4371:1"
+    },
+    "E-Mail": {
+     "art": "TEXT",
+     "schluessel": "E-Mail#4371:2"
+    },
+    "Label Telefon": {
+     "art": "TEXT",
+     "schluessel": "Label Telefon#4371:3"
+    },
+    "Telefon": {
+     "art": "TEXT",
+     "schluessel": "Telefon#4371:4"
+    }
+   }
+  },
+  "Logo-Slot": {
+   "name": "Portfolio/Baustein/Logo-Slot",
+   "id": "4371:3808",
+   "key": "3438a675d9de16ba3c8ed51e3135c5a2abf5f919",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Logo anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo anzeigen#4396:0",
+     "standard": true
+    }
+   },
+   "bilder": [
+    "Logo 240×80 FIT"
+   ]
+  },
+  "Streifen": {
+   "name": "Portfolio/Baustein/Streifen",
+   "id": "4373:3893",
+   "key": "f88192addb5fa3bb272df1e692d894df778e6cb2",
+   "typ": "set",
+   "eigenschaften": {
+    "Farbe": {
+     "art": "VARIANT",
+     "werte": [
+      "Nebelblau",
+      "Petrol"
+     ]
+    }
+   }
+  },
+  "Kundenlogos": {
+   "name": "Portfolio/Baustein/Kundenlogos",
+   "id": "4396:11505",
+   "key": "9d0efc702ada45eef8d8b27a301046ff4e3ac088",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Logo 2 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 2 anzeigen#4396:2",
+     "standard": false
+    },
+    "Logo 3 anzeigen": {
+     "art": "BOOLEAN",
+     "schluessel": "Logo 3 anzeigen#4396:3",
+     "standard": false
+    }
+   },
+   "exponiert": [
+    "Logo 1–3 <Logo-Slot>"
+   ]
+  },
+  "Ansprechpartner": {
+   "name": "Portfolio/Baustein/Ansprechpartner",
+   "id": "1:23",
+   "key": "ccee41e5dd70ebca4896a1253477d6048981c001",
+   "typ": "komponente",
+   "eigenschaften": {
+    "Name": {
+     "art": "TEXT",
+     "schluessel": "Name#2036:0"
+    },
+    "Rolle": {
+     "art": "TEXT",
+     "schluessel": "Rolle#2036:1"
+    }
+   },
+   "exponiert": [
+    "Foto <Porträt>"
+   ]
+  },
+  "Porträt": {
+   "name": "Portfolio/Baustein/Porträt",
+   "id": "1:4",
+   "key": "ec5fec08cd4ed153cc09a2ffc0249e031c42081c",
+   "typ": "set",
+   "eigenschaften": {
+    "Person": {
+     "art": "VARIANT",
+     "werte": [
+      "Marco",
+      "Caro",
+      "Sebastian",
+      "Nina",
+      "Robert",
+      "Lea",
+      "Claudia",
+      "Hendrik",
+      "Dario",
+      "Manuel",
+      "Platzhalter"
+     ]
+    }
+   },
+   "bilder": [
+    "Foto 320×320 FILL"
+   ]
+  },
+  "NDA-Hinweis": {
+   "name": "Portfolio/Baustein/NDA-Hinweis",
+   "id": "4380:4024",
+   "key": "cf1ec0fa6ed87b5a771f34651af14f968d409cce",
+   "typ": "set",
+   "eigenschaften": {
+    "Text": {
+     "art": "TEXT",
+     "schluessel": "Text#4380:1"
+    },
+    "Farbe": {
+     "art": "VARIANT",
+     "werte": [
+      "dunkel",
+      "hell"
+     ]
+    }
+   }
+  }
+ },
+ "aufbau": "Je Folie ein Frame 1920 × 1080: unten die Folien-Instanz, darüber der Rahmen „Freie Bilder“ (Screens, Collagen des Kandidaten), oben die Chrome-Instanz mit Wortmarke und Seitenzahl.",
+ "chrome_fest": {
+  "_warum": "Die Prozess-Schritt-Folien tragen feste Fotos im Master. Wortmarke und Seitenzahl richten sich nach diesen Fotos, nicht nach den Fotos des Skills - Werte aus der Testbefüllung 4387:9764 (Folien 07–10).",
+  "Prozess-Schritt": {
+   "Schritt 1": {
+    "Logo": "farbig",
+    "Seitenzahl": "hell"
+   },
+   "Schritt 2": {
+    "Logo": "hell",
+    "Seitenzahl": "hell"
+   },
+   "Schritt 3": {
+    "Logo": "hell",
+    "Seitenzahl": "hell"
+   },
+   "Werkzeuge": {
+    "Logo": "farbig",
+    "Seitenzahl": "hell"
+   }
+  }
+ },
+ "grenzen": {
+  "kundenwand_logos": 28,
+  "kenntnisse": 10,
+  "sprachen": 4,
+  "links": 4,
+  "prozess_spalten": 4,
+  "schritt_texte": 3,
+  "schwerpunkt_absaetze": 4,
+  "schwerpunkt_karten": 4,
+  "summary_absaetze": 4,
+  "aufzaehlung_punkte": 6,
+  "werkzeuge": 6,
+  "kundenlogos": 3
+ }
+}

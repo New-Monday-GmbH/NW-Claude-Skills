@@ -16,6 +16,7 @@ PY_PAKETE = [
     ("jinja2", "Fuellt das Template. Zwingend."),
     ("pypdf", "Zaehlt Seiten fuer die Umbruchpruefung. Zwingend."),
     ("PIL", "Bearbeitet Fotos und Logos. Zwingend."),
+    ("fitz", "PyMuPDF: SVG-Logos als PNG fuer Figma (Bibliotheksweg). Ohne es bleibt dort das Vorgabebild."),
 ]
 WERKZEUGE = [
     ("pdftotext", "Liest den Eingangs-Lebenslauf.", True),
@@ -62,7 +63,7 @@ def main():
         da = importlib.util.find_spec(name) is not None
         print(f"  {'ok ' if da else 'FEHLT'}  {name:12} {zweck}")
         if not da:
-            (fehlt_weich if name == "weasyprint" else fehlt_hart).append(name)
+            (fehlt_weich if name in ("weasyprint", "fitz") else fehlt_hart).append(name)
 
     print("\nKommandozeilenwerkzeuge")
     for name, zweck, noetig in WERKZEUGE:

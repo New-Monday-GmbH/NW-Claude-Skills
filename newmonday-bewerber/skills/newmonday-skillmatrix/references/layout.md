@@ -3,8 +3,9 @@
 Die Skillmatrix entsteht in **zwei Fassungen, immer beide**, aus derselben
 `skillmatrix.json`: der langen (eine Seite, 1444 breit) und der A4-Fassung
 (595 × 842, mehrseitig). Die lange folgt dem New-Monday-Design-System der
-Figma-Masterdatei `Portfolio - CV Master`, Seite **Skillmatrix** (Frame
-`4158:4223`); die A4-Fassung ist im Abschnitt „Die A4-Fassung“ unten hergeleitet.
+Figma-Masterdatei `Portfolio - CV Master` – heute die Komponenten
+`Skillmatrix lang/…` auf „Components - Skillmatrix“ (`0:1`), befüllt zu sehen
+in `4328:2839` auf der Seite **Skillmatrix**; die A4-Fassung ist im Abschnitt „Die A4-Fassung“ unten hergeleitet.
 Alle Werte stehen **einmal**, in `assets/tokens.json`, unter den Namen der
 Figma-Library – die der A4-Fassung im Block `a4`, der Farben, Abstände und
 Schriften von oben mitbenutzt (`design_system.fassung(ds, "a4")`). Von dort
@@ -13,8 +14,8 @@ lesen:
 | Abnehmer | wie |
 |---|---|
 | PDF | `design_system.css()` erzeugt `@font-face`, `:root`-Variablen je Komponente (`--skillkarte-padding` …) und die Textklassen `.t-<verwendung>`; `skillmatrix.css` trägt nur Struktur und `var(--…)`. Für A4 dasselbe aus dem Block `a4` vor `skillmatrix-a4.css` |
-| Figma, Weg B | `figma_plan.py` baut den Knotenbaum aus denselben Einträgen, für A4 je Seite einen (`figma_plan_a4.json`) |
-| Figma, Weg A | braucht die Datei nicht — der Klon hängt an den Komponenten und der Library |
+| Figma, Bibliothek | braucht die Datei nicht — die Instanzen hängen an der Master-Bibliothek (`master-bibliothek.json`); nur der Rumpf-Rahmen der Variante „Zertifikate am Ende“ liest `rumpf` |
+| Figma, roh (Rückfall) | `figma_plan.py` baut den Knotenbaum aus denselben Einträgen, für A4 je Seite einen (`figma_plan_a4.json`) |
 | Zertifikate | `zertifikate.py` rechnet aus `zertifikate`, `zertkachel`, `zertbild`, `zertbuehne`, `qualikarte`, `qualitags` und `qualitag` die Sektion vor – Karte, Bündelung, Bildgrößen, Zeilengrenzen, Höhe – für PDF und Plan gleich |
 | Zuschnitt | `extract_input.py`, `zert_bilder.py`, `kopf_ausschnitt.py` und die Foto-Skripte nehmen Foto- und Kachelformat sowie die Kopflage (`kopf-oben-anteil`, `kinn-anteil`, `kopf-luft-anteil`) aus `komponenten.fotokarte` und `a4.komponenten.fotokarte` – je Fotokarte ein Zuschnitt |
 
@@ -252,14 +253,13 @@ hätte das Skript oben 13 px Hintergrund ergänzt.
 
 ## Bekannte Abweichungen von der Figma-Vorlage
 
-Die Vorlage hat drei Unstimmigkeiten (Details in `figma-vorlage.md`) und ist
-bei den Punkten älter als der Skill. Das PDF folgt dort dem System, nicht dem
+Die frühere Vorlage (Frame `4158:4223`, inzwischen durch die Komponenten
+ersetzt) hatte drei Unstimmigkeiten und war bei den Punkten älter als der Skill. Das PDF folgt dort dem System, nicht dem
 Fehler:
 
 - Die Kategorielinie endet 10 vor der rechten Kante statt 61 darüber hinaus.
-- Leere Punkte sind Ringe (2026-10-06). Die Komponente `Dots` im Master füllt
-  sie noch flächig (`neutral/10`, Stand 2026-09-28) – Weg A übernimmt das, bis
-  die Komponente nachgezogen ist.
+- Leere Punkte sind Ringe (2026-10-06); die Komponenten `Bewertung` im Master
+  zeigen sie inzwischen ebenso.
 - Das Tools-Raster hat 24 Abstand und 380 breite Karten wie die Kernkompetenzen;
   die Vorlage zeigt dort das Master-Raster mit 16 und 385.
 - Die Zertifikatssektion hat einen anderen Aufbau (Feedback 2026-10-03): Die
@@ -290,7 +290,7 @@ Vorlagentexten sieht man keinen Unterschied, sie greifen erst bei langen Texten:
 ## Abgleich mit Figma — wenn sich das Design System ändert
 
 1. Die verwendeten Variablen und Styles aus der Masterdatei lesen:
-   `get_variable_defs` auf `4158:4223` liefert Farben, Abstände, Radien, Schatten
+   `get_variable_defs` auf die Testbefüllung `4328:2839` liefert Farben, Abstände, Radien, Schatten
    und Textstile mit Namen. Maße, Konturen und Rohwerte je Element liefert ein
    lesender `use_figma`-Aufruf über den Frame (Layout, Padding, Abstand,
    Füllungen samt gebundener Variable, Konturen je Seite, Radius, Effekte,
@@ -311,8 +311,9 @@ Vorlagentexten sieht man keinen Unterschied, sie greifen erst bei langen Texten:
    gelegt.
 6. Ändert sich nicht nur ein Wert, sondern der Aufbau (neues Element, andere
    Verschachtelung), ziehen `template.html`, `skillmatrix.css` und
-   `figma_plan.py` gemeinsam nach — und `references/figma-vorlage.md`, falls sich
-   Knoten-IDs oder Layer der Vorlage geändert haben.
+   `figma_plan.py` gemeinsam nach — und `assets/master-bibliothek.json`
+   (Rezept in `references/figma.md`), falls sich Komponenten, Keys oder
+   Property-Namen im Master geändert haben.
 
 ## Renderweg
 

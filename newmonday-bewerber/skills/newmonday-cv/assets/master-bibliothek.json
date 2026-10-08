@@ -1,0 +1,161 @@
+{
+  "_zweck": "Die Komponenten des Figma-Masters, aus denen figma_plan.py die Figma-Fassung des Lebenslaufs baut - nur die, die der CV braucht. Keys sind stabil; Property-Namen samt #-Suffix sind nach der Veroeffentlichung festgeschrieben und werden im Master nicht mehr umbenannt. Der Bau setzt Properties ueber den Namen vor dem # (der Suffix ist Absicherung, kein Muss). Neu auslesen: references/figma-abgleich.md, Abschnitt Bibliothek.",
+  "quelle": {
+    "figma_datei": "oezbaw261xDwxthPuX3ZpS",
+    "figma_name": "Portfolio - CV Master",
+    "seiten": {"komponenten_cv": "4359:3573", "komponenten_a4": "4359:3572", "vorlagen_und_tests": "4158:3773"},
+    "testbefuellung": {"vollstaendig": "4382:9462", "anonym": "4383:10922"},
+    "stand": "2026-10-08"
+  },
+
+  "verdichtung": {
+    "_zweck": "Lokale Variablen-Collection im Master, mitveroeffentlicht. An die Abstaende gebunden (CV/Abstand, itemSpacing in Bildung, Skillset, Skillset-Gruppe, Zertifikate). Der Bau setzt nur den Modus je Seiteninstanz: Seite 1 die Stufe deckblatt, ab Seite 2 die Stufe stationen. Die Werte entsprechen tokens.json -> verdichtung.",
+    "collection": "CV – Verdichtung",
+    "key": "c95d86434e878ae575293173a4e43bf81e4a1c55",
+    "modi": ["normal", "kompakt", "eng"],
+    "variablen": ["deckblatt/rubrik_inhalt", "deckblatt/vor_linie", "deckblatt/nach_linie", "deckblatt/gruppe_liste", "deckblatt/gruppen", "deckblatt/bildung_reihen", "deckblatt/zert_abstand", "stationen/station", "stationen/kopf_aufgaben", "stationen/projekt", "stationen/profil_rubrik", "stationen/profil_linie", "stationen/profil_stationen"],
+    "anker": "CV/Abstand{Abstand=station} - deren Hoehe ist an stationen/station gebunden; ueber diese Bindung findet der Bau die Collection in der Zieldatei."
+  },
+
+  "komponenten": {
+    "seite": {
+      "name": "CV/Seite", "typ": "COMPONENT", "key": "3c115bce390c3b49eeeede16984b06c908ff1e8c",
+      "masse": [595, 842],
+      "properties": {"Inhalt": "Inhalt#4398:0", "Kopfzeile anzeigen": "Kopfzeile anzeigen#4398:3", "Fuß anzeigen": "Fuß anzeigen#4398:4"},
+      "slot": "Inhalt",
+      "exponiert": {"Kopfzeile": "kopfzeile", "Fuß": "fuss"},
+      "_hinweis": "Inhalt ist ein SLOT (vertikal, Abstand 0, fuellt die Hoehe). Alles, was auf der Seite steht, kommt als Instanz hinein, Abstaende als CV/Abstand dazwischen. Kopfzeile nur auf Seite 1, Fuss nur auf der letzten Seite - er sitzt von selbst unten."
+    },
+    "abstand": {
+      "name": "CV/Abstand", "typ": "COMPONENT_SET", "key": "64da4fbfac811faffb5dbfb8e21bbb90d490d9a7",
+      "varianten": {
+        "intro_inhalt": "8dfd9f998706b8fc32f8272d18eb2f8c8eda1f0d",
+        "rubrik_inhalt": "b9fc1d0b26366ded3bb1afddca8febcc1396eae9",
+        "zert_abstand": "0145c61116a2017b72629f704cbf8496fddce19e",
+        "vor_linie": "de54de5698ee6f31f5d62f8be4e5fe200e4e6e58",
+        "nach_linie": "eb9f0f089aab2343db36700a2b732fb618de1312",
+        "profil_rubrik": "fc195f18e3d5c7733187c03527f4e6140613ee30",
+        "profil_linie": "9d7189364679cc6bcefed447d730b46e998a9880",
+        "profil_stationen": "32e8965ec33c073a822f5010bb5f61614ed3494f",
+        "station": "8fb8e62ae0b61274b69c5f38f7039f24ad656bd8",
+        "kopf_aufgaben": "c3defffb5574757b84c6d0443ab0cc3b49a536a8",
+        "projekt": "b182ff92a982b55845a42d37ec2db59c3c2734cc",
+        "projekt_text": "5ca716531ace93d1169baf96ff1b070173956858",
+        "kopf_intro": "966a00da913ecc82601f2a47c80b2671b4a3fa88",
+        "zert_reihen": "e0cdc849a8ae5e1253b71a0db432ca03a2cefa11"
+      },
+      "properties": {"Abstand": "Abstand"},
+      "_hinweis": "Variante = Token-Name. Gebunden an CV – Verdichtung sind die Stufen-Abstaende; kopf_intro (35,5), intro_inhalt (32) und projekt_text (8) stehen fest."
+    },
+    "profilkopf": {
+      "name": "CV/Profilkopf", "typ": "COMPONENT_SET", "key": "41bae71e906d90fb9b4b0386ac0160cda33a6517",
+      "varianten": {"vollständig": "b6215e1387f39faa7eea82799dd39ef83bdf28e4", "anonym": "f6802b3eb56da16dcb859427544e5ca27e38e2bb"},
+      "properties": {
+        "Fassung": "Fassung", "Name": "Name#4381:46", "Rolle": "Rolle#4381:49", "Rolle anzeigen": "Rolle anzeigen#4392:8",
+        "Erfahrung": "Erfahrung#4381:52", "Erfahrung anzeigen": "Erfahrung anzeigen#4381:55",
+        "Foto anzeigen": "Foto anzeigen#4392:11", "Verweise anzeigen": "Verweise anzeigen#4381:58",
+        "Verweis 2": "Verweis 2#4381:61", "Verweis 3": "Verweis 3#4381:64", "Verweis 4": "Verweis 4#4392:14"
+      },
+      "exponiert": {"Verweis 1": "verweis", "Verweis 2": "verweis", "Verweis 3": "verweis", "Verweis 4": "verweis"},
+      "bilder": {"Foto": {"scaleMode": "FILL", "masse": [79, 106]}},
+      "grenzen": {"verweise": 4},
+      "_hinweis": "anonym: Foto ist dort die Silhouette aus dem Design (Rahmen, kein Bild), keine Verweise - nur Name (Initialen), Rolle, Erfahrung werden gesetzt. Verweis 1 ist immer da, 2-4 per Boolean."
+    },
+    "verweis": {
+      "name": "CV/Verweis", "typ": "COMPONENT", "key": "dd7b1946d5bf89228efff41449a762b27876b19d",
+      "properties": {"Label": "Label#4378:30", "Linie anzeigen": "Linie anzeigen#4378:31"},
+      "ebenen": {"text": "Label"},
+      "_hinweis": "Der Link ist ein hyperlink-Override auf der Textebene Label, keine Property."
+    },
+    "abschnittstitel": {
+      "name": "A4/Abschnittstitel", "typ": "COMPONENT", "key": "bec2bbfb2912445ca8e8c9d69f9d7390f68a6a1e",
+      "properties": {"Titel": "Titel#4368:6", "Icon anzeigen": "Icon anzeigen#4368:4", "Icon": "Icon#4368:5"},
+      "_hinweis": "Im CV die Rubriken Bildung, Skillset, Kurzprofil - immer mit Icon anzeigen = false."
+    },
+    "trennlinie": {"name": "A4/Trennlinie", "typ": "COMPONENT", "key": "753625367801f7cf07245b9a3d75fdfe3a26aad1", "properties": {}},
+    "bildung": {
+      "name": "CV/Bildung", "typ": "COMPONENT", "key": "cd303f0a2d99830dad78024836ba4c7855955bb5",
+      "properties": {"Eintrag 2": "Eintrag 2#4379:16", "Eintrag 3": "Eintrag 3#4379:17", "Eintrag 4": "Eintrag 4#4379:18", "Eintrag 5": "Eintrag 5#4379:19", "Eintrag 6": "Eintrag 6#4379:20"},
+      "exponiert": {"Eintrag {n}": "bildungseintrag"},
+      "grenzen": {"eintraege": 6}
+    },
+    "bildungseintrag": {
+      "name": "CV/Bildungseintrag", "typ": "COMPONENT", "key": "29a04b80142a3d9dab409bdfdb6baf39a39ae370",
+      "properties": {"Abschluss": "Abschluss#4378:33", "Einrichtung": "Einrichtung#4378:34", "Einrichtung anzeigen": "Einrichtung anzeigen#4378:35", "Zeitraum": "Zeitraum#4378:36", "Zeitraum anzeigen": "Zeitraum anzeigen#4378:37"}
+    },
+    "zertifikate": {
+      "name": "CV/Zertifikate", "typ": "COMPONENT", "key": "1359279e6c6db6e316350d74ed03e7c7d452cc30",
+      "properties": {"Titel anzeigen": "Titel anzeigen#4398:5", "Zertifikat 2": "Zertifikat 2#4379:1", "Zertifikat 3": "Zertifikat 3#4379:2", "Zertifikat 4": "Zertifikat 4#4379:3", "Zertifikat 5": "Zertifikat 5#4379:4", "Zertifikat 6": "Zertifikat 6#4379:5", "Zertifikat 7": "Zertifikat 7#4379:6", "Zertifikat 8": "Zertifikat 8#4379:7", "Zertifikat 9": "Zertifikat 9#4379:8", "Zertifikat 10": "Zertifikat 10#4379:9", "Zertifikat 11": "Zertifikat 11#4379:10", "Zertifikat 12": "Zertifikat 12#4379:11", "Zertifikat 13": "Zertifikat 13#4379:12", "Zertifikat 14": "Zertifikat 14#4379:13", "Zertifikat 15": "Zertifikat 15#4379:14", "Zertifikat 16": "Zertifikat 16#4379:15"},
+      "exponiert": {"Titel": "gruppentitel", "Zertifikat {n}": "tag"},
+      "grenzen": {"eintraege": 16},
+      "_hinweis": "Tags in einer umbrechenden Reihe (Tags, 428 breit). Zertifikat 2-4 sind in der Komponente an, 5-16 aus."
+    },
+    "tag": {
+      "name": "A4/Tag", "typ": "COMPONENT_SET", "key": "d776d927a1eade4140bc5adb719ca536fbc6dbba",
+      "properties": {"Text": "Text#4368:1", "Art": "Art"},
+      "_hinweis": "Im CV immer Art=Zertifikat (in CV/Zertifikate schon so gesetzt)."
+    },
+    "skillset": {
+      "name": "CV/Skillset", "typ": "COMPONENT", "key": "2dbbea896b6f695537b6758b69e4050426397b8b",
+      "properties": {"Fähigkeiten anzeigen": "Fähigkeiten anzeigen#4381:4", "Branchen anzeigen": "Branchen anzeigen#4381:5", "Tools anzeigen": "Tools anzeigen#4381:6", "Sprachen anzeigen": "Sprachen anzeigen#4381:7"},
+      "exponiert": {"Fähigkeiten": "skillset_gruppe", "Branchen": "skillset_gruppe", "Tools": "skillset_gruppe", "Sprachen": "skillset_gruppe"},
+      "gruppen": {"faehigkeiten": "Fähigkeiten", "branchen": "Branchen", "tools": "Tools", "sprachen": "Sprachen"}
+    },
+    "skillset_gruppe": {
+      "name": "CV/Skillset-Gruppe", "typ": "COMPONENT", "key": "9aeecebfb5ee31023b02e6c0fd60ad33a479424c",
+      "properties": {"Eintrag 2": "Eintrag 2#4399:17", "Eintrag 3": "Eintrag 3#4399:18", "Eintrag 4": "Eintrag 4#4399:19", "Eintrag 5": "Eintrag 5#4399:20", "Eintrag 6": "Eintrag 6#4399:21", "Eintrag 7": "Eintrag 7#4399:22", "Eintrag 8": "Eintrag 8#4399:23", "Eintrag 9": "Eintrag 9#4399:24", "Eintrag 10": "Eintrag 10#4399:25", "Eintrag 11": "Eintrag 11#4399:26", "Eintrag 12": "Eintrag 12#4399:27"},
+      "exponiert": {"Titel": "gruppentitel", "Eintrag {n}": "listenpunkt"},
+      "grenzen": {"eintraege": 12}
+    },
+    "gruppentitel": {"name": "CV/Gruppentitel", "typ": "COMPONENT", "key": "4d47c8a3a6374a1cf80fe9866018bc13af35f4fa", "properties": {"Titel": "Titel#4378:32"}},
+    "listenpunkt": {
+      "name": "CV/Listenpunkt", "typ": "COMPONENT_SET", "key": "6e207786de3fb6bd6c32c3b853ca73955cf7730c",
+      "varianten": {"Aufgabe": "78995240d5df9af2ff4774710ae73cb0d74ede2c", "Eintrag": "7aa9c34d304160119b850ddcf19616442efb0f4e"},
+      "properties": {"Text": "Text#4399:3", "Art": "Art"}
+    },
+    "kurzprofil": {"name": "CV/Kurzprofil", "typ": "COMPONENT", "key": "dcd7328e38ad340b54c2bf909c8582b2a9c36d53", "properties": {"Text": "Text#4378:38"}},
+    "aufgabenliste": {
+      "name": "CV/Aufgabenliste", "typ": "COMPONENT", "key": "e1cef3f5e28708bce3581617186a4d6bc5182b46",
+      "properties": {"Punkt 2": "Punkt 2#4399:6", "Punkt 3": "Punkt 3#4399:7", "Punkt 4": "Punkt 4#4399:8", "Punkt 5": "Punkt 5#4399:9", "Punkt 6": "Punkt 6#4399:10", "Punkt 7": "Punkt 7#4399:11", "Punkt 8": "Punkt 8#4399:12", "Punkt 9": "Punkt 9#4399:13", "Punkt 10": "Punkt 10#4399:14", "Punkt 11": "Punkt 11#4399:15", "Punkt 12": "Punkt 12#4399:16"},
+      "exponiert": {"Punkt {n}": "listenpunkt"},
+      "grenzen": {"eintraege": 12},
+      "_hinweis": "Eingerueckt um 120 (Textkante der Station), fuer Stationen und Projekte gleich. Laeuft eine Liste im PDF ueber den Seitenumbruch, steht je Seite eine eigene Instanz."
+    },
+    "station": {
+      "name": "CV/Station", "typ": "COMPONENT", "key": "136c55641cf82f55c4686e8b579bc0c4f19adef4",
+      "properties": {
+        "Titel": "Titel#4381:13", "Firma": "Firma#4381:14", "Firma anzeigen": "Firma anzeigen#4381:15",
+        "Zeitraum": "Zeitraum#4381:16", "Zeitraum anzeigen": "Zeitraum anzeigen#4381:17",
+        "Zusammenfassung": "Zusammenfassung#4381:18", "Zusammenfassung anzeigen": "Zusammenfassung anzeigen#4381:19",
+        "Beschreibung": "Beschreibung#4381:20", "Beschreibung anzeigen": "Beschreibung anzeigen#4381:21",
+        "New-Monday-Logo anzeigen": "New-Monday-Logo anzeigen#4381:8",
+        "Logo 1": "Logo 1#4381:9", "Logo 2": "Logo 2#4381:10", "Logo 3": "Logo 3#4381:11", "Logo 4": "Logo 4#4381:12", "Logo 5": "Logo 5#4392:4", "Logo 6": "Logo 6#4392:5"
+      },
+      "bilder": {"Logo {n}": {"scaleMode": "FIT", "groesse": "paddingLeft = Breite, paddingTop = Hoehe (Ebene _Größe über Innenabstand)"}},
+      "grenzen": {"logos": 6},
+      "_hinweis": "Logospalte 88 breit, Logos rechtsbuendig untereinander. Das New-Monday-Logo ist eine eigene Instanz (nm-logo-2025) und wird nur eingeschaltet - kein Upload."
+    },
+    "projekt": {
+      "name": "CV/Projekt", "typ": "COMPONENT", "key": "48a7bd54ce150979b7da8ecfd058ba7d0272b566",
+      "properties": {
+        "Kunde": "Kunde#4381:26", "Zeitraum": "Zeitraum#4381:27", "Zeitraum anzeigen": "Zeitraum anzeigen#4381:28",
+        "Beschreibung": "Beschreibung#4381:29", "Beschreibung anzeigen": "Beschreibung anzeigen#4381:30",
+        "Logos anzeigen": "Logos anzeigen#4381:22",
+        "Logo 1": "Logo 1#4398:6", "Logo 2": "Logo 2#4381:23", "Logo 3": "Logo 3#4381:24", "Logo 4": "Logo 4#4381:25", "Logo 5": "Logo 5#4392:6", "Logo 6": "Logo 6#4392:7"
+      },
+      "bilder": {"Logo {n}": {"scaleMode": "FIT", "groesse": "paddingLeft = Breite, paddingTop = Hoehe (Ebene _Größe über Innenabstand)"}},
+      "grenzen": {"logos": 6},
+      "_hinweis": "Logos nebeneinander in einer umbrechenden Reihe ueber dem Kunden. Ohne Logo: Logos anzeigen = false."
+    },
+    "kopfzeile": {"name": "A4/Kopfzeile", "typ": "COMPONENT", "key": "a9260f0ab20fa2d65c59bff74fcc6985261ff06a", "properties": {"Badge anzeigen": "Badge anzeigen#4369:6"}},
+    "fuss": {
+      "name": "A4/Fuß", "typ": "COMPONENT", "key": "e8b2a0c2c710c157233fd38856142d7ca7337765",
+      "exponiert": {"Ansprechpartner": "kontaktspalte", "Kontakt": "kontaktspalte", "Adresse": "kontaktspalte"},
+      "_hinweis": "Ansprechpartner und Adresse stehen im Master (Manuel Klein, Stresemannstr. 23). Der Bau ueberschreibt sie nur, wenn cv.json einen abweichenden kontakt traegt."
+    },
+    "kontaktspalte": {
+      "name": "A4/Kontaktspalte", "typ": "COMPONENT", "key": "0ab17386c0cf463cbe4ae42224f11c7a22066e36",
+      "properties": {"Label": "Label#4369:0", "Name": "Name#4369:1", "Name anzeigen": "Name anzeigen#4369:2", "Wert 1": "Wert 1#4369:3", "Wert 2": "Wert 2#4369:4", "Wert 2 anzeigen": "Wert 2 anzeigen#4369:5"}
+    }
+  }
+}

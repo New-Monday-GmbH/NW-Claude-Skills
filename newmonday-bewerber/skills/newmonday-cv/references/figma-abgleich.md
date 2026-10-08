@@ -1,9 +1,10 @@
 # Abgleich mit dem Figma-Design-System
 
-Wann: Das Design-System oder die Seite "CV" in Figma wurde geändert, oder jemand
-fragt, ob der Skill noch zur Vorlage passt. Ziel ist, dass `assets/tokens.json`
-wieder genau das enthält, was Figma zeigt — alles andere (CSS, Figma-Plan, Test)
-folgt daraus von selbst.
+Wann: Das Design-System, die Komponenten oder die Seite "CV" im Master wurden
+geändert, oder jemand fragt, ob der Skill noch zur Vorlage passt. Ziel ist, dass
+`assets/tokens.json` wieder genau das enthält, was Figma zeigt — CSS, Plan und Test
+folgen daraus von selbst –, und dass `assets/master-bibliothek.json` die
+veröffentlichten Komponenten richtig beschreibt.
 
 **In Figma wird dabei nur gelesen.** Kein Schreibzugriff auf die Vorlage, auch
 nicht „nur kurz zum Messen".
@@ -12,6 +13,35 @@ nicht „nur kurz zum Messen".
 den der Nutzer ausdrücklich nennt, trotzdem in `tokens.json` — er ist eine
 Anweisung. `quelle.stand` bleibt dann aber stehen, denn es datiert den letzten
 echten Abgleich; in die Übergabe gehört, dass die Figma-Gegenprobe noch aussteht.
+
+## Master und tokens.json gehören zusammen
+
+Seit Oktober 2026 baut der Skill die Figma-Fassung aus den Komponenten des
+Masters („Portfolio - CV Master“, Seiten „Components – CV“ und „Components –
+Skillmatrix kompakt“), das PDF aber weiter aus `tokens.json`. **Beide werden
+gemeinsam gepflegt**: Eine Änderung im Master – Abstand, Schriftgrad, Farbe –
+wird veröffentlicht *und* in `tokens.json` nachgezogen; eine Änderung, die in
+`tokens.json` beginnt, gehört ebenso in den Master. Sonst stimmt die
+Figma-Fassung, und das PDF weicht ab, oder umgekehrt. Die Abstände der
+Verdichtung stehen doppelt: als Modi der Collection „CV – Verdichtung“ im
+Master und unter `verdichtung` in `tokens.json` – Wert für Wert gleich.
+`figma_plan.py` meldet es, wenn Plan und Bibliothek für einen Abstand
+verschiedene Zahlen meinen.
+
+**Die Bibliothek neu auslesen**, wenn im Master Komponenten dazukommen, Keys
+sich ändern (neu veröffentlicht nach Löschen) oder eine Property umbenannt
+wurde: je Komponentenseite ein lesender `use_figma`-Aufruf, der je Komponente
+bzw. Komponentenset `key`, `componentPropertyDefinitions` (Namen samt
+`#`-Suffix, nie aus einer Variante lesen), exponierte Instanzen und die Namen
+der Bildebenen zurückgibt – Rückgabe unter 20 KB halten, also in zwei Hälften
+lesen. Das Ergebnis nach `assets/master-bibliothek.json`, `quelle.stand` auf
+heute. Property-Namen im Master nach der Veröffentlichung nicht mehr ändern:
+Der Bau löst sie zwar über den Namen vor dem `#` auf, aber jede Umbenennung
+bricht die Overrides in allen Kandidatendateien. Wie die Komponenten befüllt
+werden, zeigen die Testbefüllungen auf der Seite „CV“ (IDs in
+`master-bibliothek.json` unter `quelle`).
+
+## Werte abgleichen
 
 Wird ein `normal`-Wert unter `verdichtung` kleiner, müssen `kompakt` und `eng`
 mitziehen — der Selbsttest meldet es, wenn eine Notstufe mehr Abstand setzt als

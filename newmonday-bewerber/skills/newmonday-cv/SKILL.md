@@ -1324,32 +1324,49 @@ CSS nichts nachzujustieren; Hintergrund in `references/layout.md`.
 **Beide Fassungen kommen nach Figma**, nicht nur die vollständige, und nicht nur
 auf Nachfrage. **Die PDFs sind an dieser Stelle fertig** und gehen so oder so raus.
 
-Erst die Baupläne, dann bauen – je Fassung einer:
+**Gebaut wird aus der Master-Bibliothek.** Jede Seite ist eine Instanz von
+`CV/Seite` aus „Portfolio - CV Master“, alles darin Instanzen der veröffentlichten
+Komponenten, befüllt über Properties, Bild-Overrides und den Modus der
+Verdichtung. Eine Änderung im Master kommt so per Bibliotheks-Update in jeder
+Kandidatendatei an. Keys und Property-Namen stehen in
+`assets/master-bibliothek.json`.
+
+Erst Plan und Skripte, dann bauen – je Fassung:
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py cv.json "<pfad/zum.pdf>" arbeit/ \
-        --stufen arbeit/stufen.json
+        --stufen arbeit/stufen.json --seite <Seiten-ID>
+# nach dem Bau der vollständigen Fassung:
 python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py cv-anonym.json "<pfad/zum-anonymen.pdf>" arbeit/anonym/ \
-        --stufen arbeit/stufen-anonym.json
+        --stufen arbeit/stufen-anonym.json --seite <Seiten-ID> \
+        --unter <ID der ersten vollständigen Seite> --verboten "Vorname Nachname"
 ```
 
-Jeder schreibt ein `figma_plan.json`: je PDF-Seite ein Frame, darin die Blöcke in
-Lesereihenfolge, alle Werte fertig ausgerechnet. **Die Seitenaufteilung wird aus dem
-gerenderten PDF gelesen, nicht geschätzt** — deshalb steht dieser Schritt nach dem
-Rendern und nicht davor, und deshalb braucht jede Fassung ihren eigenen Plan aus
-ihrem eigenen PDF. Ohne `pypdf` bricht das Skript ab; dann entfallen die Frames mit
-einem Satz in der Übergabe.
+Jeder Aufruf schreibt ein `figma_plan.json` – je PDF-Seite ein Frame, darin die
+Blöcke in Lesereihenfolge – und daraus die fertigen `use_figma`-Skripte
+`figma_vorflug.js`, `figma_bau.js` und `figma_pruefung.js`. **Die
+Seitenaufteilung wird aus dem gerenderten PDF gelesen, nicht geschätzt** — deshalb
+steht dieser Schritt nach dem Rendern, und jede Fassung braucht ihren eigenen Plan
+aus ihrem eigenen PDF. Ohne `pypdf` bricht das Skript ab; dann entfallen die Frames
+mit einem Satz in der Übergabe.
 
-Gebaut wird mit `use_figma` nach dem Rezept in `references/figma.md`. Dort stehen
-Linkauslesung, Zielseite, Schnittnamen, das Frame-Rezept, der Weg für Logos und Foto
-und wie die beiden Reihen zueinander stehen. **Vor dem ersten Aufruf den Skill
-`figma-use` laden** — ohne ihn sind die Fallstricke des Plugin-API nicht zu umgehen.
+Die Reihenfolge – Vorflug, Bau, Bilder über Träger hochladen, Prüfung – steht in
+`references/figma.md`, ebenso Linkauslesung und Zielseite. **Vor dem ersten Aufruf
+den Skill `figma-use` laden** — ohne ihn sind die Fallstricke des Plugin-API nicht
+zu umgehen.
+
+**Rückfall auf den rohen Weg.** Erreicht der Vorflug die Bibliothek nicht, oder
+meldet `figma_plan.py`, dass etwas nicht in eine Komponente passt (12 Einträge je
+Skillset-Gruppe, 6 Logos je Station, 16 Zertifikate, …), entsteht kein
+`figma_bau.js`. Dann werden rohe Frames nach dem zweiten Teil von
+`references/figma.md` gebaut (`figma_plan.py … --roh`), und in die Übergabe gehört
+ein Satz, warum.
 
 Liegt kein Link vor, wird mit `create_new_file` eine Datei
 `New Monday CV — Vorname Nachname` angelegt und beides dort hineingebaut. Der Link
 darauf geht in die Übergabe.
 
-Sechs Dinge stehen fest:
+Sechs Dinge stehen fest, auf beiden Wegen:
 
 - **Erst die vollständige Fassung, dann die anonyme.** Bricht der zweite Lauf ab,
   steht wenigstens die vollständige in der Datei. Andersherum läge dort ein
@@ -1359,17 +1376,19 @@ Sechs Dinge stehen fest:
   blockt —, werden die PDFs trotzdem übergeben und der Grund genannt. Nicht
   abbrechen, nicht nachträglich am PDF drehen, und keinen zweiten Anlauf mit
   anderen Daten.
-- **In eine fremde Datei kommt nichts Globales.** Keine Text-Styles, keine
-  Variablen, keine Komponenten. Die Frames tragen rohe Werte. Was schon in der
-  Datei liegt, wird nicht umbenannt, nicht verschoben und nicht gelöscht.
+- **Aus der Master-Bibliothek, Instanzen nie lösen.** Alles auf der Seite ist eine
+  Instanz der veröffentlichten Komponenten; Lokales entsteht nicht – keine
+  Text-Styles, keine Variablen, keine eigenen Komponenten. Was nicht hineinpasst,
+  geht den rohen Weg, nicht gelöst und nachgebaut. Was schon in der Datei liegt,
+  wird nicht umbenannt, nicht verschoben und nicht gelöscht.
 - **Nichts überschreiben.** Steht dort schon ein Frame gleichen Namens, kommt der
   neue daneben, nicht darüber.
 - **Kein Ersatz-Layout.** Reicht es nicht für den Frame, wird kein vereinfachter
   gebaut. Entweder das Dokument oder nichts.
-- **Kein Logo verzerrt.** Nach jedem Frame mit Logos die Verhältnisprüfung aus
-  `references/figma.md`: jeder Logoknoten im Seitenverhältnis seiner Datei,
-  höchstens 1 % daneben, Rasterlogos mit `FIT`. Was anschlägt, wird repariert,
-  bevor der nächste Frame entsteht.
+- **Kein Logo verzerrt.** `figma_pruefung.js` prüft jede Logoebene gegen das
+  Seitenverhältnis ihrer Datei, höchstens 1 % daneben, mit `FIT`, und dass jede
+  Instanz aus der Bibliothek stammt. Was anschlägt, wird repariert, bevor die
+  nächste Fassung entsteht.
 
 
 ### 5. Übergeben
@@ -1421,7 +1440,8 @@ Zeilen berichten:
 - **Die Figma-Frames**: der Link auf den ersten Frame jeder Fassung
   (`…?node-id=…`) und auf welcher Seite der Datei sie liegen. Wurde ein neues File
   angelegt, der Link darauf. Ist eine der beiden Reihen nicht zustande gekommen,
-  steht hier stattdessen der Grund in einem Satz. Hat `figma_plan.py` gemeldet,
+  steht hier stattdessen der Grund in einem Satz. Wurde roh statt aus der
+  Bibliothek gebaut, steht auch das hier, mit dem Grund. Hat `figma_plan.py` gemeldet,
   dass eine Textmarke im PDF nicht wiederzufinden war, gehört auch das hierher: An
   dieser Stelle ist die Seitenkante im Frame geraten und sollte nachgesehen
   werden.
@@ -1492,12 +1512,15 @@ Regeln dazu:
 
 ## Wenn das Layout doch angefasst werden muss
 
-**Designwerte stehen nur in `assets/tokens.json`** – Schriften, Größen,
+**Designwerte stehen für das PDF nur in `assets/tokens.json`** – Schriften, Größen,
 Zeilenhöhen, Laufweiten, Abstände, Farben, abgelesen aus der Figma-Datei, die dort
 unter `quelle` steht. `assets/cv.css` und `scripts/figma_plan.py` tragen keine
-eigenen Zahlen, sie lesen von dort; deshalb setzen PDF und Figma-Frame immer
-dieselben Werte. Einen Wert ändern heißt: ihn in `tokens.json` ändern, sonst
-nirgends. Das Platzhalterbild der anonymen Fassung ist eine Datei aus dem Design:
+eigenen Zahlen, sie lesen von dort. In Figma tragen die Komponenten des Masters
+dieselben Werte; **Master und `tokens.json` werden gemeinsam gepflegt** – wer im
+Master etwas ändert, zieht `tokens.json` nach (`references/figma-abgleich.md`),
+sonst laufen PDF und Figma-Fassung auseinander. Einen Wert ändern heißt: ihn im
+Master ändern und veröffentlichen und in `tokens.json` nachziehen – im Skill
+sonst nirgends. Das Platzhalterbild der anonymen Fassung ist eine Datei aus dem Design:
 eine neue Fassung als `assets/silhouette-vorlage.svg` ablegen und
 `python3 ${CLAUDE_SKILL_DIR}/scripts/silhouette.py` laufen lassen – das setzt sie
 in den Fotoplatz aus `tokens.json` ein und schreibt `silhouette.svg` und `.png`.
@@ -1520,4 +1543,6 @@ vergleichen, die bewussten Abweichungen stehen lassen. Warum einige Tokens nicht
 dem Figma-Eintrag entsprechen (gerundete Zeilenhöhen, 13pt-Takt der Listen) und
 warum die Stationen mit Float statt Flexbox gebaut sind, steht in
 `references/layout.md` – vor jeder Änderung lesen, sonst brechen Abstände oder
-Seitenumbrüche. Wie aus dem Plan Frames werden: `references/figma.md`.
+Seitenumbrüche. Wie aus dem Plan Frames werden: `references/figma.md`. Ändern
+sich im Master Komponenten, Keys oder Property-Namen: `assets/master-bibliothek.json`
+neu auslesen, ebenfalls nach `figma-abgleich.md`.

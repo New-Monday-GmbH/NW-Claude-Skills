@@ -2,10 +2,22 @@
 """Baut aus portfolio.json die Figma-Frames des Portfolios – als fertige
 use_figma-Skripte, gerechnet aus demselben Layout wie das PDF.
 
-    python3 scripts/figma_plan.py portfolio.json arbeit/figma/ [--knoten 12-34] [--folien 2,5]
+Standard ist der Bibliotheksweg (Oktober 2026): Jede Folie ist eine Instanz
+der Master-Bibliothek „Portfolio - CV Master“, befüllt über Properties,
+exponierte Instanzen und Bildfüllungen - der Bauplan dafür steht in
+figma_bibliothek.py, die Keys in assets/master-bibliothek.json.
+
+    python3 scripts/figma_plan.py portfolio.json arbeit/figma/ [--knoten 12-34] [--folien 2,5 --rahmen 12:40]
+    python3 scripts/figma_plan.py --einsetzen arbeit/figma/ --antwort arbeit/figma/start.json
+
+Rückfall, wenn die Bibliothek in der Zieldatei nicht erreichbar ist (der
+Start-Aufruf meldet das, bevor er etwas anlegt): der rohe Weg, Frames aus
+Rechtecken, Texten und Vektoren wie bisher.
+
+    python3 scripts/figma_plan.py portfolio.json arbeit/figma/ --roh [--knoten 12-34] [--folien 2,5]
     python3 scripts/figma_plan.py --einsetzen arbeit/figma/ --seite 12:3 --rahmen 12:40
 
-Erster Aufruf schreibt nach arbeit/figma/:
+Der rohe Weg schreibt nach arbeit/figma/:
     plan.json        alle Folien mit ihren Ebenen in Punkt (zur Kontrolle)
     00-start.js      Zielseite und Sammelrahmen anlegen - der erste use_figma-Aufruf
     01-folien.js …   je Paket einige Folien, bereit für use_figma
@@ -163,6 +175,7 @@ class Folie:
         self.nr = nr
         self.ebenen: list[dict] = []
         self.hintergrund = "#ffffff"
+        self.element = None        # <section class="seite …"> - fuer den Bibliotheksweg
 
 
 def _textsegmente(box, segmente: list):
@@ -248,7 +261,8 @@ def _bild(box, folie: Folie, bilder: list):
     folie.ebenen.append({"t": "i", "n": _name(box), "x": x, "y": y, "w": w, "h": h,
                          "quelle": str(datei), "passung": passung,
                          "oben": _oben_verankert(position),
-                         "anker": _verankerung(position), "folie": folie.nr})
+                         "anker": _verankerung(position), "folie": folie.nr,
+                         "_el": el})
     bilder.append(folie.ebenen[-1])
 
 
@@ -302,6 +316,9 @@ def _gehe(box, folie: Folie, bilder: list):
     if art in ("InlineReplacedBox", "BlockReplacedBox"):
         _bild(innen, folie, bilder)
         return
+    el = getattr(innen, "element", None)
+    if folie.element is None and el is not None and "seite" in (el.get("class") or "").split():
+        folie.element = el
     st = getattr(innen, "style", None)
     if st is not None and art not in ("LineBox", "TextBox", "InlineBox", "PageBox"):
         farbe = _farbe(st["background_color"])
@@ -387,16 +404,20 @@ def _svg_budget(folien: list[Folie]) -> set[int]:
     return raster
 
 
-def bilder_vorbereiten(bilder: list[dict], ordner: Path, folien: list[Folie]) -> list[dict]:
+def bilder_vorbereiten(bilder: list[dict], ordner: Path, folien: list[Folie],
+                       alles_raster: bool = False) -> list[dict]:
     """Rasterbilder auf ihren sichtbaren Ausschnitt bringen (object-fit: cover
     mit derselben Verankerung wie im CSS), auf 2 px je pt begrenzen und einmal
-    je Inhalt ablegen. Kleine SVGs bleiben Vektor und gehen direkt in den Code."""
+    je Inhalt ablegen. Kleine SVGs bleiben Vektor und gehen direkt in den Code -
+    ausser `alles_raster`: Im Bibliotheksweg sind die Logoflaechen Rechtecke
+    mit Bildfuellung, dort geht jedes SVG als Rasterbild."""
     from PIL import Image
     ordner.mkdir(parents=True, exist_ok=True)
     liste, gesehen = [], {}
     als_raster = _svg_budget(folien)
     for e in bilder:
-        raster = id(e) in als_raster
+        e.pop("_el", None)
+        raster = alles_raster or id(e) in als_raster
         quelle = Path(e.pop("quelle"))
         passung = e.pop("passung")
         oben = e.pop("oben")
@@ -648,6 +669,10 @@ def einsetzen(ordner: Path, seite: str, rahmen: str) -> None:
 
 def main() -> None:
     args = sys.argv[1:]
+    if args[:1] == ["--einsetzen"] and "--antwort" in args:
+        import figma_bibliothek as fb
+        fb.einsetzen(Path(args[1]), Path(args[args.index("--antwort") + 1]))
+        return
     if args[:1] == ["--einsetzen"]:
         ordner = Path(args[1])
         seite = args[args.index("--seite") + 1]
@@ -677,8 +702,11 @@ def main() -> None:
     if nur is not None and len(auswahl) != len(nur):
         raise SystemExit(f"--folien: das Deck hat {len(folien)} Folien – "
                          f"{sorted(nur - {f.nr for f in folien})} gibt es nicht.")
-    liste = bilder_vorbereiten(bilder, ordner / "bilder", folien)
     name = (d.get("person") or {}).get("name") or "Portfolio"
+    if "--roh" not in args:
+        bibliothek(d, folien, auswahl, ordner, name, knoten, args)
+        return
+    liste = bilder_vorbereiten(bilder, ordner / "bilder", folien)
     (ordner / "plan.json").write_text(json.dumps(
         [{"nr": f.nr, "hintergrund": f.hintergrund, "ebenen": f.ebenen} for f in folien],
         ensure_ascii=False, indent=1), encoding="utf-8")
@@ -694,6 +722,36 @@ def main() -> None:
     print(f"{umfang}, {texte} Textknoten, {len(liste)} Rasterbilder, "
           f"{sum(1 for f in auswahl for e in f.ebenen if e['t'] == 's')} SVG-Knoten "
           f"-> {len(dateien)} Pakete in {ordner}")
+    for h in dict.fromkeys(rp.hinweise):
+        if "Figma" in h:
+            print(f"  - {h}", file=sys.stderr)
+
+
+def bibliothek(d: dict, folien: list[Folie], auswahl: list[Folie], ordner: Path, name: str,
+               knoten: str, args: list[str]) -> None:
+    """Der Bibliotheksweg: Bauplan je Folie, nur die Bilder, die in Bildebenen
+    der Instanzen gehen (Foto, Kundenlogos, Werkzeuglogos, Summary-Bild,
+    Screenflächen), alle als Rasterbild auf ihrer Fläche aus dem Layout."""
+    import figma_bibliothek as fb
+    rahmen_alt = args[args.index("--rahmen") + 1] if "--rahmen" in args else ""
+    if len(auswahl) != len(folien) and not rahmen_alt:
+        raise SystemExit("--folien braucht im Bibliotheksweg --rahmen <id des vorhandenen "
+                         "Sammelrahmens> – sonst entstünde ein zweiter.")
+    plaene, gebraucht = fb.plaene_bauen(folien, d, {f.nr for f in auswahl})
+    liste = bilder_vorbereiten(list(gebraucht.values()), ordner / "bilder", folien,
+                               alles_raster=True)
+    (ordner / "bilder.json").write_text(json.dumps(liste, ensure_ascii=False, indent=1),
+                                       encoding="utf-8")
+    dateien = fb.skripte_schreiben(plaene, gebraucht, liste, name, ordner, knoten, rahmen_alt)
+    (ordner / "plan.json").write_text(json.dumps(
+        [{"nr": p.nr, "typ": p.typ, "chrome": p.chrome} for p in plaene],
+        ensure_ascii=False, indent=1), encoding="utf-8")
+    typen = {}
+    for p in plaene:
+        typen[p.typ] = typen.get(p.typ, 0) + 1
+    print(f"Bibliothek: {len(plaene)} Folien als Instanzen "
+          f"({', '.join(f'{n}× {t}' for t, n in typen.items())}), {len(liste)} Bilder "
+          f"-> 00-start.js + {len(dateien)} Pakete in {ordner}")
     for h in dict.fromkeys(rp.hinweise):
         if "Figma" in h:
             print(f"  - {h}", file=sys.stderr)

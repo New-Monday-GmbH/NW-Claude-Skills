@@ -1,7 +1,14 @@
 # Figma-Referenz
 
-Wie aus `arbeit/figma_plan.json` ein bearbeitbarer Frame wird. Der Plan kommt aus
-`scripts/figma_plan.py`, geschrieben wird mit dem Figma-MCP-Werkzeug `use_figma`.
+Wie aus `arbeit/figma_plan.json` die bearbeitbaren Seiten in Figma werden. Der Plan
+kommt aus `scripts/figma_plan.py`, geschrieben wird mit dem Figma-MCP-Werkzeug
+`use_figma`.
+
+**Zwei Wege, einer davon ist der Standard.** Gebaut wird aus Instanzen der
+veröffentlichten Master-Bibliothek („Portfolio - CV Master“) — der
+*Bibliotheksweg*, gleich unten. Nur wenn die Bibliothek in der Zieldatei nicht
+erreichbar ist oder der Lebenslauf nicht in ihre Komponenten passt, gilt der
+*rohe Weg* weiter hinten: rohe Frames mit festen Werten, wie bis Oktober 2026.
 
 **Vor dem ersten `use_figma`-Aufruf den Skill `figma-use` laden** — dort stehen die
 Fallstricke des Plugin-API im Einzelnen, und `skillNames: "figma-use"` gehört an
@@ -43,10 +50,10 @@ laden**, so wie `figma-use` vor `use_figma`.
    Entwürfen des Kontos. Zurück kommen `fileKey` und Link, und ab da geht es
    weiter wie bei einem übergebenen Link.
 
-Der Vorflug unten gilt weiter, fällt aber kürzer aus: In der frischen Datei ist
+Der Vorflug gilt weiter, fällt aber kürzer aus: In der frischen Datei ist
 die erste Seite leer und gehört uns, eine zweite `figma.createPage()` braucht es
-nicht, und die Suche nach der freien Stelle findet nichts — die obere Reihe
-beginnt bei (0,0).
+nicht (`--seite` mit der ID der ersten Seite), und die Suche nach der freien
+Stelle findet nichts — die obere Reihe beginnt bei (0,0).
 
 **Der Link auf die neue Datei gehört in die Übergabe.** Sonst liegt sie in den
 Entwürfen eines Kontos, und niemand weiß von ihr.
@@ -57,6 +64,179 @@ Figma-File.** Wer den Link weitergibt, gibt die vollständige Fassung mit.
 
 Scheitert das Anlegen, hält es die PDFs nicht auf — es gilt, was unter
 *Wenn es schiefgeht* steht.
+
+# Der Bibliotheksweg (Standard)
+
+Jede Seite des Lebenslaufs ist eine Instanz von `CV/Seite` aus dem Master; in
+ihren Slot „Inhalt“ kommen Instanzen von `CV/Profilkopf`, `CV/Bildung`,
+`CV/Zertifikate`, `CV/Skillset`, `CV/Kurzprofil`, `CV/Station`, `CV/Projekt`,
+`CV/Aufgabenliste`, `A4/Abschnittstitel`, `A4/Trennlinie` — dazwischen
+`CV/Abstand` mit dem Token-Namen als Variante. Befüllt wird nur über
+Component-Properties, exponierte verschachtelte Instanzen (Einträge, Tags,
+Listenpunkte, Verweise), Bild-Overrides und den Variablen-Modus. Ändert jemand
+den Master und veröffentlicht, kommt die Änderung per Bibliotheks-Update in
+jeder Kandidatendatei an.
+
+**Instanzen werden nie gelöst.** Kein `detachInstance()`, kein Nachbauen einer
+Komponente „nur für diesen einen Fall“. Was nicht in die Komponenten passt, geht
+den rohen Weg — nicht halb und halb.
+
+Wo die Komponenten stehen, steht in `assets/master-bibliothek.json`: Keys,
+Property-Namen samt `#`-Suffix, exponierte Instanzen, Bildebenen, Mengengrenzen.
+Die Skripte schreibt `figma_plan.py` gleich mit; sie sind fertig und werden so
+gesendet, wie sie im Ordner liegen — die Werte stehen in der ersten Zeile
+(`const BAU = …`), darunter die Laufzeit aus `scripts/figma_bau.js`.
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py cv.json "<pdf>" arbeit/ \
+        --stufen arbeit/stufen.json --seite <Seiten-ID aus dem Link>
+```
+
+| Datei | Wann | Was |
+|---|---|---|
+| `figma_vorflug.js` | zuerst, lesend | Import von `CV/Seite` per Key, Zielseite, Schriften |
+| `figma_bau.js` (oder `_1`, `_2`, … der Reihe nach) | dann | alle Seiten einer Fassung |
+| `figma_pruefung.js` | nach dem Upload | Bilder einsetzen, dann prüfen |
+| `figma_bilder/` | — | SVG-Logos als PNG für die Bildfüllung |
+
+Ohne `--seite` legt der Bau eine neue Seite `CV — Vorname Nachname` an — mit
+Link ohne `node-id` ist das richtig, mit `node-id` nicht: dann deren Seite.
+
+## Vorflug
+
+`figma_vorflug.js` senden. Zurück kommen `erreichbar`, die Seiten der Datei,
+die Zielseite mit der Zahl ihrer Knoten und `fehlen` (Schriftschnitte).
+
+- **`erreichbar: false`** — die Bibliothek ist in dieser Datei nicht verfügbar
+  (nicht veröffentlicht, anderes Team, keine Rechte). Dann gilt der rohe Weg
+  für beide Fassungen, und in die Übergabe gehört ein Satz dazu, mit `fehler`
+  aus der Antwort. Nicht im Bau weiterprobieren.
+- **`fehlen` nicht leer** — der Bau bricht ab, bevor er anfängt, wie beim rohen
+  Weg.
+
+## Bauen
+
+`figma_bau.js` senden, erst die vollständige Fassung. Die Antwort nennt die
+Seiteninstanzen (`frames` mit ID), die Bildträger (`bilder_fill`, `bilder_fit`)
+und `warnungen` — eine fehlende Property, eine fehlende exponierte Instanz,
+Inhalt höher als der Slot. Warnungen gehören repariert oder in die Übergabe,
+nicht übergangen. **Die Antwort als `arbeit/figma_bau_ergebnis.json`
+speichern**, sie braucht der Upload.
+
+Was das Skript selbst erledigt — hier nichts nachstellen:
+
+- **Verdichtung über den Modus.** Die Abstände hängen an der Collection
+  „CV – Verdichtung“ (Modi `normal`, `kompakt`, `eng`). Seite 1 bekommt die
+  Stufe `deckblatt`, ab Seite 2 die Stufe `stationen` aus `stufen.json`. Eine
+  Zahl wird nirgends gesetzt.
+- **Kopfzeile und Fuß** sind Booleans der Seite: Kopfzeile auf Seite 1, Fuß auf
+  der letzten, er sitzt von selbst unten. Ansprechpartner und Adresse stehen im
+  Master und werden nur überschrieben, wenn die `cv.json` einen abweichenden
+  `kontakt` trägt.
+- **Nur Abweichungen werden gesetzt.** Steht ein Wert schon so in der
+  Komponente, bleibt er ohne Override — eine Änderung des Standards im Master
+  kommt dann auch hier an.
+- **Der Verweis** ist ein Hyperlink auf der Textebene `Label` im exponierten
+  `Verweis n`; ohne Adresse `Linie anzeigen = false`.
+- **Logos** werden über den Innenabstand ihrer Ebene in die Größe aus dem Plan
+  gebracht (`paddingLeft` = Breite, `paddingTop` = Höhe, so ist die Ebene im
+  Master gebaut), nie mit `resize()`. Das New-Monday-Logo einer Station ist ein
+  Boolean, kein Bild.
+
+## Bilder: Träger, Upload, Einsetzen
+
+`upload_assets` nimmt als Ziel nur Knoten mit einfacher ID (`12:34`), keine
+Ebene in einer Instanz (`I12:34;56:78`). Deshalb legt der Bau je Bild einen
+**Träger** auf die Seite, unter die Reihe: ein Rechteck `_Bild FIT → <Ziel-ID>`
+in den Maßen des Logos.
+
+1. `upload_assets` mit `nodeIds` = die `nodeId`s aus `bilder_fill` und
+   `scaleMode: FILL` (das Foto), dann ein zweiter Aufruf mit denen aus
+   `bilder_fit` und **`FIT`** (alle Logos). Beide Antworten in eine Datei,
+   `arbeit/upload_antwort.json` (als Liste).
+2. Hochladen:
+   ```bash
+   python3 ${CLAUDE_SKILL_DIR}/scripts/figma_assets.py --ziele \
+           arbeit/figma_bau_ergebnis.json arbeit/upload_antwort.json
+   ```
+   Zugeordnet wird über die Träger-ID, nicht über die Reihenfolge.
+3. `figma_pruefung.js` senden. Es setzt jedes hochgeladene Bild aus seinem
+   Träger in die Ebene der Instanz (Override der Füllung, Modus aus dem Namen)
+   und löscht den Träger. Ein Träger ohne Bild bleibt stehen und steht in den
+   Befunden.
+
+SVG-Logos gehen als PNG hoch (`figma_bilder/`, von WeasyPrint gesetzt wie im
+PDF, von PyMuPDF gerastert, zwölf Pixel je pt): Eine Bildfüllung braucht
+Rasterdaten, ein SVG würde `upload_assets` als Vektorbaum neben die Seite legen.
+Die anonyme Fassung lädt kein Foto hoch — `Fassung = anonym` bringt die
+Silhouette aus dem Master mit.
+
+## Prüfen
+
+Nach dem Einsetzen prüft dasselbe Skript, und das Ergebnis muss
+`befunde: []` sein:
+
+- jede Seite eine Instanz von `CV/Seite`, **jede Instanz darin remote** — also
+  aus der Bibliothek, nicht lokal;
+- im Slot genau die geplanten Elemente in Reihenfolge, **alle Instanzen** — ein
+  Rahmen an ihrer Stelle heißt: gelöst;
+- jedes Logo mit `FIT`, im Seitenverhältnis seiner Datei (höchstens 1 %
+  daneben, `logo_toleranz`), und tatsächlich hochgeladen (nicht mehr das
+  Vorgabebild der Komponente); das Foto ebenso;
+- in der anonymen Fassung kein Namensteil in einem sichtbaren Text
+  (`--verboten "Vorname Nachname"` beim Plan der anonymen Fassung).
+
+Ein Befund wird behoben, bevor die nächste Fassung entsteht. Dann einmal
+`get_screenshot` je Seite zur Sichtkontrolle.
+
+## Zwei Fassungen
+
+Erst vollständig, dann anonym, wie beim rohen Weg. Die anonyme Fassung kommt
+unter die vollständige: ihr Plan wird **nach** dem Bau der vollständigen mit
+`--unter <ID der ersten vollständigen Seite>` geschrieben (dazu
+`--verboten "Vorname Nachname"`), dann steht sie bei deren `x`, 120 tiefer.
+Geklont wird hier nicht — beide Reihen sind Instanzen derselben Komponenten,
+auseinanderlaufen können sie nur über die Daten.
+
+## Mengengrenzen
+
+Die Komponenten haben feste Plätze: 12 Einträge je Skillset-Gruppe, 12
+Punkte je Aufgabenliste, 16 Zertifikate, 6 Bildungseinträge, 4 Verweise, 6
+Logos je Station und je Projekt. `figma_plan.py` prüft das vorher:
+
+- **Aufgaben und Zertifikate** werden verteilt — eine zweite Aufgabenliste
+  direkt darunter, eine zweite `CV/Zertifikate` ohne Titel nach
+  `Abstand · zert_reihen`. Das steht als Hinweis da.
+- **Alles andere wird gemeldet**, und es entsteht kein `figma_bau.js`.
+  Abgeschnitten wird nichts: Dann gilt der rohe Weg, und die Meldung gehört in
+  die Übergabe — mit dem Vorschlag, im Master einen Platz mehr anzulegen.
+
+## Was in der Datei passiert
+
+- **Die Bibliothek wird verknüpft**, die importierten Komponenten stehen als
+  Remote-Komponenten in der Datei. Lokal entsteht nichts außer den
+  Seiteninstanzen selbst — keine Styles, keine Variablen, keine Komponenten.
+- **Nichts umbenennen, nichts löschen, nichts verschieben**, was schon da war;
+  gelöscht werden nur die eigenen Bildträger.
+- **Nichts überschreiben.** Die neue Reihe steht rechts vom rechtesten Knoten.
+
+## Wenn es schiefgeht
+
+Wie beim rohen Weg (unten): Die PDFs gehen so oder so raus. Zusätzlich:
+
+| Symptom | Was dahintersteckt |
+|---|---|
+| Vorflug `erreichbar: false` | Bibliothek nicht veröffentlicht oder nicht freigegeben → roher Weg |
+| Warnung „Property … fehlt“ | Master umbenannt — `master-bibliothek.json` neu auslesen (`figma-abgleich.md`) |
+| Befund „Bild nicht hochgeladen“ | Upload-POST fehlgeschlagen oder Träger falsch zugeordnet — `figma_assets.py --ziele` noch einmal |
+| `figma_bau.js` fehlt, Meldung „fasst …“ | Mengengrenze überschritten → roher Weg |
+
+# Der rohe Weg (Rückfall)
+
+Gilt nur, wenn der Vorflug die Bibliothek nicht erreicht oder eine
+Mengengrenze überschritten ist. `figma_plan.py … --roh` schreibt dann nur den
+Plan. Gebaut wird von Hand nach dem Rezept unten — rohe Frames mit den Werten aus
+dem Plan.
 
 ## Vorflug
 
@@ -622,7 +802,7 @@ return { createdNodeIds: [...], frame: f.id, seite: figma.currentPage.id };
 Fehler also nicht blind wiederholen, sondern die Meldung lesen, das Skript
 reparieren, erneut senden.
 
-## Was in einer fremden Datei nicht passiert
+## Was in einer fremden Datei nicht passiert (roher Weg)
 
 - **Keine Text-Styles, keine Variablen, keine Komponenten.** Der Frame trägt rohe
   Werte. Eine Datei, in die jemand seinen Lebenslauf legt, soll danach nicht neue

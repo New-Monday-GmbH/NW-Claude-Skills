@@ -1,0 +1,1306 @@
+{
+ "_hinweis": "Komponenten der veroeffentlichten Master-Bibliothek, aus denen figma_plan.py die Figma-Fassungen baut (references/figma.md). Ausgelesen per use_figma am 2026-10-08. Property-Namen samt #-Suffix sind fest - aendert sich der Master, diese Datei neu auslesen (Rezept in references/figma.md, 'Den Katalog neu auslesen').",
+ "datei": {
+  "name": "Portfolio - CV Master",
+  "fileKey": "oezbaw261xDwxthPuX3ZpS",
+  "seiten": {
+   "lang": {
+    "id": "0:1",
+    "name": "Components - Skillmatrix"
+   },
+   "a4": {
+    "id": "4359:3572",
+    "name": "Components – Skillmatrix kompakt"
+   }
+  },
+  "testbefuellung": {
+   "lang": "4328:2839",
+   "a4": "4381:8605",
+   "seite": "4158:3774"
+  }
+ },
+ "aufbau": {
+  "lang": {
+   "rahmen": "Seitenrahmen 1444, vertikal, ohne Abstand: Kopfzeile, Hero, Rumpf, Fuss - alles Instanzen",
+   "instanzen": [
+    "Skillmatrix lang/Kopfzeile",
+    "Skillmatrix lang/Hero",
+    "Skillmatrix lang/Rumpf",
+    "Skillmatrix lang/Fuß"
+   ],
+   "rumpf_reihenfolge": [
+    "Zertifikate",
+    "Kernkompetenzen",
+    "Tools"
+   ],
+   "_ende": "Die Rumpf-Komponente kennt keine Zertifikate am Ende. Mit zertifikate_position 'ende' steht statt ihrer ein Rahmen 'Rumpf' mit den drei Sektions-Instanzen (Werte aus tokens.json, komponenten.rumpf)."
+  },
+  "a4": {
+   "instanzen": [
+    "Skillmatrix A4/Seite"
+   ],
+   "_regel": "Je PDF-Seite eine Instanz; welcher Block auf der Seite steht, schalten die Booleans der Seite."
+  }
+ },
+ "grenzen": {
+  "lang": {
+   "kategorien": 8,
+   "karten_je_kategorie": 9,
+   "tools": 9,
+   "kacheln": 12,
+   "qualifikations_tags": 10,
+   "schwerpunkte": 3
+  },
+  "a4": {
+   "kategorien_je_seite": 5,
+   "kompetenzen_je_kategorie": 6,
+   "tools": 6,
+   "kacheln": 12,
+   "qualifikations_tags": 10,
+   "schwerpunkte": 4
+  }
+ },
+ "komponenten": {
+  "Skillmatrix lang/Kopfzeile": {
+   "id": "4001:11603",
+   "key": "1eaf01bdc04f101364cee9943836990bc45cd623",
+   "groesse": [
+    1444,
+    65
+   ],
+   "eigenschaften": {}
+  },
+  "Skillmatrix lang/Logo": {
+   "id": "4004:112",
+   "key": "a5089f234bf658740a8a7a5ed8225915e4f31503",
+   "groesse": [
+    201,
+    20
+   ],
+   "eigenschaften": {}
+  },
+  "Skillmatrix lang/Tag": {
+   "id": "4004:12125",
+   "key": "a3525c1adf971ef2ea1aaf8554e67867ca5c3c72",
+   "groesse": [
+    81,
+    52
+   ],
+   "eigenschaften": {
+    "Text#4005:1": {
+     "typ": "TEXT"
+    },
+    "Größe": {
+     "typ": "VARIANT",
+     "optionen": [
+      "Groß",
+      "Klein"
+     ]
+    }
+   }
+  },
+  "Skillmatrix lang/Icon": {
+   "id": "4005:12142",
+   "key": "fcca37bd08f702618d43f99b16c2e82a492c0ba8",
+   "groesse": [
+    24,
+    24
+   ],
+   "eigenschaften": {
+    "Art": {
+     "typ": "VARIANT",
+     "optionen": [
+      "Zertifikate",
+      "Kernkompetenzen",
+      "Tools"
+     ]
+    }
+   }
+  },
+  "Skillmatrix lang/Textbausteine": {
+   "id": "4006:12163",
+   "key": "9989d6d9607eae6673015f3225670d1da8e55f21",
+   "groesse": [
+    1239,
+    30
+   ],
+   "eigenschaften": {
+    "Icon#4318:0": {
+     "typ": "INSTANCE_SWAP"
+    },
+    "Text#4318:6": {
+     "typ": "TEXT"
+    },
+    "Art": {
+     "typ": "VARIANT",
+     "optionen": [
+      "Kategorie-Label",
+      "Abschnittstitel",
+      "Name",
+      "Rolle",
+      "Beschreibung"
+     ]
+    }
+   }
+  },
+  "Skillmatrix lang/Fuß": {
+   "id": "4006:12178",
+   "key": "ba8d32f4cc3f9dbcfafc3dd263170387334108a7",
+   "groesse": [
+    1444,
+    302
+   ],
+   "eigenschaften": {
+    "Ansprechpartner#4325:0": {
+     "typ": "TEXT"
+    },
+    "Funktion#4325:1": {
+     "typ": "TEXT"
+    },
+    "E-Mail#4325:2": {
+     "typ": "TEXT"
+    },
+    "Telefon#4325:3": {
+     "typ": "TEXT"
+    }
+   }
+  },
+  "Skillmatrix lang/Kompetenzkarte": {
+   "id": "4006:12352",
+   "key": "164f5a338ad407f73599a4c868ae5e1d9e075c1f",
+   "groesse": [
+    380,
+    108
+   ],
+   "eigenschaften": {
+    "Titel#4320:0": {
+     "typ": "TEXT"
+    },
+    "Beschreibung#4320:1": {
+     "typ": "TEXT"
+    }
+   },
+   "exponiert": [
+    "Bewertung"
+   ]
+  },
+  "Skillmatrix lang/Bewertung": {
+   "id": "4006:12292",
+   "key": "dc107054f27de7b2d39740bcee77aa5d389fe02a",
+   "groesse": [
+    64,
+    8
+   ],
+   "eigenschaften": {
+    "Bewertung": {
+     "typ": "VARIANT",
+     "optionen": [
+      "5",
+      "4",
+      "3",
+      "2",
+      "1"
+     ]
+    }
+   }
+  },
+  "Skillmatrix lang/Badge": {
+   "id": "4007:12365",
+   "key": "dbc26b9eca4985fc302a679cf544864a860b134d",
+   "groesse": [
+    230,
+    47
+   ],
+   "eigenschaften": {
+    "Text#4007:4": {
+     "typ": "TEXT"
+    },
+    "Größe": {
+     "typ": "VARIANT",
+     "optionen": [
+      "Groß",
+      "Klein"
+     ]
+    }
+   }
+  },
+  "Skillmatrix lang/Fotokarte": {
+   "id": "4007:12416",
+   "key": "12f3d47f7f45a8701d789772719ba70b3514975d",
+   "groesse": [
+    437,
+    435
+   ],
+   "eigenschaften": {
+    "Name#4321:0": {
+     "typ": "TEXT"
+    },
+    "Erfahrung#4321:1": {
+     "typ": "TEXT"
+    }
+   },
+   "bildebenen": [
+    {
+     "name": "Foto",
+     "typ": "FRAME"
+    }
+   ]
+  },
+  "Skillmatrix lang/Qualifikationskarte": {
+   "id": "4007:12646",
+   "key": "8448c5056a17534af844d31b936fa9ce9380e47e",
+   "groesse": [
+    1188,
+    168
+   ],
+   "eigenschaften": {
+    "Titel#4322:0": {
+     "typ": "TEXT"
+    },
+    "Beschreibung#4322:1": {
+     "typ": "TEXT"
+    },
+    "Tag 4#4322:2": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tag 5#4322:3": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tag 6#4322:4": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tag 7#4322:5": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tag 8#4322:6": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tag 9#4322:7": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Tag 10#4322:8": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    }
+   },
+   "exponiert": [
+    "Tag 1",
+    "Tag 2",
+    "Tag 3",
+    "Tag 4",
+    "Tag 5",
+    "Tag 6",
+    "Tag 7",
+    "Tag 8",
+    "Tag 9",
+    "Tag 10"
+   ]
+  },
+  "Skillmatrix lang/Schwerpunkte": {
+   "id": "4007:12553",
+   "key": "219c0c19329ca206f96cfd29af4747a4a4f7db08",
+   "groesse": [
+    538,
+    52
+   ],
+   "eigenschaften": {
+    "Tag 2#4319:0": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tag 3#4319:1": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    }
+   },
+   "exponiert": [
+    "Tag 1",
+    "Tag 2",
+    "Tag 3"
+   ]
+  },
+  "Skillmatrix lang/Hero": {
+   "id": "4007:12611",
+   "key": "3ab71c0e9b8e74a78d7bbaefcf5c1c20996f3073",
+   "groesse": [
+    1444,
+    563
+   ],
+   "eigenschaften": {},
+   "exponiert": [
+    "Beschreibung",
+    "Fotokarte",
+    "Name",
+    "Rolle",
+    "Schwerpunkte",
+    "Tag 1",
+    "Tag 2",
+    "Tag 3",
+    "Verfügbarkeit"
+   ],
+   "bildebenen": [
+    {
+     "name": "Foto",
+     "typ": "FRAME"
+    }
+   ]
+  },
+  "Skillmatrix lang/Zertifikate": {
+   "id": "4007:12765",
+   "key": "389645bca6d5e3033bce052ee2141208259afb2b",
+   "groesse": [
+    1188,
+    756
+   ],
+   "eigenschaften": {
+    "Kachel 5#4326:10": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kachel 6#4326:11": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kachel 7#4326:12": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kachel 8#4326:13": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kachel 9#4326:14": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kachel 10#4326:15": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kachel 11#4326:16": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kachel 12#4326:17": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    }
+   },
+   "exponiert": [
+    "Erklärung",
+    "Kachel 1",
+    "Kachel 2",
+    "Kachel 3",
+    "Kachel 4",
+    "Kachel 5",
+    "Kachel 6",
+    "Kachel 7",
+    "Kachel 8",
+    "Kachel 9",
+    "Kachel 10",
+    "Kachel 11",
+    "Kachel 12",
+    "Tag 1",
+    "Tag 2",
+    "Tag 3",
+    "Tag 4",
+    "Tag 5",
+    "Tag 6",
+    "Tag 7",
+    "Tag 8"
+   ],
+   "bildebenen": [
+    {
+     "name": "Bild",
+     "typ": "RECTANGLE"
+    }
+   ]
+  },
+  "Skillmatrix lang/Kategorie": {
+   "id": "4008:13204",
+   "key": "c984ffa40f914549dc7e362851acb38e372eea39",
+   "groesse": [
+    1188,
+    438
+   ],
+   "eigenschaften": {
+    "Label anzeigen#4326:1": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Karte 4#4326:2": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Karte 5#4326:3": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Karte 6#4326:4": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Karte 7#4326:5": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Karte 8#4326:6": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Karte 9#4326:7": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    }
+   },
+   "exponiert": [
+    "Bewertung",
+    "Karte 1",
+    "Karte 2",
+    "Karte 3",
+    "Karte 4",
+    "Karte 5",
+    "Karte 6",
+    "Karte 7",
+    "Karte 8",
+    "Karte 9",
+    "Kategorie"
+   ]
+  },
+  "Skillmatrix lang/Zertifikat-Kachel": {
+   "id": "4326:4543",
+   "key": "6d30e072a0c4256735248526a7483ad733326878",
+   "groesse": [
+    279,
+    235
+   ],
+   "eigenschaften": {
+    "Titel#4326:18": {
+     "typ": "TEXT"
+    },
+    "Aussteller#4326:19": {
+     "typ": "TEXT"
+    }
+   },
+   "bildebenen": [
+    {
+     "name": "Bild",
+     "typ": "RECTANGLE"
+    }
+   ]
+  },
+  "Skillmatrix lang/Tools": {
+   "id": "4327:1388",
+   "key": "465c73c544bd0ec682859bab347017710b93559a",
+   "groesse": [
+    1188,
+    426
+   ],
+   "eigenschaften": {},
+   "exponiert": [
+    "Bewertung",
+    "Karte 1",
+    "Karte 2",
+    "Karte 3",
+    "Karte 4",
+    "Karte 5",
+    "Karte 6",
+    "Karte 7",
+    "Karte 8",
+    "Karte 9",
+    "Karten"
+   ]
+  },
+  "Skillmatrix lang/Kernkompetenzen": {
+   "id": "4327:1499",
+   "key": "70c90f73784babe0fdd63daa6e9a1318d5f8d0e3",
+   "groesse": [
+    1188,
+    2404
+   ],
+   "eigenschaften": {
+    "Kategorie 2#4327:0": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kategorie 3#4327:1": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kategorie 4#4327:2": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kategorie 5#4327:3": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kategorie 6#4327:4": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kategorie 7#4327:5": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kategorie 8#4327:6": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    }
+   },
+   "exponiert": [
+    "Bewertung",
+    "Karte 1",
+    "Karte 2",
+    "Karte 3",
+    "Karte 4",
+    "Karte 5",
+    "Karte 6",
+    "Karte 7",
+    "Karte 8",
+    "Karte 9",
+    "Kategorie",
+    "Kategorie 1",
+    "Kategorie 2",
+    "Kategorie 3",
+    "Kategorie 4",
+    "Kategorie 5",
+    "Kategorie 6",
+    "Kategorie 7",
+    "Kategorie 8"
+   ]
+  },
+  "Skillmatrix lang/Rumpf": {
+   "id": "4357:5495",
+   "key": "260b2abc21cda92604a82e5243814557dde2ce71",
+   "groesse": [
+    1444,
+    3843
+   ],
+   "eigenschaften": {},
+   "exponiert": [
+    "Bewertung",
+    "Erklärung",
+    "Kachel 1",
+    "Kachel 2",
+    "Kachel 3",
+    "Kachel 4",
+    "Kachel 5",
+    "Kachel 6",
+    "Kachel 7",
+    "Kachel 8",
+    "Karte 1",
+    "Karte 2",
+    "Karte 3",
+    "Karte 4",
+    "Karte 5",
+    "Karte 6",
+    "Karte 7",
+    "Karte 8",
+    "Karte 9",
+    "Karten",
+    "Kategorie",
+    "Kategorie 1",
+    "Kategorie 2",
+    "Kategorie 3",
+    "Kategorie 4",
+    "Kategorie 5",
+    "Kernkompetenzen",
+    "Tag 1",
+    "Tag 2",
+    "Tag 3",
+    "Tag 4",
+    "Tag 5",
+    "Tag 6",
+    "Tag 7",
+    "Tag 8",
+    "Tools",
+    "Zertifikate"
+   ],
+   "bildebenen": [
+    {
+     "name": "Bild",
+     "typ": "RECTANGLE"
+    }
+   ]
+  },
+  "A4/Kopfzeile": {
+   "id": "4369:3580",
+   "key": "a9260f0ab20fa2d65c59bff74fcc6985261ff06a",
+   "groesse": [
+    428,
+    14
+   ],
+   "eigenschaften": {
+    "Badge anzeigen#4369:6": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    }
+   },
+   "exponiert": [
+    "Verfügbarkeit"
+   ]
+  },
+  "A4/Fuß": {
+   "id": "4369:6285",
+   "key": "e8b2a0c2c710c157233fd38856142d7ca7337765",
+   "groesse": [
+    475,
+    65
+   ],
+   "eigenschaften": {},
+   "exponiert": [
+    "Adresse",
+    "Ansprechpartner",
+    "Kontakt"
+   ]
+  },
+  "A4/Abschnittstitel": {
+   "id": "4368:3612",
+   "key": "bec2bbfb2912445ca8e8c9d69f9d7390f68a6a1e",
+   "groesse": [
+    122,
+    19
+   ],
+   "eigenschaften": {
+    "Icon anzeigen#4368:4": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Icon#4368:5": {
+     "typ": "INSTANCE_SWAP"
+    },
+    "Titel#4368:6": {
+     "typ": "TEXT"
+    }
+   }
+  },
+  "A4/Badge": {
+   "id": "4368:3573",
+   "key": "c5002b0fe4a79705c204966f03264a9b7c03b0bd",
+   "groesse": [
+    131,
+    20
+   ],
+   "eigenschaften": {
+    "Text#4368:0": {
+     "typ": "TEXT"
+    }
+   }
+  },
+  "A4/Tag": {
+   "id": "4368:3580",
+   "key": "d776d927a1eade4140bc5adb719ca536fbc6dbba",
+   "groesse": [
+    32,
+    21
+   ],
+   "eigenschaften": {
+    "Text#4368:1": {
+     "typ": "TEXT"
+    },
+    "Art": {
+     "typ": "VARIANT",
+     "optionen": [
+      "Qualifikation",
+      "Schwerpunkt",
+      "Zertifikat"
+     ]
+    }
+   }
+  },
+  "A4/Bewertung": {
+   "id": "4368:3611",
+   "key": "40434e8885f84c6a25b334608da88848e0e1e0bf",
+   "groesse": [
+    46,
+    6
+   ],
+   "eigenschaften": {
+    "Bewertung": {
+     "typ": "VARIANT",
+     "optionen": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+     ]
+    }
+   }
+  },
+  "A4/Trennlinie": {
+   "id": "4368:3572",
+   "key": "753625367801f7cf07245b9a3d75fdfe3a26aad1",
+   "groesse": [
+    428,
+    1
+   ],
+   "eigenschaften": {}
+  },
+  "A4/Kontaktspalte": {
+   "id": "4369:3573",
+   "key": "0ab17386c0cf463cbe4ae42224f11c7a22066e36",
+   "groesse": [
+    87,
+    52
+   ],
+   "eigenschaften": {
+    "Label#4369:0": {
+     "typ": "TEXT"
+    },
+    "Name#4369:1": {
+     "typ": "TEXT"
+    },
+    "Name anzeigen#4369:2": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Wert 1#4369:3": {
+     "typ": "TEXT"
+    },
+    "Wert 2#4369:4": {
+     "typ": "TEXT"
+    },
+    "Wert 2 anzeigen#4369:5": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    }
+   }
+  },
+  "A4/Icon": {
+   "id": "4369:7109",
+   "key": "9a12ce1b5b666313c803fcafaa465af7759e1e5a",
+   "groesse": [
+    14,
+    14
+   ],
+   "eigenschaften": {
+    "Art": {
+     "typ": "VARIANT",
+     "optionen": [
+      "Zertifikate",
+      "Kernkompetenzen",
+      "Tools"
+     ]
+    }
+   }
+  },
+  "Skillmatrix A4/Fotokarte": {
+   "id": "4376:4818",
+   "key": "c120ea2529557dc99a5570c28909aa33df12dd1e",
+   "groesse": [
+    108,
+    99
+   ],
+   "eigenschaften": {
+    "Foto anzeigen#4377:36": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    }
+   },
+   "bildebenen": [
+    {
+     "name": "Foto",
+     "typ": "RECTANGLE"
+    }
+   ]
+  },
+  "Skillmatrix A4/Kategorie-Label": {
+   "id": "4376:4820",
+   "key": "b848e3c1acbd5d9ea99fec747641dc527bf8646e",
+   "groesse": [
+    428,
+    17
+   ],
+   "eigenschaften": {
+    "Kategorie#4376:0": {
+     "typ": "TEXT"
+    },
+    "Label-Text anzeigen#4376:1": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    }
+   }
+  },
+  "Skillmatrix A4/Kompetenz": {
+   "id": "4376:4935",
+   "key": "72a758b7f83e73697d679e8add17ae2554854688",
+   "groesse": [
+    202,
+    58
+   ],
+   "eigenschaften": {
+    "Titel#4376:2": {
+     "typ": "TEXT"
+    },
+    "Beschreibung#4376:3": {
+     "typ": "TEXT"
+    },
+    "Trennlinie oben anzeigen#4376:4": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    }
+   },
+   "exponiert": [
+    "Bewertung"
+   ]
+  },
+  "Skillmatrix A4/Zertifikat-Kachel": {
+   "id": "4377:4843",
+   "key": "bdae6ea824ad0eaa2c41fbca39630d64ff600e95",
+   "groesse": [
+    95,
+    100
+   ],
+   "eigenschaften": {
+    "Titel#4377:0": {
+     "typ": "TEXT"
+    },
+    "Aussteller#4377:4": {
+     "typ": "TEXT"
+    },
+    "Aussteller anzeigen#4377:8": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Anzahl#4377:12": {
+     "typ": "TEXT"
+    },
+    "Art": {
+     "typ": "VARIANT",
+     "optionen": [
+      "Bild",
+      "Platzhalter",
+      "Bündel"
+     ]
+    }
+   },
+   "bildebenen": [
+    {
+     "name": "Bild",
+     "typ": "RECTANGLE"
+    }
+   ]
+  },
+  "Skillmatrix A4/Qualifikationskarte": {
+   "id": "4377:7131",
+   "key": "4a2af5402ce2c53b1ad5113df1036d1d2366f562",
+   "groesse": [
+    428,
+    122
+   ],
+   "eigenschaften": {
+    "Titel#4377:16": {
+     "typ": "TEXT"
+    },
+    "Satz#4377:17": {
+     "typ": "TEXT"
+    },
+    "Satz anzeigen#4377:18": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tags anzeigen#4377:19": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tag 2#4377:20": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tag 3#4377:21": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tag 4#4377:22": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tag 5#4377:23": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tag 6#4377:24": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tag 7#4377:25": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tag 8#4377:26": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Tag 9#4377:27": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Tag 10#4377:28": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    }
+   },
+   "exponiert": [
+    "Tag 1",
+    "Tag 2",
+    "Tag 3",
+    "Tag 4",
+    "Tag 5",
+    "Tag 6",
+    "Tag 7",
+    "Tag 8",
+    "Tag 9",
+    "Tag 10"
+   ]
+  },
+  "Skillmatrix A4/Hero": {
+   "id": "4378:4009",
+   "key": "3dc40c131d290f5e97ad00aaa73fc431328ae2d0",
+   "groesse": [
+    428,
+    174
+   ],
+   "eigenschaften": {
+    "Name#4378:0": {
+     "typ": "TEXT"
+    },
+    "Rolle#4378:1": {
+     "typ": "TEXT"
+    },
+    "Beschreibung#4378:2": {
+     "typ": "TEXT"
+    },
+    "Schwerpunkte anzeigen#4378:3": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Schwerpunkt 2#4378:4": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Schwerpunkt 3#4378:5": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Schwerpunkt 4#4378:6": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    }
+   },
+   "exponiert": [
+    "Fotokarte",
+    "Schwerpunkt 1",
+    "Schwerpunkt 2",
+    "Schwerpunkt 3",
+    "Schwerpunkt 4"
+   ],
+   "bildebenen": [
+    {
+     "name": "Foto",
+     "typ": "RECTANGLE"
+    }
+   ]
+  },
+  "Skillmatrix A4/Kategorie": {
+   "id": "4378:7150",
+   "key": "b683fd8577caf8aabaebdaab301f030cb5ed6422",
+   "groesse": [
+    428,
+    134
+   ],
+   "eigenschaften": {
+    "Kompetenz 2#4378:7": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kompetenz 3#4378:8": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kompetenz 4#4378:9": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kompetenz 5#4378:10": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kompetenz 6#4378:11": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    }
+   },
+   "exponiert": [
+    "Bewertung",
+    "Kompetenz 1",
+    "Kompetenz 2",
+    "Kompetenz 3",
+    "Kompetenz 4",
+    "Kompetenz 5",
+    "Kompetenz 6",
+    "Label"
+   ]
+  },
+  "Skillmatrix A4/Zertifikate": {
+   "id": "4378:7236",
+   "key": "a2c71e7df9fa9a006b0de00566866e635e39e471",
+   "groesse": [
+    428,
+    393
+   ],
+   "eigenschaften": {
+    "Überschrift anzeigen#4378:12": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Qualifikationskarte anzeigen#4378:13": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kachel 2#4378:14": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kachel 3#4378:15": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kachel 4#4378:16": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kachel 5#4378:17": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kachel 6#4378:18": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kachel 7#4378:19": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kachel 8#4378:20": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kachel 9#4378:21": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kachel 10#4378:22": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kachel 11#4378:23": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kachel 12#4378:24": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kacheln anzeigen#4385:0": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    }
+   },
+   "exponiert": [
+    "Kachel 1",
+    "Kachel 2",
+    "Kachel 3",
+    "Kachel 4",
+    "Kachel 5",
+    "Kachel 6",
+    "Kachel 7",
+    "Kachel 8",
+    "Kachel 9",
+    "Kachel 10",
+    "Kachel 11",
+    "Kachel 12",
+    "Qualifikationskarte",
+    "Tag 1",
+    "Tag 2",
+    "Tag 3",
+    "Tag 4",
+    "Tag 5",
+    "Tag 6",
+    "Tag 7",
+    "Tag 8",
+    "Überschrift"
+   ],
+   "bildebenen": [
+    {
+     "name": "Bild",
+     "typ": "RECTANGLE"
+    }
+   ]
+  },
+  "Skillmatrix A4/Kernkompetenzen": {
+   "id": "4378:7341",
+   "key": "b8aa752381e86cf376e2f38716efb119c44529ba",
+   "groesse": [
+    428,
+    468
+   ],
+   "eigenschaften": {
+    "Überschrift anzeigen#4378:25": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kategorie 2#4378:26": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kategorie 3#4378:27": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kategorie 4#4378:28": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kategorie 5#4378:29": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    }
+   },
+   "exponiert": [
+    "Bewertung",
+    "Kategorie 1",
+    "Kategorie 2",
+    "Kategorie 3",
+    "Kategorie 4",
+    "Kategorie 5",
+    "Kompetenz 1",
+    "Kompetenz 2",
+    "Kompetenz 3",
+    "Kompetenz 4",
+    "Label",
+    "Überschrift"
+   ]
+  },
+  "Skillmatrix A4/Tools": {
+   "id": "4378:7648",
+   "key": "bcdb09a658e070decb5baa66839dbdeb25ef4d8b",
+   "groesse": [
+    428,
+    153
+   ],
+   "eigenschaften": {
+    "Überschrift anzeigen#4379:33": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    }
+   },
+   "exponiert": [
+    "Bewertung",
+    "Einträge",
+    "Kompetenz 1",
+    "Kompetenz 2",
+    "Kompetenz 3",
+    "Kompetenz 4",
+    "Label",
+    "Überschrift"
+   ]
+  },
+  "Skillmatrix A4/Seite": {
+   "id": "4379:8085",
+   "key": "361876873cbb3d8d7e4fd50805919971a2f483e0",
+   "groesse": [
+    595,
+    842
+   ],
+   "eigenschaften": {
+    "Hero anzeigen#4379:27": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Zertifikate anzeigen#4379:28": {
+     "typ": "BOOLEAN",
+     "vorgabe": true
+    },
+    "Kernkompetenzen anzeigen#4379:29": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Tools anzeigen#4379:30": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Zertifikate am Ende anzeigen#4379:31": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Fuß anzeigen#4379:32": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    }
+   },
+   "exponiert": [
+    "Adresse",
+    "Ansprechpartner",
+    "Bewertung",
+    "Einträge",
+    "Fotokarte",
+    "Fuß",
+    "Hero",
+    "Kachel 1",
+    "Kachel 2",
+    "Kachel 3",
+    "Kachel 4",
+    "Kachel 5",
+    "Kachel 6",
+    "Kachel 7",
+    "Kachel 8",
+    "Kategorie 1",
+    "Kategorie 2",
+    "Kategorie 3",
+    "Kernkompetenzen",
+    "Kompetenz 1",
+    "Kompetenz 2",
+    "Kompetenz 3",
+    "Kompetenz 4",
+    "Kontakt",
+    "Kopfzeile",
+    "Label",
+    "Qualifikationskarte",
+    "Schwerpunkt 1",
+    "Schwerpunkt 2",
+    "Schwerpunkt 3",
+    "Tag 1",
+    "Tag 2",
+    "Tag 3",
+    "Tag 4",
+    "Tag 5",
+    "Tag 6",
+    "Tag 7",
+    "Tag 8",
+    "Tools",
+    "Verfügbarkeit",
+    "Zertifikate",
+    "Zertifikate (Ende)",
+    "Überschrift"
+   ],
+   "bildebenen": [
+    {
+     "name": "Foto",
+     "typ": "RECTANGLE"
+    },
+    {
+     "name": "Bild",
+     "typ": "RECTANGLE"
+    }
+   ]
+  }
+ }
+}

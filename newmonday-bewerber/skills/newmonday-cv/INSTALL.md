@@ -95,6 +95,12 @@ Gebraucht wird dafür:
   lassen sich nicht beschreiben. Wer keine hat, lässt den Skill eine anlegen.
 - **`pypdf`**, siehe Abhängigkeiten. Ohne es lässt sich die Seitenaufteilung nicht
   aus dem PDF lesen, und ohne die wird kein Frame gebaut.
+- **Zugriff auf die Master-Bibliothek** „Portfolio - CV Master“ (veröffentlicht,
+  im Team der Zieldatei verfügbar). Daraus baut der Skill die Seiten als
+  Instanzen. Fehlt sie, baut er rohe Frames – das Ergebnis sieht gleich aus,
+  erreicht aber kein Bibliotheks-Update.
+- **`pymupdf`** (`pip3 install pymupdf`), empfohlen: setzt SVG-Logos in PNG um,
+  die eine Bildfüllung in der Bibliothek braucht.
 
 Gefragt wird gleich zu Beginn, zusammen mit der Sprache — und gefragt wird nur
 noch, **wohin**: in ein bestehendes File, dann mit Link, oder in ein neues, das der

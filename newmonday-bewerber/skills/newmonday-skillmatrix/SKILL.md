@@ -93,7 +93,7 @@ Skills vor; im Einzellauf gilt er nicht.
 | Schritt 0 | aus `auftrag.json` |
 |---|---|
 | Sprache | `sprache` |
-| Figma | Die Frames (lang und A4) entstehen, wenn `figma.aktiv` true ist – eine eigene Frage danach gibt es nicht. `figma.link` trägt die `node-id` der Kandidatenseite, also gilt „Zielseite“ mit `node-id` (`references/figma.md` bzw. `figma-vorlage.md`). |
+| Figma | Die Frames (lang und A4) entstehen, wenn `figma.aktiv` true ist – eine eigene Frage danach gibt es nicht. `figma.link` trägt die `node-id` der Kandidatenseite, also gilt „Zielseite“ mit `node-id` (`references/figma.md`). |
 | Material | `material` – Zertifikate aus dem Ordner `material.zertifikate`; je Datei ein Eintrag, Titel, Aussteller und Datum vom Zertifikat abgelesen, neueste zuerst |
 | Verfügbarkeit | wandert in die Fragen der Phase *vorbereiten* |
 | Anfrage | `anfrage`, falls der Auftrag eine mitbringt (Schritt 0, Punkt 6); fehlt das Feld, gilt die Reihenfolge ohne Anfrage |
@@ -902,100 +902,70 @@ Entfällt, wenn in Schritt 0 „Nein" kam oder kein Link vorliegt. **Die PDFs si
 an dieser Stelle fertig** und gehen so oder so raus.
 
 Auch in Figma entstehen **beide Fassungen**: der lange Frame und **rechts
-daneben die A4-Seiten** – je PDF-Seite ein Frame 595 × 842 („Skillmatrix A4 —
-Vorname Nachname — Seite n“), 100 Abstand zum langen Frame und untereinander,
-oben bündig mit ihm. Die Seitenaufteilung kommt aus dem A4-PDF, wie beim
-Lebenslauf. Die A4-Seiten werden immer aus dem Bauplan gezeichnet
-(`arbeit/figma_plan_a4.json`, Rezept in `references/figma.md`) – auch in der
-Masterdatei, denn dort gibt es für sie keine Vorlage.
+daneben die A4-Seiten** – je PDF-Seite eine („Skillmatrix A4 — Vorname
+Nachname — Seite n“), 100 Abstand zum langen Frame und untereinander, oben
+bündig mit ihm. Die Seitenaufteilung kommt aus dem A4-PDF, wie beim
+Lebenslauf.
 
-**Für den langen Frame gibt es zwei Wege, und die Wahl ist keine Geschmacksfrage.** Zuerst nachsehen,
-ob die Zieldatei die New-Monday-Komponenten führt:
-
-```js
-figma.root.children.map(p => p.name)   // beginnt eine Seite mit "Components"? (Master: "Components / Masterfile")
-await figma.getNodeByIdAsync("4158:4223")   // der Vorlagenframe "Skillmatrix"
-```
-
-| Zieldatei | Weg | Rezept |
-|---|---|---|
-| **Masterdatei** `Portfolio - CV Master` oder jede Datei mit den New-Monday-Komponenten | **Vorlage klonen und befüllen** | `references/figma-vorlage.md` |
-| fremde oder leere Datei ohne diese Komponenten | aus dem Bauplan zeichnen | `references/figma.md` |
-
-**Im Zweifel der erste Weg.** Gezeichnet wird jedes Element aus Maßen — und
-jedes Element, für das keine Maße vorliegen, wird geraten. Genau dort entstehen
-erfundene Icons, Verläufe und Bildinhalte. Ein Klon der Vorlage kann das nicht,
-weil er nichts neu erfindet, und er bleibt an die Komponenten der Datei
-gebunden: Ändert jemand später `Skill Card`, ziehen alle Matrizen mit.
-
-#### Weg A — Vorlage klonen (Masterdatei)
-
-Kein Bauplan nötig. Den Vorlagenframe `Skillmatrix` (Seite „Skillmatrix“,
-Knoten `4158:4223`) klonen, auf die Zielseite hängen, Texte über `characters`
-matchen und überschreiben, `Dots` über die Variante `Filled` setzen, Foto über
-den `imageHash` einsetzen. Vollständig mit allen Fallstricken in
-`references/figma-vorlage.md` — darunter die drei, die still danebengehen:
-
-- **Sektionen ohne Beleg entfernen**, nicht mit Vorlageninhalt stehen lassen.
-  Ohne Zertifikate im Eingang fliegt die Zertifikatssektion raus; sonst
-  behaupten die Zertifikatsbilder der Vorlage Qualifikationen, die der Kandidat
-  nie erworben hat. **Mit Zertifikaten fliegt sie ebenfalls raus** und wird
-  durch den Schritt „Zertifikate“ aus dem Bauplan ersetzt: Die Vorlage zeigt
-  noch die alte Karte und das Bilderraster, für Kacheln und die neue Karte
-  „Erworbene Qualifikationen“ gibt es im Master keine Komponente.
-- **Kategorien aus einer vollständigen `Skill Section` klonen**, nicht mit
-  `resetOverrides()` zurücksetzen — in der Vorlage sind Kartenslots per Override
-  gelöscht, und `resetOverrides()` holt sie zwar zurück, stellt aber das Raster
-  auf die Master-Komponente um (Abstände 16 statt 24). Danach die Kartenhöhen je
-  Zeile angleichen, mindestens 108.
-- **Kein Wert von Hand.** Überschrieben werden nur Inhalte — Texte,
-  `Dots`-Variante, Foto, Sichtbarkeit. Farben, Abstände, Schatten und Schriften
-  kommen aus den Komponenten und der Library; jede andere Überschreibung kappt
-  die Bindung ans Design System genau dort. Das gilt auch für die leeren
-  Punkte: Der Klon zeigt sie so, wie die Komponente `Dots` sie führt – bis sie
-  in der Masterdatei als Ringe nachgezogen ist, flächig. Das in der Übergabe
-  nennen, nicht im Klon umfärben.
-
-#### Weg B — aus dem Bauplan zeichnen (fremde Datei)
-
-Erst die Baupläne, dann bauen:
+**Beide entstehen aus Instanzen der Master-Bibliothek** („Portfolio - CV
+Master“, Keys in `assets/master-bibliothek.json`): der lange Frame aus
+`Skillmatrix lang/Kopfzeile`, `/Hero`, `/Rumpf` und `/Fuß`, jede A4-Seite als
+Instanz von `Skillmatrix A4/Seite`, deren Booleans die Blöcke der Seite
+schalten. Befüllt wird über Component-Properties, exponierte Instanzen und
+Bild-Overrides – so kommt jede spätere Änderung am Master per
+Bibliotheks-Update in die Kandidatendatei. Rezept, Tabelle der befüllten
+Properties, Mengen und bekannte Lücken in `references/figma.md`.
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py skillmatrix.json arbeit/ \
         --pdf "ausgabe/New-Monday - … - Skillmatrix.pdf" \
         --pdf-a4 "ausgabe/New-Monday - … - Skillmatrix A4.pdf"
+python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py --skript vorflug arbeit/ --seite <ID>
 ```
 
-Das schreibt `arbeit/figma_plan.json` (lang) und `arbeit/figma_plan_a4.json`
-(A4): die Bauschritte mit fertigen Knotenbäumen — alle Werte aus
-`assets/tokens.json`, dieselben wie im PDF. `--pdf` trägt die gemessene
-Seitenhöhe als **Sollwert** in den langen Plan; am Ende wird die Frame-Höhe
-dagegen gehalten (±20pt sind normal, mehr ist ein Hinweis). `--pdf-a4` liefert
-die Seitenaufteilung der A4-Fassung – ohne das A4-PDF entsteht kein A4-Plan
-(fehlt die Option, sucht das Skript das A4-PDF neben dem langen). Den A4-Plan
-braucht auch Weg A.
+Danach in dieser Reihenfolge, je ein Aufruf: **Vorflug** (Seiten, Schriften,
+ein Import per Key) → **ein `upload_assets`** für alle Bilder, Hashes per
+`figma_assets.py --bilder` → **lang** und **A4** (`--skript lang|a4 … --bilder
+arbeit/bilder.json` gibt den fertigen `use_figma`-Code aus) → ein
+`get_screenshot` je Frame. Figma begrenzt die Aufrufe je Sitz – nichts
+zwischendurch nachsehen, was die Rückgabe schon sagt.
 
-Gebaut wird mit `use_figma` nach dem Rezept in `references/figma.md`. Dort stehen
-Linkauslesung, Zielseite, Schnittnamen, der Baukasten für jeden Aufruf, die
-Bauschritte und der Weg für Foto und Zertifikatsbilder. Das Skript rechnet die
-Höhen des Plans nach („Zertifikate: 8 Kacheln, Sektion 803pt“, „Rahmenhöhe
-nachgerechnet“) – die Zertifikatssektion hält auch in Figma die 924.
+**Vor dem ersten Aufruf den Skill `figma-use` laden** — ohne ihn sind die
+Fallstricke des Plugin-API nicht zu umgehen.
 
----
+Drei Stellen, die still danebengehen:
 
-**Für beide Wege gilt: vor dem ersten Aufruf den Skill `figma-use` laden** —
-ohne ihn sind die Fallstricke des Plugin-API nicht zu umgehen.
+- **Nie eine Instanz lösen, kein Wert von Hand.** Gesetzt werden nur Inhalte:
+  Texte, Booleans, Varianten, Bilder, Sichtbarkeit und die Paddings des
+  Bildfelds der Zertifikatskacheln. Jede andere Überschreibung kappt die
+  Bindung an den Master genau dort. Die Rückgabe `oben` zeigt nur Instanzen.
+- **Kein Vorgabeinhalt bleibt stehen.** Was das Material nicht hergibt, schaltet
+  ein Boolean ab oder blendet die Sichtbarkeit aus; ein Bild ohne Upload wird
+  ausgeblendet, nie mit dem Beispielbild der Komponente geliefert. `reste` in
+  der Rückgabe muss leer sein.
+- **Zertifikatsbilder über das Bildfeld.** Die Breite einer Instanz lässt sich
+  nicht überschreiben – der Plan setzt die Paddings der Bühne so, dass das Bild
+  das Seitenverhältnis der Datei hat (FIT). Das Foto kommt als fertiger
+  Zuschnitt aus Schritt 1a (FILL).
+
+**Rückfall: roh bauen.** Meldet der Vorflug `bibliothek_ok: false` oder
+`figma_plan.py` für eine Fassung „sprengt die Komponenten“ (mehr Kategorien,
+Karten, Kacheln oder Tags, als die Komponenten tragen), kommt diese Fassung
+aus den rohen Bauplänen (`arbeit/figma_plan.json`, `figma_plan_a4.json`,
+Rezept in `references/figma-roh.md`). Das Ergebnis hängt an keiner Komponente
+– das steht in der Übergabe, mit dem Grund.
 
 Vier Dinge stehen fest:
 
 - **Figma hält die PDFs nicht auf.** Schlägt irgendetwas fehl — Werkzeug nicht
   verbunden, nicht angemeldet, keine Bearbeitungsrechte, falscher Dateityp, Proxy
-  blockt —, werden die PDFs trotzdem übergeben und der Grund genannt. Nicht
-  abbrechen, nicht nachträglich am PDF drehen, und keinen zweiten Anlauf mit
-  anderen Daten.
-- **In eine fremde Datei kommt nichts Globales.** Keine Text-Styles, keine
-  Variablen, keine Komponenten. Der Frame trägt rohe Werte. Was schon in der
-  Datei liegt, wird nicht umbenannt, nicht verschoben und nicht gelöscht.
+  blockt, Aufrufgrenze erreicht —, werden die PDFs trotzdem übergeben und der
+  Grund genannt. Nicht abbrechen, nicht nachträglich am PDF drehen, und keinen
+  zweiten Anlauf mit anderen Daten.
+- **In die Zieldatei kommt nichts Globales** außer den importierten
+  Bibliothekskomponenten. Keine Text-Styles, keine Variablen, keine eigenen
+  Komponenten. Was schon in der Datei liegt, wird nicht umbenannt, nicht
+  verschoben und nicht gelöscht; der Master wird nur gelesen.
 - **Nichts überschreiben.** Steht dort schon ein Frame gleichen Namens, kommt der
   neue daneben, nicht darüber.
 - **Kein Ersatz-Layout.** Reicht es nicht für den Frame, wird kein vereinfachter
@@ -1028,7 +998,9 @@ Beide PDFs ausgeben und in wenigen Zeilen berichten:
   vorn gerückt ist, falls das Skript das gemeldet hat.
 - **Beide PDFs** mit ihrem Dateinamen; bei der A4-Fassung die Seitenzahl.
 - **Die Figma-Frames**, falls gewünscht: der Link auf den langen Frame und auf
-  die A4-Seiten (`…?node-id=…`) und auf welcher Seite der Datei sie liegen. Ist
+  die A4-Seiten (`…?node-id=…`) und auf welcher Seite der Datei sie liegen –
+  und ob sie aus der Bibliothek kommen oder roh gebaut wurden (mit Grund), dazu
+  die Lücken der Bibliothek, die gegriffen haben (`references/figma.md`). Ist
   einer nicht zustande gekommen, steht hier stattdessen der Grund in einem Satz. Weicht
   die Frame-Höhe um mehr als 20pt von der PDF-Höhe ab, gehört auch das hierher
   – dann bricht in Figma ein Text anders um als im PDF und sollte nachgesehen
@@ -1107,12 +1079,13 @@ Fehlt nichts, steht hier nichts.
 - **Kein Inhalt aus der Vorlage bleibt stehen.** Weder ein Name noch ein
   Zertifikatsbild noch eine Beispielbeschreibung. Was das Material nicht
   hergibt, wird entfernt oder ausgeblendet – nie mit fremdem Inhalt
-  ausgeliefert. Nach jedem Figma-Lauf wird der Frame gegen die Namen aus der
-  Vorlage geprüft; ein Treffer ist ein Fehler, kein Schönheitsfehler.
+  ausgeliefert. Nach jedem Figma-Lauf muss die Rückgabe `reste` leer sein –
+  ein sichtbarer Vorgabetext der Komponente ist ein Fehler, kein
+  Schönheitsfehler.
 
 ## Wenn sich das Design System ändert
 
-Einen Wert ändern heißt `assets/tokens.json` ändern – CSS, Figma-Plan und
+Einen Wert ändern heißt `assets/tokens.json` ändern – CSS, roher Figma-Plan und
 Zuschnitt-Skripte ziehen von selbst nach. Hat sich das Design System in Figma
 geändert, gilt der Abgleich in `references/layout.md`: Werte aus der
 Masterdatei auslesen, `tokens.json` nachziehen, die Beispielmatrix rendern. Die
@@ -1126,7 +1099,8 @@ gemeinsam nach – für die A4-Fassung `assets/template-a4.html`,
 CSS-Filter, warum `body` keinen Hintergrund haben darf) stehen in
 `references/layout.md` – vor jeder Änderung lesen.
 
-**Weg A ist davon nicht betroffen** – der Klon holt alles aus den Komponenten
-und der Library. Ändert sich die Vorlage in der Masterdatei (Knoten-IDs, Layer,
-Texte), ist `references/figma-vorlage.md` nachzuziehen, insbesondere die Tabelle
-der Komponenten und die Liste der Hero-Ersetzungen.
+**Der Bibliotheksweg zieht Gestaltung von selbst nach** – Farben, Schriften und
+Abstände kommen aus dem Master. Ändern sich dort Komponenten, Keys oder
+Property-Namen, ist `assets/master-bibliothek.json` neu auszulesen (Rezept in
+`references/figma.md`, „Den Katalog neu auslesen“), bei neuen Slots oder
+umbenannten exponierten Instanzen auch `scripts/figma_bibliothek.py`.

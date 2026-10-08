@@ -1091,6 +1091,109 @@ def pruefe_figma_plan(pdf, stufen, tmp):
     return fehler
 
 
+def _bau_lesen(datei):
+    """Die Daten eines use_figma-Skripts aus figma_bibliothek.py (erste Zeile)."""
+    text = Path(datei).read_text(encoding="utf-8")
+    kopf = text.split("\n", 1)[0]
+    return json.loads(kopf[len("const BAU = "):-1]), text
+
+
+def pruefe_bibliothek(tmp):
+    """Der Bibliotheksweg (Standard fuer Figma), ohne Figma geprueft:
+    Bauskript aus dem Plan des Beispiels - nur Komponenten aus
+    master-bibliothek.json, jede Abstands-Variante vorhanden, Modus je Seite,
+    Kopfzeile vorn und Fuss hinten, Logos unverzerrt und als PNG da, Skript
+    unter der Grenze von use_figma. Dazu die Mengengrenzen: was nicht in eine
+    Komponente passt, wird gemeldet und kein Bauskript geschrieben; Aufgaben
+    werden auf mehrere Instanzen verteilt. Und: --roh schreibt keins."""
+    fehler = []
+    sys.path.insert(0, str(WURZEL / "scripts"))
+    import figma_bibliothek as fb
+    kat = fb.katalog()
+    komp = kat["komponenten"]
+    bau_datei = Path(tmp) / "figma_bau.js"
+    if not bau_datei.exists():
+        return ["Bibliothek: figma_plan.py hat kein figma_bau.js geschrieben"]
+    bau, text = _bau_lesen(bau_datei)
+    if len(text) > 50000:
+        fehler.append(f"Bibliothek: figma_bau.js hat {len(text)} Zeichen, use_figma nimmt 50 000")
+    for name in ("figma_vorflug.js", "figma_pruefung.js"):
+        if not (Path(tmp) / name).exists():
+            fehler.append(f"Bibliothek: {name} fehlt")
+    if bau["modus"] != "bauen" or bau["fassung"] != "vollständig":
+        fehler.append(f"Bibliothek: modus/fassung {bau['modus']}/{bau['fassung']}")
+    for s, k in bau["komponenten"].items():
+        if s not in komp or komp[s]["key"] != k["key"]:
+            fehler.append(f"Bibliothek: Komponente {s} nicht aus master-bibliothek.json")
+    modi = kat["verdichtung"]["modi"]
+    for i, f in enumerate(bau["frames"]):
+        if f["stufe"] not in modi:
+            fehler.append(f"Bibliothek: {f['name']} im Modus {f['stufe']}")
+        if f["kopfzeile"] != (i == 0) or f["fuss"] != (i == len(bau["frames"]) - 1):
+            fehler.append(f"Bibliothek: {f['name']} Kopfzeile/Fuss falsch gesetzt")
+        for e in f["inhalt"]:
+            if e["k"] not in bau["komponenten"]:
+                fehler.append(f"Bibliothek: {e['k']} nicht importiert")
+            if e["k"] == "abstand" and e["variante"] not in komp["abstand"]["varianten"]:
+                fehler.append(f"Bibliothek: Abstand {e['variante']} hat keine Variante")
+            if e["k"] == "profilkopf" and e["variante"] != "vollständig":
+                fehler.append("Bibliothek: Profilkopf der vollstaendigen Fassung als " + e["variante"])
+            for b in e.get("bilder") or []:
+                if not Path(b["datei"]).exists():
+                    fehler.append(f"Bibliothek: Bilddatei fehlt {b['datei']}")
+                    continue
+                if b["art"] != "logo":
+                    continue
+                if abs(b["breite"] / b["hoehe"] / b["verhaeltnis"] - 1) > 0.01:
+                    fehler.append(f"Bibliothek: Logo {Path(b['datei']).name} verzerrt im Bauskript")
+                if b["datei"].endswith(".png") and "figma_bilder" in b["datei"]:
+                    from PIL import Image
+                    with Image.open(b["datei"]) as bild:
+                        ist = bild.width / bild.height
+                    if abs(ist / b["verhaeltnis"] - 1) > 0.01:
+                        fehler.append(f"Bibliothek: PNG {Path(b['datei']).name} {ist:.3f}:1 statt "
+                                      f"{b['verhaeltnis']:.3f}:1")
+    bilder = [b for f in bau["frames"] for e in f["inhalt"] for b in e.get("bilder") or []]
+    if not any(b["art"] == "foto" for b in bilder):
+        fehler.append("Bibliothek: kein Foto im Bauskript der vollstaendigen Fassung")
+
+    plan = json.loads((Path(tmp) / "figma_plan.json").read_text(encoding="utf-8"))
+    # Anonym: andere Variante, kein Foto-Upload, keine Verweise.
+    anonym = dict(plan, fassung="anonym")
+    u = fb.Uebersetzer(anonym, Path(tmp) / "bib-anonym")
+    frames, _ = u.frames()
+    kopf = next(e for e in frames[0]["inhalt"] if e["k"] == "profilkopf")
+    if kopf["variante"] != "anonym" or kopf.get("bilder") or kopf.get("kinder"):
+        fehler.append("Bibliothek: anonymer Profilkopf mit Foto, Verweisen oder falscher Variante")
+
+    # Mengengrenze: 13 Eintraege in einer Skillset-Gruppe passen nicht.
+    voll = json.loads(json.dumps(plan))
+    for f in voll["frames"]:
+        for b in f["bloecke"]:
+            if b["art"] == "skillset":
+                b["spalten"][0][0]["eintraege"] = [f"Faehigkeit {n}" for n in range(13)]
+    ordner = Path(tmp) / "bib-grenze"
+    ordner.mkdir(exist_ok=True)
+    _, _, ueberlauf = fb.skripte(voll, ordner)
+    if not ueberlauf or (ordner / "figma_bau.js").exists():
+        fehler.append("Bibliothek: 13 Eintraege in einer Skillset-Gruppe nicht gemeldet")
+    # Aufgaben ueber der Grenze werden verteilt, nicht abgeschnitten.
+    lang = u.aufgaben({"eintraege": [f"Aufgabe {n}" for n in range(14)]})
+    texte = [k["p"]["Text"] for e in lang for k in e["kinder"].values()]
+    if len(lang) != 2 or len(texte) != 14:
+        fehler.append(f"Bibliothek: 14 Aufgaben in {len(lang)} Listen, {len(texte)} Punkte")
+
+    # --roh: nur der Plan, kein Bauskript.
+    roh = Path(tmp) / "bib-roh"
+    pdf = next(Path(tmp).glob("selbsttest.pdf"))
+    subprocess.run([sys.executable, str(WURZEL / "scripts" / "figma_plan.py"),
+                    str(WURZEL / "beispiel" / "cv.json"), str(pdf), str(roh), "--roh"],
+                   capture_output=True, text=True, cwd=str(WURZEL))
+    if not (roh / "figma_plan.json").exists() or (roh / "figma_bau.js").exists():
+        fehler.append("Bibliothek: --roh schreibt ein Bauskript oder keinen Plan")
+    return fehler
+
+
 def _logo_unverzerrt(logo, plan):
     """Traegt der Logoeintrag das Verhaeltnis seiner Datei, und passen Breite
     und Hoehe dazu? Rasterbilder werden dafuer selbst geoeffnet — der Sollwert
@@ -1709,6 +1812,7 @@ def main():
         fehler += pruefe_projektlogos(tmp)
         fehler += pruefe_design(ziel, stufen)
         fehler += pruefe_figma_plan(ziel, stufen, tmp)
+        fehler += pruefe_bibliothek(tmp)
         fehler += pruefe_anonym(ziel, tmp)
         fehler += pruefe_anonym_kanten(tmp)
         fehler += pruefe_silhouette(tmp)
@@ -1734,6 +1838,7 @@ def main():
     print(f"  Projekte:  mehrere Logos nebeneinander, gleich gross, auf der Mitte")
     print(f"  Design:    Schriften, Farben und Abstaende wie in tokens.json (Figma)")
     print(f"  Figma:     Bauplan deckt sich mit dem PDF (Seiten, Logos, Stile)")
+    print(f"  Bibliothek: Bauskript nur aus Master-Komponenten, Grenzen gemeldet, --roh als Rueckfall")
     print(f"  Anonym:    kein Name in Text, Titel, Dateiname und Frames, Silhouette da")
     print(f"  Platzhalter: Bild aus dem Design, eingesetzt in den Fotoplatz, SVG und PNG")
     print(f"  Skillset:  immer Faehigkeiten, Branchen, Tools, Sprachen - 2 x 2, Sprachvorgabe")

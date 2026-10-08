@@ -3,6 +3,7 @@
 
     python3 scripts/figma_assets.py <url> <datei> [<url> <datei> ...]
     python3 scripts/figma_assets.py --paare arbeit/uploads.json
+    python3 scripts/figma_assets.py --ziele arbeit/figma_bau_ergebnis.json arbeit/upload_antwort.json
 
 Die JSON-Form ist der sichere Weg: Die signierten URLs sind lang und tragen
 Sonderzeichen, die in der Kommandozeile leicht zerbrechen.
@@ -12,6 +13,12 @@ Sonderzeichen, die in der Kommandozeile leicht zerbrechen.
 Warum ein eigenes Skript und kein curl: Der Skill gibt in `allowed-tools` nur
 `Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*)` frei. So bleibt die Zeile, wie sie
 ist, und der Weg funktioniert auch dort, wo curl nicht freigegeben ist.
+
+--ziele ist der Weg fuer den Bibliotheksweg: die Antwort des Bauaufrufs
+(figma_bau.js, mit bilder_fill/bilder_fit: Traeger-ID und Datei) und die
+Antwort(en) von upload_assets (uploads: submitUrl und targetNodeId) - beide
+als JSON gespeichert, die Upload-Antworten auch als Liste. Zugeordnet wird
+ueber die Traeger-ID, nicht ueber die Reihenfolge.
 
 Nur fuer Rasterbilder und dort, wo `upload_assets` gebraucht wird. SVG-Logos
 gehen nicht diesen Weg, sondern direkt ueber figma.createNodeFromSvg() —
@@ -63,7 +70,38 @@ def hochladen(url, datei):
         return {"datei": str(datei), "ok": False, "fehler": f"kein Netz: {fehler}"}
 
 
+def _uploads(wert):
+    """Alle {submitUrl|url, targetNodeId} aus einer oder mehreren Antworten."""
+    if isinstance(wert, list):
+        return [u for w in wert for u in _uploads(w)]
+    if isinstance(wert, dict):
+        if "targetNodeId" in wert and (wert.get("submitUrl") or wert.get("url")):
+            return [wert]
+        return [u for w in wert.values() for u in _uploads(w)]
+    return []
+
+
+def ziele_lesen(bau, antworten):
+    ergebnis = json.loads(Path(bau).read_text(encoding="utf-8"))
+    dateien = {b["nodeId"]: b["datei"]
+               for b in (ergebnis.get("bilder_fill") or []) + (ergebnis.get("bilder_fit") or [])}
+    paare, fehlt = [], []
+    for u in _uploads(json.loads(Path(antworten).read_text(encoding="utf-8"))):
+        datei = dateien.get(u["targetNodeId"])
+        if datei:
+            paare.append((u.get("submitUrl") or u.get("url"), datei))
+        else:
+            fehlt.append(u["targetNodeId"])
+    if fehlt:
+        raise SystemExit("Upload-Ziel ohne Datei im Bauergebnis: " + ", ".join(fehlt))
+    return paare
+
+
 def paare_lesen(argv):
+    if argv[:1] == ["--ziele"]:
+        if len(argv) < 3:
+            raise SystemExit("--ziele braucht das Bauergebnis und die Upload-Antwort")
+        return ziele_lesen(argv[1], argv[2])
     if argv[:1] == ["--paare"]:
         if len(argv) < 2:
             raise SystemExit("--paare braucht eine JSON-Datei")

@@ -207,6 +207,8 @@ def pruefe_auftrag(d: dict) -> tuple[list[str], list[str]]:
     fig = d.get("figma", {})
     if isinstance(fig, dict) and "neues_file" in fig and not isinstance(fig["neues_file"], bool):
         f.append("figma.neues_file: muss true oder false sein")
+    if isinstance(fig, dict) and "bibliothek" in fig and not isinstance(fig["bibliothek"], bool):
+        f.append("figma.bibliothek: muss true oder false sein")
     if not isinstance(fig, dict) or not isinstance(fig.get("aktiv"), bool):
         f.append("figma.aktiv: muss true oder false sein")
     elif fig["aktiv"]:

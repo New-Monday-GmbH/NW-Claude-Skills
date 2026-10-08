@@ -127,8 +127,9 @@ Hand unter `logos`. Ein Umbruch hinter einem Bindestrich („Scrum-\nTeam“)
 zählt beim Textvergleich als Bindestrich: Im PDF ist er ein harter Umbruch, in
 Figma ein weicher.
 
-Dazu prüft er die Tokens (`pruefe()`) und rendert das Beispiel-Deck
-(`pruefe_pdf()`). Nach jeder Änderung an Layout, Tokens oder
+Dazu prüft er die Tokens (`pruefe()`), rendert das Beispiel-Deck
+(`pruefe_pdf()`) und plant es ohne Figma im Bibliotheksweg: jede Folie mit
+Komponente, jede Property im Katalog `assets/master-bibliothek.json`. Nach jeder Änderung an Layout, Tokens oder
 `figma_plan.py` laufen lassen; er schreibt nichts in den Skill-Ordner.
 
 **Wird eine Vorlage in Figma geändert**, die Sollwerte neu lesen – rein

@@ -21,6 +21,15 @@ Optionen:
   --deckblatt normal|kompakt|eng   Stufe von Hand setzen (schlaegt --stufen)
   --stationen normal|kompakt|eng   dito
 
+Figma (Bibliotheksweg, Standard - references/figma.md):
+  --seite <id>       Zielseite in Figma (aus der node-id des Links); ohne: neue Seite
+  --unter <id>       anonyme Fassung unter diese Seite der vollstaendigen setzen
+  --verboten "<Name>"  Namensteile, die die Pruefung der anonymen Fassung sucht
+  --frame-ids a,b    IDs der gebauten Seiten fuer figma_pruefung.js (sonst per Name)
+  --roh              nur der Plan, keine Skripte - der rohe Weg (Rueckfall)
+Daneben schreibt das Skript figma_vorflug.js, figma_bau.js, figma_pruefung.js
+und figma_bilder/ (scripts/figma_bibliothek.py).
+
 Zertifikate stehen immer als Tags, nur mit dem Titel (Vorgabe vom 03.10.2026);
 ein --zertifikate aus aelteren Aufrufen und "zertifikate" in einer aelteren
 stufen.json werden ignoriert.
@@ -96,8 +105,13 @@ def nm_logo(breite, hoehe):
             "verhaeltnis": round(seitenverhaeltnis("nm-logo.svg"), 4)}
 
 
-def block(art, abstand_oben=0, marke=None, einzug=0, **rest):
+def block(art, abstand_oben=0, marke=None, einzug=0, token=None, **rest):
+    """token ist der Name des Abstands in tokens.json (kopf_intro, station, ...)
+    - zugleich die Variante von CV/Abstand in der Master-Bibliothek. Der
+    Bibliotheksweg setzt den Abstand ueber diesen Namen, nicht ueber die Zahl."""
     b = {"art": art, "abstand_oben": abstand_oben, "einzug": einzug}
+    if token and abstand_oben:
+        b["token"] = token
     if marke:
         b["marke"] = norm(marke)
     b.update(rest)
@@ -127,7 +141,7 @@ def bloecke_bauen(daten, deckblatt, stationen):
         logo=nm_logo(r["kopflogo_breite"], r["kopflogo_hoehe"])))
 
     # Profilkopf: Foto links, rechts Name, Rolle, Erfahrung, Verweise.
-    zeilen = [dict(text=norm(person.get(f)), **typo("rolle"))
+    zeilen = [dict(text=norm(person.get(f)), feld=f, **typo("rolle"))
               for f in ("rolle", "erfahrung") if person.get(f)]
     for i, z in enumerate(zeilen):
         z["abstand_oben"] = a["rolle_erfahrung"] if i else 0
@@ -144,7 +158,7 @@ def bloecke_bauen(daten, deckblatt, stationen):
             "unterstrichen": bool(l.get("url")),
         })
     bloecke.append(block(
-        "intro", abstand_oben=a["kopf_intro"], anker="erste",
+        "intro", abstand_oben=a["kopf_intro"], token="kopf_intro", anker="erste",
         fotospalte=r["fotospalte"], fotoabstand=r["fotoabstand"],
         infospalte=ab["inhaltsspalte"],
         # Die anonyme Fassung setzt statt des Fotos die Silhouette, und die ist
@@ -173,7 +187,7 @@ def bloecke_bauen(daten, deckblatt, stationen):
     zertifikate = zertifikate_aufbereiten(daten)[0]
     erste_rubrik = True
     if bildung or zertifikate:
-        bloecke.append(block("rubrik", abstand_oben=a["intro_inhalt"],
+        bloecke.append(block("rubrik", abstand_oben=a["intro_inhalt"], token="intro_inhalt",
                              marke=labels["bildung"], text=labels["bildung"],
                              **typo("rubrik")))
         erste_rubrik = False
@@ -182,20 +196,21 @@ def bloecke_bauen(daten, deckblatt, stationen):
         for b in bildung:
             eintraege.append({
                 "abschluss": dict(text=norm(b.get("abschluss")), **typo("abschluss")),
-                "zeilen": [dict(text=norm(b[f]), abstand_oben=0, **typo("bildung"))
+                "zeilen": [dict(text=norm(b[f]), abstand_oben=0, feld=f, **typo("bildung"))
                            for f in ("institution", "zeitraum") if b.get(f)],
             })
         bloecke.append(block(
-            "bildung", abstand_oben=d["rubrik_inhalt"],
+            "bildung", abstand_oben=d["rubrik_inhalt"], token="rubrik_inhalt",
             marke=bildung[0].get("abschluss"),
             spaltenbreite=ab["halbe_spalte"], spaltenabstand=r["spaltenabstand"],
             reihenabstand=d["bildung_reihen"], eintraege=eintraege))
     if zertifikate:
         bloecke.append(zertifikatsblock(
             zertifikate, labels["zertifikate"], d,
-            d["zert_abstand"] if bildung else d["rubrik_inhalt"]))
+            d["zert_abstand"] if bildung else d["rubrik_inhalt"],
+            "zert_abstand" if bildung else "rubrik_inhalt"))
     if bildung or zertifikate:
-        bloecke.append(block("trennlinie", abstand_oben=d["vor_linie"],
+        bloecke.append(block("trennlinie", abstand_oben=d["vor_linie"], token="vor_linie",
                              farbe=farben["text"], staerke=r["linie"]))
 
     # Das Skillset gibt es immer, mit den vier festen Gruppen 2 x 2 — dieselbe
@@ -204,10 +219,12 @@ def bloecke_bauen(daten, deckblatt, stationen):
     if skillset["links"] or skillset["rechts"]:
         bloecke.append(block(
             "rubrik", abstand_oben=a["intro_inhalt"] if erste_rubrik else d["nach_linie"],
+            token="intro_inhalt" if erste_rubrik else "nach_linie",
             marke=labels["skillset"], text=labels["skillset"], **typo("rubrik")))
 
         def gruppen(spalte):
             return [{
+                "schluessel": g["schluessel"],
                 "titel": dict(text=norm(g["titel"]), abstand_unten=d["gruppe_liste"],
                               **typo("gruppe")),
                 "eintraege": [norm(e) for e in g["eintraege"]],
@@ -215,33 +232,34 @@ def bloecke_bauen(daten, deckblatt, stationen):
 
         erste = (skillset["links"] or skillset["rechts"])[0]
         bloecke.append(block(
-            "skillset", abstand_oben=d["rubrik_inhalt"], marke=erste["titel"],
+            "skillset", abstand_oben=d["rubrik_inhalt"], token="rubrik_inhalt", marke=erste["titel"],
             spaltenbreite=ab["halbe_spalte"], spaltenabstand=r["spaltenabstand"],
             gruppenabstand=d["gruppen"],
             liste=dict(einzug=r["listeneinzug"], abstand=0, **typo("liste")),
             spalten=[gruppen(skillset["links"]), gruppen(skillset["rechts"])]))
 
     # --- Ab hier die Stationen, im PDF auf einer neuen Seite ---
-    naechster_abstand = 0
+    naechster_abstand, naechster_token = 0, None
     if person.get("kurzprofil"):
         bloecke.append(block("rubrik", abstand_oben=0, seitenanfang=True,
                              marke=labels["kurzprofil"], text=labels["kurzprofil"],
                              **typo("rubrik")))
-        bloecke.append(block("profil", abstand_oben=s["profil_rubrik"],
+        bloecke.append(block("profil", abstand_oben=s["profil_rubrik"], token="profil_rubrik",
                              marke=" ".join(norm(person["kurzprofil"]).split()[:8]),
                              text=norm(person["kurzprofil"]), **typo("profil")))
-        bloecke.append(block("trennlinie", abstand_oben=s["profil_linie"],
+        bloecke.append(block("trennlinie", abstand_oben=s["profil_linie"], token="profil_linie",
                              farbe=farben["text"], staerke=r["linie"]))
         naechster_abstand = s["profil_stationen"]
+        naechster_token = "profil_stationen"
 
     st_groesse, pr_groesse = logo_groessen(daten)
     for nr, station in enumerate(daten.get("stationen") or []):
         if nr:
-            naechster_abstand = s["station"]
+            naechster_abstand, naechster_token = s["station"], "station"
         # Der Kopf wie in Figma: Titel, Firma, Zeitraum als eigene Zeile. Die
         # Schlagwortzeile steht zusaetzlich darunter (im Skill bewusst behalten).
         bloecke.append(block(
-            "station", abstand_oben=naechster_abstand,
+            "station", abstand_oben=naechster_abstand, token=naechster_token,
             seitenanfang=(nr == 0 and not person.get("kurzprofil")),
             marke=station.get("titel"),
             rail={"breite": r["logospalte"], "oben": r["logo_oben"], "abstand": r["logo_stapel"],
@@ -254,10 +272,10 @@ def bloecke_bauen(daten, deckblatt, stationen):
             zeitraum=(dict(text=norm(station["zeitraum"]), abstand_oben=a["firma_zeitraum"],
                            **typo("zeitraum")) if station.get("zeitraum") else None),
             absaetze=[dict(text=norm(station[f]), abstand_oben=a["zeitraum_text"],
-                           **typo("fliesstext"))
+                           feld=f, **typo("fliesstext"))
                       for f in ("zusammenfassung", "beschreibung") if station.get(f)]))
         if station.get("aufgaben"):
-            bloecke.append(aufgabenblock(station["aufgaben"], s["kopf_aufgaben"]))
+            bloecke.append(aufgabenblock(station["aufgaben"], s["kopf_aufgaben"], "kopf_aufgaben"))
         for projekt in station.get("projekte") or []:
             # Die Marke ist Kunde, Zeitraum und Textanfang in der Reihenfolge, in
             # der sie im PDF stehen. Der Kunde allein reicht nicht: Steht
@@ -267,7 +285,7 @@ def bloecke_bauen(daten, deckblatt, stationen):
                 norm(projekt.get("kunde")), norm(projekt.get("zeitraum")),
                 " ".join(norm(projekt.get("beschreibung")).split()[:3])]))
             bloecke.append(block(
-                "projekt", abstand_oben=s["projekt"], einzug=ab["einzug"],
+                "projekt", abstand_oben=s["projekt"], token="projekt", einzug=ab["einzug"],
                 marke=marke, breite=ab["inhaltsspalte"],
                 # Nebeneinander, auf der Mitte zueinander, linksbuendig an der
                 # Kundenzeile; bricht um, wenn die Reihe breiter als die Spalte
@@ -282,10 +300,10 @@ def bloecke_bauen(daten, deckblatt, stationen):
                 zeitraum=(dict(text=norm(projekt["zeitraum"]), abstand_oben=a["kunde_zeitraum"],
                                **typo("zeitraum")) if projekt.get("zeitraum") else None),
                 absaetze=[dict(text=norm(projekt["beschreibung"]), abstand_oben=a["projekt_text"],
-                               **typo("fliesstext"))]
+                               feld="beschreibung", **typo("fliesstext"))]
                 if projekt.get("beschreibung") else []))
             if projekt.get("aufgaben"):
-                bloecke.append(aufgabenblock(projekt["aufgaben"], a["projekt_text"]))
+                bloecke.append(aufgabenblock(projekt["aufgaben"], a["projekt_text"], "projekt_text"))
 
     # Footer — immer am unteren Rand der letzten Seite, breiter als der
     # Satzspiegel: von der linken bis zur gespiegelten rechten Randlinie.
@@ -320,7 +338,7 @@ def bloecke_bauen(daten, deckblatt, stationen):
     return bloecke
 
 
-def zertifikatsblock(titel_liste, titel, d, abstand_oben):
+def zertifikatsblock(titel_liste, titel, d, abstand_oben, token=None):
     """Der Zertifikatsblock unter den Abschluessen: Titel, darunter die Tags.
 
     Wie .zert__tags in cv.css: eine Reihe ueber die volle Breite, die
@@ -331,7 +349,7 @@ def zertifikatsblock(titel_liste, titel, d, abstand_oben):
     """
     r, ab, farben = T["raster"], T["abgeleitet"], T["farben"]
     return block(
-        "zertifikate", abstand_oben=abstand_oben, marke=titel_liste[0],
+        "zertifikate", abstand_oben=abstand_oben, token=token, marke=titel_liste[0],
         titel=dict(text=titel, abstand_unten=d["gruppe_liste"], **typo("gruppe")),
         breite=ab["inhaltsbreite"], abstand=r["zert_tag_abstand"],
         zeilenabstand=r["zert_tag_reihen"],
@@ -344,7 +362,7 @@ def zertifikatsblock(titel_liste, titel, d, abstand_oben):
         eintraege=list(titel_liste))
 
 
-def aufgabenblock(aufgaben, abstand_oben):
+def aufgabenblock(aufgaben, abstand_oben, token=None):
     """Bulletliste einer Station oder eines Projekts.
 
     Eigener Block, nicht Teil der Station: Im PDF darf eine Liste ueber den
@@ -352,7 +370,7 @@ def aufgabenblock(aufgaben, abstand_oben):
     Geteilt wird spaeter in bulletlisten_teilen(). abstand ist der
     Listenabstand zwischen den Punkten — 0, wie in Figma.
     """
-    return block("aufgaben", abstand_oben=abstand_oben, einzug=T["abgeleitet"]["einzug"],
+    return block("aufgaben", abstand_oben=abstand_oben, token=token, einzug=T["abgeleitet"]["einzug"],
                  marke=aufgaben[0], breite=T["abgeleitet"]["inhaltsspalte"],
                  einzug_liste=T["raster"]["listeneinzug"], abstand=0,
                  eintraege=[norm(a) for a in aufgaben], **typo("aufgabe"))
@@ -526,8 +544,26 @@ def stufen_lesen(argv):
     return deckblatt, stationen, rest, hinweise
 
 
+def bibliothek_optionen(argv):
+    """Optionen fuer den Bibliotheksweg; der Rest geht an stufen_lesen."""
+    opt, rest = {}, []
+    argv = list(argv)
+    while argv:
+        a = argv.pop(0)
+        if a == "--roh":
+            opt["roh"] = True
+        elif a in ("--seite", "--unter", "--frame-ids", "--verboten"):
+            if not argv:
+                raise SystemExit(f"{a} braucht einen Wert")
+            opt[a.lstrip("-")] = argv.pop(0)
+        else:
+            rest.append(a)
+    return opt, rest
+
+
 def main():
-    deckblatt, stationen, args, vorab = stufen_lesen(sys.argv[1:])
+    bib, argv = bibliothek_optionen(sys.argv[1:])
+    deckblatt, stationen, args, vorab = stufen_lesen(argv)
     if len(args) < 3:
         raise SystemExit(__doc__)
     daten = json.loads(Path(args[0]).read_text(encoding="utf-8"))
@@ -570,6 +606,12 @@ def main():
         "pdf": str(pdf), "datei": dateiname(daten),
         "sprache": daten.get("sprache", "de"),
         "person": {"name": name, "rolle": norm((daten.get("person") or {}).get("rolle"))},
+        # Bibliotheksweg: Profilkopf-Variante, Fuss nur bei abweichendem
+        # Kontakt ueberschreiben, Namensteile fuer die Anonym-Pruefung.
+        "fassung": fassung(daten),
+        "kontakt_abweichend": bool(daten.get("kontakt"))
+                              and daten.get("kontakt") != KONTAKT_VORGABE,
+        "verboten": [w for w in norm(bib.get("verboten")).split() if len(w) > 2],
         "stufen": {"deckblatt": deckblatt, "stationen": stationen},
         # Seitenverhaeltnis jeder Logodatei, zum Gegenpruefen der fertigen
         # Knoten in Figma (references/figma.md, "Logos werden nie verzerrt").
@@ -593,6 +635,18 @@ def main():
           f"{sum(len(f['bloecke']) for f in frames)} Bloecke)")
 
     hinweise = list(vorab)
+    if bib.get("roh"):
+        print("Nur der rohe Plan (--roh): Frames nach references/figma.md, Rueckfall.")
+    else:
+        from figma_bibliothek import skripte
+        dateien, bib_hinweise, ueberlauf = skripte(
+            plan, ordner, bib.get("seite"), bib.get("unter"),
+            bib["frame-ids"].split(",") if bib.get("frame-ids") else None)
+        print("Bibliotheksweg: " + ", ".join(d.name for d in dateien))
+        hinweise += bib_hinweise
+        if ueberlauf:
+            hinweise.append("Bibliotheksweg nicht moeglich, kein figma_bau.js - roher Weg "
+                            "(references/figma.md, Rueckfall): " + "; ".join(ueberlauf))
     if ungefunden:
         hinweise.append(
             "Im PDF-Text nicht wiedergefunden, die Seitenkante ist dort geraten: "
@@ -610,6 +664,13 @@ def main():
         print("\nPruefen:", file=sys.stderr)
         for h in hinweise:
             print(f"  - {h}", file=sys.stderr)
+
+
+def fassung(daten):
+    """anonym, wenn das Foto die Silhouette aus dem Skill ist - genau das setzt
+    anonymisieren.py ein. Sonst vollstaendig."""
+    foto = str((daten.get("person") or {}).get("foto") or "")
+    return "anonym" if Path(foto).name.startswith("silhouette") else "vollständig"
 
 
 def logos_verzerrt(frames):

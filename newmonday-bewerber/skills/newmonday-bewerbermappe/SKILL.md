@@ -226,6 +226,23 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
    zeigt, jeweils rechts neben das Vorhandene – an ihnen ändert sich dafür
    nichts.
 
+   Im selben Aufruf der **Bibliotheks-Vorflug**: Alle drei Skills bauen ihre
+   Frames aus Instanzen der veröffentlichten Master-Bibliothek „Portfolio - CV
+   Master“ (nie gelöst – eine Änderung im Master erreicht die Datei per
+   Bibliotheks-Update). Ob die Bibliothek aus dieser Datei erreichbar ist, zeigt
+   ein Import per Key (A4/Kopfzeile, von Lebenslauf und Skill Matrix geteilt):
+
+   ```js
+   let bibliothek = true;
+   try { await figma.importComponentByKeyAsync("a9260f0ab20fa2d65c59bff74fcc6985261ff06a"); }
+   catch (e) { bibliothek = false; }
+   ```
+
+   Das Ergebnis kommt nach `figma.bibliothek` in `auftrag.json`. Bei `false`
+   bauen die Skills roh (ihr Rückfall), und jede Übergabe nennt den Grund. Die
+   Skills machen ihren eigenen Vorflug trotzdem; dieser hier sagt dem Nutzer
+   nur früh, woran er ist.
+
    Scheitert das Schreiben (nur Leserecht, Datei gesperrt), eine Klickbox:
    *Ich richte es ein (Empfohlen)* | *Ohne Figma weiter* (→ `figma.aktiv = false`).
    Das ist die einzige
@@ -442,7 +459,10 @@ Skill-Ordner: <laufordner>/<cv|skillmatrix|portfolio>/
      Skill-Repo oder ein anderer Ordner.
    - Figma, wenn figma.aktiv true ist – dann immer, auch bei der Skill Matrix;
      sonst gar nicht. figma.link zeigt mit node-id auf die Seite, auf die alles
-     kommt. Keine eigene Seite anlegen, nichts Vorhandenes anfassen. Scheitert
+     kommt. Keine eigene Seite anlegen, nichts Vorhandenes anfassen. Gebaut
+     wird über den Bibliotheksweg des Skills (Instanzen der Master-Bibliothek,
+     nie lösen); steht figma.bibliothek auf false oder scheitert der Vorflug
+     des Skills, sein roher Rückfall – in uebergabe.md vermerkt. Scheitert
      Figma, gehen die PDFs trotzdem raus, und der Grund steht in uebergabe.md.
    - Was in auftrag.json unter „ohne“ steht (Materialschlüssel oder der
      was-Text einer Lücke, Tabelle in formate.md), nicht mehr als Lücke melden
@@ -542,6 +562,9 @@ dieser.
   (Warnung, solange eins noch nicht gebaut ist, danach Fehler). Ändert sich die
   Liste nach der Übergabe, werden beide Dokumente neu gebaut.
 - **Eine Figma-Seite je Kandidat**, alle Frames darauf. Figma hält kein PDF auf.
+- **Figma aus der Master-Bibliothek.** Frames bestehen aus Instanzen der
+  veröffentlichten Bibliothek „Portfolio - CV Master“ und werden nie gelöst;
+  roh nur als Rückfall, wenn die Bibliothek nicht erreichbar ist.
 - **Kandidatendaten nie ins Skill-Repo** – nicht in den Skill-Ordnern, nicht im
   Repo-Arbeitsverzeichnis.
 - **Kein Dokumentinhalt von diesem Skill.** Er ruft keine Render-, Logo- oder

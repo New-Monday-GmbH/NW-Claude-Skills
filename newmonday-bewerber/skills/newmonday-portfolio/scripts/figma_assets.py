@@ -65,7 +65,8 @@ def hochladen(url, datei):
 
 
 def paare_aus_plan(ordner, modus, urls_datei):
-    """Portfolio: knoten.json (Rückgabe von 99-bilder.js) sagt je Modus, welche
+    """Portfolio: knoten.json (Rückgabe von 99-bilder.js, im Bibliotheksweg die
+    Bildträger aus 00-start.js über --einsetzen --antwort) sagt je Modus, welche
     Bildnummer auf welchen Knoten gehört - in genau der Reihenfolge, in der die
     Knoten an upload_assets gingen. bilder.json kennt je Nummer die Datei. Die
     URLs aus der Antwort von upload_assets kommen in derselben Reihenfolge."""
