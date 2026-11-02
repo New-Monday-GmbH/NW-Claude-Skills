@@ -1360,7 +1360,9 @@ und `figma_plan.py --einsetzen arbeit/figma/ --antwort arbeit/figma/start.json`,
 die Bilder über `upload_assets` und `figma_assets.py`, zuletzt jedes
 `NN-folien.js` an `use_figma`. Meldet der Vorflug „Bibliothek nicht
 erreichbar“, entstehen die Folien als rohe Frames (`--roh`) – das steht dann in
-der Übergabe. Mengengrenzen der Komponenten (z. B. 28 Kundenlogos, 10
+der Übergabe. Die Kopfseiten kommen aus `Projekt-Kopf v2`; meldet der Vorflug,
+dass sie noch nicht veröffentlicht ist, gilt dasselbe, und die Übergabe bittet,
+die Master-Bibliothek zu veröffentlichen. Mengengrenzen der Komponenten (z. B. 28 Kundenlogos, 10
 Kenntnisse) meldet das Skript; auch sie gehören in die Übergabe. Das Rezept mit
 allen Fallstricken steht in `references/figma.md`; vor dem ersten Aufruf den
 Skill `figma-use` laden.

@@ -1535,7 +1535,7 @@ def blick_karte(pr: dict, t: dict, oben: float) -> str:
     teile = []
     for gruppe, liste in gruppen.items():
         chips = "".join(f'<span class="chip t-chip">{e(x)}</span>' for x in liste)
-        teile.append(f'<div class="gruppe"><div class="gruppe-label t-blick-label">'
+        teile.append(f'<div class="gruppe gruppe--{gruppe}"><div class="gruppe-label t-blick-label">'
                      f'{e(t[gruppe])}</div><div class="chips">{chips}</div></div>')
     return (f'<div class="blick" style="top:{oben:.1f}pt;left:{KOPF_SPALTEN_X[2]:.2f}pt">'
             f'{"".join(teile)}</div>')

@@ -758,7 +758,7 @@ def bibliothek_pruefen() -> list[str]:
                 befunde.append(f"{datei.name} über 50 000 Zeichen")
     typen = {p.typ for p in plaene}
     for erwartet in ("Cover", "Profil", "Kundenwand", "Statement", "Trenner", "Prozess-Übersicht",
-                     "Prozess-Schritt", "Schwerpunkt", "Agentur", "Projekt-Kopf",
+                     "Prozess-Schritt", "Schwerpunkt", "Agentur", "Projekt-Kopf v2",
                      "Projekt-Summary", "Lösung", "Vollbild", "Kontakt"):
         if erwartet not in typen:
             befunde.append(f"Folientyp {erwartet} kommt im Beispiel nicht vor")
