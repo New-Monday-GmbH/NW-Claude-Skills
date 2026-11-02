@@ -1,0 +1,8 @@
+{
+  "_hinweis": "Diese Datei kopieren nach matching.config.json und Adresse und Schluessel eintragen. Die Kopie niemals in Teams, SharePoint, eine E-Mail oder dieses Repo geben.",
+
+  "espo_url": "HIER DIE CRM-ADRESSE EINTRAGEN",
+
+  "espo_api_key": "HIER DEN CRM-API-SCHLUESSEL EINTRAGEN",
+  "_espo_api_key_woher": "Derselbe Schluessel wie im JOIN-Connector. Alternativ im CRM unter Administration, Benutzer einen API-Benutzer mit Leserecht auf Projektanfragen und Kandidaten anlegen."
+}

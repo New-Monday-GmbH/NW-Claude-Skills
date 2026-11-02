@@ -10,6 +10,7 @@ Ordner und ist für sich installierbar.
 | [`newmonday-skillmatrix`](newmonday-bewerber/skills/newmonday-skillmatrix/) | Baut aus Lebenslauf, Portfolio und LinkedIn-Export eine Skill Matrix im New-Monday-Layout: eine lange Seite mit Hero, Zertifikaten und nach Kategorien gruppierten Kompetenzen mit 1–5-Punkte-Bewertung. |
 | [`newmonday-portfolio`](newmonday-bewerber/skills/newmonday-portfolio/) | Baut aus Portfolio, Lebenslauf und LinkedIn-Export ein fertiges Portfolio im New-Monday-Layout als PDF: 16:9-Folien mit Profilseite, Kundenwand, Design-Prozess, Projektstrecken und Kontaktseite. |
 | [`newmonday-bewerbermappe`](newmonday-bewerber/skills/newmonday-bewerbermappe/) | Baut alle drei Dokumente eines Kandidaten in einem Lauf: fragt Sprache, Figma und Material einmal, prüft vorab, was fehlt, bündelt alle Entscheidungen und lässt dann `newmonday-cv`, `newmonday-skillmatrix` und `newmonday-portfolio` nacheinander bauen – PDFs plus Frames auf einer Figma-Seite je Kandidat. |
+| [`newmonday-matching`](newmonday-matching/) | Profilmatching nach einem festen Verfahren: zerlegt eine Projektanfrage, gleicht sie gegen den Pool im EspoCRM (Quote, Schwelle 70 %) und den JOIN-Bestand (Trichter über K.-o.- und Muss-Kriterien) ab, prüft Domäne und Vita und schreibt eine einheitliche Auswertung mit Empfehlung. Schreibt nichts ins CRM oder nach JOIN. |
 
 Die drei Dokument-Skills und der Gesamtlauf liegen zusammen im Ordner [`newmonday-bewerber`](newmonday-bewerber/) –
 das ist organisatorisch ein Bundle (mit eigener `plugin.json`/`marketplace.json` für eine
@@ -34,6 +35,7 @@ ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-cv ~/.claude/skills
 ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-skillmatrix ~/.claude/skills/newmonday-skillmatrix
 ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-portfolio ~/.claude/skills/newmonday-portfolio
 ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-bewerbermappe ~/.claude/skills/newmonday-bewerbermappe
+ln -s ~/NW-Claude-Skills/newmonday-matching ~/.claude/skills/newmonday-matching
 ```
 
 Ein Symlink statt einer Kopie sorgt dafür, dass ein `git pull` im Repo den
@@ -79,5 +81,6 @@ Aktualisierung verloren. Deshalb bleibt der Symlink hier die empfohlene Installa
 ## Was hier NICHT hineingehört
 
 Ergebnisse von Skill-Läufen (bei `rapid-redesign` die `audits/`-Ordner mit
-Kundendaten) bleiben im jeweiligen Projekt und sind per `.gitignore`
+Kundendaten, bei `newmonday-matching` die Auswertungen, CSVs und die
+`matching.config.json` mit dem CRM-Schlüssel) bleiben im jeweiligen Projekt und sind per `.gitignore`
 ausgeschlossen. Dieses Repository enthält ausschließlich die Werkzeuge.
