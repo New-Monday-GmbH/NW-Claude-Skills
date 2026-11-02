@@ -70,8 +70,9 @@ generisch, Sprachen im Skillset.
 - **Logos deutscher Agenturen und Mittelständler** finden die Logodatenbanken
   fast nie. SVGs gleich mitzuschicken spart die Suche.
 - **Übersetzt wird nur auf ausdrückliche Ansage.**
-- **Neue Logos landen in `assets/logos/`** und sollen committet werden, siehe
-  [README](../../README.md).
+- **Neue Logos landen in `~/.newmonday/logos/`** (überleben Plugin-Updates)
+  und sollen von einem Pfleger ins Repo übernommen werden, siehe
+  [README](../../README.md#die-logobibliothek-gehört-allen).
 
 ## Was feststeht
 

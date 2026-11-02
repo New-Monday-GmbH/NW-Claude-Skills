@@ -61,7 +61,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from add_logo import slugify  # noqa: E402
-from logo_lib import bibliothek  # noqa: E402
+from logo_lib import daten  # noqa: E402
 from logos_ergaenzen import slugs  # noqa: E402
 
 # Wikimedia drosselt namenlose Aufrufer hart; die Nutzungsregeln verlangen
@@ -146,9 +146,12 @@ _pause = 0.0               # Commons antwortet auf Salven mit HTTP 429
 
 
 def hq_bibliothek() -> Path:
-    """Sammelort neben der Logobibliothek. Gefundene Bilder bleiben liegen,
-    damit der Bestand ueber die Laeufe waechst - genau wie bei den Logos."""
-    ordner = bibliothek().parent / "hq"
+    """Sammelort neben den neuen Logos (~/.newmonday/hq, siehe logo_lib.py).
+    Gefundene Bilder bleiben liegen, damit der Bestand ueber die Laeufe waechst
+    - genau wie bei den Logos. Ausserhalb des Skill-Ordners, weil der bei der
+    Plugin-Installation mit jedem Update ersetzt wird; ins Repo kommen die
+    Bilder nicht (Bildrechte, siehe quellen.json)."""
+    ordner = daten() / "hq"
     ordner.mkdir(parents=True, exist_ok=True)
     return ordner
 

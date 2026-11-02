@@ -38,7 +38,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import design_tokens as ds  # noqa: E402
 import logo_grau  # noqa: E402
 import screens  # noqa: E402
-from logo_lib import bibliothek  # noqa: E402
+from logo_lib import ordner as logo_ordner  # noqa: E402
 from screens import baue_screens  # noqa: E402
 
 # ── Feste Angaben von New Monday ─────────────────────────────────────────
@@ -247,7 +247,7 @@ def datei_suchen(pfad, basis: Path) -> Path | None:
     p = Path(str(pfad)).expanduser()
     for kandidat in (p, basis / p, basis / "material" / p,
                      basis / "material" / "logos" / p, ASSETS / p,
-                     bibliothek() / p):
+                     *(o / p for o in logo_ordner())):
         if kandidat.exists():
             return kandidat.resolve()
     merke(f"Datei nicht gefunden: {pfad}")

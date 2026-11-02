@@ -12,71 +12,134 @@ Ordner und ist für sich installierbar.
 | [`newmonday-bewerbermappe`](newmonday-bewerber/skills/newmonday-bewerbermappe/) | Baut alle drei Dokumente eines Kandidaten in einem Lauf: fragt Sprache, Figma, Material und Anfrage einmal, prüft vorab, was fehlt und ob ein bestandenes Profilmatching vorliegt, richtet alle drei Dokumente auf die Anforderungstabelle aus `newmonday-matching` aus (Gewichtung, nie Beleg), bündelt alle Entscheidungen und lässt dann `newmonday-cv`, `newmonday-skillmatrix` und `newmonday-portfolio` nacheinander bauen – PDFs plus Frames auf einer Figma-Seite je Kandidat. |
 | [`newmonday-matching`](newmonday-matching/) | Profilmatching nach einem festen Verfahren: zerlegt eine Projektanfrage, gleicht sie gegen den Pool im EspoCRM (Quote, Schwelle 70 %) und den JOIN-Bestand (Trichter über K.-o.- und Muss-Kriterien) ab, prüft Domäne und Vita und schreibt eine einheitliche Auswertung mit Empfehlung. Schreibt nichts ins CRM oder nach JOIN. |
 
-Die drei Dokument-Skills und der Gesamtlauf liegen zusammen im Ordner [`newmonday-bewerber`](newmonday-bewerber/) –
-das ist organisatorisch ein Bundle (mit eigener `plugin.json`/`marketplace.json` für eine
-spätere Marketplace-Installation), installiert wird aber weiterhin jeder Skill einzeln per
-Symlink, siehe unten. Grund: Bei einer echten Marketplace-Installation würde
-`newmonday-cv` seine neu gefundenen Firmenlogos in einen internen Cache statt ins Repo
-schreiben – der Logo-Rückfluss unten würde dann nicht mehr funktionieren.
+Die drei Dokument-Skills und der Gesamtlauf liegen zusammen im Plugin
+[`newmonday-bewerber`](newmonday-bewerber/). Es wird über den Plugin-Marketplace
+dieses Repos installiert und aktualisiert sich selbst – für alle, auch mit
+privatem Claude-Account. `rapid-redesign` und `newmonday-matching` werden
+(noch) per Symlink installiert, siehe unten.
 
-## Installation
+## newmonday-bewerber installieren (alle)
 
-Repository klonen (einmalig):
+In Claude Code (Terminal, Desktop-App im Code-Tab oder IDE) zwei Befehle:
+
+```
+/plugin marketplace add New-Monday-GmbH/NW-Claude-Skills
+/plugin install newmonday-bewerber@nw-claude-skills
+```
+
+Danach Claude Code neu starten. Die Skills heißen dann
+`newmonday-bewerber:newmonday-cv`, `…:newmonday-skillmatrix`,
+`…:newmonday-portfolio` und `…:newmonday-bewerbermappe`; ausgelöst werden sie
+wie bisher einfach durch die Bitte („Mach aus diesem Lebenslauf …“). Ein
+Claude-Account in der Organisation ist nicht nötig, und das Repo ist öffentlich –
+es braucht keinen GitHub-Zugang. Im claude.ai-Chat (Browser) stehen
+Plugins nicht zur Verfügung, nur in Claude Code.
+
+### Auto-Update einschalten (einmal pro Person)
+
+Für Marketplaces von GitHub ist Auto-Update ab Werk aus. Einschalten:
+`/plugin` → **Marketplaces** → `nw-claude-skills` → **Enable auto-update**.
+
+Oder in `~/.claude/settings.json` eintragen (macht beides – Marketplace und
+Auto-Update – in einem Schritt):
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "nw-claude-skills": {
+      "source": { "source": "github", "repo": "New-Monday-GmbH/NW-Claude-Skills" },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": { "newmonday-bewerber@nw-claude-skills": true }
+}
+```
+
+Claude Code holt Updates beim Start. Das Plugin hat bewusst **keine
+Versionsnummer**: jeder Commit auf `main` ist ein Update, niemand muss etwas
+hochzählen. Von Hand aktualisieren: `/plugin marketplace update nw-claude-skills`.
+
+Für Mitglieder der claude.ai-Organisation kann der Owner denselben
+`extraKnownMarketplaces`-Block (mit `"autoUpdate": true`) und `enabledPlugins` in
+die Managed Settings legen – dann ist das Plugin samt Auto-Update für alle
+gesetzt. Wer mit privatem Account arbeitet, macht den Schritt oben einmal selbst.
+
+### Was der Rechner braucht
+
+`newmonday-cv` braucht WeasyPrint und die passenden Systembibliotheken. Was
+fehlt, sagt der Skill beim ersten Lauf selbst (`scripts/pruefe_umgebung.py`).
+Auf macOS meist `brew install python-pango pango libffi gdk-pixbuf poppler potrace`
+und `pip3 install weasyprint jinja2 pypdf pillow`. Ob die ganze Kette läuft,
+prüft `scripts/selbsttest.py` je Skill an einem mitgelieferten Beispiel.
+
+## Für die Pfleger: Symlink oder Plugin, nie beides
+
+Wer am Repo arbeitet, kann die Skills weiter per Symlink aus dem Checkout
+nutzen – Änderungen wirken dann sofort, ohne Commit. **Symlinks und Plugin
+dürfen nicht gleichzeitig aktiv sein**, sonst stehen alle Skills doppelt da
+(`newmonday-cv` und `newmonday-bewerber:newmonday-cv`) und Claude greift mal zum
+einen, mal zum anderen. Also entweder
+
+```bash
+# Plugin nutzen: Symlinks entfernen
+rm ~/.claude/skills/newmonday-cv ~/.claude/skills/newmonday-skillmatrix \
+   ~/.claude/skills/newmonday-portfolio ~/.claude/skills/newmonday-bewerbermappe
+```
+
+oder das Plugin nicht installieren (bzw. mit `/plugin uninstall
+newmonday-bewerber@nw-claude-skills` wieder entfernen) und bei den Symlinks
+bleiben:
 
 ```bash
 git clone https://github.com/New-Monday-GmbH/NW-Claude-Skills.git ~/NW-Claude-Skills
-```
-
-Gewünschten Skill in den Claude-Skills-Ordner verlinken:
-
-```bash
-ln -s ~/NW-Claude-Skills/rapid-redesign ~/.claude/skills/rapid-redesign
 ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-cv ~/.claude/skills/newmonday-cv
 ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-skillmatrix ~/.claude/skills/newmonday-skillmatrix
 ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-portfolio ~/.claude/skills/newmonday-portfolio
 ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-bewerbermappe ~/.claude/skills/newmonday-bewerbermappe
+```
+
+## rapid-redesign und newmonday-matching (Symlink)
+
+```bash
+ln -s ~/NW-Claude-Skills/rapid-redesign ~/.claude/skills/rapid-redesign
 ln -s ~/NW-Claude-Skills/newmonday-matching ~/.claude/skills/newmonday-matching
 ```
 
 Ein Symlink statt einer Kopie sorgt dafür, dass ein `git pull` im Repo den
-Skill direkt aktualisiert.
-
-Falls der Skill eigene Abhängigkeiten braucht, liegt ein Setup-Skript bei —
-bei `rapid-redesign` installiert es Playwright samt Chromium pro Rechner:
+Skill direkt aktualisiert. `rapid-redesign` braucht Playwright samt Chromium:
 
 ```bash
 bash ~/.claude/skills/rapid-redesign/scripts/setup.sh
 ```
 
-`newmonday-cv` braucht WeasyPrint und die passenden Systembibliotheken. Was auf
-deinem Rechner fehlt, sagt dir:
-
-```bash
-python3 ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-cv/scripts/pruefe_umgebung.py
-```
-
-Auf macOS meist `brew install python-pango pango libffi gdk-pixbuf poppler potrace`
-und `pip3 install weasyprint jinja2 pypdf pillow`. Ob die ganze Kette läuft,
-prüft `scripts/selbsttest.py` an einem mitgelieferten Beispiel.
-
 ## Die Logobibliothek gehört allen
 
-`newmonday-cv` legt jedes neu gefundene Firmenlogo in seinem eigenen Ordner
-`newmonday-bewerber/skills/newmonday-cv/assets/logos/` ab. Über den Symlink oben landet es
-damit direkt im Arbeitsverzeichnis dieses Repos — also bitte committen und pushen:
+Der Grundstock liegt im Repo unter
+`newmonday-bewerber/skills/newmonday-cv/assets/logos/` und kommt mit jedem
+Update zu allen. Neu gefundene Logos legen `newmonday-cv` und
+`newmonday-portfolio` dagegen in **`~/.newmonday/logos/`** ab (Fotos der
+Firmenzentralen in `~/.newmonday/hq/`): Den Plugin-Ordner ersetzt jedes Update,
+dieser Ordner bleibt. Gesucht wird zuerst dort, dann im Grundstock.
+
+Damit ein neues Logo bei allen ankommt, nennt die Übergabe jedes Laufs die
+neuen Logos. Ein Pfleger holt sie in den Grundstock – von seinem eigenen Rechner
+oder nachdem ihm jemand den Inhalt von `~/.newmonday/logos/` geschickt hat:
 
 ```bash
-cd ~/NW-Claude-Skills && git add newmonday-bewerber/skills/newmonday-cv/assets/logos && git commit -m "Logos ergaenzt" && git push
+python3 ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-cv/scripts/logos_uebernehmen.py ~/NW-Claude-Skills --uebernehmen
 ```
 
-Dann muss der nächste Kollege dasselbe Logo nicht noch einmal heraussuchen. Die
-Sammlung wird mit jedem Kandidaten besser — das funktioniert aber nur, wenn sie
-zurückfließt.
+Das Skript verschiebt die Dateien in den Checkout, führt `aliase.json`
+zusammen und nennt den Commit-Befehl. Die Fotos der Firmenzentralen bleiben
+lokal (Bildrechte, Quellen in `~/.newmonday/hq/quellen.json`).
 
-Das funktioniert nur, weil der Skill per Symlink installiert ist. Würde ihn jemand
-stattdessen über `/plugin install` aus dem Marketplace installieren, läge die Kopie in
-einem internen Cache-Ordner, getrennt vom Repo — neue Logos gingen bei der nächsten
-Aktualisierung verloren. Deshalb bleibt der Symlink hier die empfohlene Installationsart.
+Umzug für alle, die bisher per Symlink gearbeitet haben: Fotos der
+Firmenzentralen lagen in `newmonday-cv/assets/hq/` (nie im Repo). Einmal
+mitnehmen:
+
+```bash
+mkdir -p ~/.newmonday && cp -Rn ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-cv/assets/hq ~/.newmonday/
+```
 
 ## Was hier NICHT hineingehört
 

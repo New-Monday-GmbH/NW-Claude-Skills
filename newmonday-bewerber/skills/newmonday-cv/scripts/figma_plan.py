@@ -50,6 +50,7 @@ from render_cv import (  # noqa: E402
     logo_groessen, logo_masse, logoliste, seitenverhaeltnis, skillset_gruppen,
     zeitraeume_setzen, zertifikate_aufbereiten,
 )
+from logo_lib import suche as logo_datei  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
@@ -84,7 +85,7 @@ def typo(name):
 
 
 def logo_eintrag(datei, groesse):
-    """Absoluter Pfad, nicht relativ: Die Logos liegen im Skill-Ordner, das Foto
+    """Absoluter Pfad, nicht relativ: Die Logos liegen in der Bibliothek, das Foto
     im Arbeitsverzeichnis des Nutzers. Relativ liesse sich im Plan nicht mehr
     unterscheiden, worauf sich welcher Pfad bezieht.
 
@@ -93,14 +94,14 @@ def logo_eintrag(datei, groesse):
     seine Datei, ist verzerrt.
     """
     breite, hoehe = logo_masse(datei, groesse)
-    return {"datei": str(ASSETS / "logos" / datei),
+    return {"datei": str(logo_datei(datei) or ASSETS / "logos" / datei),
             "typ": "svg" if datei.lower().endswith(".svg") else "raster",
             "breite": breite, "hoehe": hoehe,
             "verhaeltnis": round(seitenverhaeltnis(datei), 4)}
 
 
 def nm_logo(breite, hoehe):
-    return {"datei": str(ASSETS / "logos" / "nm-logo.svg"), "typ": "svg",
+    return {"datei": str(logo_datei("nm-logo.svg")), "typ": "svg",
             "breite": breite, "hoehe": hoehe,
             "verhaeltnis": round(seitenverhaeltnis("nm-logo.svg"), 4)}
 

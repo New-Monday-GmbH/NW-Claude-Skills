@@ -6,7 +6,8 @@
     python3 scripts/add_logo.py ~/Downloads/hays.svg hays
     python3 scripts/add_logo.py https://example.com/logo.svg team-gmbh
 
-Legt die Datei als assets/logos/<name>.svg oder .png ab. PNG wird am
+Legt die Datei als ~/.newmonday/logos/<name>.svg oder .png ab (siehe
+logo_lib.py: dort ueberlebt sie Plugin-Updates). PNG wird am
 Alphakanal zugeschnitten — sonst schrumpft das Logo im Layout durch den
 mitgelieferten Weissraum. SVG wird auf offensichtlichen Unfug geprueft.
 
@@ -25,7 +26,9 @@ import sys as _sys
 _sys.path.insert(0, str(Path(__file__).resolve().parent))
 from logo_lib import bibliothek as _bibliothek  # noqa: E402
 
-# Gemeinsame Bibliothek mit dem Lebenslauf-Skill, siehe logo_lib.py
+# Neue Logos nie in den Skill-Ordner: bei der Plugin-Installation ersetzt
+# jedes Update ihn. Grundstock und neue Funde teilt sich das Portfolio mit
+# dem Lebenslauf-Skill, siehe logo_lib.py.
 ZIEL = _bibliothek()
 
 
@@ -76,7 +79,7 @@ INK_ANTEIL = 0.75           # Schwelle zwischen Hintergrund und Strichfarbe
 
 
 def bibliothek_bereit():
-    """Ist assets/logos/ beschreibbar? Sonst frueh und verstaendlich abbrechen."""
+    """Ist die Bibliothek beschreibbar? Sonst frueh und verstaendlich abbrechen."""
     try:
         ZIEL.mkdir(parents=True, exist_ok=True)
         probe = ZIEL / ".schreibtest"
@@ -85,8 +88,9 @@ def bibliothek_bereit():
     except OSError as fehler:
         raise SystemExit(
             f"Die Logobibliothek {ZIEL} ist nicht beschreibbar ({fehler}).\n"
-            "In Claude Code liegt der Skill unter ~/.claude/skills/ — dort "
-            "Schreibrechte setzen, sonst lassen sich keine neuen Logos ablegen."
+            "Schreibrechte fuer diesen Ordner setzen oder NEWMONDAY_HOME auf "
+            "einen beschreibbaren Ordner zeigen lassen, sonst lassen sich keine "
+            "neuen Logos ablegen."
         )
 
 
@@ -332,6 +336,8 @@ def main():
     print(f"{ziel.name} abgelegt ({groesse // 1024} KB)")
     sichtpruefung(ziel)
     print(f'In der {datendatei()} eintragen als:  "logo": "{ziel.name}"')
+    print(f"Abgelegt in {ZIEL} (ueberlebt Plugin-Updates). In der Uebergabe unter "
+          '"Neue Logos" nennen, damit ein Pfleger es ins Repo uebernimmt.')
 
 
 def sichtpruefung(ziel):

@@ -1,5 +1,11 @@
 # Installation
 
+> **Im Team: als Plugin installieren**, nicht von Hand. In Claude Code
+> `/plugin marketplace add New-Monday-GmbH/NW-Claude-Skills` und
+> `/plugin install newmonday-bewerber@nw-claude-skills`, dann Auto-Update
+> einschalten – siehe [README](../../README.md). Die Wege unten sind für
+> Einzelinstallationen ohne Marketplace.
+
 ## Claude Code
 
 ```bash

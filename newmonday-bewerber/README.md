@@ -9,35 +9,51 @@ Vier Claude-Code-Skills der New Monday GmbH rund um Bewerber-Unterlagen:
 
 ## Installation
 
-Falls du (Claude) darum gebeten wirst, "die Skills von hier" zu installieren,
-führe diese Schritte aus:
+Falls du (Claude) darum gebeten wirst, "die Skills von hier" zu installieren:
+Das geht über diese zwei Befehle, die der Nutzer in Claude Code eintippt
+(Terminal, Desktop-App im Code-Tab oder IDE):
 
-1. Prüfen, ob `~/NW-Claude-Skills` schon existiert.
-   - Falls ja: dort `git pull`, um die Skills zu aktualisieren.
-   - Falls nein: klonen mit
-     ```bash
-     git clone git@github.com:New-Monday-GmbH/NW-Claude-Skills.git ~/NW-Claude-Skills
-     ```
-     Schlägt das mit einem Authentifizierungsfehler fehl, braucht die Person
-     zuerst einen eigenen SSH-Key bei GitHub hinterlegt
-     (github.com/settings/keys) — kein Passwort-Login möglich.
+```
+/plugin marketplace add New-Monday-GmbH/NW-Claude-Skills
+/plugin install newmonday-bewerber@nw-claude-skills
+```
 
-2. Die vier Skills per Symlink verlinken:
-   ```bash
-   ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-cv ~/.claude/skills/newmonday-cv
-   ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-skillmatrix ~/.claude/skills/newmonday-skillmatrix
-   ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-portfolio ~/.claude/skills/newmonday-portfolio
-   ln -s ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-bewerbermappe ~/.claude/skills/newmonday-bewerbermappe
-   ```
-   (Symlink statt Kopie: ein `git pull` im Repo aktualisiert die Skills direkt.)
+Ab Claude Code 2.1.275 geht es auch in einem Schritt:
 
-3. Claude Code neu starten, damit die Skills geladen werden.
+```
+/plugin install newmonday-bewerber --marketplace New-Monday-GmbH/NW-Claude-Skills
+```
 
-4. `newmonday-cv` braucht zusätzlich WeasyPrint und ein paar Systembibliotheken.
-   Was auf dem Rechner fehlt, zeigt:
-   ```bash
-   python3 ~/NW-Claude-Skills/newmonday-bewerber/skills/newmonday-cv/scripts/pruefe_umgebung.py
-   ```
+Danach Claude Code neu starten. Das Repo ist öffentlich, es braucht weder einen
+GitHub-Zugang noch einen Account in der claude.ai-Organisation – ein privater
+Claude-Account genügt. Im claude.ai-Chat (Browser) gibt es keine Plugins.
 
-Details zum Gesamt-Repo (Logo-Bibliothek, was nicht committet werden soll etc.)
-stehen im [Haupt-README](../README.md).
+### Auto-Update einschalten
+
+Einmal pro Person: `/plugin` → **Marketplaces** → `nw-claude-skills` →
+**Enable auto-update**. Ab dann holt Claude Code jede Änderung auf `main` beim
+Start; das Plugin hat bewusst keine Versionsnummer, jeder Commit ist ein Update.
+Alternativ per `~/.claude/settings.json` oder für die ganze Organisation per
+Managed Settings – siehe [Haupt-README](../README.md#auto-update-einschalten-einmal-pro-person).
+
+### Was der Rechner braucht
+
+`newmonday-cv` braucht WeasyPrint und ein paar Systembibliotheken. Was fehlt,
+prüft der Skill beim ersten Lauf (`scripts/pruefe_umgebung.py`) und nennt die
+Befehle dafür.
+
+## Für die Pfleger
+
+Wer die Skills per Symlink aus einem Checkout nutzt, installiert das Plugin
+**nicht** zusätzlich – sonst stehen alle vier Skills doppelt da. Entweder
+Symlinks oder Plugin; wie man wechselt, steht im [Haupt-README](../README.md#für-die-pfleger-symlink-oder-plugin-nie-beides).
+
+Neue Logos landen bei allen in `~/.newmonday/logos/`, nicht im Plugin-Ordner
+(den ersetzt jedes Update). Die Übergabe jedes Laufs nennt sie; in den
+Grundstock im Repo holt sie `skills/newmonday-cv/scripts/logos_uebernehmen.py`.
+
+Vor dem Push: `python3 scripts/selbsttest.py` in `newmonday-cv`,
+`newmonday-portfolio` und `newmonday-bewerbermappe`. Jeder Commit auf `main`
+geht per Auto-Update an alle – es gibt keine Version, hinter der sich ein
+halbfertiger Stand verstecken könnte. Größere Umbauten auf einem Branch
+machen und erst mergen, wenn die Selbsttests grün sind.

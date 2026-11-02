@@ -123,7 +123,7 @@
      naechsten weitergeht. Breite und Hoehe je Logo kommen aus render_cv.py. #}
   <div class="station__kopf">
     <div class="station__rail">
-      {% for l in s.logos %}<img src="logos/{{ l.datei }}" alt="{{ s.firma }}"
+      {% for l in s.logos %}<img src="{{ l.src }}" alt="{{ s.firma }}"
         style="width:{{ l.breite }}pt;height:{{ l.hoehe }}pt">{% endfor %}
     </div>
     {# Wie in Figma: Titel, Firma, darunter der Zeitraum als eigene Zeile. Die
@@ -148,7 +148,7 @@
          Ein <img> direkt als Flex-Element bekommt in WeasyPrint (66) die Breite
          0 — alle Logos einer Reihe landeten uebereinander an derselben Stelle. #}
       {% if p.logos %}<div class="project__logos">
-        {% for l in p.logos %}<span class="project__logo"><img src="logos/{{ l.datei }}" alt="{{ p.kunde }}"
+        {% for l in p.logos %}<span class="project__logo"><img src="{{ l.src }}" alt="{{ p.kunde }}"
           style="width:{{ l.breite }}pt;height:{{ l.hoehe }}pt"></span>{% endfor %}
       </div>{% endif %}
       <div class="project__client">{{ p.kunde }}</div>

@@ -6,7 +6,8 @@
     python3 scripts/add_logo.py ~/Downloads/hays.svg hays
     python3 scripts/add_logo.py https://example.com/logo.svg team-gmbh
 
-Legt die Datei als assets/logos/<name>.svg oder .png ab. PNG wird am
+Legt die Datei als ~/.newmonday/logos/<name>.svg oder .png ab (siehe
+logo_lib.py: dort ueberlebt sie Plugin-Updates). PNG wird am
 Alphakanal zugeschnitten — sonst schrumpft das Logo im Layout durch den
 mitgelieferten Weissraum. SVG wird auf offensichtlichen Unfug geprueft.
 
@@ -36,7 +37,11 @@ from render_cv import (  # noqa: E402  — erst nach sys.path.insert moeglich
     LOGO_GROESSE, masse_aus_verhaeltnis, svg_masse, verhaeltnis_der_datei,
 )
 
-ZIEL = Path(__file__).resolve().parent.parent / "assets" / "logos"
+from logo_lib import bibliothek, suche  # noqa: E402
+
+# Neue Logos nie in den Skill-Ordner: bei der Plugin-Installation ersetzt
+# jedes Update ihn. Siehe logo_lib.py.
+ZIEL = bibliothek()
 # Ab dieser Abweichung ist ein anderes Seitenverhaeltnis keine Rundung mehr,
 # sondern ein gestrecktes oder gestauchtes Logo — gleich wie in figma_plan.py.
 TOLERANZ = 0.01
@@ -77,7 +82,7 @@ INK_ANTEIL = 0.75           # Schwelle zwischen Hintergrund und Strichfarbe
 
 
 def bibliothek_bereit():
-    """Ist assets/logos/ beschreibbar? Sonst frueh und verstaendlich abbrechen."""
+    """Ist die Bibliothek beschreibbar? Sonst frueh und verstaendlich abbrechen."""
     try:
         ZIEL.mkdir(parents=True, exist_ok=True)
         probe = ZIEL / ".schreibtest"
@@ -86,8 +91,9 @@ def bibliothek_bereit():
     except OSError as fehler:
         raise SystemExit(
             f"Die Logobibliothek {ZIEL} ist nicht beschreibbar ({fehler}).\n"
-            "In Claude Code liegt der Skill unter ~/.claude/skills/ — dort "
-            "Schreibrechte setzen, sonst lassen sich keine neuen Logos ablegen."
+            "Schreibrechte fuer diesen Ordner setzen oder NEWMONDAY_HOME auf "
+            "einen beschreibbaren Ordner zeigen lassen, sonst lassen sich keine "
+            "neuen Logos ablegen."
         )
 
 
@@ -343,6 +349,8 @@ def main():
         if tmp.exists():
             tmp.unlink()
     print(f'In der cv.json eintragen als:  "logo": "{ziel.name}"')
+    print(f"Abgelegt in {ZIEL} (ueberlebt Plugin-Updates). In der Uebergabe unter "
+          '"Neue Logos" nennen, damit ein Pfleger es ins Repo uebernimmt.')
 
 
 # --- Seitenverhaeltnis und Kontrollbild ---------------------------------------
@@ -354,9 +362,14 @@ def _zahl(wert):
 
 def vorhandene_verhaeltnisse(name):
     """Seitenverhaeltnis der Bibliotheksdatei, die gleich ersetzt wird — je
-    Endung, gemessen bevor sie ueberschrieben ist."""
+    Endung, gemessen bevor sie ueberschrieben ist. Auch eine Datei aus dem
+    Grundstock zaehlt: die neue verdeckt sie ab jetzt."""
     return {p.suffix.lower(): verhaeltnis_der_datei(p)
-            for p in (ZIEL / f"{name}.svg", ZIEL / f"{name}.png") if p.exists()}
+            for p in (_vorhanden(f"{name}.svg"), _vorhanden(f"{name}.png")) if p}
+
+
+def _vorhanden(datei):
+    return ZIEL / datei if (ZIEL / datei).exists() else suche(datei)
 
 
 def kontrollbild_pfad(quelle_arg, name):

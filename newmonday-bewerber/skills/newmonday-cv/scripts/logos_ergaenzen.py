@@ -7,7 +7,8 @@
 Geht jede Station und jedes Projekt durch, das noch kein `logo` hat, sucht das
 Logo und traegt den Dateinamen direkt in die cv.json ein. Reihenfolge je Firma:
 
-  1. Bibliothek in assets/logos/ (kostet nichts und ist schon geprueft)
+  1. Bibliothek: neue Funde in ~/.newmonday/logos/, dann der Grundstock in
+     assets/logos/ (kostet nichts und ist schon geprueft, siehe logo_lib.py)
   2. Quellenkette aus fetch_logo.py (Wikimedia, Brandfetch, logo.dev, Favicon)
 
 domains.json ist optional und ordnet Firmennamen Domains zu — Brandfetch,
@@ -30,6 +31,7 @@ from add_logo import (  # noqa: E402
     vorhandene_verhaeltnisse,
 )
 import fetch_logo  # noqa: E402
+import logo_lib  # noqa: E402
 
 RECHTSFORMEN = (
     "gmbh & co. kg", "gmbh", "ag", "eg", "se", "kg", "ohg", "plc", "inc",
@@ -54,13 +56,10 @@ def slugs(firma):
 
 
 def aus_bibliothek(firma):
-    aliase = ZIEL / "aliase.json"
-    if aliase.exists():
-        karte = json.loads(aliase.read_text(encoding="utf-8"))
-        for schluessel, datei in karte.items():
-            if schluessel.lower() in firma.lower() and (ZIEL / datei).exists():
-                return datei
-    vorhanden = {p.stem: p.name for p in ZIEL.iterdir() if p.suffix in (".svg", ".png")}
+    for schluessel, datei in logo_lib.aliase().items():
+        if schluessel.lower() in firma.lower() and logo_lib.suche(datei):
+            return datei
+    vorhanden = logo_lib.bestand()
     for s in slugs(firma):
         if s in vorhanden:
             return vorhanden[s]
@@ -116,12 +115,8 @@ def ganzer_alias(firma):
     Marken. Ohne diese Pruefung wurde am "&" getrennt und fuer "Coffee" das Logo
     einer fremden Kaffeekette gesucht und in die Bibliothek gelegt.
     """
-    aliase = ZIEL / "aliase.json"
-    if not aliase.exists():
-        return None
-    karte = json.loads(aliase.read_text(encoding="utf-8"))
-    for schluessel, datei in karte.items():
-        if schluessel.strip().lower() == firma.strip().lower() and (ZIEL / datei).exists():
+    for schluessel, datei in logo_lib.aliase().items():
+        if schluessel.strip().lower() == firma.strip().lower() and logo_lib.suche(datei):
             return datei
     return None
 
@@ -196,6 +191,9 @@ def main():
               "Kontrollbilder in logo-kontrolle/):")
         for z in neu:
             print("  " + z)
+        print(f"Die neuen Dateien liegen in {ZIEL} und ueberleben Plugin-Updates.")
+        print("In der Uebergabe unter \"Neue Logos\" nennen, damit ein Pfleger sie")
+        print("ins Repo uebernimmt (newmonday-cv/scripts/logos_uebernehmen.py).")
     if offen:
         print("Offen — Datei hochladen und add_logo.py aufrufen, oder Domain in")
         print("domains.json nachtragen:")

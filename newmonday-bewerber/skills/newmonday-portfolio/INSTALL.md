@@ -1,5 +1,11 @@
 # newmonday-portfolio einrichten
 
+> **Im Team: als Plugin installieren**, nicht von Hand. In Claude Code
+> `/plugin marketplace add New-Monday-GmbH/NW-Claude-Skills` und
+> `/plugin install newmonday-bewerber@nw-claude-skills`, dann Auto-Update
+> einschalten – siehe [README](../../README.md). Die Wege unten sind für
+> Einzelinstallationen ohne Marketplace.
+
 Dieser Skill baut aus den Unterlagen eines Kandidaten ein Portfolio im
 New-Monday-Layout als PDF – 16:9-Folien, dieselbe Struktur wie die bestehenden
 Portfolios.
@@ -12,8 +18,9 @@ Portfolios.
 
 Liegt daneben der Skill `newmonday-cv`, nutzen beide **dieselbe
 Logobibliothek**. Ein Logo, das für einen Lebenslauf gesucht wurde, steht dann
-beim nächsten Portfolio schon bereit – und umgekehrt. Fehlt der CV-Skill, legt
-das Portfolio seine eigene Bibliothek unter `assets/logos/` an.
+beim nächsten Portfolio schon bereit – und umgekehrt. Neue Logos landen dabei
+nie im Skill-Ordner, sondern in `~/.newmonday/logos/`, Fotos der
+Firmenzentralen in `~/.newmonday/hq/` – dort überleben sie Plugin-Updates.
 
 ## Was auf dem Rechner gebraucht wird
 

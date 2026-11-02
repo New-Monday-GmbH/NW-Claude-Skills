@@ -172,8 +172,11 @@ System. Meldet es Lücken, dem Nutzer den Befehl weiterreichen statt zu raten.
   Proxy fremde Domains. Das betrifft nur die Logosuche, siehe Schritt 3.
 - **Ausgabeort**: In Claude Code ins Arbeitsverzeichnis des Nutzers schreiben,
   nicht in den Skill-Ordner. Im Browser-Chat nach `/mnt/user-data/outputs/`.
-  Die einzige Ausnahme sind neue Logos: die gehören dauerhaft in
-  `assets/logos/`, damit die Bibliothek wächst.
+  Auch neue Logos kommen nicht in den Skill-Ordner – bei der Installation als
+  Plugin ersetzt jedes Update ihn. Die Skripte legen sie in
+  `~/.newmonday/logos/` ab und lesen von dort zuerst, danach den Grundstock in
+  `assets/logos/` (`scripts/logo_lib.py`). Neue Logos nennt die Übergabe, damit
+  ein Pfleger sie ins Repo übernimmt.
 
 Für die Installation gibt es `INSTALL.md` – die ist für den Nutzer geschrieben,
 nicht für dich, und kann bei Einrichtungsfragen weitergereicht werden.
@@ -376,8 +379,9 @@ nacheinander: der Nutzer soll alles auf einmal beantworten und liefern können.
    Marken zuverlässig, deutsche Agenturen und Mittelständler dagegen fast nie.
    Genau die stehen aber in den meisten Lebensläufen. Deshalb gleich zu Beginn
    darum bitten, die Logos der Arbeitgeber als SVG mitzuschicken – am besten aus
-   dem Presse- oder Brand-Bereich der jeweiligen Firmenseite. Was schon in
-   `assets/logos/` liegt, muss nicht noch einmal geliefert werden.
+   dem Presse- oder Brand-Bereich der jeweiligen Firmenseite. Was schon in der
+   Bibliothek liegt (`python3 ${CLAUDE_SKILL_DIR}/scripts/logo_lib.py`), muss
+   nicht noch einmal geliefert werden.
 
    Die Bitte ist eine Abkürzung, keine Bedingung: Was nicht kommt, suchst du
    selbst, siehe Schritt 3.
@@ -1065,7 +1069,8 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/logos_ergaenzen.py cv.json --domains domains
 
 Das Skript geht jede Station und jedes Projekt ohne `logo` durch, sucht das
 Logo und trägt den Dateinamen direkt in die `cv.json` ein. Je Firma zuerst die
-Bibliothek in `assets/logos/`, dann die Quellenkette aus `fetch_logo.py`. Es
+Bibliothek (neue Funde in `~/.newmonday/logos/`, dann der Grundstock in
+`assets/logos/`), dann die Quellenkette aus `fetch_logo.py`. Es
 meldet am Ende, was aus der Bibliothek kam, was neu gefunden wurde und welche
 Firmen offen sind.
 
@@ -1148,7 +1153,7 @@ Danach zu prüfen:
 
 **Logos gehören in die Originalfarben der Marke, wo es sie gibt.** Nichts wird
 entfärbt, aufgehellt oder ans Layout angeglichen – das Skript fasst Logofarben
-ohnehin nicht an, also entscheidet allein, welche Datei in `assets/logos/` liegt.
+ohnehin nicht an, also entscheidet allein, welche Datei in der Bibliothek liegt.
 Die automatische Suche liefert oft die schwarze Variante, auch wenn die Marke
 farbig ist: Deutsche Bank ist blau, nicht schwarz. Deshalb jedes neu gefundene
 Logo daraufhin ansehen und, wenn es die entfärbte Fassung ist, die farbige von
@@ -1172,8 +1177,9 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/add_logo.py ~/Downloads/hays.svg hays       
 python3 ${CLAUDE_SKILL_DIR}/scripts/fetch_logo.py "Hays" hays --domain hays.de   # gezielt suchen
 ```
 
-Bekannt gewordene Sonderfälle gehören in `assets/logos/aliase.json`, damit die
-Zuordnung beim nächsten Mal ohne Suche klappt:
+Bekannt gewordene Sonderfälle gehören in `~/.newmonday/logos/aliase.json`
+(ergänzt die `aliase.json` im Grundstock), damit die Zuordnung beim nächsten
+Mal ohne Suche klappt:
 
 ```json
 { "New Monday": "nm-logo.svg" }
@@ -1225,8 +1231,9 @@ Bild ansehen** und mit dem Logo auf der Seite der Firma vergleichen:
 
 - **Weicht das Verhältnis von der Quelle ab, oder wirkt die Schrift gestreckt
   oder gestaucht** – Buchstaben zu schmal oder zu breit, Kreise als Ellipsen –,
-  **wird das Logo nicht aufgenommen**: die Datei wieder aus `assets/logos/`
-  entfernen (eine ersetzte Datei zurückholen) und eine andere Quelle suchen.
+  **wird das Logo nicht aufgenommen**: die Datei wieder aus `~/.newmonday/logos/`
+  entfernen (war sie dort schon vorher, die alte zurückholen; ohne Datei dort
+  gilt wieder der Grundstock) und eine andere Quelle suchen.
 - Ein anderes Verhältnis, das nur vom abgeschnittenen Rand kommt, ist kein
   Fehler – das Skript sagt dazu, dass es skaliert nur gleichmäßig.
 - Warnt das Skript, die **ersetzte Datei** habe ein anderes Verhältnis gehabt,
@@ -1471,6 +1478,16 @@ Zeilen berichten:
   dass eine Textmarke im PDF nicht wiederzufinden war, gehört auch das hierher: An
   dieser Stelle ist die Seitenkante im Frame geraten und sollte nachgesehen
   werden.
+
+#### Neue Logos
+
+Hat dieser Lauf Logos neu aufgenommen (`add_logo.py`, `fetch_logo.py`,
+`logos_ergaenzen.py` melden es mit „Abgelegt in …“ bzw. „Neu gefunden“), steht
+vor dem Schluss ein Abschnitt **„Neue Logos“** mit Firma und Dateiname je Logo
+und dem Satz: „Liegen in ~/.newmonday/logos/ – bitte ins Repo übernehmen
+(`scripts/logos_uebernehmen.py`).“ Nur so landen sie im Grundstock und bei
+allen anderen; ohne Übernahme bleiben sie auf diesem Rechner. Kein neues Logo:
+kein Abschnitt.
 
 #### Ganz zum Schluss: was zur Vollständigkeit fehlt
 
