@@ -38,6 +38,9 @@ UEBERSPRINGEN = {"fehler", "ausgelassen"}  # Phase so: deren Datei nur mit Warnu
 UEBERGABE = ["## Dateien", "## Zur Freigabe", "## Quellen weichen ab",
              "## Hinweise", "## Ohne Rückfrage entschieden", "## Fehlt noch"]
 EMPFOHLEN = "(Empfohlen)"
+ANFRAGE_QUELLEN = {"matching", "ausschreibung"}  # woher die Anforderungstabelle stammt
+MATCHING = {"bestanden", "nicht_bestanden", "fehlt"}
+ANFRAGE_ARTEN = {"muss", "kann", "domaene"}  # anfrage_luecken[].art
 ID = re.compile(r"^[a-z][a-z0-9_]*$")
 FIGMA_LINK = re.compile(
     r"^https://www\.figma\.com/design/(?P<key>[A-Za-z0-9]+)/[^?]*\?(?:.*&)?"
@@ -98,6 +101,77 @@ def pruefe_abweichungen(abw) -> tuple[list[str], list[str]]:
     return f, w
 
 
+def pruefe_anfrage_luecken(al) -> list[str]:
+    """Fehler für anfrage_luecken in einer fragen.json: was die Anfrage verlangt
+    und das Material nicht belegt."""
+    if not isinstance(al, list):
+        return ["anfrage_luecken: muss eine Liste sein"]
+    f: list[str] = []
+    for i, l in enumerate(al):
+        o = f"anfrage_luecken[{i}]"
+        if not isinstance(l, dict):
+            f.append(f"{o}: muss ein Objekt sein")
+            continue
+        for k in ("kriterium", "folge"):
+            if not _text(l.get(k)):
+                f.append(f"{o}.{k}: fehlt")
+        art = l.get("art")
+        if not isinstance(art, str) or art not in ANFRAGE_ARTEN:
+            f.append(f"{o}.art: {art!r} ist keiner von {sorted(ANFRAGE_ARTEN)}")
+    return f
+
+
+def pruefe_anfrage(a, m) -> tuple[list[str], list[str]]:
+    """Fehler und Warnungen für anfrage und matching in einer auftrag.json.
+    Ohne Anfrage (fehlt oder null) gibt es kein Matching zu prüfen."""
+    f: list[str] = []
+    w: list[str] = []
+    if a is None:
+        if m is not None:
+            f.append("matching: steht da, aber es gibt keine anfrage")
+        return f, w
+    if not isinstance(a, dict):
+        return ["anfrage: muss ein Objekt oder null sein"], w
+    quelle = a.get("quelle")
+    if not isinstance(quelle, str) or quelle not in ANFRAGE_QUELLEN:
+        f.append(f"anfrage.quelle: {quelle!r} ist keiner von {sorted(ANFRAGE_QUELLEN)}")
+    if not _text(a.get("zeile")):
+        f.append("anfrage.zeile: fehlt – die Anfrage in einer Zeile, für die Skill Matrix")
+    for k in ("muss", "kann", "ko"):
+        v = a.get(k, [])
+        if not isinstance(v, list) or not all(_text(x) for x in v):
+            f.append(f"anfrage.{k}: muss eine Liste von Texten sein")
+    if a.get("muss") == []:
+        w.append("anfrage.muss: leer – gewichtet wird dann nur nach Kann und Domäne")
+    for k in ("rolle", "senioritaet", "domaene", "datei"):
+        if a.get(k) is not None and not _text(a.get(k)):
+            f.append(f"anfrage.{k}: muss ein Text oder null sein")
+    if m is None:
+        f.append("matching: fehlt – bei einer Anfrage steht hier das Ergebnis der "
+                 "Matching-Prüfung aus Phase 2")
+        return f, w
+    if not isinstance(m, dict):
+        return f + ["matching: muss ein Objekt sein"], w
+    ergebnis = m.get("ergebnis")
+    if not isinstance(ergebnis, str) or ergebnis not in MATCHING:
+        f.append(f"matching.ergebnis: {ergebnis!r} ist keiner von {sorted(MATCHING)}")
+        return f, w
+    gruende = m.get("gruende", [])
+    if not isinstance(gruende, list) or not all(_text(x) for x in gruende):
+        f.append("matching.gruende: muss eine Liste von Texten sein")
+    elif ergebnis != "bestanden" and not gruende:
+        f.append(f"matching.gruende: leer – bei {ergebnis!r} steht hier, was fehlt")
+    if "trotzdem" in m and not isinstance(m["trotzdem"], bool):
+        f.append("matching.trotzdem: muss true oder false sein")
+    elif ergebnis != "bestanden" and m.get("trotzdem") is not True:
+        f.append(f"matching: {ergebnis!r}, aber trotzdem ist nicht true – gebaut wird "
+                 "dann nur, wenn der Nutzer „Trotzdem bauen“ gewählt hat")
+    if ergebnis == "bestanden" and quelle == "ausschreibung":
+        w.append("matching: bestanden, aber die Anfrage kommt nur aus einer Ausschreibung "
+                 "– woher stammt der Befund?")
+    return f, w
+
+
 def pruefe_fragen(d: dict) -> tuple[list[str], list[str]]:
     """Fehler und Warnungen für den Inhalt einer fragen.json."""
     f: list[str] = []
@@ -125,6 +199,7 @@ def pruefe_fragen(d: dict) -> tuple[list[str], list[str]]:
     fa, wa = pruefe_abweichungen(d.get("abweichungen", []))
     f += fa
     w += wa
+    f += pruefe_anfrage_luecken(d.get("anfrage_luecken", []))
     fragen = d.get("fragen", [])
     if not isinstance(fragen, list):
         return f + ["fragen: muss eine Liste sein"], w
@@ -254,6 +329,9 @@ def pruefe_auftrag(d: dict) -> tuple[list[str], list[str]]:
         elif v is not None and not (isinstance(v, str) and v in QUELLEN):
             f.append(f"vorrang: {v!r} ist keiner von {list(QUELLEN)}, nicht null und "
                      f"beginnt nicht mit {ANWEISUNG!r}")
+    fa, wa = pruefe_anfrage(d.get("anfrage"), d.get("matching"))
+    f += fa
+    w += wa
     entscheidungen = d.get("entscheidungen", {})
     if not isinstance(entscheidungen, dict):
         f.append("entscheidungen: muss ein Objekt sein")
@@ -337,6 +415,24 @@ def _unbekannte_antworten(auftrag, skill: str, kurz: str, fragen) -> list[str]:
             f"in {kurz}/fragen.json" for qid in antworten if qid not in ids]
 
 
+def _muss_ohne_beleg(auftrag, kurz: str, fragen) -> list[str]:
+    """Warnungen für anfrage_luecken in <kurz>/fragen.json: ohne Anfrage gehören
+    sie nicht dorthin; ein Muss ohne Beleg widerspricht einem bestandenen Matching."""
+    al = fragen.get("anfrage_luecken") if isinstance(fragen, dict) else None
+    if not isinstance(al, list) or not al:
+        return []
+    anfrage = auftrag.get("anfrage") if isinstance(auftrag, dict) else None
+    if not isinstance(anfrage, dict):
+        return [f"{kurz}/fragen.json: anfrage_luecken, aber auftrag.json hat keine anfrage"]
+    m = auftrag.get("matching")
+    if not (isinstance(m, dict) and m.get("ergebnis") == "bestanden"):
+        return []
+    return [f"{kurz}/fragen.json: Muss „{l['kriterium']}“ im Material nicht belegt – "
+            "widerspricht dem bestandenen Matching, vor einer Einreichung klären"
+            for l in al if isinstance(l, dict) and l.get("art") == "muss"
+            and _text(l.get("kriterium"))]
+
+
 def pruefe_ordner(lauf: Path, dateien: bool = True) -> tuple[list[str], list[str]]:
     """Fehler und Warnungen für einen ganzen Laufordner."""
     f: list[str] = []
@@ -359,6 +455,10 @@ def pruefe_ordner(lauf: Path, dateien: bool = True) -> tuple[list[str], list[str
                 v = mat.get(k)
                 if _text(v) and not (lauf / v).exists():
                     f.append(f"auftrag.json: material.{k}: {v} gibt es im Laufordner nicht")
+        anfrage = auftrag.get("anfrage")
+        v = anfrage.get("datei") if isinstance(anfrage, dict) else None
+        if dateien and _text(v) and not (lauf / v).exists():
+            f.append(f"auftrag.json: anfrage.datei: {v} gibt es im Laufordner nicht")
     for skill, kurz in SKILLS.items():
         fr = lauf / kurz / "fragen.json"
         vorbereiten = _phase(auftrag, skill, "vorbereiten")
@@ -375,6 +475,7 @@ def pruefe_ordner(lauf: Path, dateien: bool = True) -> tuple[list[str], list[str
                 f += [f"{kurz}/fragen.json: {x}" for x in ff]
                 w += [f"{kurz}/fragen.json: {x}" for x in ww]
                 f += _unbekannte_antworten(auftrag, skill, kurz, d)
+                w += _muss_ohne_beleg(auftrag, kurz, d)
         ue = lauf / kurz / "uebergabe.md"
         bauen = _phase(auftrag, skill, "bauen")
         if ue.exists() and isinstance(bauen, str) and bauen in UEBERSPRINGEN:

@@ -195,6 +195,28 @@ Skills vor; im Einzellauf gilt er nicht.
 | Sprache | `sprache` |
 | Figma-Ziel | `figma.link` – er trägt die `node-id` der Kandidatenseite, also gilt in `references/figma.md` „Zielseite“ mit `node-id`. Ist `figma.aktiv` false, entfällt Schritt 4a. |
 | Lebenslauf, LinkedIn-Export und -Link, Xing, Portfolio, Foto, Logos | `material` |
+| Anfrage | `anfrage`, falls vorhanden – Gewichtung, nie Beleg (unten) |
+
+**Die Anfrage im Lebenslauf.** Der Lebenslauf übernimmt, er schreibt nicht um –
+deshalb wirkt die Anfrage (`anfrage` in `auftrag.json`) hier nur an vier
+Stellen, und nur mit belegtem Material:
+
+- **Schritt 1d:** In der `description` einer fachfremden Station oder
+  Weiterbildung steht, wenn sie die Domäne oder ein Muss-Kriterium der Anfrage
+  belegt („belegt Domäne Versicherung“). Entscheiden tut weiter der Nutzer.
+- **Kurzprofil, nur wenn es generiert wird:** Unter den belegten Themen stehen
+  die vorn, die die Anfrage verlangt. Kein Halbsatz, den der Eingang nicht
+  hergibt; ein Kurzprofil aus dem Eingang bleibt, wie es ist.
+- **Skillset:** Muss beim Kürzen gekürzt werden (Schritt 2), bleiben die
+  Einträge, die ein Muss- oder Kann-Kriterium belegen; gestrichen werden
+  zuerst die übrigen. Innerhalb einer Gruppe dürfen sie vorn stehen. Kein
+  Eintrag kommt dazu, weil die Anfrage ihn nennt.
+- **Domäne:** Branchen nur aus Tätigkeiten (Schritt 2, `skillset`). Ein Logo
+  aus der Domäne der Anfrage, hinter dem eine andere Tätigkeit steht, bleibt
+  an seiner Station und kommt unter „Zur Freigabe“ (Regel im Auftrag).
+
+Stationen, ihre Reihenfolge und ihr Wortlaut bleiben, wie sie sind. Was die
+Anfrage verlangt und der Eingang nicht belegt, kommt nach `anfrage_luecken`.
 
 **Phase vorbereiten: Schritte 1 bis 1c.** Statt der Frage-Nachricht aus Schritt
 1d entsteht `fragen.json`:
@@ -254,9 +276,9 @@ vergleicht beide Listen.
 Stationen mit mehreren Marken (Schritt 3): ohne Rückfrage in einer Station, alle
 Logos als Liste in `logo`, und das unter „Ohne Rückfrage entschieden“. Die
 Übergabe aus Schritt 5 geht nach `uebergabe.md`: unter „Zur Freigabe“ das
-Kurzprofil, die abgeleiteten Skillset-Einträge mit Beleg (Schritt 2) und was
+Kurzprofil, die abgeleiteten Skillset-Einträge mit Beleg (Schritt 2), was
 `anonymisieren.py` unter „Prüfen“ gemeldet hat, mit dem Satz drumherum
-(Schritt 5); die Abweichungen aus `notizen.md` unter „Quellen weichen ab“, der
+(Schritt 5), und – mit Anfrage – die Logos aus ihrer Domäne ohne Domänenpraxis; die Abweichungen aus `notizen.md` unter „Quellen weichen ab“, der
 Hinweis auf den vollen Namen im Figma-File und alles Übrige unter „Hinweise“, die
 beiden Schlusszeilen wörtlich unter „Fehlt noch“.
 
@@ -980,7 +1002,11 @@ Zum Modell:
     Kampagnen einer Werbeagentur → "Werbung und Kampagnen"); Tools aus den
     Aufgaben ("Prototypen in Figma" → "Figma"); Fähigkeiten aus den Aufgaben.
     Der Firmentyp allein belegt nichts: Wer bei einer Agentur war, hat damit noch
-    keine Branche. **Abgeleitetes steht in der Übergabe zur Freigabe**, mit Beleg
+    keine Branche. **Und der Kundenname allein auch nicht** – die Branche kommt
+    aus der Tätigkeit, nicht aus dem Logo daneben (Domänenprüfung aus
+    `newmonday-matching`): Ein Werbefilm für einen Energieversorger ist
+    "Werbung und Kampagnen", nicht "Energie"; ein Onlineshop-Checkout ist
+    "E-Commerce", nicht "Banking". **Abgeleitetes steht in der Übergabe zur Freigabe**, mit Beleg
     – es ist dieselbe Art Behauptung wie ein generiertes Kurzprofil.
   - **Sprachen setzt das Renderskript.** Deutsch – Muttersprache und Englisch –
     Business Niveau stehen in jedem Lebenslauf, auch wenn der Eingang keine

@@ -1,6 +1,6 @@
 ---
 name: newmonday-bewerbermappe
-description: Baut in einem Lauf alle drei New-Monday-Dokumente eines Kandidaten – Lebenslauf (vollständig und anonym), Skill Matrix und Portfolio –, jeweils als PDF und als Frames auf einer gemeinsamen Figma-Seite. Führt newmonday-cv, newmonday-skillmatrix und newmonday-portfolio nacheinander aus, stellt jede gemeinsame Frage nur einmal (Sprache, Figma, Material), prüft vorab, was an Unterlagen fehlt, und bündelt alle Entscheidungen in einer Sitzung, bevor gebaut wird. Nutze diesen Skill immer, wenn alle drei Dokumente für denselben Kandidaten entstehen sollen – "die ganze Mappe", "das komplette Set", "alle Unterlagen für <Name>", "CV, Portfolio und Skillmatrix", "Bewerbermappe", "mach alles fertig für <Name>" –, und wenn ein laufender Gesamtlauf fortgesetzt oder um nachgelieferte Logos, Screens oder Fotos ergänzt werden soll. Für genau ein Dokument sind newmonday-cv, newmonday-skillmatrix und newmonday-portfolio zuständig.
+description: Baut in einem Lauf alle drei New-Monday-Dokumente eines Kandidaten – Lebenslauf (vollständig und anonym), Skill Matrix und Portfolio –, jeweils als PDF und als Frames auf einer gemeinsamen Figma-Seite. Führt newmonday-cv, newmonday-skillmatrix und newmonday-portfolio nacheinander aus, stellt jede gemeinsame Frage nur einmal (Sprache, Figma, Material, Anfrage), prüft vorab, was an Unterlagen fehlt und ob ein bestandenes Profilmatching vorliegt, richtet alle drei Dokumente auf die Anforderungstabelle aus dem Matching aus (Muss, Kann, K.o., Domäne – als Gewichtung, nie als Beleg) und bündelt alle Entscheidungen in einer Sitzung, bevor gebaut wird. Nutze diesen Skill immer, wenn alle drei Dokumente für denselben Kandidaten entstehen sollen – "die ganze Mappe", "das komplette Set", "alle Unterlagen für <Name>", "CV, Portfolio und Skillmatrix", "Bewerbermappe", "mach alles fertig für <Name>" –, und wenn ein laufender Gesamtlauf fortgesetzt oder um nachgelieferte Logos, Screens oder Fotos ergänzt werden soll. Für genau ein Dokument sind newmonday-cv, newmonday-skillmatrix und newmonday-portfolio zuständig.
 ---
 
 # New Monday Bewerbermappe
@@ -31,6 +31,41 @@ Daraus folgt:
 - **Was ein Subagent ohne Rückfrage entscheiden musste, steht in der
   Übergabe** – nie still.
 
+## Die Anfrage ist Gewichtung, nie Beleg
+
+Entsteht die Mappe für eine bestimmte Anfrage, fließt das Wissen aus dem
+Profilmatching (`newmonday-matching`) in alle drei Dokumente: Die
+Anforderungstabelle – Rolle, Seniorität, Muss, Kann, K.o., Domäne – wird einmal
+eingeholt (Phase 1 und 2), steht in `auftrag.json` unter `anfrage` und geht an
+alle drei Skills. Dafür gilt, ohne Ausnahme:
+
+- **Die Anfrage entscheidet, was vorne steht und was ausgewählt wird – nie, was
+  behauptet wird.** Sie ordnet Kategorien, Schwerpunkte, Schwerpunkt-Folien und
+  Projektvorschläge und entscheidet mit, was beim Kürzen bleibt. Kein Skill,
+  kein Satz und kein Schwerpunkt kommt ins Dokument, weil die Anfrage ihn nennt.
+- **„Übernehmen, nicht umschreiben“ und „jedes Attribut braucht einen Beleg“
+  gelten unverändert.** Was die Anfrage verlangt und das Material nicht belegt,
+  steht in der Freigabe (`anfrage_luecken`), nicht im Dokument.
+- **Ein Kundenlogo ist keine Domänenerfahrung.** Die Domänenprüfung aus dem
+  Matching gilt auch für die Logos im Lebenslauf und die Kundenwand im
+  Portfolio. Typische Scheintreffer: ein Kunde in der Liste, aber eine andere
+  Tätigkeit (ein Energieversorger als Auftraggeber eines Werbefilms ist keine
+  Energiewirtschaft); gleiches Wort, andere Branche („Payment“ im
+  Onlineshop-Checkout ist kein Banking-Zahlungsverkehr); eine Tool-Liste statt
+  eines Projekts; vorgestellt ist nicht gearbeitet. Belegt ist eine Domäne nur
+  durch eine Tätigkeit in ihr. Ein Logo aus der Domäne der Anfrage, hinter dem
+  eine andere Tätigkeit steht, bleibt stehen – der Lebenslauf zeigt Stationen,
+  die Wand Kunden –, wird aber wegen der Anfrage nie vorgezogen, trägt keine
+  Branche, keinen Schwerpunkt und keine Schwerpunkt-Folie und steht mit der
+  tatsächlichen Tätigkeit unter „Zur Freigabe“. Wer es dort nicht sehen will,
+  nimmt es per Änderungswunsch heraus.
+- **Gelesen wird, geschrieben nicht.** Nichts geht ins CRM, nichts nach JOIN,
+  keine Mail, keine Einreichung. Auswertung und Ausschreibung liegen im
+  Laufordner, nie im Skill-Repo.
+
+Ohne Anfrage entsteht eine allgemeine Mappe wie bisher – ohne Matching-Prüfung,
+und die Übergabe sagt, dass sie auf keine Anfrage ausgerichtet ist.
+
 ## Voraussetzungen
 
 - Die drei Skills liegen neben diesem Skill. Bei der Installation per Symlink
@@ -54,7 +89,7 @@ steht als Text in derselben Nachricht. Gefragt wird nur in Phase 1, 2 und 4.
 
 Eine Nachricht. Vorher prüfen, ob das Arbeitsverzeichnis zum Skill-Repo gehört
 (Phase 2, Punkt 3) – dann kommt die Ablage-Frage mit in denselben Aufruf. Bis
-zu drei Klickboxen in einem `AskUserQuestion`-Aufruf:
+zu vier Klickboxen in einem `AskUserQuestion`-Aufruf:
 
 ```
 Frage:    Sollen Lebenslauf, Skill Matrix und Portfolio auf Deutsch oder Englisch sein?
@@ -69,9 +104,17 @@ Optionen: In ein bestehendes File – ich schicke den Link (Empfohlen)
         | Leg ein neues File an
 ```
 
+```
+Frage:    Entsteht die Mappe für eine bestimmte Anfrage?
+Header:   Anfrage
+Optionen: Ja – ich schicke die Matching-Auswertung (Empfohlen)
+        | Ja – ich schicke nur die Ausschreibung
+        | Nein, allgemeine Mappe
+```
+
 Die Sprachfrage wird gestellt, auch wenn der Eingang eindeutig einsprachig
 aussieht – ein englischer Lebenslauf kann für einen deutschen Kunden gedacht
-sein. Sie gilt für alle drei Dokumente.
+sein. Sie gilt für alle drei Dokumente. Ebenso gilt die Anfrage für alle drei.
 
 Daneben als Text, wörtlich so:
 
@@ -85,6 +128,9 @@ Daneben als Text, wörtlich so:
 > - den **Link zum Figma-File** (figma.com/design/…), falls es ein bestehendes
 >   sein soll. Ich lege darin eine Seite mit dem Namen des Kandidaten an und
 >   brauche Bearbeitungsrechte.
+> - für eine Anfrage die **Matching-Auswertung** (Datei oder eingefügt) – daraus
+>   kommen die Anforderungen und ob das Matching bestanden ist; sonst die
+>   **Ausschreibung**.
 >
 > Wenn es sie gibt, spart das Zeit: Firmen- und Kundenlogos als SVG, Screenshots
 > je Projekt (einzelne Exporte, ein Screen je Datei), Zertifikate als Bild oder
@@ -94,7 +140,8 @@ Daneben als Text, wörtlich so:
 **Was mit dem Aufruf schon kam, wird nicht noch einmal erbeten.** Dateien und
 Links, die schon im Chat liegen, fallen aus der Liste; eine genannte Sprache
 („auf Englisch“) ersetzt die Sprachfrage, ein mitgeschickter Figma-Link die
-Figma-Frage. Ist dann nichts mehr offen, entfällt die Nachricht ganz.
+Figma-Frage, eine mitgeschickte Auswertung oder Ausschreibung die
+Anfrage-Frage. Ist dann nichts mehr offen, entfällt die Nachricht ganz.
 
 Die Ablage-Frage aus Phase 2, Punkt 3 steht, wenn nötig, als dritte Klickbox in
 diesem Aufruf. Liegen die Unterlagen schon im Chat, den Namen vorher nach
@@ -111,8 +158,52 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
    Lücken-Nachricht nachfragen.
 2. **Kandidatenname** aus der ersten Seite von Lebenslauf oder LinkedIn-Export.
    Bleibt der Text leer (als Bild gesetztes PDF), die erste Seite als Bild lesen.
-   Mit der Zuordnung aus Punkt 1 ist das die einzige Inhaltsarbeit dieses
-   Skills; der Name gibt Laufordner und Figma-Seite ihren Namen.
+   Mit der Zuordnung aus Punkt 1 und der Anfrage aus Punkt 2a ist das die
+   einzige Inhaltsarbeit dieses Skills; der Name gibt Laufordner und
+   Figma-Seite ihren Namen.
+2a. **Anfrage und Matching** – nur, wenn Phase 1 eine Anfrage ergeben hat.
+   - **Die Anforderungstabelle.** Aus einer Matching-Auswertung den Abschnitt
+     „Die Anforderung“ und die K.-o.-Zeile übernehmen, wörtlich, als `anfrage`
+     mit `quelle: matching`. Gibt es nur eine Ausschreibung, sie nach Schritt 1
+     von `newmonday-matching` zerlegen (`quelle: ausschreibung`): genau eine
+     Rolle, Seniorität, Muss und Kann getrennt, die Domäne nur, wenn die
+     Ausschreibung sie fordert. Werte aus dem Matching-Vokabular – liegt der
+     Skill `newmonday-matching` daneben, aus dessen `references/vokabular.md`,
+     sonst aus der Spalte „Vokabular“ in
+     `<skills>/newmonday-skillmatrix/references/matching-zuordnung.md`; was
+     dort fehlt, wörtlich aus der Ausschreibung. Ist unklar, ob etwas Muss oder
+     Kann ist, steht es unter Kann, und die Lücken-Nachricht nennt es. Dazu
+     `zeile`, die Anfrage in einer Zeile: „Senior UX/UI Design, Muss: …; Kann:
+     …; Domäne: …“. Die Datei geht nach `eingang/anfrage.md` bzw. so, wie sie
+     kam, nach `eingang/`.
+   - **Die Matching-Prüfung** – nur aus der Auswertung, kein eigener Abgleich,
+     kein CRM-Abruf. Bestanden ist sie, wenn für diesen Kandidaten alles gilt:
+     1. Er steht als Treffer drin: Quote ab 70 % (Pool) bzw. alle
+        Muss-Kriterien belegt (JOIN-Trichter, „x von x Muss“), und die
+        Empfehlung lautet „Treffer“.
+     2. Keine dokumentierte Muss-Lücke – keine 🔴-Zeile bei einem
+        Muss-Kriterium, keine Muss-Lücke unter „Wer trotz hohem Score nicht
+        vorne steht“ oder „Ehrlich zum Risiko“.
+     3. Die Vita-Prüfung steht für ihn auf „bestanden“.
+
+     Fehlt eine davon: `nicht_bestanden`, mit dem Grund. Steht der Kandidat
+     nicht in der Auswertung oder gibt es nur eine Ausschreibung: `fehlt`. Das
+     Ergebnis kommt nach `matching` in `auftrag.json`.
+   - **Nicht bestanden oder fehlt:** eine Zeile in der Lücken-Nachricht
+     (Punkt 6) mit den Gründen und im selben Aufruf diese Klickbox:
+
+     ```
+     Frage:    Für <Vorname> liegt kein bestandenes Matching vor (siehe oben). Trotzdem bauen?
+     Header:   Matching
+     Optionen: Erst das Matching klären (Empfohlen) | Trotzdem bauen
+     ```
+
+     „Erst das Matching klären“: Der Lauf endet hier – kein Laufordner, keine
+     Figma-Seite; mit der Auswertung später neu starten. „Trotzdem bauen“:
+     `matching.trotzdem = true`, und die Gesamtübergabe sagt es ganz oben. Die
+     Regeln des Matchings bleiben davon unberührt: Unter 70 % wird niemand
+     angesprochen, mit dokumentierter Muss-Lücke wird nicht eingereicht – die
+     Dokumente ändern daran nichts.
 3. **Ablageort.** Der Laufordner heißt wie der Kandidat und liegt im
    Arbeitsverzeichnis – außer das Arbeitsverzeichnis gehört zum Skill-Repo:
 
@@ -163,6 +254,8 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
    | Figma-Link (bei „bestehendes File“) | Ich lege ein neues Figma-File an. |
    | Figma nicht verbunden oder falscher Dateityp | Es entstehen nur die PDFs, keine Frames. |
    | Umgebung | <Skill> kann nicht rendern: <was fehlt>. Einrichten mit: `<Befehl>` |
+   | Matching-Auswertung (bei „Ja – Matching-Auswertung“) | Ohne Auswertung ist offen, ob <Vorname> das Matching bestanden hat; die Anforderungen kommen dann aus der Ausschreibung. |
+   | Bestandenes Matching (Punkt 2a) | <Gründe>. Die Unterlagen entstehen dann ohne bestandenes Matching. |
 
    Dazu eine Klickbox:
 
@@ -253,7 +346,8 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
    `references/formate.md`. Die Dateien werden nach `eingang/` kopiert, nicht
    verschoben (Logos nach `eingang/logos/`, Screens nach `eingang/screens/`, je
    Projekt ein Unterordner, wenn der Nutzer sie so geliefert hat, Zertifikate
-   nach `eingang/zertifikate/`). Alle Status auf `offen`. Dann:
+   nach `eingang/zertifikate/`). Mit Anfrage stehen `anfrage` und `matching`
+   aus Punkt 2a darin, ohne Anfrage fehlen beide. Alle Status auf `offen`. Dann:
 
    ```bash
    python3 ${CLAUDE_SKILL_DIR}/scripts/pruefe_lauf.py "<laufordner>"
@@ -319,6 +413,19 @@ Eine Sitzung, in dieser Reihenfolge:
 
    | Feld | Lebenslauf | LinkedIn-Export | Portfolio |
    |---|---|---|---|
+
+   Und, wenn eine `fragen.json` `anfrage_luecken` meldet, was die Anfrage
+   verlangt und das Material nicht belegt – Muss zuerst, gleiches Kriterium
+   einmal, mit der Folge je Dokument:
+
+   | Kriterium | Art | Lebenslauf | Skill Matrix | Portfolio |
+   |---|---|---|---|---|
+
+   Steht `matching.ergebnis` auf `bestanden` und fehlt trotzdem der Beleg für
+   ein Muss, steht darüber: „Widerspruch zum Matching: <Kriterium> ist in den
+   Unterlagen nicht belegt. Mit dokumentierter Muss-Lücke wird nicht
+   eingereicht – vor einer Einreichung klären.“ Eine Frage gibt es dazu nicht:
+   In die Dokumente kommt das Kriterium ohnehin nicht.
 
    Ein `AskUserQuestion`-Aufruf mit höchstens vier Fragen:
    - bei Lücken: *Ich liefere nach (Empfohlen)* | *Ohne weitermachen*
@@ -400,7 +507,11 @@ einer Nachricht:
 
 1. **Fertig: Vorname Nachname** – die Dateien aus `ausgabe/` (von der Skill
    Matrix beide Fassungen, lang und A4) und der Link auf die Figma-Seite. Ist Figma bei einem Dokument gescheitert, steht hier der Grund –
-   die PDFs sind trotzdem da.
+   die PDFs sind trotzdem da. Darunter eine Zeile zur Anfrage: „Ausgerichtet
+   auf: <anfrage.zeile> – Matching bestanden“, bei `matching.trotzdem` statt
+   dessen ganz oben „Ohne bestandenes Matching gebaut: <Gründe>“, ohne Anfrage
+   „Allgemeine Mappe, auf keine Anfrage ausgerichtet“. Die Anfrage-Lücken
+   aller drei Dokumente stehen einmal je Kriterium unter Punkt 4.
 2. **Zur Freigabe** – je Dokument, was dort steht, im Wortlaut: Kurzprofil,
    abgeleitete Skillset-Einträge mit Beleg und die Prüf-Meldungen von
    `anonymisieren.py` (dort steht womöglich noch der Name im anonymen PDF),
@@ -484,6 +595,21 @@ Skill-Ordner: <laufordner>/<cv|skillmatrix|portfolio>/
      Die Ergänzungsregeln des Skills bleiben: Eine andere Quelle füllt Lücken,
      die Firmierung kommt vollständig aus LinkedIn, die feinere Angabe gilt,
      solange sie der gröberen nicht widerspricht.
+   - Anfrage: Steht in auftrag.json „anfrage“, ist sie Gewichtung, nie
+     Beleg. Sie entscheidet, was vorne steht und was ausgewählt wird, nie,
+     was behauptet wird; „übernehmen, nicht umschreiben“ und „jedes Attribut
+     braucht einen Beleg“ gelten unverändert. Was dein Skill mit ihr tut,
+     steht in seinem Abschnitt „Im Gesamtlauf“. Vorbereiten: Jedes Muss-,
+     Kann- und Domänenkriterium, das dein Material nicht belegt, kommt nach
+     „anfrage_luecken“ in fragen.json (formate.md). Fehlt „anfrage“ oder ist
+     es null, gibt es keine Anfrage.
+   - Domäne: Ein Kundenlogo, ein Wort in einer Tool-Liste oder eine frühere
+     Vorstellung bei einem Kunden belegt keine Domäne – nur eine Tätigkeit in
+     ihr. Ein Logo aus der Domäne der Anfrage, hinter dem eine andere
+     Tätigkeit steht, bleibt stehen, wird wegen der Anfrage aber nie
+     vorgezogen, trägt keine Branche, keinen Schwerpunkt, keine
+     Schwerpunkt-Folie und steht in uebergabe.md unter „Zur Freigabe“:
+     „<Kunde>: Logo bleibt; Tätigkeit dort: <…>, keine <Domäne>-Praxis“.
    - Tools: Lebenslauf und Skill Matrix führen dieselben Tools – gleiche
      Einträge, gleiche Schreibweise; die Reihenfolge darf abweichen. Maßgeblich ist die
      Skill Matrix (Entwurf in skillmatrix/notizen.md, nach der Freigabe in
@@ -533,6 +659,7 @@ vorbereitet werden muss – und welche Dokumente es trifft, wenn keine
 | Nachgeliefert | neu vorbereiten | neu bauen |
 |---|---|---|
 | Lebenslauf, LinkedIn-Export, Portfolio | alle drei (dann Phase 4) | alle drei |
+| Anfrage oder Matching-Auswertung (erst Phase 2, Punkt 2a) | alle drei (dann Phase 4) | alle drei |
 | Zertifikate | Skill Matrix (dann Phase 4) | Skill Matrix |
 | Foto | – | alle drei |
 | Logos | – | Lebenslauf, Portfolio |
@@ -554,6 +681,11 @@ dieser.
 - **Reihenfolge**: Lebenslauf → Skill Matrix → Portfolio, nacheinander, nie
   parallel.
 - **Eine Sprache** für alle drei Dokumente.
+- **Eine Anfrage** für alle drei Dokumente, einmal eingeholt – sie gewichtet,
+  sie belegt nichts. Ein Kundenlogo ist keine Domänenerfahrung.
+- **Vor dem Bauen die Matching-Prüfung**, wenn es eine Anfrage gibt: ohne
+  bestandenes Matching nur auf ausdrückliches „Trotzdem bauen“. Nichts ins CRM,
+  nichts nach JOIN, keine Mail.
 - **Eine Quelle bei Widersprüchen** für alle drei Dokumente – die, die der Nutzer
   als die aktuellere wählt; gefragt wird nur, wenn sich die Unterlagen
   widersprechen.

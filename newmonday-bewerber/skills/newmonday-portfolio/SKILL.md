@@ -127,6 +127,23 @@ Skills vor; im Einzellauf gilt er nicht.
 | Portfolio, Lebenslauf, LinkedIn-Export | `material.portfolio_url` oder `material.portfolio_pdf`, `material.lebenslauf`, `material.linkedin_export` |
 | Logos, Screens, Kundentexte | `material.logos`, `material.screens` (je Projekt ein Unterordner, wenn so geliefert), `material.kundentexte` |
 | Foto | `material.foto` – ein geliefertes Foto zählt als „vom Kandidaten“ (Schritt 1, „Das Profilfoto“) |
+| Anfrage | `anfrage` – Muss, Kann und Domäne als Gewichtung, nie als Beleg (unten); fehlt es oder ist es `null`, gibt es keine Schwerpunkt-Folien |
+
+**Die Anfrage im Portfolio.** Sie wirkt nur mit belegtem Material:
+
+- **Schwerpunkt-Folien (Schritt 4):** Themen sind die Muss-Kriterien, danach
+  die Kann-Kriterien, jeweils in der Reihenfolge der Anfrage – höchstens vier,
+  nur belegte. Ein Kriterium ohne Beleg bekommt keine Folie, sondern einen
+  Eintrag in `anfrage_luecken`.
+- **Projektvorschläge (Schritt 3, Frage `projekte`):** Bei der Stärke zählt mit,
+  ob ein Projekt ein Muss-Kriterium oder die Domäne der Anfrage belegt; die
+  `description` nennt es („belegt Muss: Design Systems“). Gewählt wird weiter
+  vom Nutzer.
+- **Kundenwand (Schritt 4, `kunden`):** Die Reihenfolge bleibt nach
+  Bekanntheit; die Anfrage zieht kein Logo nach vorn. Ein Kunde aus der Domäne
+  der Anfrage, bei dem der Kandidat etwas anderes getan hat (Scheintreffer,
+  Regel im Auftrag), bleibt auf der Wand und kommt mit seiner Tätigkeit unter
+  „Zur Freigabe“. Auf einer Schwerpunkt-Folie belegt er nichts.
 
 **Phase vorbereiten: Schritte 1 und 2.** Statt der Frage-Nachricht aus Schritt 3
 entsteht `fragen.json`:
@@ -163,10 +180,10 @@ In `notizen.md`:
 - je Projekt: Quelle der Texte, zugeordnete Bilder aus `arbeit/bilder/` mit
   Seitenzahl, Beleglage, eine Flächenfarbe nur, wenn Produkt oder Screens sie
   begründen – mit Quelle (Schritt 6);
-- liegt eine Anfrage bei: ihre Themen, je Thema die Belege im Material
-  (Schritt 4, „Schwerpunkt-Folien“) – `auftrag.json` kennt dafür kein eigenes
-  Feld, die Anfrage kommt über den Auftragstext oder den Laufordner; ohne
-  Anfrage keine Schwerpunkt-Folien;
+- liegt eine Anfrage bei (`anfrage` in `auftrag.json`): ihre Themen – Muss
+  vor Kann –, je Thema die Belege im Material (Schritt 4,
+  „Schwerpunkt-Folien“), und je Kunde der Wand aus ihrer Domäne, ob dort
+  Domänenpraxis belegt ist; ohne Anfrage keine Schwerpunkt-Folien;
 - die Profilfoto-Quelle;
 - die Kundenwand: alle Firmen nach der Regel in Schritt 4 (`kunden`), nach
   Bekanntheit sortiert, je Firma mit Quelle;
@@ -205,8 +222,9 @@ Lebenslauf, Portfolio, LinkedIn – in allen drei Dokumenten gleich; fehlt
 
 Gerendert wird nach `<laufordner>/ausgabe/<nachname>-<vorname>-portfolio.pdf`.
 Die Übergabe aus Schritt 8 geht nach `uebergabe.md`: Cover-Titel, KI- und
-Prozesstexte, die Texte der Schwerpunkt-Folien, Kundentexte mit Quellen und
-KI-generierte Gebäude unter „Zur Freigabe“, Abweichungen unter „Quellen
+Prozesstexte, die Texte der Schwerpunkt-Folien, Kundentexte mit Quellen,
+KI-generierte Gebäude und – mit Anfrage – die Kunden der Wand aus ihrer Domäne
+ohne Domänenpraxis unter „Zur Freigabe“, Abweichungen unter „Quellen
 weichen ab“, Bildnachweis und alles Übrige unter „Hinweise“, die Schlusszeilen
 wörtlich unter „Fehlt noch“.
 
@@ -549,6 +567,14 @@ steht in der Übergabe unter „Ohne Rückfrage entschieden“, damit sie mit ei
 Satz umgestellt werden kann. Bei mehreren Logozeilen läuft sie zeilenweise von
 links oben nach rechts unten.
 
+**Ein Logo auf der Wand ist keine Domänenerfahrung.** Die Wand zeigt, für wen
+jemand gearbeitet hat – nicht, in welcher Branche er fachlich zu Hause ist. Ein
+Energieversorger, für den der Kandidat einen Werbefilm gemacht hat, steht auf
+der Wand; Energiewirtschaft belegt er nicht. Liegt eine Anfrage mit Domäne vor,
+zieht sie kein Logo nach vorn, und ein Kunde aus dieser Domäne ohne
+Domänenpraxis steht mit seiner tatsächlichen Tätigkeit in der Übergabe unter
+„Zur Freigabe“ – wer ihn nicht auf der Wand will, nimmt ihn heraus.
+
 **Textlängen — was eine Fläche trägt.** Die Werte sind aus den bestehenden
 Portfolios gemessen und am fertigen PDF nachgeprüft. Das Renderskript misst
 ebenfalls nach und meldet Überlauf, aber es ist billiger, gleich in der
@@ -750,8 +776,10 @@ eigene Folie, die zeigt, wie der Kandidat dort arbeitet. Vorbild sind die
 Folien 11–13 in Florians überarbeitetem Deck (Oktober 2026). Ohne Anfrage gibt
 es keine; ein Thema, das die Anfrage nennt, das Material aber nicht belegt,
 bekommt auch keine – es gehört dann als Lücke in die Übergabe, nicht auf eine
-Folie. Reihenfolge wie in der Anfrage, bei mehr als vier Themen die mit der
-besten Beleglage.
+Folie. Reihenfolge wie in der Anfrage – kommt sie als Anforderungstabelle aus
+dem Profilmatching, die Muss-Kriterien vor den Kann-Kriterien –, bei mehr als
+vier Themen die mit der besten Beleglage. Ein Kundenlogo ist kein Beleg für
+ein Thema oder eine Domäne, nur eine Tätigkeit im Material.
 
 **Der Inhalt kommt nur aus dem Material.** Jede Aussage auf der Folie –
 Kunde, Projekt, Verfahren, Werkzeug, Norm, Zertifikat, Jahr – steht in
