@@ -461,7 +461,9 @@ def folie_planen(nr: int, sec, bilder_je_el: dict, sprache: str, kat: dict,
         p = Plan(nr, "Agentur")
         p.variante.update(sprachvariante)
     elif "seite--projekt" in k:
-        p = Plan(nr, "Projekt-Kopf")
+        # Projekt-Kopf v2 (November 2026): drei Spalten, Rollenkarten statt
+        # Aufzählung, Karte „Auf einen Blick“ mit drei Schlagwort-Gruppen.
+        p = Plan(nr, "Projekt-Kopf v2")
         p.texte["Titel"] = laeufe(eins(sec, "h1"))
         links = eins(sec, "sp-projekt")
         labels = [lb for lb in alle(links, "label")]
@@ -472,7 +474,26 @@ def folie_planen(nr: int, sec, bilder_je_el: dict, sprache: str, kat: dict,
         p.schalter["Meine Rolle anzeigen"] = rolle is not None
         if rolle is not None:
             p.texte["Label Rolle"] = laeufe(eins(rolle, "label"))
-            aufzaehlung(p, ["Rollen"], [laeufe(li) for li in alle(rolle, tag="li")], "24", grenzen)
+            karten = grenze([laeufe(r) for r in alle(rolle, "rollenkarte")],
+                            grenzen["rollen"], "Rollen", nr)
+            for i in (2, 3):
+                p.schalter[f"Rolle {i} anzeigen"] = i <= len(karten)
+            for i, r in enumerate(karten, 1):
+                p.kind([f"Rolle {i}"], texte={"Rolle": r})
+        blick = eins(sec, "blick")
+        p.schalter["Auf einen Blick anzeigen"] = blick is not None
+        for g in rp.SCHLAGWORT_GRUPPEN:
+            name = g.capitalize()
+            gr_el = eins(blick, f"gruppe--{g}") if blick is not None else None
+            p.schalter[f"{name} anzeigen"] = gr_el is not None
+            if gr_el is None:
+                continue
+            chips = grenze([laeufe(c) for c in alle(gr_el, "chip")], grenzen["schlagworte"],
+                           f"Schlagworte ({name})", nr)
+            p.kind([name], schalter={f"Chip {i}": i <= len(chips) for i in range(2, 13)},
+                   texte={"Gruppe": laeufe(eins(gr_el, "gruppe-label"))})
+            for i, c in enumerate(chips, 1):
+                p.kind([name, f"Chip {i}"], texte={"Label": c})
         rechts = eins(sec, "sp-kunde")
         kunde = verbinde(absaetze(eins(rechts, "fliess"))) if rechts is not None else None
         p.schalter["Kunde anzeigen"] = kunde is not None
@@ -548,6 +569,12 @@ def _baustein_fuer(typ: str, pfad: list[str]) -> str | None:
         return "Panel-Karte"
     if letzter.startswith("Punkt "):
         return "Aufzählungspunkt"
+    if letzter.startswith("Rolle "):
+        return "Rollenkarte"
+    if letzter.startswith("Chip "):
+        return "Buzzword-Chip"
+    if letzter in ("Technologien", "Methoden", "Kontext"):
+        return "Schlagwort-Gruppe"
     return {"Kundenlogo": "Kundenlogos", "Rollen": "Aufzählung", "Aufzählung": "Aufzählung",
             "NDA-Hinweis": "NDA-Hinweis", "Prozess-Reihe": "Prozess-Reihe",
             "Fortschritt": "Prozess-Fortschritt", "Werkzeuge": "Werkzeug-Reihe"}.get(
@@ -599,6 +626,12 @@ START = r"""
 const VORFLUG = __VORFLUG__;
 try { await figma.importComponentSetByKeyAsync(VORFLUG); }
 catch (e) { throw new Error("Bibliothek nicht erreichbar (" + (e && e.message || e) + ") – Master-Bibliothek in der Zieldatei aktivieren oder figma_plan.py mit --roh bauen"); }
+// Neu im Master angelegte Folien: erst nach dem Veröffentlichen der Bibliothek
+// importierbar. Fehlt eine, sagt der Vorflug das hier – nicht ein späteres Paket.
+for (const [name, key] of __VORFLUG_NEU__) {
+  try { await figma.importComponentByKeyAsync(key); }
+  catch (e) { throw new Error("„" + name + "“ ist in der Master-Bibliothek noch nicht veröffentlicht – in „Portfolio - CV Master“ die Bibliothek veröffentlichen oder figma_plan.py mit --roh bauen"); }
+}
 const KNOTEN = "__KNOTEN__";
 const RAHMEN_ALT = "__RAHMEN_ALT__";
 let seite = null;
@@ -829,7 +862,10 @@ def skripte_schreiben(plaene: list[Plan], gebraucht: dict, liste: list[dict], na
         raise SystemExit("Bauplan passt nicht zum Katalog assets/master-bibliothek.json:\n  - "
                          + "\n  - ".join(befunde))
     nummern = sorted({b["nr"] for j in fertig for b in j["i"] if "nr" in b})
+    neu = [[n, kat["folie"][n]["key"]] for n in kat.get("vorflug_neu", [])
+           if any(j["typ"] == n for j in fertig)]
     start = (START.replace("__VORFLUG__", json.dumps(kat["baustein"][kat["vorflug"]]["key"]))
+             .replace("__VORFLUG_NEU__", json.dumps(neu, ensure_ascii=False))
              .replace("__NAME__", json.dumps(f"Portfolio — {name}"))
              .replace("__BILDER__", json.dumps(nummern)))
     if knoten:

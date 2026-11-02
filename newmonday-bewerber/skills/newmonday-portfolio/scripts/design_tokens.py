@@ -114,6 +114,16 @@ def _linien(t: dict) -> dict[str, str]:
     karte = (t.get("linien") or {}).get("karte")
     if karte and "karte-innen" in t["masse"]:
         aus["--karte-innen-gerahmt"] = f"{_zahl(float(t['masse']['karte-innen']) - float(karte['staerke']))}pt"
+    # Karte „Auf einen Blick“: Jeder Chip trägt seinen Abstand rechts und unten
+    # (WeasyPrint kennt kein gap). Gruppenabstand und Innenabstand unten werden
+    # um diesen Abstand kleiner, damit die Maße der Figma-Folie stimmen.
+    m = t["masse"]
+    if {"chip-abstand", "blick-gruppen-abstand", "blick-innen"} <= set(m):
+        aus["--blick-gruppen-luft"] = f"{_zahl(float(m['blick-gruppen-abstand']) - float(m['chip-abstand']))}pt"
+        aus["--blick-innen-unten"] = f"{_zahl(float(m['blick-innen']) - float(m['chip-abstand']))}pt"
+    # Rollenkarte: Text beginnt hinter Akzentstrich und Luft.
+    if {"rolle-akzent", "rolle-luft"} <= set(m):
+        aus["--rolle-einzug"] = f"{_zahl(float(m['rolle-akzent']) + float(m['rolle-luft']))}pt"
     return aus
 
 

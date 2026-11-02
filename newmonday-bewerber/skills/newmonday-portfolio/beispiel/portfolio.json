@@ -130,6 +130,22 @@
       "rolle": [
         "Senior UX Designer"
       ],
+      "schlagworte": {
+        "methoden": [
+          "Expert Review",
+          "Workshops",
+          "User-Flow-Optimierung",
+          "Design Exploration",
+          "Komponentenbibliothek",
+          "Modulare Design Patterns"
+        ],
+        "kontext": [
+          "Kundenportal",
+          "Finanzierungsprozess",
+          "Agil in Sprints",
+          "Corporate Design"
+        ]
+      },
       "nda": false,
       "summary": {
         "bild": "material/apo-1.jpg",
@@ -166,6 +182,22 @@
       "rolle": [
         "Senior UX Designer"
       ],
+      "schlagworte": {
+        "methoden": [
+          "UX-Design",
+          "Usability",
+          "Design System",
+          "Responsive Design",
+          "Komponentenbibliothek"
+        ],
+        "kontext": [
+          "B2B-Portal",
+          "Start-up",
+          "15.000+ Händler",
+          "Kfz-Finanzierung",
+          "Relaunch 2022"
+        ]
+      },
       "nda": false,
       "summary": {
         "bild": "material/yar-1.jpg",

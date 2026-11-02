@@ -19,7 +19,7 @@ des Masters („Test – Portfolio (Florian)“):
 
 1. **Folie** – Instanz des Folientyps (Cover, Profil, Kundenwand, Statement,
    Trenner, Prozess-Übersicht, Prozess-Schritt, Schwerpunkt, Agentur,
-   Projekt-Kopf, Projekt-Summary, Lösung, Vollbild, Kontakt)
+   Projekt-Kopf v2, Projekt-Summary, Lösung, Vollbild, Kontakt)
 2. **Freie Bilder** – leerer Rahmen für Screens und Collagen, die Designer
    von Hand ergänzen
 3. **Chrome** – Instanz mit Wortmarke (farbig, hell, aus) und Seitenzahl
@@ -77,7 +77,8 @@ Pakete übernehmen den `imageHash`, das letzte Paket entfernt die Ablage.
 Die Komponenten tragen höchstens: 28 Kundenlogos, 10 Kenntnisse, 4 Sprachen,
 4 Links, 4 Prozessschritte, 3 Texte je Prozess-Schritt (plus Untertitel), 4
 Absätze auf Schwerpunkt und Summary, 4 Schwerpunkt-Karten, 6
-Aufzählungspunkte, 6 KI-Werkzeuge, 3 Kundenlogos je Projekt. Was darüber
+Aufzählungspunkte, 6 KI-Werkzeuge, 3 Kundenlogos je Projekt, 3 Rollen und 12
+Schlagworte je Gruppe auf der Projekt-Kopfseite. Was darüber
 liegt, meldet `figma_plan.py` („Figma (Bibliothek): …“) – in Figma fehlt der
 Rest, im PDF steht er; überzählige Absätze landen im letzten Absatz. Die
 Meldung gehört in die Übergabe.
@@ -129,11 +130,29 @@ gleichnamige Folie an ihrer Stelle. Was dort von Hand geändert wurde, ist
 danach weg – vorher fragen. Geplant wird intern immer das ganze Deck, damit
 die Arbeitsweise-Seiten ihren Schritt behalten.
 
+### Die Projekt-Kopfseite (v2)
+
+Seit November 2026 baut der Skill die Kopfseite als `Portfolio/Folie/Projekt-Kopf
+v2` (drei Spalten, Rollenkarten, Karte „Auf einen Blick“). Die alte
+`Projekt-Kopf` bleibt im Master stehen, damit bestehende Decks beim
+Bibliotheks-Update nicht umbrechen. Befüllt wird über die Schalter „Rolle 2/3
+anzeigen“, „Auf einen Blick anzeigen“, „Technologien/Methoden/Kontext
+anzeigen“ und die exponierten Instanzen `Rolle 1–3` (`Rollenkarte`, Text
+„Rolle“) und `Technologien`, `Methoden`, `Kontext` (`Schlagwort-Gruppe`, Text
+„Gruppe“, Schalter „Chip 2–12“, darin `Chip 1–12` mit Text „Label“).
+
+**Neue Komponenten im Master sind erst nach dem Veröffentlichen der
+Bibliothek per Key importierbar.** Der Start-Aufruf prüft deshalb alles unter
+`vorflug_neu` im Katalog mit und bricht mit „… ist in der Master-Bibliothek
+noch nicht veröffentlicht“ ab, bevor er etwas anlegt. Dann: in „Portfolio - CV
+Master“ die Bibliothek veröffentlichen – oder für diesen Lauf den rohen Weg.
+
 ### Wenn es schiefgeht (Bibliothek)
 
 | Symptom | Was dahintersteckt |
 |---|---|
 | „Bibliothek nicht erreichbar“ | Master in der Zieldatei nicht verfügbar – roher Weg |
+| „… ist in der Master-Bibliothek noch nicht veröffentlicht“ | Neue Komponente im Master, Bibliothek nicht veröffentlicht – veröffentlichen oder roher Weg |
 | „Property … fehlt an …“, „Ebene … fehlt in …“ | Master geändert, Katalog veraltet – Katalog neu lesen, `figma_bibliothek.py` nachziehen |
 | „Bild N ist noch nicht in der Bildablage“ | Upload fehlgeschlagen oder übersprungen |
 | „This property cannot be overridden in an instance“ | Lage oder Größe einer Ebene in einer Instanz gesetzt – nur über Innenabstand oder Properties |
