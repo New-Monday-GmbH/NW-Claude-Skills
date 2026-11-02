@@ -59,11 +59,10 @@ def main() -> None:
           "Ausweichweg, falls WeasyPrint fehlt.")
 
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from logo_lib import bibliothek
-    ordner = bibliothek()
-    anzahl = len([p for p in ordner.iterdir() if p.suffix in (".svg", ".png")])
-    geteilt = "gemeinsam mit newmonday-cv" if "newmonday-cv" in str(ordner) else "eigen"
-    print(f"  ok  {'Logos':12} {anzahl} Stück in {ordner} ({geteilt})")
+    from logo_lib import GRUNDSTOCK, bestand, bibliothek
+    geteilt = "gemeinsam mit newmonday-cv" if "newmonday-cv" in str(GRUNDSTOCK) else "eigen"
+    print(f"  ok  {'Logos':12} {len(bestand())} Stück: Grundstock {GRUNDSTOCK} ({geteilt}), "
+          f"neue Funde {bibliothek()}")
 
     if fehlt_zwingend:
         print("\nEs fehlt: " + ", ".join(fehlt_zwingend))

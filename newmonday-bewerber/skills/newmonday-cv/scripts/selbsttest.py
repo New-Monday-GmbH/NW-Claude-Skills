@@ -11,6 +11,7 @@ Fassung — ob vom Namen im fertigen PDF wirklich nichts uebrig ist. Schreibt
 nichts in den Skill-Ordner.
 """
 import json
+import os
 import re
 import subprocess
 import sys
@@ -969,6 +970,78 @@ def pruefe_add_logo(tmp):
     return fehler
 
 
+def pruefe_zwei_ordner(tmp):
+    """Neue Logos ueberleben ein Plugin-Update?
+
+    Neue Funde liegen in NEWMONDAY_HOME/logos, nie im Skill-Ordner (den ersetzt
+    jedes Update). Geprueft: dort abgelegte Logos und Aliase werden gefunden,
+    vor dem Grundstock, PDF und Figma-Plan zeigen auf die Datei, neue() meldet
+    sie, und logos_uebernehmen.py verschiebt sie in einen Repo-Checkout.
+    """
+    import contextlib
+    import io
+    import shutil
+    sys.path.insert(0, str(WURZEL / "scripts"))
+    import figma_plan
+    import logo_lib
+    import logos_ergaenzen
+    import logos_uebernehmen
+    import render_cv
+
+    fehler = []
+    alt_home = os.environ.get("NEWMONDAY_HOME")
+    os.environ["NEWMONDAY_HOME"] = str(Path(tmp) / "zwei-ordner-home")
+    try:
+        eigen = logo_lib.bibliothek()
+        eigen.mkdir(parents=True)
+        neu = eigen / "selbsttest-firma.svg"
+        shutil.copy(logo_lib.GRUNDSTOCK / "nm-logo.svg", neu)
+        (eigen / "aliase.json").write_text('{"Selbsttest Firma AG": "selbsttest-firma.svg"}',
+                                           encoding="utf-8")
+        if logo_lib.GRUNDSTOCK.resolve() in eigen.resolve().parents:
+            fehler.append("Bibliothek: neue Logos landen im Skill-Ordner")
+        if logo_lib.suche("selbsttest-firma") != neu:
+            fehler.append("Bibliothek: neues Logo in NEWMONDAY_HOME nicht gefunden")
+        if logo_lib.suche("beq.png") != logo_lib.GRUNDSTOCK / "beq.png":
+            fehler.append("Bibliothek: Grundstock nicht mehr gefunden")
+        if logos_ergaenzen.aus_bibliothek("Selbsttest Firma AG") != "selbsttest-firma.svg":
+            fehler.append("Bibliothek: Alias aus NEWMONDAY_HOME nicht beruecksichtigt")
+        if render_cv.logo_src("selbsttest-firma.svg") != neu.resolve().as_uri():
+            fehler.append("Bibliothek: PDF-Template zeigt nicht auf das neue Logo")
+        if figma_plan.logo_eintrag("selbsttest-firma.svg", 40)["datei"] != str(neu):
+            fehler.append("Bibliothek: Figma-Plan zeigt nicht auf das neue Logo")
+        if render_cv.seitenverhaeltnis("selbsttest-firma.svg") == 1.0:
+            fehler.append("Bibliothek: Seitenverhaeltnis des neuen Logos nicht gelesen")
+        if sorted(p.name for p in logo_lib.neue()) != ["aliase.json", "selbsttest-firma.svg"]:
+            fehler.append(f"Bibliothek: neue() meldet {[p.name for p in logo_lib.neue()]}")
+
+        if shutil.which("git"):
+            repo = Path(tmp) / "repo"
+            (repo / logos_uebernehmen.IM_REPO).mkdir(parents=True)
+            subprocess.run(["git", "init", "-q", str(repo)], check=True)
+            alt_argv = sys.argv
+            sys.argv = ["logos_uebernehmen.py", str(repo), "--uebernehmen"]
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    logos_uebernehmen.main()
+            except SystemExit as abbruch:
+                fehler.append(f"logos_uebernehmen.py brach ab: {abbruch}")
+            finally:
+                sys.argv = alt_argv
+            im_repo = repo / logos_uebernehmen.IM_REPO
+            if not (im_repo / "selbsttest-firma.svg").is_file() or neu.exists():
+                fehler.append("logos_uebernehmen: Logo nicht ins Repo verschoben")
+            if "Selbsttest Firma AG" not in json.loads(
+                    (im_repo / "aliase.json").read_text(encoding="utf-8")):
+                fehler.append("logos_uebernehmen: aliase.json nicht zusammengefuehrt")
+    finally:
+        if alt_home is None:
+            os.environ.pop("NEWMONDAY_HOME", None)
+        else:
+            os.environ["NEWMONDAY_HOME"] = alt_home
+    return fehler
+
+
 def pruefe_silhouette(tmp):
     """Ist das Platzhalterbild der anonymen Fassung das aus dem Design?
 
@@ -1791,6 +1864,9 @@ def main():
         raise SystemExit(f"Beispieldaten fehlen: {beispiel}")
 
     with tempfile.TemporaryDirectory() as tmp:
+        # Neue Logos des Nutzers (~/.newmonday) bleiben aussen vor: der Test
+        # laeuft nur gegen den Grundstock, und nichts landet dort.
+        os.environ["NEWMONDAY_HOME"] = str(Path(tmp) / "newmonday-home")
         ziel = Path(tmp) / "selbsttest.pdf"
         stufen = Path(tmp) / "stufen.json"
         lauf = subprocess.run(
@@ -1821,6 +1897,7 @@ def main():
         fehler += pruefe_zeitraeume(tmp)
         fehler += pruefe_durchkopplung(tmp)
         fehler += pruefe_add_logo(tmp)
+        fehler += pruefe_zwei_ordner(tmp)
 
     fehler += pruefe_svg_verhaeltnisse()
     fehler += pruefe_linkedin_auswahl()
@@ -1848,6 +1925,7 @@ def main():
     print(f"  Zeitraeume: Halbgeviertstrich mit Leerzeichen, egal wie eingegeben, PDF und Plan")
     print(f"  Durchkopplung: offene Schreibweisen gemeldet, Text unveraendert, nicht bei en")
     print(f"  Logos:     SVG-Verhaeltnisse richtig gelesen, im Plan unverzerrt, add_logo mit Kontrollbild")
+    print(f"  Bibliothek: neue Logos ausserhalb des Skills, vor dem Grundstock gefunden, Uebernahme ins Repo")
     print(f"  Adresse:   {ADRESSE} im Footer")
 
     if fehler:

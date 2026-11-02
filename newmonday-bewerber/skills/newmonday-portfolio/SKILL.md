@@ -103,10 +103,16 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/pruefe_umgebung.py
   fremde Domains. Das betrifft die Logosuche und das Auslesen einer
   Portfolio-Website.
 - **Ausgabeort**: In Claude Code ins Arbeitsverzeichnis des Nutzers, im
-  Browser-Chat nach `/mnt/user-data/outputs/`. Ausnahme sind neue Logos: die
-  gehören dauerhaft in die Bibliothek, damit sie wächst.
-- **Logobibliothek**: gemeinsam mit `newmonday-cv`. Liegt dieser Skill daneben,
-  nutzen beide denselben Ordner – siehe `scripts/logo_lib.py`.
+  Browser-Chat nach `/mnt/user-data/outputs/`. Auch neue Logos und Fotos der
+  Firmenzentralen kommen nicht in den Skill-Ordner – bei der Installation als
+  Plugin ersetzt jedes Update ihn.
+- **Logobibliothek**: gemeinsam mit `newmonday-cv`. Grundstock ist dessen
+  `assets/logos/`, neue Funde landen in `~/.newmonday/logos/` und werden zuerst
+  gelesen, Fotos der Firmenzentralen in `~/.newmonday/hq/` – siehe
+  `scripts/logo_lib.py`. Neue Logos nennt die Übergabe unter „Neue Logos“
+  (Firma, Dateiname, „Liegen in ~/.newmonday/logos/ – bitte ins Repo
+  übernehmen“), damit ein Pfleger sie mit
+  `newmonday-cv/scripts/logos_uebernehmen.py` in den Grundstock holt.
 
 ## Im Gesamtlauf
 

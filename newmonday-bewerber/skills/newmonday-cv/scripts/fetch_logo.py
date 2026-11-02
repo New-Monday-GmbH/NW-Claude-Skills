@@ -197,6 +197,8 @@ def main():
         print("Bitte ansehen — automatisch gefundene Logos sind manchmal veraltet "
               "oder gehoeren zu einer gleichnamigen Firma.")
         print(f'In der cv.json eintragen als:  "logo": "{ziel.name}"')
+        print(f"Abgelegt in {ZIEL} (ueberlebt Plugin-Updates). In der Uebergabe unter "
+              '"Neue Logos" nennen, damit ein Pfleger es ins Repo uebernimmt.')
         return
 
     tmp.unlink(missing_ok=True)

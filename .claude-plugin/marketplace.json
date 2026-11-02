@@ -1,5 +1,6 @@
 {
   "name": "nw-claude-skills",
+  "description": "Claude-Code-Plugins der New Monday GmbH. Ohne Versionsnummern: jeder Commit auf main ist ein Update.",
   "owner": {
     "name": "New Monday GmbH"
   },
@@ -7,8 +8,7 @@
     {
       "name": "newmonday-bewerber",
       "source": "./newmonday-bewerber",
-      "description": "Lebenslauf, Skill Matrix und Portfolio im New-Monday-Layout – einzeln oder als Bewerbermappe in einem Lauf. Ein Paket, eine Versionsnummer.",
-      "version": "1.4.0"
+      "description": "Lebenslauf, Skill Matrix und Portfolio im New-Monday-Layout – einzeln oder als Bewerbermappe in einem Lauf. Jeder Commit auf main ist ein Update."
     }
   ]
 }

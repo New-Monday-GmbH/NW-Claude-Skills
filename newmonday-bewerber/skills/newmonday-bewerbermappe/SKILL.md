@@ -68,8 +68,8 @@ und die Übergabe sagt, dass sie auf keine Anfrage ausgerichtet ist.
 
 ## Voraussetzungen
 
-- Die drei Skills liegen neben diesem Skill. Bei der Installation per Symlink
-  aus dem Repo ist das so. Im Folgenden steht `<skills>` für den absoluten Pfad
+- Die drei Skills liegen neben diesem Skill. Bei der Installation als Plugin
+  `newmonday-bewerber` und per Symlink aus dem Repo ist das so. Im Folgenden steht `<skills>` für den absoluten Pfad
   von `${CLAUDE_SKILL_DIR}/..` – einmal mit `cd "${CLAUDE_SKILL_DIR}/.." && pwd`
   ermitteln und so in jeden Subagenten-Auftrag schreiben.
 - Das `Agent`-Werkzeug, Subagent-Typ `general-purpose`.
@@ -363,7 +363,9 @@ Je Skill in der Reihenfolge aus `auftrag.json` (`newmonday-cv`,
 (`run_in_background: false`), einer nach dem anderen.
 
 **Das Skill-Repo bleibt sauber.** Vor jedem Subagenten – hier und in Phase 5 –
-den Stand des Repos festhalten, danach vergleichen:
+den Stand des Repos festhalten, danach vergleichen. Liegt `<skills>` in keinem
+Git-Repo (Installation als Plugin, `git rev-parse` schlägt fehl), entfällt der
+Vergleich:
 
 ```bash
 # vorher
@@ -372,10 +374,9 @@ repo=$(cd "<skills>/newmonday-cv" && cd "$(pwd -P)" && git rev-parse --show-topl
 repo=$(cd "<skills>/newmonday-cv" && cd "$(pwd -P)" && git rev-parse --show-toplevel); git -C "$repo" status --porcelain --untracked-files=all | sort | comm -13 "<laufordner>/repo-vorher.txt" -
 ```
 
-Neu aufgetauchte, nicht versionierte Dateien (`??`) außerhalb der
-Logobibliothek (`newmonday-cv/assets/logos/`) und der Fotobibliothek der
-Firmenzentralen (`newmonday-cv/assets/hq/`) hat der Subagent dort liegen
-lassen: nach `<laufordner>/<kurz>/arbeit/aus-dem-repo/` verschieben und in der
+Neu aufgetauchte, nicht versionierte Dateien (`??`) hat der Subagent dort
+liegen lassen – neue Logos und Fotos der Firmenzentralen gehören nicht dazu, die
+legen die Skripte in `~/.newmonday/logos/` und `~/.newmonday/hq/` ab: nach `<laufordner>/<kurz>/arbeit/aus-dem-repo/` verschieben und in der
 Statuszeile nennen. Geänderte versionierte Dateien außerhalb der Bibliotheken
 nicht anfassen – das kann Arbeit des Nutzers sein –, sondern unter „Hinweise“
 der Gesamtübergabe nennen.
@@ -522,6 +523,9 @@ einer Nachricht:
    der Fassung, die drinsteht. Es gilt in allen drei Dokumenten dieselbe Quelle:
    die aus `vorrang`, sonst der Lebenslauf.
 4. **Hinweise** – je Dokument der Rest, **vollständig, nur ohne Wiederholungen**.
+   Neue Logos aus allen Dokumenten stehen einmal gesammelt als letzter Punkt:
+   „Neue Logos: <Firma> (<datei>), … – liegen in ~/.newmonday/logos/, bitte ins
+   Repo übernehmen (newmonday-cv/scripts/logos_uebernehmen.py).“
 5. **Ohne Rückfrage entschieden** – aus allen drei, mit Dokument und Stelle.
    Leer: Abschnitt weglassen.
 6. **Nicht gebaut** – Dokumente mit `fehler` oder `ausgelassen`, mit Grund.
@@ -545,8 +549,10 @@ Gesamtlauf newmonday-bewerbermappe · Skill: <skill> · Phase: <vorbereiten|baue
 Laufordner: <laufordner>
 Skill-Ordner: <laufordner>/<cv|skillmatrix|portfolio>/
 
-1. Lade den Skill <skill> mit dem Skill-Werkzeug – genau diesen Namen, ohne
-   Präfix (nicht anthropic-skills:<skill>, das ist eine andere Fassung). Steht
+1. Lade den Skill <skill> mit dem Skill-Werkzeug – als
+   newmonday-bewerber:<skill>, wenn er so in der Skill-Liste steht (Plugin),
+   sonst genau diesen Namen ohne Präfix. Nie anthropic-skills:<skill>, das ist
+   eine andere Fassung. Steht
    das Werkzeug nicht zur Verfügung: lies <skills>/<skill>/SKILL.md; wo dort die
    Variable CLAUDE_SKILL_DIR steht, gilt <skills>/<skill>.
 2. Lies dort den Abschnitt „Im Gesamtlauf“. Er sagt, welche Schritte zu dieser

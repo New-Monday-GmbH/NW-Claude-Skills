@@ -1,5 +1,11 @@
 # Installation
 
+> **Im Team: als Plugin installieren**, nicht von Hand. In Claude Code
+> `/plugin marketplace add New-Monday-GmbH/NW-Claude-Skills` und
+> `/plugin install newmonday-bewerber@nw-claude-skills`, dann Auto-Update
+> einschalten – siehe [README](../../README.md). Die Wege unten sind für
+> Einzelinstallationen ohne Marketplace.
+
 ## Claude Code — der einfache Weg
 
 ```bash
@@ -137,10 +143,17 @@ ganz durchsehen.
 
 ## Was der Skill in seinen Ordner schreibt
 
-Nur eines: neue Logos in `assets/logos/`. Das ist beabsichtigt, die Bibliothek
-soll mit jedem Kandidaten wachsen. Zwischenstände beim Rendern und das
-heruntergeladene Icon-Paket liegen außerhalb, unter `~/.cache/newmonday-cv`
-beziehungsweise im temporären Verzeichnis.
+Nichts. Neue Logos landen in `~/.newmonday/logos/` (anders: Umgebungsvariable
+`NEWMONDAY_HOME`), damit sie ein Plugin-Update überleben; gelesen wird von dort
+zuerst, danach der Grundstock in `assets/logos/`. Damit die Bibliothek für alle
+wächst, übernimmt ein Pfleger neue Funde ins Repo:
+
+```bash
+python3 scripts/logos_uebernehmen.py ~/NW-Claude-Skills --uebernehmen
+```
+
+Zwischenstände beim Rendern und das heruntergeladene Icon-Paket liegen unter
+`~/.cache/newmonday-cv` beziehungsweise im temporären Verzeichnis.
 
 ## Erster Lauf
 

@@ -40,6 +40,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from add_logo import ZIEL, als_bild, als_svg, bibliothek_bereit, slugify  # noqa: E402
 import fetch_logo  # noqa: E402
+import logo_lib  # noqa: E402
 
 RECHTSFORMEN = ("gmbh & co. kg", "gmbh", "ag", "eg", "se", "kg", "ohg", "plc",
                 "inc", "ltd", "mbh", "e.v.", "ug")
@@ -61,14 +62,10 @@ def slugs(firma):
 
 
 def aus_bibliothek(firma):
-    aliase = ZIEL / "aliase.json"
-    if aliase.exists():
-        karte = json.loads(aliase.read_text(encoding="utf-8"))
-        for schluessel, datei in karte.items():
-            if schluessel.lower() in firma.lower() and (ZIEL / datei).exists():
-                return datei
-    vorhanden = {p.stem: p.name for p in ZIEL.iterdir()
-                 if p.suffix in (".svg", ".png")}
+    for schluessel, datei in logo_lib.aliase().items():
+        if schluessel.lower() in firma.lower() and logo_lib.suche(datei):
+            return datei
+    vorhanden = logo_lib.bestand()
     for s in slugs(firma):
         if s in vorhanden:
             return vorhanden[s]
@@ -180,12 +177,15 @@ def main():
         print("Neu gefunden (bitte ansehen — die Suche trifft manchmal daneben):")
         for z in neu:
             print("  " + z)
+        print(f"Die neuen Dateien liegen in {ZIEL} und ueberleben Plugin-Updates.")
+        print("In der Uebergabe unter \"Neue Logos\" nennen, damit ein Pfleger sie")
+        print("ins Repo uebernimmt (newmonday-cv/scripts/logos_uebernehmen.py).")
     if offen:
         print("Offen — erst selbst im Netz suchen (Presse-/Markenbereich der Firma),")
         print("dann add_logo.py mit Datei oder URL aufrufen:")
         for z in offen:
             print("  " + z)
-    print(f"\nBibliothek: {ZIEL}")
+    print(f"\nBibliothek: neue Funde in {ZIEL}, Grundstock in {logo_lib.GRUNDSTOCK}")
 
 
 if __name__ == "__main__":

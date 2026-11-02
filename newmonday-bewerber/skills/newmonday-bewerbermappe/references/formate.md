@@ -162,7 +162,8 @@ Alles, was der Skill selbst formuliert hat, im Wortlaut – auch auf eine
 - <Feld>: <Quelle> „…“ / <Quelle> „…“ → im Dokument: „…“ (<Quelle nach vorrang>)
 
 ## Hinweise
-Der Rest der Übergabe des Skills
+Der Rest der Übergabe des Skills, darunter „Neue Logos“ (Firma, Dateiname),
+wenn der Skill welche aufgenommen hat
 
 ## Ohne Rückfrage entschieden
 - <Stelle>: was genommen wurde und warum

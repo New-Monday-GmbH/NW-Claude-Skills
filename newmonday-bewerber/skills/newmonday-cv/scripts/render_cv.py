@@ -29,6 +29,7 @@ ASSETS = ROOT / "assets"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import tokens  # noqa: E402  — erst nach sys.path.insert moeglich
+from logo_lib import suche as logo_datei  # noqa: E402
 
 BESCHRIFTUNG = {
     "de": {
@@ -651,8 +652,8 @@ def seitenverhaeltnis(datei):
     sich die Flaeche jedes Logos gleich setzen — und nur so wird kein Logo
     verzerrt. Breite und Hoehe kommen immer aus diesem einen Verhaeltnis.
     """
-    pfad = ASSETS / "logos" / datei
-    if not pfad.exists():
+    pfad = logo_datei(datei)
+    if not pfad:
         return 1.0
     verhaeltnis = verhaeltnis_der_datei(pfad)
     if not verhaeltnis:
@@ -660,6 +661,13 @@ def seitenverhaeltnis(datei):
               file=sys.stderr)
         return 1.0
     return verhaeltnis
+
+
+def logo_src(datei):
+    """Adresse fuer das Template. Logos liegen in zwei Ordnern (logo_lib.py),
+    ein relativer Pfad zu assets/ traefe die neuen Funde nicht."""
+    pfad = logo_datei(datei)
+    return pfad.resolve().as_uri() if pfad else f"logos/{datei}"
 
 
 def logo_masse(datei, groesse):
@@ -716,8 +724,8 @@ def pruefe(daten):
                     f"({p.get('zeitraum')} vs. {s.get('zeitraum')})"
                 )
     def fehlende(wert, wer):
-        return [f"Logo fehlt in assets/logos/: {d} ({wer})"
-                for d in logoliste(wert) if not (ASSETS / "logos" / d).exists()]
+        return [f"Logo fehlt in der Bibliothek: {d} ({wer})"
+                for d in logoliste(wert) if not logo_datei(d)]
 
     im_rail, im_projekt = set(), set()
     for s in daten.get("stationen", []):
@@ -760,12 +768,12 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
     groesse, projekt_groesse = logo_groessen(daten)
     for s in daten.get("stationen", []):
         s.setdefault("projekte", [])
-        s["logos"] = [dict(zip(("datei", "breite", "hoehe"),
-                               (d, *logo_masse(d, groesse))))
+        s["logos"] = [dict(zip(("datei", "src", "breite", "hoehe"),
+                               (d, logo_src(d), *logo_masse(d, groesse))))
                       for d in logoliste(s.get("logo"))]
         for p in s["projekte"]:
-            p["logos"] = [dict(zip(("datei", "breite", "hoehe"),
-                                   (d, *logo_masse(d, projekt_groesse))))
+            p["logos"] = [dict(zip(("datei", "src", "breite", "hoehe"),
+                                   (d, logo_src(d), *logo_masse(d, projekt_groesse))))
                           for d in logoliste(p.get("logo"))]
 
     # Das Template wird aus assets/ heraus gerendert; ein Fotopfad aus der JSON
