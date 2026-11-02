@@ -517,8 +517,9 @@ einer Nachricht:
    abgeleitete Skillset-Einträge mit Beleg und die Prüf-Meldungen von
    `anonymisieren.py` (dort steht womöglich noch der Name im anonymen PDF),
    Hero-Beschreibung und die endgültige Matrix, Cover-Titel, KI- und
-   Prozesstexte, Kundentexte mit Quellen, KI-generierte Gebäude und alles, was
-   ein Skill auf eine `Anweisung: …` hin selbst formuliert hat.
+   Prozesstexte, ausgebaute Projekttexte mit Quellen, abgeleitete Schlagworte
+   der Kopfseiten, Kundentexte mit Quellen, KI-generierte Gebäude und alles,
+   was ein Skill auf eine `Anweisung: …` hin selbst formuliert hat.
 3. **Quellen weichen ab** – jede Abweichung einmal, mit den Werten je Quelle und
    der Fassung, die drinsteht. Es gilt in allen drei Dokumenten dieselbe Quelle:
    die aus `vorrang`, sonst der Lebenslauf.

@@ -62,7 +62,7 @@ Ein Portfolio ist Eigenwerbung. Bewertende Formulierungen des Kandidaten
 ("preisgekrönt", "führend") werden übernommen, wenn sie dort stehen – aber
 nicht von dir hinzugefügt.
 
-**Fünf Stellen sind davon ausgenommen, und nur diese fünf.** Sie stehen hier
+**Sieben Stellen sind davon ausgenommen, und nur diese sieben.** Sie stehen hier
 oben, damit niemand sie erst auf halber Strecke findet:
 
 - **Der Text der KI-Folie** (Seite 10), wenn im Material nichts oder nur
@@ -83,6 +83,16 @@ oben, damit niemand sie erst auf halber Strecke findet:
   die das Material belegt. Die Fakten kommen aus dem Material, die
   Formulierung vom Skill, und alles selbst Formulierte steht unter „Zur
   Freigabe“ – siehe Schritt 4, „Schwerpunkt-Folien“.
+- **Die Projekttexte** (`projekt`, `summary.text`, `loesungen[].text`), die
+  tiefer und breiter beschrieben werden als im Material, wenn das Material zu
+  dem Projekt mehr hergibt, als dort an einer Stelle steht. Die Fakten kommen
+  aus allen Quellen zu diesem Projekt, die Verbindung vom Skill, und jeder
+  ausgebaute Text steht unter „Zur Freigabe“ – siehe Schritt 4, „Die
+  Projekttexte“.
+- **Die Schlagworte** der Karte „Auf einen Blick“ (`schlagworte`): kurze
+  Begriffe zu genau diesem Projekt, genannt oder wahrheitsgemäß daraus
+  abgeleitet, mit Anfrage in deren Worten. Abgeleitete stehen unter „Zur
+  Freigabe“ – siehe Schritt 4, „Auf einen Blick“.
 
 Alles andere kommt aus dem Material oder gar nicht. Das gilt auch für die
 Einleitungszeile der Lösungsseiten (`loesungen[].titel`): Sie sieht aus wie ein
@@ -150,6 +160,10 @@ Skills vor; im Einzellauf gilt er nicht.
   der Anfrage, bei dem der Kandidat etwas anderes getan hat (Scheintreffer,
   Regel im Auftrag), bleibt auf der Wand und kommt mit seiner Tätigkeit unter
   „Zur Freigabe“. Auf einer Schwerpunkt-Folie belegt er nichts.
+- **Schlagworte (Schritt 4, „Auf einen Blick“):** Was das Projekt belegt oder
+  wahrheitsgemäß hergibt, heißt so wie in der Anfrage und steht in seiner
+  Gruppe vorn. Ein Begriff aus der Anfrage, den das Projekt nicht hergibt,
+  kommt nicht auf die Karte.
 
 **Phase vorbereiten: Schritte 1 und 2.** Statt der Frage-Nachricht aus Schritt 3
 entsteht `fragen.json`:
@@ -186,6 +200,10 @@ In `notizen.md`:
 - je Projekt: Quelle der Texte, zugeordnete Bilder aus `arbeit/bilder/` mit
   Seitenzahl, Beleglage, eine Flächenfarbe nur, wenn Produkt oder Screens sie
   begründen – mit Quelle (Schritt 6);
+- je Projekt alle Fundstellen für die Projekttexte – Portfolio-Case,
+  Lebenslauf-Station und -Projekt zu diesem Kunden und Zeitraum,
+  LinkedIn-Beschreibung –, jede mit Quelle, und die Schlagworte je Gruppe mit
+  Beleg („genannt: …“ bzw. „abgeleitet aus: …“), Schritt 4;
 - liegt eine Anfrage bei (`anfrage` in `auftrag.json`): ihre Themen – Muss
   vor Kann –, je Thema die Belege im Material (Schritt 4,
   „Schwerpunkt-Folien“), und je Kunde der Wand aus ihrer Domäne, ob dort
@@ -228,9 +246,10 @@ Lebenslauf, Portfolio, LinkedIn – in allen drei Dokumenten gleich; fehlt
 
 Gerendert wird nach `<laufordner>/ausgabe/<nachname>-<vorname>-portfolio.pdf`.
 Die Übergabe aus Schritt 8 geht nach `uebergabe.md`: Cover-Titel, KI- und
-Prozesstexte, die Texte der Schwerpunkt-Folien, Kundentexte mit Quellen,
-KI-generierte Gebäude und – mit Anfrage – die Kunden der Wand aus ihrer Domäne
-ohne Domänenpraxis unter „Zur Freigabe“, Abweichungen unter „Quellen
+Prozesstexte, die Texte der Schwerpunkt-Folien, die ausgebauten Projekttexte
+mit Quellen, die abgeleiteten Schlagworte mit ihrer Herleitung, Kundentexte mit
+Quellen, KI-generierte Gebäude und – mit Anfrage – die Kunden der Wand aus
+ihrer Domäne ohne Domänenpraxis unter „Zur Freigabe“, Abweichungen unter „Quellen
 weichen ab“, Bildnachweis und alles Übrige unter „Hinweise“, die Schlusszeilen
 wörtlich unter „Fehlt noch“.
 
@@ -272,7 +291,7 @@ liegt. Das Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    die `portfolio.json` und steuert alle Rubriken.
 
    Ist die gewählte Sprache nicht die des Eingangs, muss übersetzt werden. Das
-   ist die zweite der fünf Ausnahmen oben und braucht eine ausdrückliche
+   ist die zweite der sieben Ausnahmen oben und braucht eine ausdrückliche
    Ansage – von sich aus wird nie übersetzt.
 
 1a. **Wohin die Figma-Frames sollen.** Kam mit dem Auftrag schon ein
@@ -523,6 +542,7 @@ Tabelle unten.
     "kunde", "projektname", "logo", "markenfarbe", "markenfarbe_quelle",
     "projekt", "kunde_text",
     "rolle": [], "nda": false,
+    "schlagworte": { "technologien": [], "methoden": [], "kontext": [] },
     "summary":   { "text", "bild" },
     "loesungen": [{ "titel", "text", "punkte": [], "screens": [] }],
     "screens": []
@@ -606,12 +626,13 @@ Größenordnung zu bleiben:
 | `schwerpunkte[].karten` | **genau 3**, je `titel` 1–3 Wörter in einer Zeile (bis ~24 Zeichen, mit Nummer weniger) und `text` 5–10 Wörter, höchstens drei Zeilen (bis ~90 Zeichen) |
 | `projektname` | 1–3 Wörter, eine Zeile – nur aus dem Material, sonst weglassen |
 | `markenfarbe` | meist leer – nur eine Farbe aus Produkt oder Screens, mit `markenfarbe_quelle` (Schritt 6) |
-| `projekt` | 50–65 Wörter – die Spalte trägt darunter auch „Meine Rolle", siehe unten |
-| `kunde_text` | bis ~90 Wörter – volle Spaltenhöhe, siehe unten |
+| `projekt` | 70–100 Wörter, zwei Absätze – die Spalte trägt darunter auch „Meine Rolle", siehe unten |
+| `kunde_text` | bis ~130 Wörter – volle Spaltenhöhe, siehe unten |
 | `projekte[].rolle` | **1–3 Rollenbezeichnungen, keine Aufgaben** – siehe unten |
-| `summary.text` | 40–100 Wörter |
+| `schlagworte` | je Gruppe 3–8, Methoden bis 12, je 1–3 Wörter – siehe „Auf einen Blick“ |
+| `summary.text` | 60–100 Wörter |
 | `loesungen[].titel` | 5–8 Wörter, höchstens zwei Zeilen – nur aus dem Material |
-| `loesungen[].text` | 50–140 Wörter, alternativ 2–4 `punkte` |
+| `loesungen[].text` | 80–140 Wörter, alternativ 2–4 `punkte` |
 | `loesungen[].screens` | 1 bis 3 Desktop-Screens, bei Mobile bis 6 – der erste ist der Hero |
 | `projekte[].screens` | 2 bis 6 Desktop-Screens, bei Mobile bis 8 – der erste ist der Hero |
 
@@ -649,32 +670,111 @@ eine Connect-Karte, die nur LinkedIn zeigt, unterschlägt den stärksten Link �
 auch das kam als Rückmeldung zurück. Passwortgeschützte Portfolios stehen
 trotzdem drin: Der Kunde fragt das Passwort beim Kandidaten an.
 
-**Auf der Kopfseite trägt die linke Spalte zwei Blöcke.** `projekt` und
-`kunde_text` stehen in zwei gleich breiten 570-pt-Spalten wie auf der
-Figma-Seite »Portfolio«. „Meine Rolle" folgt dem Textfluss der linken
-Spalte, 48 pt unter dem Projekttext – nicht an der Blattkante: Der
-Block, der von unten nach oben wuchs, klebte bei kurzen Texten sichtbar allein
-am Rand, und genau das kam als Rückmeldung zurück. Die rechte Spalte gehört
-ganz dem Kundentext. Gemessen, bei einzeiligem Projektnamen:
+**Die Kopfseite hat drei Spalten** (Folie »Projekt-Kopf v2«, November 2026):
+`projekt` mit „Meine Rolle“ darunter, `kunde_text`, und die Karte „Auf einen
+Blick“ mit den Schlagworten – drei gleich breite Spalten zu 516 pt, die Karte
+419 pt breit. „Meine Rolle" folgt dem Textfluss der Projekt-Spalte, 48 pt unter
+dem Projekttext – nicht an der Blattkante: Der Block, der von unten nach oben
+wuchs, klebte bei kurzen Texten sichtbar allein am Rand, und genau das kam als
+Rückmeldung zurück. Gemessen am PDF, bei einzeiligem Projektnamen und zwei
+Absätzen:
 
 | Feld | Platz |
 |---|---|
-| `kunde_text` | bis ~90 Wörter (volle Spalte) |
-| `projekt` bei 1 Rollen-Stichpunkt | bis ~68 Wörter |
-| `projekt` bei 2 Stichpunkten | bis ~62 Wörter |
-| `projekt` bei 3 Stichpunkten | bis ~56 Wörter |
+| `kunde_text` | bis ~130 Wörter (volle Spalte) |
+| `projekt` bei 1 Rolle | bis ~100 Wörter |
+| `projekt` bei 2 Rollen | bis ~85 Wörter |
+| `projekt` bei 3 Rollen | bis ~70 Wörter |
 
-Die Spalten stehen in Subheadline 2 (Inter 24 pt): Eine Zeile fasst rund sechs
-Wörter, jede Leerzeile zwischen Absätzen belegt selbst eine. Bricht der
-Projektname auf zwei Zeilen um, gehen in beiden Spalten drei Zeilen ab; ein
-Stichpunkt, der selbst umbricht, kostet noch eine.
+Die Spalten stehen in Inter 20 pt mit 135 % Zeilenhöhe: Eine Zeile fasst rund
+sieben Wörter, jede Leerzeile zwischen Absätzen belegt selbst eine. Bricht der
+Projektname auf zwei Zeilen um, gehen in allen drei Spalten vier Zeilen ab.
+
+**„Meine Rolle" steht als Rollenkarte** – Akzentstrich in Petrol, daneben die
+Rolle in 24 pt (Komponente »Rollenkarte«); mehrere Rollen stehen als eigene
+Karten untereinander. `**fett**` wirkt dort nicht, die Rolle ist schon halbfett.
+
+#### Auf einen Blick – die Schlagworte
+
+Die Karte rechts auf der Kopfseite soll einem Recruiter **in Sekunden** sagen,
+was in dem Projekt passiert ist und womit gearbeitet wurde – ohne den
+Fließtext zu lesen. Drei Gruppen, jede nur, wenn sie etwas trägt:
+
+| Gruppe | Was hinein gehört | Beispiele |
+|---|---|---|
+| `technologien` | Werkzeuge, Frameworks, Plattformen, mit denen im Projekt gearbeitet wurde | React, Figma, Figma Dev Mode, Storybook |
+| `methoden` | was der Kandidat getan hat – UX-Methoden, Arbeitsergebnisse | Usability-Testing, Informationsarchitektur, Design Handoff, Component Library |
+| `kontext` | Rahmen des Projekts – Produktart, Branche, Umfang, Teamform | Enterprise SaaS, B2B, Crossfunktionales Team, 50+ Screens |
+
+Regeln, die nicht aufweichen:
+
+- **Nur aus diesem Projekt.** Was der Kandidat in anderen Projekten oder
+  allgemein kann, gehört auf die Profilseite, nicht auf diese Karte.
+  Grundlage ist alles, was die Quellen zu genau diesem Projekt sagen –
+  Portfolio-Case, die Station oder das Projekt im Lebenslauf zu diesem Kunden
+  und Zeitraum, die LinkedIn-Beschreibung dazu.
+- **Genannt oder wahrheitsgemäß abgeleitet.** Ein Schlagwort steht im Material
+  oder folgt sachlich zwingend aus dem, was dort beschrieben ist: „Komponenten
+  in einer übergreifenden Bibliothek organisiert“ → „Component Library“;
+  „in mehreren Workshops den User Flow optimiert“ → „Workshops“, „User Flows“.
+  **Werkzeuge und Technologien nur, wenn sie genannt sind** – dass ein
+  Design-Team wahrscheinlich Figma nutzte, ist keine Ableitung, sondern eine
+  Vermutung. Zahlen im Kontext („50+ Screens“, „15.000 Händler“) nur aus dem
+  Material.
+- **Mit Anfrage in ihren Worten.** Belegt das Projekt etwas, das die
+  Ausschreibung anders benennt, trägt der Chip den Begriff der Ausschreibung
+  („Design System“ statt „Komponentenbibliothek“, wenn die Anfrage danach
+  fragt und das Projekt eins beschreibt), und diese Chips stehen in ihrer
+  Gruppe vorn. Ein Begriff aus der Anfrage, den das Projekt nicht hergibt,
+  kommt nicht auf die Karte.
+- **Eine Branche nur mit Tätigkeit in ihr** (Domänenprüfung): Ein Kunde aus der
+  Versicherungswirtschaft macht ein Kampagnenprojekt noch nicht zu
+  „Versicherung“.
+- **Abgeleitete Schlagworte stehen unter „Zur Freigabe“**, je Chip mit der
+  Stelle, aus der er folgt. Genannte brauchen das nicht.
+- Kurz: 1–3 Wörter je Chip, Herstellerschreibweise bei Werkzeugen,
+  durchgekoppelt im deutschen Text („Usability-Testing“). Methoden höchstens
+  12, die anderen Gruppen höchstens 8 – das Renderskript meldet mehr. Ohne
+  `schlagworte` entfällt die Karte, und das Renderskript meldet es.
+
+#### Die Projekttexte – tiefer und breiter, belegt
+
+`projekt`, `summary.text` und `loesungen[].text` sollen einem Kunden zeigen,
+was in dem Projekt wirklich passiert ist – nicht nur, dass es stattfand. Viele
+Portfolios sagen das an einer Stelle knapp und an drei anderen Stellen
+ausführlicher. Deshalb gilt für diese drei Felder eine Kaskade, wie bei den
+Prozesstexten:
+
+1. **Übernehmen.** Was das Portfolio zu dem Projekt schreibt, kommt wörtlich
+   hinein, vollständig – gekürzt wird nur, wenn die Fläche es erzwingt.
+2. **Ausbauen.** Gibt das Material zum selben Projekt mehr her – die Station
+   oder das Projekt im Lebenslauf, Aufgabenlisten, die LinkedIn-Beschreibung,
+   weitere Seiten des Portfolio-Case –, werden die Texte daraus breiter und
+   tiefer: Ausgangslage und Ziel im `projekt`, Vorgehen und Zusammenarbeit in
+   `summary.text`, konkrete Lösung und Ergebnis in `loesungen[].text`. Die
+   Fakten stehen wörtlich oder sinngleich da, verbunden mit eigenen Sätzen.
+   Die Maße der Textlängen-Tabelle sind dabei die Zielgröße, nicht nur die
+   Obergrenze.
+3. **Nichts dazu, was keine Quelle hergibt.** Keine Zahl, kein Ergebnis, kein
+   Werkzeug, keine Methode, keine Teamgröße, keine Wirkung („steigerte die
+   Conversion“), die nicht im Material steht – auch keine „offensichtlich
+   gemeinte“. Gibt das Material nicht mehr her, bleibt der Text so kurz, wie
+   er ist; dann gehört ein Satz in die Übergabe, welche Angaben das Projekt
+   tiefer machen würden (Ziel, eigene Rolle im Team, Ergebnis), damit sie beim
+   Kandidaten erfragt werden können.
+
+Mit Anfrage stehen die Aspekte vorn, nach denen sie fragt – soweit das
+Material sie belegt. Bewertende Wörter kommen nur, wenn der Kandidat sie selbst
+benutzt. **Jeder ausgebaute Text steht unter „Zur Freigabe“**, mit den Quellen
+je Absatz („Lebenslauf, Station X 2021–2023“; „Portfolio S. 14“). Ein Text,
+der nur übernommen wurde, braucht das nicht.
 
 **„Meine Rolle" nennt Rollen, keine Aufgaben – höchstens drei.** In den
 Referenzen steht dort eine Berufsbezeichnung („Lead UI/UX Designer",
 „Operational UI Designer, Content Designer"), nicht eine Liste von
 Tätigkeiten. „Prototyping", „Usability Testing" oder „Stakeholder-Management"
 sind Aufgaben: Sie gehören in den Projekttext oder in die Kenntnisse der
-Profilseite, nicht unter dieses Label – sechs solcher Stichpunkte lesen sich
+Profilseite, nicht unter dieses Label – sechs solcher Karten lesen sich
 wie ein zweites Skill-Set und drücken beide Textspalten zusammen. Die Rolle
 kommt aus dem Material: aus der Projektbeschreibung („Als Lead UX Designer
 habe ich …"), sonst aus der Stationsbezeichnung im Lebenslauf oder LinkedIn zu
@@ -684,7 +784,7 @@ meldet mehr als drei Einträge.
 
 Absätze werden durch **eine Leerzeile** im Text getrennt. `**fett**` setzt
 Halbfett und wirkt in allen Fließtexten, Stichpunkten und Kartenzeilen – auch in
-`kenntnisse`, `top_kenntnisse` und den Rollen-Stichpunkten. Nicht in
+`kenntnisse` und `top_kenntnisse`. Nicht in den Rollenkarten und nicht in
 Überschriften, nicht in `sprachen` und `links`: dort stehen die Sternchen sonst
 im PDF.
 
@@ -699,10 +799,9 @@ ist eine Notbremse, kein Freibrief für lange Titel.
 In dieser Reihenfolge, ohne Ausnahme:
 
 1. **Kopfseite.** Kundenlogo – bei mehreren Auftraggebern alle Logos
-   nebeneinander, `logo` als Liste –, Projektname, darunter zwei gleich breite Spalten
-   `projekt` und `kunde_text`, unten links `rolle` als Stichpunkte. **Kein
-   Bild.** Die beiden Spalten teilen sich die Fläche, die früher das
-   Aufmacherbild hatte – deshalb darf der Kundentext jetzt ausführlich sein.
+   nebeneinander, `logo` als Liste –, Projektname, darunter drei gleich breite
+   Spalten: `projekt` mit `rolle` als Rollenkarten darunter, `kunde_text`, und
+   die Karte „Auf einen Blick“ mit `schlagworte`. **Kein Bild.**
 2. **Summary.** Rechts das Foto der Firmenzentrale (`summary.bild`), links
    `summary.text`. Das Gebäude ist der einzige Ort im Dokument, an dem der Kunde
    selbst zu sehen ist; ein Stockfoto vom Schreibtisch gehört nicht dorthin.
@@ -755,7 +854,7 @@ keinen Fettdruck. Ein `ki.kurztext` aus älteren Dateien wird ignoriert – er
 füllte einmal eine vierte Prozessspalte, die es nicht mehr gibt.
 
 Steht dort nichts, **schreibt der Skill den Text selbst**. Das ist die erste der
-fünf Ausnahmen ganz oben, und weil es eine Ausnahme ist, hängt sie – wie das
+sieben Ausnahmen ganz oben, und weil es eine Ausnahme ist, hängt sie – wie das
 Erweitern – an zwei Bedingungen, die beide gelten müssen:
 
 - **Der Text bleibt allgemein.** Er beschreibt eine Haltung zu KI im
@@ -1208,6 +1307,9 @@ meldet:
   deutschen Text (Durchkopplung, ganz oben).
 - **Schwerpunkt-Folien außerhalb der Vorlage**: mehr als vier, nicht drei
   Karten, Titel über zwei Zeilen, Kartentext über drei Zeilen.
+- **Schlagworte**: ein Projekt ohne `schlagworte` (die Karte entfällt), eine
+  unbekannte Gruppe, mehr als 8 Technologien bzw. Kontext-Schlagworte oder mehr
+  als 12 Methoden.
 
 **Der Zwischenspeicher liegt neben der `portfolio.json`, nicht beim PDF.** Die
 gerechneten Screenflächen landen in `arbeit/screens/`, ein Bild je Lösungs- und
@@ -1278,6 +1380,11 @@ PDF ausgeben und in wenigen Zeilen berichten:
   alle Projekte auf der neutralen Fläche
 - **Die Texte der Schwerpunkt-Folien** unter „Zur Freigabe“, je Folie das
   Thema der Anfrage und die Belegstellen im Material
+- **Die ausgebauten Projekttexte** unter „Zur Freigabe“, je Absatz mit
+  Quelle – und je Projekt, dessen Material nicht mehr hergab, welche Angaben
+  beim Kandidaten zu erfragen wären
+- **Die abgeleiteten Schlagworte** unter „Zur Freigabe“, je Chip die Stelle,
+  aus der er folgt
 - **Der Bildnachweis der Firmenzentralen**, wörtlich aus `hq_bilder.py --quelle`:
   Datei, Urheber, Lizenz. Dazu die Bitte, die Gebäude anzusehen – und
   **welche Gebäude KI-generiert sind** (selbst erzeugt oder aus dem
@@ -1366,6 +1473,9 @@ der Kaskade in Schritt 5.
   (1 pt `neutral/20`), die Kenntnisse Trennlinien in derselben Farbe.
 - **Ein Projektblock hat drei bis fünf Seiten**: Kopf, Summary und Abschluss
   immer, dazu null bis zwei Lösungsseiten je nach Material.
+- **Die Kopfseite hat drei Spalten**: Projekt mit Rollenkarten, Kunde, die
+  Karte „Auf einen Blick“ – Maße und Farben in `assets/tokens.json`
+  (`kopf-*`, `blick-*`, `chip-*`, `rolle-*`).
 - **Auf den Projektseiten fest**: die Fläche unter den Screens (Lösungs- und
   Abschlussseite – neutral, farbig nur aus dem Produkt) und das HQ-Foto der
   Summary. Die **Anordnung der Screens darauf ist dagegen die gestalterische

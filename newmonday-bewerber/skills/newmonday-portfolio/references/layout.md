@@ -425,17 +425,41 @@ Badge-Text (`badge-text`, Petrol) y 891. Statuskarten im Panel ab y 278,
 **Projekt-Kopfseite** (Folien 11_1 ff.). Kundenlogo im 91 pt hohen Feld ab
 x 193 / y 120, flächengleich skaliert (`LOGO_PROJEKT_MASS` 105, Deckel 80 pt
 Höhe / 420 pt Breite). Überschrift (`h1`) 32 pt unter dem Feld auf y 243,
-1300 pt breit. Zwei Spalten zu 570 pt bei x 193 und x 923 (160 pt Luft), ihre
-Oberkante 80 pt unter der letzten Zeile der Überschrift – bricht der
-Projektname um, rücken beide Spalten mit. Label (`subheadline-1-bold`), 24 pt
-darunter der Text (`subheadline-2-regular`, `neutral/80`). **„Meine Rolle"
-folgt dem Textfluss der linken Spalte** – 48 pt unter dem Projekttext, dann
-Label und Stichpunkte. Die frühere Fassung ließ den Block von der Blattkante
-nach oben wachsen; bei kurzen Texten klebte er sichtbar allein am unteren
-Rand – genau das kam als Rückmeldung zurück (August 2026). Mehr als drei
-Stichpunkte sieht die Vorlage nicht vor: Unter „Meine Rolle" stehen
-Rollenbezeichnungen, keine Aufgabenlisten – das Renderskript meldet Überzahl.
-Der Überlauf läuft über die normale Zonenprüfung (Unterkante 1010 pt).
+1300 pt breit. Darunter seit November 2026 **drei gleich breite Spalten**
+(Folie »Projekt-Kopf v2«): je 516,33 pt mit 56 pt Luft ab x 193 – Projekt bei
+x 193, Kunde bei x 765,33, die Karte „Auf einen Blick“ bei x 1337,67 und
+419 pt breit (`kopf-spalte`, `kopf-spalten-abstand`, `blick-breite`). Ihre
+Oberkante liegt 80 pt unter der letzten Zeile der Überschrift – bricht der
+Projektname um, rücken alle drei mit. Die linken Kanten rechnet das
+Renderskript aus den Tokens (`KOPF_SPALTEN_X`), weil WeasyPrint kein `calc()`
+kennt. Label `kopf-label` (Inter Bold 21, 130 %), 24 pt darunter der Text
+`kopf-text` (Inter 20, 135 %, `neutral/80`), Absätze 27 pt auseinander.
+
+**„Meine Rolle" folgt dem Textfluss der Projekt-Spalte** – 48 pt unter dem
+Projekttext, dann das Label und 24 pt darunter die Rollenkarten: Text
+`rolle` (Inter Semi Bold 24, 125 %) 24 pt eingerückt, davor der Akzentstrich
+4 pt breit, Radius 2, `brand/primary`, so hoch wie die Rolle (als `::before`
+– ein gestrecktes Flex-Kind setzt WeasyPrint zu hoch); weitere Karten 12 pt
+darunter. Die frühere Fassung ließ den Block von der Blattkante nach oben
+wachsen; bei kurzen Texten klebte er sichtbar allein am unteren Rand – genau
+das kam als Rückmeldung zurück (August 2026). Mehr als drei Rollen sieht die
+Vorlage nicht vor; das Renderskript meldet Überzahl.
+
+**„Auf einen Blick“**: Fläche `blick/flaeche` (#f5f7f7), Radius 12, Innenabstand
+24, Gruppen 20 pt auseinander. Je Gruppe das Label `blick-label` (Inter Semi
+Bold 13, Versalien, 8 % Laufweite, `neutral/80`), 10 pt darunter die Chips:
+weiß, Kontur 1 pt `chip/rahmen` (#ccd6d6), Radius 8, Innenabstand 5 × 11,
+Text `chip` (Inter Semi Bold 15, 130 %), 6 pt Abstand nach rechts und unten.
+Weil jeder Chip seinen Abstand unten mitbringt, leitet `design_tokens.py`
+Gruppenabstand und Innenabstand unten um diese 6 pt kleiner ab
+(`--blick-gruppen-luft`, `--blick-innen-unten`). Die Komponente
+»Buzzword-Chip« kennt drei farbige Varianten (Technologie, Methode, Kontext);
+auf der Folie stehen alle in der weißen – so ist es entschieden.
+
+Gemessen am PDF trägt die Projekt-Spalte bei einzeiligem Projektnamen und zwei
+Absätzen ~100 Wörter mit einer Rolle (~85 mit zwei, ~70 mit drei), die
+Kundenspalte ~130. Der Überlauf läuft über die normale Zonenprüfung
+(Unterkante 1010 pt).
 
 **Summary** (Folien 11_2 ff.). Rechts ab 932 pt über die volle Höhe das Foto
 der Firmenzentrale, `cover`. Links Kundenlogo im 80-pt-Feld ab y 120,

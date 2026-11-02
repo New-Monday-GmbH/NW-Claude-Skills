@@ -86,6 +86,8 @@ TEXTE = {
         "sprachen": "Sprachen", "connect": "Connect", "anzeigen": "Anzeigen",
         "ki": "KI-Einsatz",
         "projekt": "Projekt", "kunde": "Kunde", "meine_rolle": "Meine Rolle",
+        "technologien": "Technologien & Tools", "methoden": "Methoden",
+        "kontext": "Kontext",
         "summary": "Summary", "loesung": "Die Lösung", "screens": "Screens",
         "aufruf_h": "Interessiert an einer Zusammenarbeit?",
         "aufruf_p": "Setzen Sie sich mit {name} in Verbindung, um ein Meeting zu "
@@ -112,6 +114,8 @@ TEXTE = {
         "sprachen": "Languages", "connect": "Connect", "anzeigen": "View",
         "ki": "Use of AI",
         "projekt": "Project", "kunde": "Client", "meine_rolle": "My role",
+        "technologien": "Technologies & tools", "methoden": "Methods",
+        "kontext": "Context",
         "summary": "Summary", "loesung": "The solution", "screens": "Screens",
         "aufruf_h": "Interested in working together?",
         "aufruf_p": "Get in touch with {name} to arrange a meeting. In this "
@@ -175,6 +179,8 @@ def durchkopplung_pruefen(d: dict) -> list[str]:
     for i, pr in enumerate(d.get("projekte") or []):
         texte += [(f"projekte[{i}].{f}", pr.get(f)) for f in ("projektname", "projekt", "kunde_text")]
         texte += [(f"projekte[{i}].rolle[{j}]", r) for j, r in enumerate(pr.get("rolle") or [])]
+        for gruppe, liste in schlagworte_lesen(pr).items():
+            texte += [(f"projekte[{i}].schlagworte.{gruppe}[{j}]", x) for j, x in enumerate(liste)]
         sm = pr.get("summary")
         texte.append((f"projekte[{i}].summary.text", sm.get("text") if isinstance(sm, dict) else sm))
         for k, lo in enumerate(pr.get("loesungen") or []):
@@ -1471,12 +1477,68 @@ def screenflaeche(bilder, farbe, variante: str, basis: Path, cache: Path,
     return gebaut
 
 
-# Die Spalten der Kopfseite stehen wieder im Referenzmass: 575pt breit bei
-# x 193 und x 916, wie in p-13/18/23 gemessen. Eine fruehere Fassung zog sie
-# auf 693pt auseinander, weil „Meine Rolle" damals von der Blattkante nach oben
-# wuchs und den Spalten Hoehe nahm. Genau dieser Block kam als Fehler zurueck -
-# er klebte sichtbar am unteren Rand. Jetzt folgt er dem Textfluss der
-# Projekt-Spalte wie in der Referenz, und die Spalten tragen das Referenzmass.
+# Die Kopfseite traegt seit November 2026 drei gleich breite Spalten wie die
+# Folie »Projekt-Kopf v2«: Projekt (darunter „Meine Rolle“ als Rollenkarten),
+# Kunde und die Karte „Auf einen Blick“ mit den Schlagworten. „Meine Rolle"
+# folgt weiter dem Textfluss der Projekt-Spalte - die alte Fassung, die ihn von
+# der Blattkante nach oben wachsen liess, kam als Fehler zurueck.
+
+# Die drei Gruppen der Karte „Auf einen Blick“, in dieser Reihenfolge. Die
+# Hoechstzahlen sind eine Lesegrenze, keine Platzgrenze: Wer die Folie
+# ueberfliegt, soll in Sekunden sehen, was im Projekt passiert ist und womit.
+SCHLAGWORT_GRUPPEN = ("technologien", "methoden", "kontext")
+SCHLAGWORTE_MAX = {"technologien": 8, "methoden": 12, "kontext": 8}
+# Linke Kanten der drei Spalten, aus den Tokens gerechnet - WeasyPrint kennt
+# kein calc(), das CSS kann sie deshalb nicht selbst bilden.
+_KOPF_M = ds.laden()["masse"]
+KOPF_SPALTEN_X = [193 + i * (float(_KOPF_M["kopf-spalte"]) + float(_KOPF_M["kopf-spalten-abstand"]))
+                  for i in range(3)]
+
+
+def schlagworte_lesen(pr: dict) -> dict[str, list[str]]:
+    """`schlagworte` eines Projekts als {gruppe: [texte]} - leere Gruppen fallen
+    weg. Unbekannte Gruppen werden gemeldet, nicht gesetzt."""
+    roh = pr.get("schlagworte")
+    if not roh:
+        return {}
+    if not isinstance(roh, dict):
+        merke(f'{pr.get("kunde")}: „schlagworte“ ist kein Objekt mit '
+              f'{", ".join(SCHLAGWORT_GRUPPEN)} – die Karte „Auf einen Blick“ entfällt.')
+        return {}
+    for gruppe in roh:
+        if gruppe not in SCHLAGWORT_GRUPPEN:
+            merke(f'{pr.get("kunde")}: „schlagworte.{gruppe}“ ist keine Gruppe der Karte '
+                  f'– erlaubt sind {", ".join(SCHLAGWORT_GRUPPEN)}.')
+    aus = {}
+    for gruppe in SCHLAGWORT_GRUPPEN:
+        werte = roh.get(gruppe) or []
+        if not isinstance(werte, list):
+            werte = [werte]
+        liste = [str(x).strip() for x in werte
+                 if isinstance(x, (str, int, float)) and str(x).strip()]
+        if len(liste) > SCHLAGWORTE_MAX[gruppe]:
+            merke(f'{pr.get("kunde")}: {len(liste)} Schlagworte unter „{gruppe}“ – '
+                  f"mehr als {SCHLAGWORTE_MAX[gruppe]} liest niemand auf einen Blick. "
+                  "Die wichtigsten zuerst, den Rest weglassen.")
+        if liste:
+            aus[gruppe] = liste
+    return aus
+
+
+def blick_karte(pr: dict, t: dict, oben: float) -> str:
+    """Die Karte „Auf einen Blick“: je Gruppe ein Label und die Chips."""
+    gruppen = schlagworte_lesen(pr)
+    if not gruppen:
+        merke(f'{pr.get("kunde")}: keine „schlagworte“ – die Karte „Auf einen Blick“ '
+              "entfällt, die dritte Spalte der Kopfseite bleibt leer.")
+        return ""
+    teile = []
+    for gruppe, liste in gruppen.items():
+        chips = "".join(f'<span class="chip t-chip">{e(x)}</span>' for x in liste)
+        teile.append(f'<div class="gruppe"><div class="gruppe-label t-blick-label">'
+                     f'{e(t[gruppe])}</div><div class="chips">{chips}</div></div>')
+    return (f'<div class="blick" style="top:{oben:.1f}pt;left:{KOPF_SPALTEN_X[2]:.2f}pt">'
+            f'{"".join(teile)}</div>')
 
 # Oberste erlaubte Textkante der Projektseiten: knapp ueber dem Kundenlogo auf
 # 121pt. Es steht dort als Bild, kann aber Schrift enthalten - unter 121pt liegt
@@ -1494,7 +1556,10 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
         merke(f'{pr.get("kunde")}: {len(punkte_rolle)} Einträge unter „Meine '
               "Rolle“ – dort stehen Rollenbezeichnungen, keine Aufgaben, und "
               "höchstens drei. Aufgaben gehören in den Projekttext.")
-    rolle = "".join(f"<li>{fett(r)}</li>" for r in punkte_rolle)
+    # Jede Rolle eine Rollenkarte: Akzentstrich in Petrol, die Rolle daneben -
+    # mehrere stehen untereinander (Komponente »Rollenkarte«).
+    rolle = "".join(f'<div class="rollenkarte t-rolle">{e(nuechtern(r))}</div>'
+                    for r in punkte_rolle)
     # Lange Kundennamen brechen um und schoeben die Labels sonst unter die
     # zweite Zeile ("Opel, Peugeot und Citroën").
     # Ueberschrift ist der Projektname, nicht der Kunde: der steht schon als
@@ -1510,22 +1575,22 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
     # so sitzt der Block dort, wo der Text endet, wie in der Referenz
     # (p-13/18/23). Die alte Fassung liess ihn von der Blattkante nach oben
     # wachsen; bei kurzen Texten klebte er dann allein am unteren Rand.
-    label = lambda s: f'<div class="label t-subheadline-1-bold">{e(s)}</div>'
-    rolle_html = (f'<div class="rolle-block">{label(t["meine_rolle"])}'
-                  f'<ul class="punkte t-subheadline-2-regular">{rolle}</ul></div>'
+    label = lambda s: f'<div class="label t-kopf-label">{e(s)}</div>'
+    rolle_html = (f'<div class="rolle-block">{label(t["meine_rolle"])}{rolle}</div>'
                   if rolle else "")
     out.append((f'''<section class="seite seite--projekt">
   <div class="streifen streifen--start"></div>
   {kundenlogo(pr, basis, cache)}
   <div class="h1 t-h1">{e(titel)}</div>
-  <div class="sp-projekt" style="top:{spalten_oben:.1f}pt">{label(t["projekt"])}
-    {absaetze(pr.get("projekt", ""))}{rolle_html}</div>
-  <div class="sp-kunde" style="top:{spalten_oben:.1f}pt">{label(t["kunde"])}
-    {absaetze(pr.get("kunde_text", ""))}</div>
+  <div class="sp-projekt" style="top:{spalten_oben:.1f}pt;left:{KOPF_SPALTEN_X[0]:.2f}pt">{label(t["projekt"])}
+    {absaetze(pr.get("projekt", ""), ts="kopf-text")}{rolle_html}</div>
+  <div class="sp-kunde" style="top:{spalten_oben:.1f}pt;left:{KOPF_SPALTEN_X[1]:.2f}pt">{label(t["kunde"])}
+    {absaetze(pr.get("kunde_text", ""), ts="kopf-text")}</div>
+  {blick_karte(pr, t, spalten_oben)}
   {kopfzeile(None, basis, nr)}
 </section>''', Zone(PROJEKT_OBEN, 1010, 1920,
-                    '„projekt“ oder „kunde_text“ kürzen oder weniger '
-                    '„rolle“-Stichpunkte – die Kopfseite hat keine Folgeseite')))
+                    '„projekt“ oder „kunde_text“ kürzen, weniger Rollen oder '
+                    'weniger Schlagworte – die Kopfseite hat keine Folgeseite')))
     nr += 1
 
     sm = pr.get("summary")

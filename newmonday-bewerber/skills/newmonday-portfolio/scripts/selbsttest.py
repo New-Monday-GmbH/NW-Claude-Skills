@@ -55,6 +55,11 @@
    Property und Variante steht im Katalog, jede Bildebene hat ihr Bild,
    Logos stehen im Seitenverhältnis ihrer Datei, kein Paket über dem Deckel
    von use_figma; zu viele Kenntnisse werden als Mengengrenze gemeldet.
+15. Kopfseite: drei Spalten bei x 193 / 765,33 / 1337,67 wie die Folie
+   »Projekt-Kopf v2«, die Karte „Auf einen Blick“ 419 pt breit mit den Chips
+   des Beispiels, je Rolle ein 4 pt breiter Akzentstrich so hoch wie die
+   Zeile; ohne `schlagworte`, mit unbekannter Gruppe oder zu vielen
+   Schlagworten ein Hinweis.
 
 Schreibt nichts in den Skill-Ordner. Rückgabe 1, wenn etwas abweicht.
 """
@@ -647,6 +652,48 @@ def rollenzeile_pruefen() -> list[str]:
     return befunde
 
 
+def kopfseite_pruefen(pdf: Path, d: dict) -> list[str]:
+    """Die erste Projekt-Kopfseite des Beispiels gegen die Folie »Projekt-Kopf v2«
+    (Datei des Nutzers, November 2026): Spaltenkanten, Kartenbreite, Chips,
+    Akzentstrich - und die Meldungen zu den Schlagworten."""
+    import fitz
+    befunde = []
+    pr = d["projekte"][0]
+    with fitz.open(str(pdf)) as doc:
+        seite = next((s for s in doc if "Meine Rolle" in s.get_text()), None)
+        if seite is None:
+            return ["keine Seite mit „Meine Rolle“ im Beispiel"]
+        woerter = {w[4]: w for w in seite.get_text("words")}
+        for wort, x in (("Projekt", 193), ("Kunde", 765.33)):
+            if wort not in woerter or abs(woerter[wort][0] - x) > TOL:
+                befunde.append(f"Label „{wort}“ nicht bei x {x}")
+        flaechen = [d_["rect"] for d_ in seite.get_drawings()]
+        karte = [r for r in flaechen if abs(r.x0 - 1337.67) <= TOL and abs(r.width - 419) <= TOL]
+        if not karte:
+            befunde.append("Karte „Auf einen Blick“ nicht bei x 1337,67 mit 419 pt Breite")
+        text = seite.get_text()
+        for gruppe in rp.SCHLAGWORT_GRUPPEN:
+            for wort in (pr.get("schlagworte") or {}).get(gruppe, []):
+                if wort not in text:
+                    befunde.append(f"Schlagwort „{wort}“ fehlt auf der Kopfseite")
+        akzente = [r for r in flaechen if abs(r.width - 4) <= 0.2 and abs(r.x0 - 193) <= TOL]
+        if len(akzente) != len(pr.get("rolle") or []):
+            befunde.append(f"{len(akzente)} Akzentstriche für {len(pr.get('rolle') or [])} Rollen")
+        for r in akzente:
+            if abs(r.height - 30) > TOL:
+                befunde.append(f"Akzentstrich {r.height:.1f} pt hoch statt 30 (Zeilenhöhe der Rolle)")
+    for name, schlagworte, erwartet in (
+            ("ohne Schlagworte", None, "keine „schlagworte“"),
+            ("unbekannte Gruppe", {"werkzeuge": ["Figma"]}, "keine Gruppe der Karte"),
+            ("zu viele Methoden", {"methoden": [f"M{i}" for i in range(13)]}, "Schlagworte unter „methoden“")):
+        rp.hinweise.clear()
+        rp.blick_karte({"kunde": "Test", "schlagworte": schlagworte}, rp.TEXTE["de"], 400)
+        if not any(erwartet in h for h in rp.hinweise):
+            befunde.append(f"{name}: kein Hinweis mit „{erwartet}“")
+    rp.hinweise.clear()
+    return befunde
+
+
 def durchkopplung_pruefen() -> list[str]:
     """Offene Schreibweisen werden gemeldet, nie geaendert - nur im Deutschen."""
     befunde = []
@@ -733,6 +780,7 @@ def main() -> None:
         html_text, _ = rp.baue_html(d, BEISPIEL, Path(tmp))
         rp.rendere(html_text, ziel)
         fehler += [f"Beispiel-PDF: {b}" for b in ds.pruefe_pdf(ziel)]
+        fehler += [f"Kopfseite: {b}" for b in kopfseite_pruefen(ziel, d)]
         # Dasselbe Beispiel mit den drei Schwerpunkt-Folien aus Florians Deck:
         # auch deren Texte muessen Textstile aus tokens.json tragen.
         d["schwerpunkte"] = json.loads((SOLL / "12-schwerpunkt.json").read_text(
@@ -763,7 +811,8 @@ def main() -> None:
     print("Selbsttest bestanden: Tokens, Beispiel-PDF, Figma-Abgleich "
           f"({len(list(SOLL.glob('*.json')))} Vorlage(n)), Sprachen, Arbeitsjahre, "
           "Screen-Stil, Statement-Länge, Logo-Proportionen, Graustufen, Fläche, "
-          "Schwerpunkte, Rollenzeile, Durchkopplung und Bibliotheksweg ohne Abweichung.")
+          "Schwerpunkte, Rollenzeile, Kopfseite, Durchkopplung und Bibliotheksweg ohne "
+          "Abweichung.")
 
 
 if __name__ == "__main__":

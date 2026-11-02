@@ -243,14 +243,45 @@ ul.zeilen li + li { margin-top: var(--trenner-luft); padding-top: var(--trenner-
    (80-pt-Feld) auf 232. */
 .seite--projekt .kundenlogo { height: 91pt; }
 .seite--projekt .h1 { position: absolute; left: 193pt; top: 243pt; width: 1300pt; }
-/* Zwei Spalten zu 570pt bei x 193 und x 923 (160pt Luft). Die Oberkante setzt
-   das Renderskript: 80pt unter der letzten Zeile der Überschrift. */
-.seite--projekt .sp-projekt { position: absolute; left: 193pt; width: 570pt; }
-.seite--projekt .sp-kunde   { position: absolute; left: 923pt; width: 570pt; }
+/* Drei gleich breite Spalten (Projekt-Kopf v2, November 2026): Projekt mit
+   „Meine Rolle“ darunter, Kunde, und die Karte „Auf einen Blick“ – je 516,33pt
+   mit 56pt Luft ab x 193, die Karte 419pt breit am Anfang der dritten Spalte.
+   Oberkante und linke Kante setzt das Renderskript aus den Tokens (WeasyPrint
+   rechnet kein calc()): 80pt unter der letzten Zeile der Überschrift. */
+.seite--projekt .sp-projekt,
+.seite--projekt .sp-kunde,
+.seite--projekt .blick { position: absolute; }
+.seite--projekt .sp-projekt,
+.seite--projekt .sp-kunde { width: var(--kopf-spalte); }
 .seite--projekt .sp-projekt .fliess,
 .seite--projekt .sp-kunde .fliess { margin-top: 24pt; }
+.seite--projekt .fliess p + p { margin-top: 27pt; }
 .seite--projekt .rolle-block { margin-top: 48pt; }
-.seite--projekt .rolle-block ul { margin-top: 24pt; }
+/* Rollenkarte: der Akzentstrich so hoch wie die Rolle (als ::before, weil
+   WeasyPrint gestreckte Flex-Kinder zu hoch setzt), die Rolle 20pt daneben. */
+.seite--projekt .rollenkarte { position: relative; margin-top: var(--rolle-stapel);
+  padding-left: var(--rolle-einzug); color: var(--base-black); }
+.seite--projekt .label + .rollenkarte { margin-top: 24pt; }
+.seite--projekt .rollenkarte::before { content: ""; position: absolute; left: 0; top: 0;
+  bottom: 0; width: var(--rolle-akzent); border-radius: var(--rolle-akzent-radius);
+  background: var(--brand-primary); }
+
+/* „Auf einen Blick“: graue Karte, drei Gruppen mit Chips, die umbrechen. Jeder
+   Chip trägt den Abstand rechts und unten; Gruppen- und Innenabstand unten
+   sind um diesen Abstand kleiner (design_tokens.py leitet sie ab), damit die
+   Maße der Figma-Folie stimmen. */
+.seite--projekt .blick { width: var(--blick-breite);
+  padding: var(--blick-innen) var(--blick-innen) var(--blick-innen-unten);
+  border-radius: var(--blick-radius); background: var(--blick-flaeche); }
+.seite--projekt .blick .gruppe + .gruppe { margin-top: var(--blick-gruppen-luft); }
+.seite--projekt .blick .gruppe-label { color: var(--neutral-80); }
+.seite--projekt .blick .chips { display: flex; flex-wrap: wrap;
+  margin-top: var(--blick-label-abstand); }
+.seite--projekt .blick .chip { display: block;
+  margin: 0 var(--chip-abstand) var(--chip-abstand) 0;
+  padding: var(--chip-innen-hoch) var(--chip-innen-breit);
+  border: var(--linie-chip); border-radius: var(--chip-radius);
+  background: var(--base-white); color: var(--base-black); white-space: nowrap; }
 
 .seite--summary .h1 { position: absolute; left: 193pt; top: 232pt; width: 700pt; }
 .seite--summary .fliess { position: absolute; left: 193pt; top: 384pt; width: 565pt; }
