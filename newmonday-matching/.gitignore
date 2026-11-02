@@ -1,0 +1,7 @@
+# Zugangsdaten und Ergebnisse bleiben auf dem eigenen Rechner.
+scripts/matching.config.json
+*.csv
+
+__pycache__/
+*.pyc
+.DS_Store
