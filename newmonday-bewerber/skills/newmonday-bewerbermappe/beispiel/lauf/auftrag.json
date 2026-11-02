@@ -20,6 +20,18 @@
   },
   "ohne": ["linkedin_export"],
   "vorrang": "portfolio",
+  "anfrage": {
+    "quelle": "matching",
+    "datei": "eingang/anfrage.md",
+    "rolle": "UX/UI Design",
+    "senioritaet": "Senior",
+    "muss": ["Usability Testing", "Design Systems"],
+    "kann": ["Barrierefreiheit"],
+    "ko": ["Deutsch unter C1"],
+    "domaene": "Versicherung",
+    "zeile": "Senior UX/UI Design, Muss: Usability Testing, Design Systems; Kann: Barrierefreiheit; Domäne: Versicherung"
+  },
+  "matching": {"ergebnis": "bestanden", "gruende": [], "trotzdem": false},
   "entscheidungen": {
     "newmonday-cv": {
       "nm_rolle": "User Experience Design Specialist",

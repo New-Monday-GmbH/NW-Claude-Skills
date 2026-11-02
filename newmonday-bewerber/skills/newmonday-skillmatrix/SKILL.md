@@ -96,7 +96,27 @@ Skills vor; im Einzellauf gilt er nicht.
 | Figma | Die Frames (lang und A4) entstehen, wenn `figma.aktiv` true ist – eine eigene Frage danach gibt es nicht. `figma.link` trägt die `node-id` der Kandidatenseite, also gilt „Zielseite“ mit `node-id` (`references/figma.md`). |
 | Material | `material` – Zertifikate aus dem Ordner `material.zertifikate`; je Datei ein Eintrag, Titel, Aussteller und Datum vom Zertifikat abgelesen, neueste zuerst |
 | Verfügbarkeit | wandert in die Fragen der Phase *vorbereiten* |
-| Anfrage | `anfrage`, falls der Auftrag eine mitbringt (Schritt 0, Punkt 6); fehlt das Feld, gilt die Reihenfolge ohne Anfrage |
+| Anfrage | `anfrage.zeile` aus `auftrag.json`, wörtlich als `anfrage` in die `skillmatrix.json` (Schritt 3); fehlt `anfrage` oder ist es `null`, gilt die Reihenfolge ohne Anfrage |
+
+**Die Anfrage in der Skill Matrix** – Gewichtung, nie Beleg (Schritt 1). Die
+Tabelle aus `auftrag.json` ist genauer als die eine Zeile, deshalb:
+
+- **Reihenfolge der Kategorien (2a):** Welche Katalog-Kategorie ein Muss- oder
+  Kann-Kriterium trifft, sagt `references/matching-zuordnung.md`. Zuerst die
+  Kategorie mit den meisten belegten Muss-Kriterien, dann nach Kann, danach
+  nach Stärke. Ein Kriterium, das in der Zuordnung „kein Gegenstück“ hat, ordnet
+  nichts.
+- **Auswahl (2a, 2b):** Zwingen die Grenzen zum Streichen, bleiben belegte
+  Attribute, die ein Muss oder Kann treffen; gestrichen werden zuerst die
+  übrigen. Kein Attribut kommt dazu, weil die Anfrage es nennt.
+- **Hero (2c):** Schwerpunkte und Hero-Beschreibung richten sich nur an
+  belegten Themen aus. Eine Domäne steht dort nur mit einer Tätigkeit in ihr,
+  nie wegen eines Kundennamens.
+- **Bewertung (2d):** Die Anfrage hebt keine Punkte. Ein Muss-Kriterium mit 3
+  Punkten bleibt eine 3.
+- **Lücken:** Jedes Kriterium, das kein Attribut der Matrix belegt, kommt nach
+  `anfrage_luecken` – das ist die Zeile „was die Anfrage verlangt, der Eingang
+  aber nicht belegt“ aus 2e.
 
 **Phase vorbereiten: Schritte 1 bis 2d.** Statt der Freigabe-Nachricht aus 2e
 entsteht `fragen.json`:
@@ -374,7 +394,11 @@ wonach im Lebenslauf und Portfolio zu suchen ist, nie als alleiniger Beleg.
 **Die Anfrage auslesen**, falls eine gekommen ist (Schritt 0, Punkt 6): wer
 gesucht wird und welche Themen zählen, in einer Zeile für `anfrage`. Sie ist
 eine Gewichtung, kein Beleg – was sie verlangt, der Eingang aber nicht hergibt,
-kommt nicht in die Matrix. Daraus folgt in Schritt 2 die Reihenfolge der
+kommt nicht in die Matrix. Kommt sie als Anforderungstabelle aus dem
+Profilmatching (`newmonday-matching`: Muss, Kann, Domäne), übersetzt
+`references/matching-zuordnung.md` ihre Begriffe in Katalog-Kategorien; Muss
+wiegt dann vor Kann. Ein Kundenname im Lebenslauf belegt keine Domäne –
+nur eine Tätigkeit in ihr. Daraus folgt in Schritt 2 die Reihenfolge der
 Kategorien (2a) und, soweit belegt, die Ausrichtung von Schwerpunkten und
 Hero-Beschreibung (2c).
 

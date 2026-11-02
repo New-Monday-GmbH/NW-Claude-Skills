@@ -6,6 +6,9 @@
     "| Kategorie | Attribut | Punkte | Beleg |\n|---|---|---|---|\n| Strategie & Research | User Interviews | 5 | 6 Jahre, 3 Stationen |\n| Strategie & Research | Service Design | 3 | ein Portfolio-Case |\n| Design Systems | Design Tokens | 4 | Design-System bei X |",
     "| Tool | Punkte | Beleg |\n|---|---|---|\n| Figma / FigJam | 4 | alle Stationen seit 2019 |"
   ],
+  "anfrage_luecken": [
+    {"kriterium": "Barrierefreiheit", "art": "kann", "folge": "Keine Kategorie Accessibility & Inclusive Design – im Material steht kein Projekt dazu."}
+  ],
   "luecken": [
     {"was": "Profilfoto", "folge": "Das beste Foto (LinkedIn) hat nach dem Kopfzuschnitt 48 dpi – die Fotokarte wirkt sichtbar weich.", "form": "Bilddatei, Porträt, mindestens 1 000 px breit"}
   ],

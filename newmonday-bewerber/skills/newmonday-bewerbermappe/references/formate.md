@@ -40,6 +40,8 @@ Beispiel: `beispiel/lauf/auftrag.json`.
 | `figma.bibliothek` | Ergebnis des Bibliotheks-Vorflugs (Import per Key): `true` = Frames aus Instanzen der Master-Bibliothek, `false` = die Skills bauen roh; fehlt es, macht jeder Skill nur seinen eigenen Vorflug |
 | `material.*` | `lebenslauf`, `linkedin_export`, `portfolio_pdf`, `foto`: Dateien; `logos`, `screens`, `zertifikate`: Ordner; `linkedin_url`, `xing_url`, `portfolio_url`: Adressen; `kundentexte`: Datei oder Text. Pfade relativ zum Laufordner. Nicht Vorhandenes fehlt oder ist `null`. |
 | `vorrang` | welche Quelle bei Widersprüchen gilt – in allen drei Dokumenten: `lebenslauf`, `portfolio`, `linkedin_export`, oder `Anweisung: <Text>` (Antwort über „Other“); fehlt es oder ist es `null`, gilt `lebenslauf`. Danach gelten die übrigen Quellen in der Reihe Lebenslauf, Portfolio, LinkedIn-Export |
+| `anfrage` | die Anfrage, für die die Mappe entsteht – fehlt oder `null` = allgemeine Mappe ohne Anfrage. Felder: `quelle` (`matching` = Anforderungstabelle aus einer Matching-Auswertung, `ausschreibung` = selbst zerlegt), `datei` (Kopie in `eingang/`, optional), `rolle`, `senioritaet`, `muss`, `kann`, `ko` (Listen, Werte aus dem Matching-Vokabular), `domaene` (Text oder `null`), `zeile` (die Anfrage in einer Zeile – geht wörtlich als `anfrage` in die `skillmatrix.json`). Gewichtung, nie Beleg (SKILL.md, „Die Anfrage ist Gewichtung, nie Beleg“) |
+| `matching` | nur mit `anfrage`: Ergebnis der Matching-Prüfung aus Phase 2. `ergebnis`: `bestanden`, `nicht_bestanden` oder `fehlt`; `gruende`: was fehlt (leer nur bei `bestanden`); `trotzdem`: `true`, wenn der Nutzer bei `nicht_bestanden` oder `fehlt` „Trotzdem bauen“ gewählt hat – sonst wird nicht gebaut |
 | `ohne` | Posten, die der Nutzer bewusst nicht liefert – Materialschlüssel wie unter `material`, bei Lücken ohne Schlüssel deren `was`-Text (Tabelle unten); werden nicht mehr erbeten und nicht mehr als Lücke gemeldet |
 | `entscheidungen.<skill>.<id>` | Antwort auf die Frage mit dieser `id` aus `<skill>/fragen.json`, wörtlich (siehe unten) |
 | `status.<skill>` | `vorbereiten` und `bauen`: `offen`, `fertig`, `fehler` oder `ausgelassen`; `fehler`: Grund oder `null` |
@@ -83,6 +85,8 @@ Beispiele: `beispiel/lauf/cv/fragen.json`, `…/skillmatrix/fragen.json`,
   "abweichungen": [{ "feld": "Zeitraum Cortado",
                      "werte": { "lebenslauf": "2017 – 2023", "portfolio": "Jun 2017 – Aug 2024" },
                      "neuer": "portfolio" }],
+  "anfrage_luecken": [{ "kriterium": "Barrierefreiheit", "art": "muss",
+                        "folge": "…" }],
   "fragen": [{ "id": "nm_rolle", "question": "…?", "header": "NM-Rolle",
                "multiSelect": false,
                "options": [{ "label": "… (Empfohlen)", "description": "…" },
@@ -119,6 +123,15 @@ Beispiele: `beispiel/lauf/cv/fragen.json`, `…/skillmatrix/fragen.json`,
   der gröberen nicht widerspricht. Aus allen `abweichungen` fragt der
   Orchestrator einmal, welche Quelle die aktuellere ist – sie gilt dann in allen
   drei Dokumenten (`vorrang` in `auftrag.json`).
+- **`anfrage_luecken`** (optional, nur wenn `auftrag.json` eine `anfrage` hat):
+  was die Anfrage verlangt und das Material dieses Skills **nicht belegt**.
+  `kriterium` wie in der Anfrage, `art` ist `muss`, `kann` oder `domaene`,
+  `folge` sagt, was im Dokument deshalb nicht steht („kommt nicht vor, keine
+  Schwerpunkt-Folie“). Belegt ist nur, was eine Station, ein Projekt, ein
+  Portfolio-Case oder ein Zertifikat hergibt – ein Kundenlogo oder ein Wort in
+  einer Tool-Liste nicht (Scheintreffer, SKILL.md). Der Orchestrator zeigt die
+  Lücken in Phase 4; ein Muss ohne Beleg bei bestandenem Matching meldet
+  `pruefe_lauf.py` als Warnung.
 
 ## `notizen.md` — schreibt der Subagent beim Vorbereiten
 

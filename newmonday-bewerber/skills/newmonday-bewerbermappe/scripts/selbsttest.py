@@ -31,6 +31,8 @@ FRAGEN = {
     "abweichungen": [{"feld": "Zeitraum Cocomore AG",
                       "werte": {"lebenslauf": "11/2021 – 04/2022", "portfolio": "2020 – 2021"},
                       "neuer": "lebenslauf"}],
+    "anfrage_luecken": [{"kriterium": "Design Systems", "art": "kann",
+                         "folge": "kommt nicht nach vorn, steht nicht im Dokument"}],
     "fragen": [
         {"id": "nm_rolle", "question": "Wie heißt die Rolle bei New Monday?",
          "header": "NM-Rolle", "multiSelect": False,
@@ -53,6 +55,13 @@ AUFTRAG = {
     "material": {"lebenslauf": "eingang/lebenslauf.pdf"},
     "ohne": ["linkedin_export"],
     "vorrang": "portfolio",
+    "anfrage": {"quelle": "matching", "datei": None, "rolle": "UX/UI Design",
+                "senioritaet": "Senior", "muss": ["Barrierefreiheit"],
+                "kann": ["Design Systems"], "ko": ["Deutsch unter C1"],
+                "domaene": "Versicherung",
+                "zeile": "Senior UX/UI Design, Muss: Barrierefreiheit; Kann: Design Systems; "
+                         "Domäne: Versicherung"},
+    "matching": {"ergebnis": "bestanden", "gruende": [], "trotzdem": False},
     "entscheidungen": {},
     "status": {s: {"vorbereiten": "offen", "bauen": "offen", "fehler": None}
                for s in pl.SKILLS},
@@ -91,6 +100,20 @@ def abweichung(**felder):
 def vorrang(wert):
     """Änderung für geaendert(): vorrang bekommt diesen Wert."""
     return lambda d: d.update(vorrang=wert)
+
+
+def anfrage(**felder):
+    """Änderung für geaendert(): anfrage bekommt diese Felder."""
+    return lambda d: d["anfrage"].update(felder)
+
+
+def matching(**felder):
+    """Änderung für geaendert(): matching bekommt diese Felder."""
+    return lambda d: d["matching"].update(felder)
+
+
+def muss_luecke(d):
+    d["anfrage_luecken"][0].update(kriterium="Barrierefreiheit", art="muss")
 
 
 # (Name, Prüffunktion, Daten, erwarteter Fehlertext oder None, erwartete Warnung oder None)
@@ -326,6 +349,59 @@ FAELLE = [
      geaendert(AUFTRAG, vorrang(1)), "vorrang: 1 ist keiner von", None),
     ("vorrang ist Liste", pl.pruefe_auftrag,
      geaendert(AUFTRAG, vorrang(["portfolio"])), "vorrang: ['portfolio'] ist keiner von", None),
+    # Anfrage und Matching in auftrag.json
+    ("ohne Anfrage", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: [d.pop("anfrage"), d.pop("matching")]), None, None),
+    ("Anfrage null", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: [d.update(anfrage=None), d.pop("matching")]), None, None),
+    ("Matching ohne Anfrage", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d.pop("anfrage")),
+     "matching: steht da, aber es gibt keine anfrage", None),
+    ("Anfrage ist Text", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d.update(anfrage="Senior UX/UI")),
+     "anfrage: muss ein Objekt oder null sein", None),
+    ("Anfrage ohne zeile", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d["anfrage"].pop("zeile")), "anfrage.zeile: fehlt", None),
+    ("Anfrage aus unbekannter Quelle", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, anfrage(quelle="crm")), "anfrage.quelle", None),
+    ("Muss ist Text statt Liste", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, anfrage(muss="Barrierefreiheit")),
+     "anfrage.muss: muss eine Liste von Texten sein", None),
+    ("Muss leer", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, anfrage(muss=[])), None, "anfrage.muss: leer"),
+    ("Domäne ist Liste", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, anfrage(domaene=["Versicherung"])),
+     "anfrage.domaene: muss ein Text oder null sein", None),
+    ("Anfrage ohne matching", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: d.pop("matching")), "matching: fehlt", None),
+    ("Matching mit unbekanntem Ergebnis", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, matching(ergebnis="70 %")), "matching.ergebnis", None),
+    ("nicht bestanden, trotzdem gebaut", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, matching(ergebnis="nicht_bestanden",
+                                 gruende=["Quote 62 %"], trotzdem=True)), None, None),
+    ("nicht bestanden ohne trotzdem", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, matching(ergebnis="nicht_bestanden", gruende=["Quote 62 %"])),
+     "trotzdem ist nicht true", None),
+    ("Matching fehlt ohne Grund", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, matching(ergebnis="fehlt", trotzdem=True)),
+     "matching.gruende: leer", None),
+    ("trotzdem ist Text", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, matching(trotzdem="ja")),
+     "matching.trotzdem: muss true oder false sein", None),
+    ("bestanden aus einer Ausschreibung", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, anfrage(quelle="ausschreibung")), None, "nur aus einer Ausschreibung"),
+    # anfrage_luecken in fragen.json
+    ("anfrage_luecken fehlen", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d.pop("anfrage_luecken")), None, None),
+    ("anfrage_luecken ist Objekt", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d.update(anfrage_luecken={})),
+     "anfrage_luecken: muss eine Liste sein", None),
+    ("Anfrage-Lücke mit unbekannter Art", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d["anfrage_luecken"][0].update(art="wunsch")),
+     "anfrage_luecken[0].art", None),
+    ("Anfrage-Lücke ohne Folge", pl.pruefe_fragen,
+     geaendert(FRAGEN, lambda d: d["anfrage_luecken"][0].pop("folge")),
+     "anfrage_luecken[0].folge: fehlt", None),
 ]
 
 
@@ -447,6 +523,13 @@ ORDNER = [
     ("vorrang falsch im Laufordner",
      {"auftrag.json": geaendert(AUFTRAG, vorrang("Portfolio")), "cv/fragen.json": FRAGEN},
      "auftrag.json: vorrang", None),
+    ("Muss ohne Beleg bei bestandenem Matching",
+     {"auftrag.json": AUFTRAG, "cv/fragen.json": geaendert(FRAGEN, muss_luecke)},
+     None, "widerspricht dem bestandenen Matching"),
+    ("Anfrage-Lücken ohne Anfrage",
+     {"auftrag.json": geaendert(AUFTRAG, lambda d: [d.pop("anfrage"), d.pop("matching")]),
+      "cv/fragen.json": FRAGEN},
+     None, "auftrag.json hat keine anfrage"),
 ]
 
 
