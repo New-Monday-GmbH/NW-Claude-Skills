@@ -1905,6 +1905,35 @@ def pruefe_entwickler(tmp):
     anonym, _ = _anonymisiere(tmp, daten, daten["person"]["name"])
     if anonym is None or any(p.get("link") for p in anonym.get("projekte") or []):
         fehler.append("Entwickler: Repository-Link steht noch in der anonymen Fassung")
+    fehler += _pruefe_entwickler_figma(daten, pdf, json.loads(stufen.read_text(encoding="utf-8")))
+    return fehler
+
+
+def _pruefe_entwickler_figma(daten, pdf, stufen):
+    """figma_entwickler.py: Seitenaufteilung wie im PDF, Seitenspalte nur auf
+    Seite 1, Figma-Skript unter der Grenze von use_figma."""
+    import copy
+    import figma_entwickler
+    fehler = []
+    plan, hinweise = figma_entwickler.plan_bauen(copy.deepcopy(daten), pdf, stufen)
+    seiten = plan["seiten"]
+    if hinweise:
+        fehler.append(f"Entwickler-Figma: Marken nicht im PDF gefunden – {hinweise[:2]}")
+    if len(seiten) != stufen.get("seiten"):
+        fehler.append(f"Entwickler-Figma: {len(seiten)} Seiten geplant, das PDF hat {stufen.get('seiten')}")
+    if not seiten[0]["seite"] or any(s["seite"] for s in seiten[1:]):
+        fehler.append("Entwickler-Figma: Seitenspalte nicht genau auf Seite 1")
+    texte = [[b.get("text") or b.get("titel") or b.get("abschluss") for b in s["haupt"]] for s in seiten]
+    if "Sprachen" not in texte[-1] or "Projekte" in texte[0]:
+        fehler.append("Entwickler-Figma: Projekte/Sprachen nicht auf den Seiten des PDFs")
+    if any(s["haupt"] and s["haupt"][0]["oben"] for s in seiten):
+        fehler.append("Entwickler-Figma: erster Block einer Seite mit Abstand oben")
+    gefaerbt = [b for s in seiten for b in s["haupt"] if b["art"] == "aufgabe" and b["technik"]]
+    if not gefaerbt or not all(b["technik"].startswith("(") for b in gefaerbt):
+        fehler.append("Entwickler-Figma: Technologien nicht als eigene Klammer geplant")
+    groesse = len(json.dumps(plan, ensure_ascii=False)) + figma_entwickler.LAUFZEIT.stat().st_size
+    if groesse > figma_entwickler.SKRIPT_GRENZE:
+        fehler.append(f"Entwickler-Figma: Bau-Skript {groesse} Zeichen, Grenze {figma_entwickler.SKRIPT_GRENZE}")
     return fehler
 
 
