@@ -12,35 +12,7 @@
 </head>
 <body>
 
-{# Die Kopfzeile traegt nur die Wortmarke. Die Verweise stehen im Profilkopf
-   unter der Erfahrungszeile — dort, wo der Leser die Person schon vor sich hat. #}
-<div class="header">
-  <img class="header__logo" src="logos/nm-logo.svg" alt="New Monday">
-</div>
-
-<div class="intro">
-  <div class="intro__col">
-    {% if person.foto %}<img class="intro__photo" src="{{ person.foto }}" alt="">{% endif %}
-  </div>
-  <div class="intro__info">
-    <div class="name">{{ person.name }}</div>
-    {% if person.rolle %}<div class="role">{{ person.rolle }}</div>{% endif %}
-    {% if person.erfahrung %}<div class="role">{{ person.erfahrung }}</div>{% endif %}
-    {# Benannt statt als Adresse: "zum LinkedIn Profil" statt "linkedin.com/in/…".
-       Die Linie in der Markenfarbe ist das einzige Signal, dass sie anklickbar
-       sind — mehr braucht es in einem Dokument nicht. #}
-    {% if person.links %}
-    <div class="intro__links">
-      {% for l in person.links %}
-      {% if l.url %}<a class="intro__link" href="{{ l.url }}">{{ l.anzeige }}</a>
-      {% else %}<span class="intro__link intro__link--ohne">{{ l.anzeige }}</span>{% endif %}
-      {% endfor %}
-    </div>
-    {% endif %}
-    {# Das Kurzprofil steht nicht hier, sondern auf Seite 2 ueber den Stationen —
-       auf Seite 1 wird der Platz fuer Bildung und Skillset gebraucht. #}
-  </div>
-</div>
+{% include "_kopf.html" %}
 
 {# Bildung und Skillset stehen auf Seite 1, direkt unter dem Profilkopf. Die
    Stationen beginnen danach auf einer neuen Seite. #}
@@ -164,35 +136,7 @@
 {% endfor %}
 </div>
 
-{# Die Fussluft haelt den Footer am unteren Rand der letzten Seite. Sie ist
-   immer da — im Grundzustand 31pt, danach so hoch, wie render_cv.py es aus dem
-   ersten Durchgang gemessen hat. Ein Margin taugte dafuer nicht: am
-   Seitenanfang wirft WeasyPrint ihn weg, und die Messung waere nicht mehr
-   dieselbe Ausgangslage wie der zweite Durchgang. #}
-<div class="fussbereich">
-<div class="fussluft" style="height:{{ fuss_abstand or 31 }}pt"></div>
-<div class="footer">
-  <div class="footer__divider"></div>
-  <div class="footer__row">
-    <div class="footer__logo"><img src="logos/nm-logo.svg" alt="New Monday"></div>
-    <div class="footer__cols">
-      <div class="footer__col">
-        <div class="footer__label">{{ t.ansprechpartner }}</div>
-        <div class="footer__value"><strong>{{ kontakt.name }}</strong><br>{{ kontakt.rolle }}</div>
-      </div>
-      <div class="footer__col">
-        <div class="footer__label">{{ t.kontakt }}</div>
-        <div class="footer__value">{{ kontakt.mail }}</div>
-        <div class="footer__value">{{ kontakt.telefon }}</div>
-      </div>
-      <div class="footer__col">
-        <div class="footer__label">{{ t.adresse }}</div>
-        <div class="footer__value">{{ kontakt.firma }}<br>{{ kontakt.strasse }}<br>{{ kontakt.ort }}</div>
-      </div>
-    </div>
-  </div>
-</div>
-</div>
+{% include "_fuss.html" %}
 
 </body>
 </html>
