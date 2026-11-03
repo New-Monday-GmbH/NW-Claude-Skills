@@ -83,6 +83,28 @@ eigene Rubrik (`.section--profil`): Überschrift wie Bildung und Skillset, Text
 über die volle Inhaltsbreite, Trennlinie darunter. Ohne diese Absetzung liest es
 sich wie der Text der ersten Station.
 
+### Entwickler-Layout: zwei Spalten, Seitenspalte nur auf Seite 1
+
+`"layout": "entwickler"` rendert `template-entwickler.html` statt
+`template.html`; Kopf und Fuß sind dieselben Teile (`_kopf.html`,
+`_fuss.html`).
+
+| Seite | Inhalt |
+|---|---|
+| 1 | Kopfzeile, Profilkopf, darunter links (2/3) Kurzprofil und Berufserfahrung, rechts (1/3) IT-Kompetenzen und Weiterbildung |
+| 2 ff. | Hauptspalte allein: übrige Stationen, Projekte, Ausbildung, Sprachen |
+| letzte | Footer, am unteren Seitenrand |
+
+Die Seitenspalte ist ein Float rechts (`.ew-seite`, `entwickler.seite_breite`
+= 152pt), die Hauptspalte daneben 299pt (`abgeleitet.entwickler_haupt` =
+Fußbreite − Seitenspalte − Spaltenabstand); WeasyPrint kann weder `calc()` noch
+`gap` verlässlich, darum steht die Breite als abgeleiteter Token da. Der Float
+endet nach Seite 1, die Hauptspalte läuft danach über ihre eigene Breite weiter.
+Abstände unter `entwickler` (Aufgaben 4, Station 24, Projekt 16, Rubriken 24),
+die Seitenspalte in drei Stufen unter `verdichtung.entwickler`. Technologien in
+Klammern setzt `technik` (Markenfarbe), die IT-Listen `it_liste` (grau,
+kommagetrennt). Logos gibt es in diesem Layout nicht.
+
 ### Die Verweise stehen unter der Erfahrungszeile
 
 LinkedIn, Xing und Portfolio stehen im Profilkopf, direkt unter der Zeile mit den

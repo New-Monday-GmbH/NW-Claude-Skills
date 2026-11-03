@@ -655,6 +655,11 @@ steht die UX-Rolle vorn, bei einem Entwicklerlebenslauf die Entwicklerrolle. Fü
 alles andere trägt der Nutzer über "Other" seinen eigenen Titel bzw. Monat ein –
 etwa `Senior Frontend Developer` oder `Januar 2027`.
 
+**Dieselbe Antwort wählt das Layout.** Software Development Specialist – oder
+ein eigener Entwicklertitel über "Other" – heißt `"layout": "entwickler"` in der
+`cv.json` (Schritt 2, „Das Entwickler-Layout“). Für UX-Profile bleibt es beim
+bisherigen Layout; das Feld fehlt dann oder steht auf `"ux"`.
+
 **Bis die Antworten da sind, wird nicht gebaut.** Titel und Zeitraum der ersten
 Station lassen sich nicht nachträglich einsetzen, ohne Erfahrungsjahre und
 Seitenumbrüche noch einmal durchzugehen.
@@ -866,6 +871,71 @@ Erfahrungszeile steht nichts mehr.
 `beschreibung` ist der Fließtext einer Station. Manche Lebensläufe beschreiben
 eine Station als Absatz statt als Aufgabenliste; dann gehört der Absatz dorthin
 und nicht als einzelner Bullet in `aufgaben`. Beides zusammen geht auch.
+
+#### Das Entwickler-Layout (technische Profile)
+
+Für Entwicklerprofile gibt es ein eigenes Layout (freigegeben am 03.11.2026),
+**nicht für UX-Profile**. Es gilt, wenn die NM-Rolle aus Schritt 0 die
+Entwicklerrolle ist; dann steht in der `cv.json` `"layout": "entwickler"`.
+Vollständiges Beispiel: `beispiel/cv-entwickler.json`.
+
+Der Aufbau steht fest:
+
+- **Seite 1:** Kopfzeile und Profilkopf wie im UX-Layout, darunter zwei
+  Spalten im Verhältnis 2/3 zu 1/3. Links Kurzprofil und Berufserfahrung,
+  rechts **IT-Kompetenzen** und darunter **Weiterbildung** (die Zertifikate).
+  Die rechte Spalte gibt es nur auf Seite 1.
+- **Danach** läuft die Hauptspalte allein weiter: die übrigen Stationen, dann
+  **Projekte**, dann **Ausbildung** und **Sprachen** – Uni, Schule und Sprachen
+  stehen ganz hinten (Entscheidung des Nutzers vom 03.11.2026).
+- **Keine Logos**, keine Gruppen Fähigkeiten und Branchen. Was davon in der
+  `cv.json` steht, meldet `render_cv.py` und lässt es weg.
+- **Technologien stehen in Klammern hinter der Tätigkeit**, in der
+  Markenfarbe. So sieht ein Recruiter in derselben Zeile, was gemacht wurde und
+  womit.
+
+Zusätzlich zum Schema oben:
+
+```json
+{
+  "layout": "entwickler",
+  "stationen": [{ "…": "…",
+    "aufgaben": ["Aufbau eines Kundenportals für Verträge (Java, React, Spring Boot)"],
+    "technologien": [] }],
+  "projekte": [{ "titel", "beschreibung", "zeitraum", "aufgaben": [], "link", "link_text" }],
+  "zertifikate": [{ "titel", "aussteller", "datum" oder "zeitraum" }],
+  "skillset": { "it_kompetenzen": [{ "titel", "eintraege": [] }], "tools": [], "sprachen": [] }
+}
+```
+
+- **Die Klammer kommt aus dem Eingang, nie von dir.** Nennt der Lebenslauf zu
+  einer Tätigkeit Technologien, stehen sie wörtlich in Klammern am Ende des
+  Stichpunkts. Nennt er keine, bleibt die Klammer weg – auch wenn eine
+  Technologie naheläge. Es gilt die eine Regel von oben: übernehmen, nicht
+  umschreiben. `render_cv.py` färbt nur die letzte Klammer am Ende eines
+  Stichpunkts; der Wortlaut bleibt, wie er ist.
+- **`technologien` an einer Station** nur, wenn der Eingang Technologien zur
+  Station als Ganzes nennt statt zu einzelnen Aufgaben. Sie stehen dann als
+  eigene Zeile in Markenfarbe unter den Stichpunkten.
+- **`skillset.it_kompetenzen`**: Gruppen so, wie der Lebenslauf sie gliedert.
+  Gliedert er nicht, nach Themen (Frontend, Backend & Schnittstellen,
+  Datenbanken, Testing, DevOps & Betrieb, Methoden & Zusammenarbeit). Jeder
+  Eintrag braucht einen Beleg im Eingang. `tools`, die in keiner Gruppe stehen,
+  setzt das Skript unter „Weitere Tools“ und meldet sie – besser einer Gruppe
+  zuordnen.
+- **`projekte` auf oberster Ebene** sind eigene Projekte: Open Source,
+  Nebenprojekte, Abschlussarbeiten mit Code. Kundenprojekte bleiben unter ihrer
+  Station. `link` zeigt auf das Repository und wird als „zum Repository“
+  verlinkt (`link_text` überschreibt das); in der anonymen Fassung entfernt
+  `anonymisieren.py` den Link und meldet es.
+- **`zertifikate`** stehen als Weiterbildung mit Titel, Aussteller und Zeit
+  (`zeitraum` vor `datum`) – anders als im UX-Layout also mit Aussteller.
+- **Sprachen** kommen aus `skillset.sprachen`, mit denselben Vorgaben wie im
+  UX-Layout.
+
+Passt die Weiterbildung nicht mehr auf Seite 1, setzt `render_cv.py` die rechte
+Spalte in Stufen enger (normal, kompakt, eng) und meldet die Stufe; sie steht
+auch in `stufen.json`.
 
 #### Die erste Station ist immer New Monday
 
@@ -1399,6 +1469,25 @@ Liegt kein Link vor, wird mit `create_new_file` eine Datei
 `New Monday CV — Vorname Nachname` angelegt und beides dort hineingebaut. Der Link
 darauf geht in die Übergabe.
 
+**Im Entwickler-Layout** baut `figma_entwickler.py` statt `figma_plan.py`:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/figma_entwickler.py cv.json "<pfad/zum.pdf>" arbeit/ \
+        --stufen arbeit/stufen.json --seite <Seiten-ID>
+# nach dem Bau der vollständigen Fassung:
+python3 ${CLAUDE_SKILL_DIR}/scripts/figma_entwickler.py cv-anonym.json "<pfad/zum-anonymen.pdf>" arbeit/anonym/ \
+        --stufen arbeit/stufen-anonym.json --seite <Seiten-ID> \
+        --unter <ID der ersten vollständigen Seite> --verboten "Vorname Nachname"
+```
+
+Es schreibt `figma_entwickler_bau.js` (der Bau, ein `use_figma`-Aufruf) und
+`figma_entwickler_bild.js` (Foto einsetzen, prüfen). Die Seiten sind Rahmen mit
+zwei Auto-Layout-Spalten aus denselben Bibliothekskomponenten – `CV/Seite` hat
+nur einen Slot von 428pt. Die Seitenaufteilung kommt auch hier aus dem PDF,
+Block für Block bis zur einzelnen Aufgabe. Einen Vorflug und einen rohen Weg gibt
+es dafür nicht: Scheitert der Import, gehen die PDFs allein raus, mit einem Satz
+in der Übergabe. Ablauf in `references/figma.md` unter „Das Entwickler-Layout“.
+
 Sechs Dinge stehen fest, auf beiden Wegen:
 
 - **Erst die vollständige Fassung, dann die anonyme.** Bricht der zweite Lauf ab,
@@ -1517,14 +1606,15 @@ Regeln dazu:
 
 ## Was fest steht und nicht zur Disposition steht
 
-- **Seitenaufbau**: Seite 1 trägt die Kopfzeile (nur das Logo), den Profilkopf
+- **Seitenaufbau** (UX-Layout; das Entwickler-Layout hat seinen eigenen, fest
+  in Schritt 2 unter „Das Entwickler-Layout“): Seite 1 trägt die Kopfzeile (nur das Logo), den Profilkopf
   (Foto, Name, Rolle, Erfahrung, darunter die Verweise), Bildung (Abschlüsse,
   darunter die Zertifikate) und Skillset. Ab Seite 2 folgen Kurzprofil und Stationen, am Ende der Footer, der
   immer am unteren Rand der letzten Seite sitzt. Bildung und Skillset stehen
   vorn, nicht hinten – daran wird nicht getauscht.
 - **Erste Station ist New Monday**, immer – und **nur sie läuft auf "Heute"**.
   Siehe Schritt 2.
-- **Das Skillset hat immer dieselben vier Gruppen**, 2 × 2: links Fähigkeiten und
+- **Das Skillset hat im UX-Layout immer dieselben vier Gruppen**, 2 × 2: links Fähigkeiten und
   Branchen, rechts Tools und Sprachen. Deutsch – Muttersprache und Englisch –
   Business Niveau stehen immer drin. Siehe Schritt 2.
 - **Ansprechpartner im Footer**: immer Manuel Klein, CCO, und die Adresse

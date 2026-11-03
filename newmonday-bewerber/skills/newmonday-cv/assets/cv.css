@@ -250,6 +250,52 @@ ul.tight { padding-left: {{ pt(r.listeneinzug) }}; list-style: disc; {{ css("lis
 .deckblatt--{{ stufe }} .section h2 + .zert { margin-top: 0; }
 {% endfor %}
 
+/* ---------- Entwickler-Layout (template-entwickler.html) ---------- */
+
+/* Zwei Spalten im Satzspiegel des Footers: rechts die Seitenspalte als Float
+   - nur auf Seite 1, mit IT-Kompetenzen und Weiterbildung -, links die
+   Hauptspalte in fester Breite. Sie laeuft auf den Folgeseiten in derselben
+   Breite weiter, rechts daneben bleibt frei (freigegeben am 03.11.2026). */
+.ew { width: {{ pt(r.fuss_breite) }}; }
+.ew::after { content: ""; display: table; clear: both; }
+.ew ~ .fussbereich { clear: both; }
+.ew-seite { float: right; width: {{ pt(en.seite_breite) }}; }
+.ew-haupt { width: {{ pt(ab.entwickler_haupt) }}; }
+.ew h2 { {{ css("rubrik") }} }
+.ew-haupt h2 { margin-bottom: {{ pt(dn.rubrik_inhalt) }}; }
+.ew-seite h2 { margin-bottom: {{ pt(es.rubrik_inhalt) }}; }
+.ew h3 { {{ css("gruppe") }} margin-bottom: {{ pt(es.gruppe_liste) }}; break-after: avoid; }
+.ew-liste { {{ css("it_liste") }} }
+.ew-gruppe + .ew-gruppe { margin-top: {{ pt(es.gruppen) }}; }
+.ew-block + .ew-block { margin-top: {{ pt(es.abschnitte) }}; }
+.ew-abschnitt + .ew-abschnitt { margin-top: {{ pt(en.abschnitte) }}; }
+.ew-abschnitt > h2 { break-after: avoid; }
+
+/* Stationen in der Hauptspalte: ohne Logospalte und ohne clear - die Station
+   steht neben dem Float der Seitenspalte, ein clear schoebe sie darunter. */
+.ew .station { margin-bottom: 0; clear: none; }
+.ew .station::after { content: none; }
+.ew .station + .station { margin-top: {{ pt(en.station) }}; }
+.ew .station > ul.tasks { margin-top: {{ pt(en.kopf_aufgaben) }}; }
+.ew ul.tasks li + li { margin-top: {{ pt(en.aufgaben) }}; }
+/* Die Technologien hinter einer Aufgabe: dieselbe Zeile, in der Markenfarbe. */
+.technik { {{ css("technik") }} }
+.ew-technik, .ew-link { margin-top: {{ pt(en.aufgaben) }}; }
+/* Der Repository-Verweis wie die Verweise im Profilkopf - aber nur so breit
+   wie sein Text, nicht ueber die ganze Spalte unterstrichen. */
+.ew-link .intro__link { display: inline-block; }
+.ew .project { margin-top: {{ pt(en.projekt) }}; }
+.ew-eintrag + .ew-eintrag { margin-top: {{ pt(dn.gruppen) }}; }
+
+/* Reicht Seite 1 fuer die Seitenspalte nicht, setzt render_cv.py sie enger -
+   nur Abstaende, nie Schriftgroessen (verdichtung.entwickler). */
+{% for stufe, w in tok.verdichtung.entwickler.items() if stufe != "normal" %}
+.ew--{{ stufe }} .ew-seite h2 { margin-bottom: {{ pt(w.rubrik_inhalt) }}; }
+.ew--{{ stufe }} h3 { margin-bottom: {{ pt(w.gruppe_liste) }}; }
+.ew--{{ stufe }} .ew-gruppe + .ew-gruppe { margin-top: {{ pt(w.gruppen) }}; }
+.ew--{{ stufe }} .ew-block + .ew-block { margin-top: {{ pt(w.abschnitte) }}; }
+{% endfor %}
+
 /* ---------- Footer ---------- */
 
 /* Der Footer schliesst das Dokument am unteren Rand der letzten Seite ab, wie

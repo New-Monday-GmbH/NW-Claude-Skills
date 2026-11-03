@@ -231,6 +231,39 @@ Wie beim rohen Weg (unten): Die PDFs gehen so oder so raus. Zusätzlich:
 | Befund „Bild nicht hochgeladen“ | Upload-POST fehlgeschlagen oder Träger falsch zugeordnet — `figma_assets.py --ziele` noch einmal |
 | `figma_bau.js` fehlt, Meldung „fasst …“ | Mengengrenze überschritten → roher Weg |
 
+# Das Entwickler-Layout
+
+Für `"layout": "entwickler"` gilt nicht `figma_plan.py`, sondern
+`scripts/figma_entwickler.py` mit der Laufzeit `scripts/figma_entwickler.js`.
+Gebaut wird aus denselben Bibliothekskomponenten – Kopfzeile, Profilkopf,
+Abschnittstitel, Listenpunkt, Gruppentitel, Bildungseintrag, Kurzprofil,
+Verweis, Fuss –, aber **nicht in `CV/Seite`**: deren Slot ist 428pt breit und
+einspaltig. Jede Seite ist ein Rahmen (595 × 842), darin ein Auto-Layout
+„Spalten“ mit „Hauptspalte (2/3)“ und „Seitenspalte (1/3)“, Breiten aus
+`tokens.json` (`abgeleitet.entwickler_haupt`, `entwickler.seite_breite`).
+Stationsköpfe und die IT-Listen sind Textebenen mit den Farbvariablen der
+Bibliothek, keine lokalen Styles.
+
+1. **Plan und Skripte** (je Fassung, nach dem Rendern):
+   `figma_entwickler.py cv.json "<pdf>" arbeit/ --stufen arbeit/stufen.json --seite <ID>`.
+   Jeder Block der Hauptspalte trägt eine Textmarke und kommt auf die Seite, auf
+   der sie im PDF steht; eine Station bricht in Figma an derselben Aufgabe um
+   wie im PDF. Die Stufe der Seitenspalte kommt aus `stufen.json`.
+2. **Bauen:** `figma_entwickler_bau.js` als ein `use_figma`-Aufruf. Das Ergebnis
+   (`seite`, `frames`, `bilder_fill`, `warnungen`) als
+   `arbeit/figma_bau_ergebnis.json` speichern. `warnungen` muss leer sein – eine
+   Überlauf-Warnung heißt, die Spalte reicht über den Rand.
+3. **Foto:** wie oben unter „Bilder: Träger, Upload, Einsetzen“ – nur
+   `bilder_fill`, Logos gibt es hier nicht –, dann `figma_assets.py --ziele`.
+4. **Einsetzen und prüfen:** `figma_entwickler_bild.js`. Es setzt das Foto aus
+   dem Träger in die Ebene „Foto“, löscht den Träger und meldet Platzhaltertexte
+   und – in der anonymen Fassung – Namensteile. `befunde: []`, dann ein
+   Screenshot je Seite.
+
+Ohne `--seite` legt der Bau eine neue Seite an; deren ID aus dem Ergebnis in
+`figma_entwickler_bild.js` für `"__SEITE__"` einsetzen. Die anonyme Reihe kommt
+wie oben mit `--unter` unter die vollständige.
+
 # Der rohe Weg (Rückfall)
 
 Gilt nur, wenn der Vorflug die Bibliothek nicht erreicht oder eine

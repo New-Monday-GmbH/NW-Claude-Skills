@@ -1,0 +1,80 @@
+{
+  "sprache": "de",
+  "layout": "entwickler",
+  "person": {
+    "name": "Jonas Beispiel",
+    "rolle": "Fullstack-Entwickler",
+    "erfahrung": "7+ Jahre Erfahrung",
+    "kurzprofil": "Ich entwickle Webanwendungen vom Datenmodell bis zur Oberfläche und betreue sie im Betrieb. Schwerpunkte sind TypeScript im Frontend, Java mit Spring Boot im Backend und automatisierte Deployments. Code Reviews und Pair Programming gehören für mich zum Alltag.",
+    "links": [
+      {"titel": "LinkedIn", "url": "https://www.linkedin.com/in/jonas-beispiel"},
+      {"titel": "GitHub", "url": "https://github.com/jonas-beispiel", "text": "zum GitHub Profil"}
+    ]
+  },
+  "stationen": [
+    {
+      "titel": "Software Development Specialist",
+      "firma": "New Monday GmbH",
+      "zeitraum": "Oktober 2026 – Heute",
+      "logo": "nm-logo.svg",
+      "zusammenfassung": "Softwareentwicklung, technische Konzeption",
+      "aufgaben": [
+        "Umsetzung digitaler Produkte in Kundenprojekten",
+        "Technische Konzeption und Architektur nach Projektanforderung",
+        "Code-Reviews, Tests und technische Dokumentation",
+        "Abstimmung mit Design, Produkt und Stakeholdern"
+      ]
+    },
+    {
+      "titel": "Fullstack-Entwickler",
+      "firma": "Muster Software GmbH",
+      "zeitraum": "März 2022 – September 2026",
+      "aufgaben": [
+        "Aufbau eines Kundenportals für die Verwaltung von Verträgen und Dokumenten, vom Datenmodell bis zur Oberfläche (Java, PostgreSQL, React, Spring Boot, TypeScript)",
+        "Einführung automatisierter Build- und Deploymentprozesse für reproduzierbare Releases (Docker, GitLab CI/CD, Kubernetes)",
+        "Entwicklung einer Volltextsuche über mehrere Dokumenttypen mit Gewichtung und Trefferhervorhebung (Elasticsearch, Spring Boot)",
+        "Fachliche Abstimmung mit dem Produktteam, Bug-Triage und Pflege der technischen Dokumentation",
+        "Einarbeitung neuer Teammitglieder durch Pair Programming und Code Reviews"
+      ]
+    },
+    {
+      "titel": "Frontend-Entwickler",
+      "firma": "Beispiel Digital AG",
+      "zeitraum": "Januar 2019 – Februar 2022",
+      "aufgaben": [
+        "Weiterentwicklung eines Onlineshops mit Fokus auf Checkout und Kundenkonto (Cypress, Jest, Vue.js)",
+        "Aufbau einer Komponentenbibliothek für mehrere Kundenprojekte (Storybook, Tailwind CSS, TypeScript, Vue.js)",
+        "Anbindung von Schnittstellen zu Zahlungs- und Versanddienstleistern (GraphQL, Node.js)"
+      ]
+    }
+  ],
+  "projekte": [
+    {
+      "titel": "Notizbuch",
+      "beschreibung": "Web-App für geteilte Notizen mit Echtzeit-Synchronisation.",
+      "aufgaben": [
+        "Backend mit REST API und WebSocket-Anbindung (Node.js, PostgreSQL)",
+        "Frontend mit Offline-Modus und Konfliktauflösung (React, TypeScript)"
+      ],
+      "link": "https://github.com/jonas-beispiel/notizbuch"
+    }
+  ],
+  "bildung": [
+    {"abschluss": "B.Sc. Informatik", "institution": "Hochschule Musterstadt", "zeitraum": "Oktober 2014 – September 2018"}
+  ],
+  "zertifikate": [
+    {"titel": "AWS Certified Developer – Associate", "aussteller": "Amazon Web Services", "datum": "06/2025"}
+  ],
+  "skillset": {
+    "it_kompetenzen": [
+      {"titel": "Frontend", "eintraege": ["CSS", "HTML", "React", "Storybook", "Tailwind CSS", "TypeScript", "Vue.js"]},
+      {"titel": "Backend & Schnittstellen", "eintraege": ["Elasticsearch", "GraphQL", "Java", "Node.js", "REST APIs", "Spring Boot"]},
+      {"titel": "Datenbanken", "eintraege": ["PostgreSQL"]},
+      {"titel": "Testing", "eintraege": ["Cypress", "Jest", "JUnit"]},
+      {"titel": "DevOps & Betrieb", "eintraege": ["Docker", "GitLab CI/CD", "Kubernetes"]},
+      {"titel": "Methoden & Zusammenarbeit", "eintraege": ["Code Reviews", "Pair Programming", "Scrum"]}
+    ],
+    "tools": ["Docker", "Git", "Jira"],
+    "sprachen": ["Deutsch – Muttersprache", "Englisch – Business Niveau"]
+  }
+}

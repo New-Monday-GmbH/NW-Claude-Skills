@@ -1,0 +1,30 @@
+{# Fussluft und Footer - gleich in beiden Layouts. #}
+{# Die Fussluft haelt den Footer am unteren Rand der letzten Seite. Sie ist
+   immer da — im Grundzustand 31pt, danach so hoch, wie render_cv.py es aus dem
+   ersten Durchgang gemessen hat. Ein Margin taugte dafuer nicht: am
+   Seitenanfang wirft WeasyPrint ihn weg, und die Messung waere nicht mehr
+   dieselbe Ausgangslage wie der zweite Durchgang. #}
+<div class="fussbereich">
+<div class="fussluft" style="height:{{ fuss_abstand or 31 }}pt"></div>
+<div class="footer">
+  <div class="footer__divider"></div>
+  <div class="footer__row">
+    <div class="footer__logo"><img src="logos/nm-logo.svg" alt="New Monday"></div>
+    <div class="footer__cols">
+      <div class="footer__col">
+        <div class="footer__label">{{ t.ansprechpartner }}</div>
+        <div class="footer__value"><strong>{{ kontakt.name }}</strong><br>{{ kontakt.rolle }}</div>
+      </div>
+      <div class="footer__col">
+        <div class="footer__label">{{ t.kontakt }}</div>
+        <div class="footer__value">{{ kontakt.mail }}</div>
+        <div class="footer__value">{{ kontakt.telefon }}</div>
+      </div>
+      <div class="footer__col">
+        <div class="footer__label">{{ t.adresse }}</div>
+        <div class="footer__value">{{ kontakt.firma }}<br>{{ kontakt.strasse }}<br>{{ kontakt.ort }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>

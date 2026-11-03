@@ -237,6 +237,9 @@ def namensfelder(daten):
                 if isinstance(projekt.get(feld), str) and projekt[feld]:
                     pfad = f"stationen[{i}].projekte[{j}].{feld}"
                     yield projekt, feld, pfad, projekt[feld]
+    for i, projekt in enumerate(daten.get("projekte") or []):
+        if isinstance(projekt, dict) and isinstance(projekt.get("titel"), str) and projekt["titel"]:
+            yield projekt, "titel", f"projekte[{i}].titel", projekt["titel"]
     for i, zert in enumerate(zertifikatsknoten(daten)):
         for feld in ZERT_NAMENSFELDER:
             if isinstance(zert.get(feld), str) and zert[feld]:
@@ -262,6 +265,10 @@ def textstellen(daten):
         yield from _knotentexte(station, f"stationen[{i}]")
         for j, projekt in enumerate(station.get("projekte") or []):
             yield from _knotentexte(projekt, f"stationen[{i}].projekte[{j}]")
+    # Eigene Projekte des Entwickler-Layouts (oberste Ebene "projekte").
+    for i, projekt in enumerate(daten.get("projekte") or []):
+        if isinstance(projekt, dict):
+            yield from _knotentexte(projekt, f"projekte[{i}]")
 
 
 def alle_texte(wert, pfad="", feld=""):
@@ -302,6 +309,11 @@ def zeitraumknoten(daten):
             yield projekt
     for bildung in daten.get("bildung") or []:
         yield bildung
+    for projekt in daten.get("projekte") or []:
+        if isinstance(projekt, dict):
+            yield projekt
+    for zert in zertifikatsknoten(daten):        # Weiterbildung im Entwickler-Layout
+        yield zert
 
 
 # --- Die Eingriffe ----------------------------------------------------------
@@ -576,6 +588,12 @@ def main():
     # ehrlicher als eine leere Liste.
     entfernte = [str(l.get("titel") or l.get("url") or "?")
                  for l in (person.pop("links", None) or [])]
+    # Repository-Links eigener Projekte (Entwickler-Layout) fuehren genauso in
+    # einem Klick zur Person - github.com/<name>/... - und fallen mit weg.
+    for projekt in daten.get("projekte") or []:
+        if isinstance(projekt, dict) and projekt.pop("link", None):
+            projekt.pop("link_text", None)
+            entfernte.append(f"Repository {projekt.get('titel') or '?'}")
 
     # Die Silhouette kommt auch dann, wenn die Person gar kein Foto hatte: in der
     # anonymen Fassung ist eine leere Fotospalte kein Normalzustand, sondern

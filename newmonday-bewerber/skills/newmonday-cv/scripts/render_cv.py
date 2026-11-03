@@ -38,6 +38,10 @@ BESCHRIFTUNG = {
         "ansprechpartner": "Ansprechpartner", "kontakt": "Kontakt", "adresse": "Adresse",
         "faehigkeiten": "Fähigkeiten", "branchen": "Branchen", "tools": "Tools",
         "sprachen": "Sprachen",
+        # Entwickler-Layout
+        "berufserfahrung": "Berufserfahrung", "it_kompetenzen": "IT-Kompetenzen",
+        "weiterbildung": "Weiterbildung", "projekte": "Projekte", "ausbildung": "Ausbildung",
+        "weitere_tools": "Weitere Tools", "repository": "zum Repository",
     },
     "en": {
         "bildung": "Education", "skillset": "Skillset", "links": "Further links",
@@ -45,8 +49,18 @@ BESCHRIFTUNG = {
         "ansprechpartner": "Contact person", "kontakt": "Contact", "adresse": "Address",
         "faehigkeiten": "Skills", "branchen": "Industries", "tools": "Tools",
         "sprachen": "Languages",
+        "berufserfahrung": "Work experience", "it_kompetenzen": "Technical skills",
+        "weiterbildung": "Further training", "projekte": "Projects", "ausbildung": "Education",
+        "weitere_tools": "Further tools", "repository": "to the repository",
     },
 }
+
+# Zwei Layouts: "ux" (Standard, Bildung und Skillset auf Seite 1, Stationen mit
+# Logospalte ab Seite 2) und "entwickler" fuer technische Profile (freigegeben
+# am 03.11.2026): 2/3 Stationen mit den Technologien je Aufgabe, 1/3
+# IT-Kompetenzen und Weiterbildung auf Seite 1; Ausbildung und Sprachen ganz
+# hinten. Welches gilt, steht als "layout" in der cv.json.
+LAYOUTS = ("ux", "entwickler")
 
 # Zertifikate und Weiterbildungen stehen seit dem 03.10.2026 nicht mehr als
 # Bildungseintraege, sondern als eigener Block unter den Abschluessen: je
@@ -568,6 +582,107 @@ def zertifikate_aufbereiten(daten):
     return [z["titel"] for z in gelesen], hinweise
 
 
+def layout_von(daten):
+    """"ux" oder "entwickler" - was nicht dazu passt, gilt als "ux"."""
+    wert = str(daten.get("layout") or "ux").strip().lower()
+    return wert if wert in LAYOUTS else "ux"
+
+
+def technik_teilen(text):
+    """Eine Aufgabe in Taetigkeit und Technologien: die letzte Klammer am Ende.
+
+    'Aufbau einer Suche (FlexSearch, React)' -> {'text': 'Aufbau einer Suche',
+    'technik': '(FlexSearch, React)'}. Ohne Klammer am Ende bleibt technik leer.
+    Geteilt wird nur fuer die Farbe - der Wortlaut bleibt, wie er ist.
+    """
+    t = leerraum(text)
+    if t.endswith(")"):
+        tiefe = 0
+        for i in range(len(t) - 1, -1, -1):
+            if t[i] == ")":
+                tiefe += 1
+            elif t[i] == "(":
+                tiefe -= 1
+                if tiefe == 0:
+                    vor = t[:i].rstrip()
+                    if vor:
+                        return {"text": vor, "technik": t[i:]}
+                    break
+    return {"text": t, "technik": ""}
+
+
+def entwickler_aufbereiten(daten):
+    """Was das Entwickler-Layout zusaetzlich braucht, fertig fuer das Template.
+
+    Gibt (Kontext, Hinweise) zurueck. IT-Kompetenzen kommen aus
+    skillset.it_kompetenzen (Gruppen mit eigenem Titel, so wie der Eingang sie
+    fuehrt); Tools aus skillset.tools, die in keiner Gruppe stehen, kommen als
+    eigene Gruppe dazu - Lebenslauf und Skill Matrix fuehren dieselben Tools.
+    Die Weiterbildung kommt aus "zertifikate" (Titel, Aussteller, Zeitraum oder
+    Datum), eigene Projekte aus "projekte". Aufgaben werden fuer die Farbe in
+    Taetigkeit und Technologien geteilt (technik_teilen).
+    """
+    sprache = daten.get("sprache", "de")
+    labels = BESCHRIFTUNG.get(sprache, BESCHRIFTUNG["de"])
+    roh = daten.get("skillset") or {}
+    hinweise, it, gesehen = [], [], set()
+    for nummer, g in enumerate(roh.get("it_kompetenzen") or []):
+        titel = leerraum(g.get("titel")) if isinstance(g, dict) else ""
+        eintraege = [leerraum(e) for e in (g.get("eintraege") or [] if isinstance(g, dict) else [])
+                     if leerraum(e)]
+        if not titel or not eintraege:
+            hinweise.append(f"skillset.it_kompetenzen[{nummer}] ohne Titel oder Einträge – "
+                            "steht nicht im Dokument.")
+            continue
+        it.append({"titel": titel, "eintraege": eintraege})
+        gesehen |= {e.lower() for e in eintraege}
+    rest = [leerraum(t) for t in roh.get("tools") or []
+            if leerraum(t) and leerraum(t).lower() not in gesehen]
+    if rest:
+        it.append({"titel": labels["weitere_tools"], "eintraege": rest})
+        hinweise.append(f"Tools ohne IT-Gruppe stehen unter „{labels['weitere_tools']}“: "
+                        f"{', '.join(rest)} – lieber einer Gruppe zuordnen.")
+    if not it:
+        hinweise.append("Keine IT-Kompetenzen – im Entwickler-Layout gehören sie als "
+                        "Gruppen nach skillset.it_kompetenzen (SKILL.md, Schritt 2).")
+    for k in ("faehigkeiten", "branchen"):
+        if roh.get(k):
+            hinweise.append(f"{labels[k]} stehen im Entwickler-Layout nicht im Dokument – "
+                            "Methoden gehören als eigene Gruppe in skillset.it_kompetenzen.")
+
+    weiterbildung = []
+    for z in daten.get("zertifikate") or []:
+        if isinstance(z, dict) and leerraum(z.get("titel")):
+            weiterbildung.append({"titel": leerraum(z["titel"]),
+                                  "aussteller": leerraum(z.get("aussteller")),
+                                  "zeit": leerraum(z.get("zeitraum") or z.get("datum"))})
+
+    for s in daten.get("stationen", []):
+        s["aufgaben_ew"] = [technik_teilen(a) for a in s.get("aufgaben") or []]
+        tech = [leerraum(x) for x in s.get("technologien") or [] if leerraum(x)]
+        s["technik"] = f"({', '.join(tech)})" if tech else ""
+        for p in s.get("projekte") or []:
+            p["aufgaben_ew"] = [technik_teilen(a) for a in p.get("aufgaben") or []]
+
+    eigene = []
+    for nummer, p in enumerate(daten.get("projekte") or []):
+        if not isinstance(p, dict) or not leerraum(p.get("titel")):
+            hinweise.append(f"projekte[{nummer}] ohne Titel – steht nicht im Dokument.")
+            continue
+        e = {"titel": leerraum(p["titel"]), "beschreibung": leerraum(p.get("beschreibung")),
+             "zeitraum": leerraum(p.get("zeitraum")),
+             "aufgaben_ew": [technik_teilen(a) for a in p.get("aufgaben") or []]}
+        if leerraum(p.get("link")):
+            e["link"] = {"url": leerraum(p["link"]),
+                         "anzeige": leerraum(p.get("link_text")) or labels["repository"]}
+        eigene.append(e)
+
+    sprachen, sprach_hinweise = sprachen_mit_vorgabe(roh.get("sprachen"), sprache)
+    return ({"it_kompetenzen": it, "weiterbildung": weiterbildung,
+             "eigene_projekte": eigene, "sprachen": sprachen},
+            hinweise + sprach_hinweise)
+
+
 # Eine Zahl, wie sie in SVG-Attributen steht: "593.2", ".5", "1e3", "-0.25".
 # Das fruehere Muster [\d.]+ las "1e3" zwar, nahm aber auch "1.2.3" als eine
 # Zahl, und \bwidth traf "stroke-width" — gleich gehalten mit dem
@@ -723,6 +838,9 @@ def pruefe(daten):
                     f"{p.get('kunde')}: startet vor der Anstellung bei {s.get('firma')} "
                     f"({p.get('zeitraum')} vs. {s.get('zeitraum')})"
                 )
+    if layout_von(daten) == "entwickler":
+        return hinweise          # Das Entwickler-Layout setzt keine Logos.
+
     def fehlende(wert, wer):
         return [f"Logo fehlt in der Bibliothek: {d} ({wer})"
                 for d in logoliste(wert) if not logo_datei(d)]
@@ -796,7 +914,11 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
     # Titel ein Tag. Beides fertig aufbereitet, wie es gesetzt wird.
     kontext["bildung"] = bildung_aufbereiten(daten)[0]
     kontext["zertifikate"] = zertifikate_aufbereiten(daten)[0]
-    return env.get_template("template.html").render(
+    vorlage = "template.html"
+    if layout_von(daten) == "entwickler":
+        kontext.update(entwickler_aufbereiten(daten)[0])
+        vorlage = "template-entwickler.html"
+    return env.get_template(vorlage).render(
         stufe=stufe, fuss_abstand=fuss_abstand,
         stationen_kompakt=stationen_kompakt, t=labels, **kontext
     )
@@ -958,6 +1080,17 @@ def _schlussmarken(daten):
     oben auf Seite 1, egal wie weit das Skillset darunter ueberlaeuft.
     """
     marken = []
+    if layout_von(daten) == "entwickler":
+        # Entwickler-Layout: Seite 1 muss die Seitenspalte tragen. Ihr Ende ist
+        # die letzte Weiterbildung (Zeitraum - eindeutiger als ein Toolname,
+        # der auch in einer Aufgabe stehen kann), sonst die letzte IT-Gruppe.
+        ew = entwickler_aufbereiten(daten)[0]
+        if ew["weiterbildung"]:
+            w = ew["weiterbildung"][-1]
+            marken.append(w["zeit"] or w["aussteller"] or w["titel"])
+        elif ew["it_kompetenzen"]:
+            marken.append(ew["it_kompetenzen"][-1]["titel"])
+        return [" ".join(str(m).split()) for m in marken if m]
     spalten = skillset_gruppen(daten)[0]
     for spalte in (spalten["links"], spalten["rechts"]):
         if spalte:
@@ -1075,11 +1208,17 @@ def main():
     zeitraeume_setzen(daten)
 
     hinweise = vorab + pruefe(daten)
+    layout = layout_von(daten)
+    if daten.get("layout") and str(daten["layout"]).strip().lower() not in LAYOUTS:
+        hinweise.append(f"layout „{daten['layout']}“ unbekannt – gesetzt wird {layout} "
+                        f"(erlaubt: {', '.join(LAYOUTS)}).")
     # Offene Schreibweisen wie "UX Design" — nur gemeldet, nicht geaendert.
     hinweise += durchkopplung_pruefen(daten)
     # Was am Skillset gesetzt, ergaenzt oder weggelassen wurde (Sprachvorgabe,
-    # leere Gruppen, altes Format) — gehoert in die Uebergabe.
-    hinweise += skillset_gruppen(daten)[1]
+    # leere Gruppen, altes Format) — gehoert in die Uebergabe. Im
+    # Entwickler-Layout statt der vier Gruppen die IT-Kompetenzen.
+    hinweise += (entwickler_aufbereiten(daten)[1] if layout == "entwickler"
+                 else skillset_gruppen(daten)[1])
     # Dasselbe fuer Bildung und Zertifikate: ignorierte Studieninhalte und
     # Darstellungsschluessel aus aelteren cv.json, Zertifikate im alten
     # Bildungsplatz, fehlende Aussteller und Daten, die Reihenfolge.
@@ -1151,7 +1290,17 @@ def main():
         engine = setzen(fuss_abstand=FUSS_MIN)
 
     seiten = deckblatt_seiten(ziel, daten)
-    if seiten > 1:
+    if layout == "entwickler" and seiten > 1:
+        hinweise.append(
+            f"IT-Kompetenzen und Weiterbildung passen nicht auf Seite 1, sie laufen "
+            f"über {seiten} Seiten. Kürzen durch Weglassen: zuerst die schwächsten "
+            "Einträge der längsten IT-Gruppe, Gruppen zusammenlegen – nie umformulieren.")
+    elif layout == "entwickler" and seiten < 0:
+        hinweise.append("Die Seitenaufteilung ließ sich nicht prüfen – bitte im PDF "
+                        "nachsehen, ob die Seitenspalte ganz auf Seite 1 steht.")
+    elif layout == "entwickler" and stufe != "normal":
+        print(f"Seitenspalte {stufe} gesetzt, damit sie auf Seite 1 passt.")
+    elif seiten > 1:
         hinweise.append(
             f"Bildung/Skillset passen nicht neben den Profilkopf auf Seite 1, sie "
             f"laufen ueber {seiten} Seiten. Zusammenfassen: Gruppen zusammenlegen, "
@@ -1173,7 +1322,8 @@ def main():
     elif stufe != "normal":
         print(f"Bildung/Skillset {stufe} gesetzt, damit sie auf Seite 1 passen.")
     if zertifikate:
-        print(f"Zertifikate: {len(zertifikate)} als Tags.")
+        print(f"Zertifikate: {len(zertifikate)} "
+              + ("unter Weiterbildung." if layout == "entwickler" else "als Tags."))
     if kompakt:
         print(f"Stationen {kompakt} gesetzt, damit der Footer nicht allein auf "
               "einer Seite steht.")
@@ -1181,6 +1331,7 @@ def main():
     if stufen_datei:
         stufen_datei.parent.mkdir(parents=True, exist_ok=True)
         stufen_datei.write_text(json.dumps({
+            "layout": layout,
             "deckblatt": stufe,
             "stationen": kompakt or "normal",
             "seiten": seitenzahl(ziel),

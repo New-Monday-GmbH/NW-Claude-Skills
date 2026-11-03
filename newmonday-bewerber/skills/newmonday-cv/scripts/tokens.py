@@ -38,6 +38,9 @@ def laden():
         "inhaltsspalte": inhalt - einzug,                                   # 308
         "halbe_spalte": round((inhalt - r["spaltenabstand"]) / 2, 2),       # 202
         "fuss_spalte": round((r["fuss_block"] - 2 * r["fuss_spaltenabstand"]) / 3, 2),
+        # Entwickler-Layout: Hauptspalte = Footerbreite minus Seitenspalte
+        # minus Spaltenabstand (475 - 152 - 24 = 299).
+        "entwickler_haupt": r["fuss_breite"] - t["entwickler"]["seite_breite"] - r["spaltenabstand"],
     }
     return t
 
@@ -107,4 +110,5 @@ def jinja_globals():
         "f": t["farben"], "r": t["raster"], "a": t["abstand"], "ab": t["abgeleitet"],
         "dn": t["verdichtung"]["deckblatt"]["normal"],
         "sn": t["verdichtung"]["stationen"]["normal"],
+        "en": t["entwickler"], "es": t["verdichtung"]["entwickler"]["normal"],
     }

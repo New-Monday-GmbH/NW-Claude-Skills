@@ -1858,6 +1858,85 @@ def pruefe_anonym(pdf, tmp):
     return fehler
 
 
+def pruefe_entwickler(tmp):
+    """Entwickler-Layout (freigegeben am 03.11.2026) am Beispiel cv-entwickler.json.
+
+    Seitenspalte nur auf Seite 1 (IT-Kompetenzen, Weiterbildung) rechts neben
+    der Hauptspalte, die Technologien je Aufgabe in der Markenfarbe, Ausbildung
+    und Sprachen hinter den Projekten, die anonyme Fassung ohne Repository-Link.
+    """
+    import fitz
+    import tokens
+    fehler = []
+    daten = json.loads((WURZEL / "beispiel" / "cv-entwickler.json").read_text(encoding="utf-8"))
+    pdf, lauf, stufen = _rendern(tmp, daten, "entwickler")
+    if lauf.returncode != 0 or not pdf.exists():
+        return [f"Entwickler: Rendern fehlgeschlagen – {(lauf.stderr or lauf.stdout)[-300:]}"]
+    if json.loads(stufen.read_text(encoding="utf-8")).get("layout") != "entwickler":
+        fehler.append("Entwickler: stufen.json nennt das Layout nicht")
+    T = tokens.laden()
+    rand = T["seite"]["rand_links"]
+    seite_x = rand + T["abgeleitet"]["entwickler_haupt"] + T["raster"]["spaltenabstand"]
+    marke = int(T["farben"]["marke"].lstrip("#"), 16)
+    with fitz.open(str(pdf)) as doc:
+        texte = [s.get_text() for s in doc]
+        woerter = {w[4]: w for w in doc[0].get_text("words")}
+        for wort in ("IT-Kompetenzen", "Weiterbildung"):
+            if wort not in woerter or abs(woerter[wort][0] - seite_x) > 1:
+                fehler.append(f"Entwickler: „{wort}“ steht nicht in der Seitenspalte "
+                              f"(x {seite_x}) auf Seite 1")
+        if "Kurzprofil" not in woerter or abs(woerter["Kurzprofil"][0] - rand) > 1:
+            fehler.append("Entwickler: „Kurzprofil“ steht nicht links in der Hauptspalte")
+        farbig = [sp["text"] for s in doc for b in s.get_text("dict")["blocks"]
+                  for z in b.get("lines", []) for sp in z["spans"] if sp["color"] == marke]
+        if not any("Spring Boot" in t for t in farbig):
+            fehler.append("Entwickler: Technologien in Klammern stehen nicht in der Markenfarbe")
+        if any("Kundenportals" in t for t in farbig):
+            fehler.append("Entwickler: Tätigkeitstext steht in der Markenfarbe statt nur die Klammer")
+    ganz = " ".join(" ".join(texte).split())
+    reihe = [ganz.find(w) for w in ("Frontend-Entwickler", "Projekte", "Ausbildung", "Sprachen")]
+    if -1 in reihe or reihe != sorted(reihe):
+        fehler.append(f"Entwickler: Reihenfolge Stationen – Projekte – Ausbildung – Sprachen "
+                      f"stimmt nicht ({reihe})")
+    if "AWS Certified Developer" not in " ".join(texte[0].split()):
+        fehler.append("Entwickler: Weiterbildung steht nicht auf Seite 1")
+    if "Weitere Tools" not in texte[0]:
+        fehler.append("Entwickler: Tools ohne IT-Gruppe (Jira) fehlen unter „Weitere Tools“")
+    anonym, _ = _anonymisiere(tmp, daten, daten["person"]["name"])
+    if anonym is None or any(p.get("link") for p in anonym.get("projekte") or []):
+        fehler.append("Entwickler: Repository-Link steht noch in der anonymen Fassung")
+    fehler += _pruefe_entwickler_figma(daten, pdf, json.loads(stufen.read_text(encoding="utf-8")))
+    return fehler
+
+
+def _pruefe_entwickler_figma(daten, pdf, stufen):
+    """figma_entwickler.py: Seitenaufteilung wie im PDF, Seitenspalte nur auf
+    Seite 1, Figma-Skript unter der Grenze von use_figma."""
+    import copy
+    import figma_entwickler
+    fehler = []
+    plan, hinweise = figma_entwickler.plan_bauen(copy.deepcopy(daten), pdf, stufen)
+    seiten = plan["seiten"]
+    if hinweise:
+        fehler.append(f"Entwickler-Figma: Marken nicht im PDF gefunden – {hinweise[:2]}")
+    if len(seiten) != stufen.get("seiten"):
+        fehler.append(f"Entwickler-Figma: {len(seiten)} Seiten geplant, das PDF hat {stufen.get('seiten')}")
+    if not seiten[0]["seite"] or any(s["seite"] for s in seiten[1:]):
+        fehler.append("Entwickler-Figma: Seitenspalte nicht genau auf Seite 1")
+    texte = [[b.get("text") or b.get("titel") or b.get("abschluss") for b in s["haupt"]] for s in seiten]
+    if "Sprachen" not in texte[-1] or "Projekte" in texte[0]:
+        fehler.append("Entwickler-Figma: Projekte/Sprachen nicht auf den Seiten des PDFs")
+    if any(s["haupt"] and s["haupt"][0]["oben"] for s in seiten):
+        fehler.append("Entwickler-Figma: erster Block einer Seite mit Abstand oben")
+    gefaerbt = [b for s in seiten for b in s["haupt"] if b["art"] == "aufgabe" and b["technik"]]
+    if not gefaerbt or not all(b["technik"].startswith("(") for b in gefaerbt):
+        fehler.append("Entwickler-Figma: Technologien nicht als eigene Klammer geplant")
+    groesse = len(json.dumps(plan, ensure_ascii=False)) + figma_entwickler.LAUFZEIT.stat().st_size
+    if groesse > figma_entwickler.SKRIPT_GRENZE:
+        fehler.append(f"Entwickler-Figma: Bau-Skript {groesse} Zeichen, Grenze {figma_entwickler.SKRIPT_GRENZE}")
+    return fehler
+
+
 def main():
     beispiel = WURZEL / "beispiel" / "cv.json"
     if not beispiel.exists():
@@ -1898,6 +1977,7 @@ def main():
         fehler += pruefe_durchkopplung(tmp)
         fehler += pruefe_add_logo(tmp)
         fehler += pruefe_zwei_ordner(tmp)
+        fehler += pruefe_entwickler(tmp)
 
     fehler += pruefe_svg_verhaeltnisse()
     fehler += pruefe_linkedin_auswahl()
@@ -1926,6 +2006,7 @@ def main():
     print(f"  Durchkopplung: offene Schreibweisen gemeldet, Text unveraendert, nicht bei en")
     print(f"  Logos:     SVG-Verhaeltnisse richtig gelesen, im Plan unverzerrt, add_logo mit Kontrollbild")
     print(f"  Bibliothek: neue Logos ausserhalb des Skills, vor dem Grundstock gefunden, Uebernahme ins Repo")
+    print(f"  Entwickler: 2/3 Stationen, 1/3 IT-Kompetenzen und Weiterbildung, Technik in Markenfarbe, Ausbildung hinten")
     print(f"  Adresse:   {ADRESSE} im Footer")
 
     if fehler:
