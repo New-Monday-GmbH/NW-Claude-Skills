@@ -34,9 +34,12 @@ und nachfragen. Ein Lebenslauf ist ein Dokument über einen echten Menschen, das
 an Kunden geht – jede stille Korrektur ist eine Behauptung, die jemand anders
 verantworten muss.
 
-Zwei Stellen sind davon ausgenommen, und nur diese beiden: das **Kurzprofil**
-(gleich unten) und die **erste Station bei New Monday** (Schritt 2). Beide stehen
-nicht im Eingang, weil sie nicht aus ihm stammen können.
+Zwei Stellen sind davon ausgenommen: das **Kurzprofil** (gleich unten) und die
+**erste Station bei New Monday** (Schritt 2). Beide stehen nicht im Eingang, weil
+sie nicht aus ihm stammen können. Dazu kommt eine dritte, eng begrenzte: Ein
+**Entwickler-Lebenslauf hat höchstens vier Seiten**; ist er länger, werden lange
+Stichpunkte gestrafft – nach den Regeln in Schritt 2 unter „Höchstens vier
+Seiten“, und jede gestraffte Fassung steht zur Freigabe.
 
 Die anonymisierte Fassung ist **keine dritte Ausnahme**, sondern ein zweites
 Dokument: Sie entsteht aus derselben `cv.json` und lässt nur weg, was auf die
@@ -932,8 +935,15 @@ Der Aufbau steht fest:
 - **Danach** läuft die Hauptspalte allein weiter: die übrigen Stationen, dann
   **Projekte**, dann **Ausbildung** und **Sprachen** – Uni, Schule und Sprachen
   stehen ganz hinten (Entscheidung des Nutzers vom 03.11.2026).
-- **Keine Logos**, keine Gruppen Fähigkeiten und Branchen. Was davon in der
-  `cv.json` steht, meldet `render_cv.py` und lässt es weg.
+- **Firmenlogos klein im Stationskopf** (seit 06.11.2026, wie im UX-Layout
+  gehören sie dazu): links neben Titel, Firma und Zeitraum in einer schmalen
+  Spalte (`entwickler.logo_spalte` in `tokens.json`), die Aufgaben darunter
+  laufen in voller Breite. Hat eine Station ein Logo, rücken alle
+  Stationsköpfe gleich ein. Zugeordnet werden sie wie immer in Schritt 3
+  (`logo` an der Station); Projektlogos setzt das Entwickler-Layout nicht.
+- **Keine Gruppen Fähigkeiten und Branchen.** Was davon in der `cv.json` steht,
+  meldet `render_cv.py` und lässt es weg.
+- **Höchstens vier Seiten** – Abschnitt unten.
 - **Technologien stehen in Klammern hinter der Tätigkeit**, in der
   Markenfarbe. So sieht ein Recruiter in derselben Zeile, was gemacht wurde und
   womit.
@@ -980,6 +990,37 @@ Zusätzlich zum Schema oben:
 Passt die Weiterbildung nicht mehr auf Seite 1, setzt `render_cv.py` die rechte
 Spalte in Stufen enger (normal, kompakt, eng) und meldet die Stufe; sie steht
 auch in `stufen.json`.
+
+#### Höchstens vier Seiten
+
+Ein Entwickler-Lebenslauf hat **höchstens vier Seiten** (Entscheidung des
+Nutzers vom 06.11.2026). Hat das PDF mehr, meldet `render_cv.py` ganz oben
+„ZU LANG: <n> Seiten“. Dann werden **lange Stichpunkte gestrafft**, bis es
+passt – das ist die dritte Ausnahme von der Regel oben, und sie ist eng:
+
+- **Straffen heißt auf den Kern bringen:** was getan wurde, womit, mit welchem
+  Ergebnis. Raus fallen Füllwörter, Nebensätze, Wiederholungen derselben
+  Floskel in jedem Punkt („for the German-speaking team“) und Wirkungsketten
+  („which accelerated …, which improved …“), die nur umschreiben, was schon
+  dasteht. Ziel sind ein bis zwei Zeilen je Stichpunkt.
+- **Nichts kommt dazu, nichts wird verschoben.** Jede Zahl, jedes Tool, jedes
+  Ergebnis im gestrafften Punkt steht so im Original. Die Klammer mit den
+  Technologien bleibt wörtlich. Ein Stichpunkt bleibt ein Stichpunkt – nicht
+  zusammenlegen, nicht streichen; Stationen und ihre Reihenfolge bleiben.
+- **Reihenfolge:** zuerst die längsten Punkte der ältesten Stationen, dann
+  weiter nach vorn. Kurze Punkte bleiben wörtlich. Die New-Monday-Station und
+  das Kurzprofil werden nicht angefasst.
+- **Das Original bleibt nachvollziehbar:** `arbeit/gestrafft.json` hält je
+  gestrafftem Punkt `{"station", "original", "gestrafft"}`. In der Übergabe
+  steht jede gestraffte Fassung unter „Zur Freigabe“ – mit dem Original, damit
+  der Nutzer sie zurücknehmen kann.
+- **Ein Eingang in anderer Sprache** wird in der Übersetzung gestrafft, nicht
+  erst übersetzt und dann noch einmal gekürzt.
+
+Reicht auch das nicht – die Stationen allein füllen mehr als vier Seiten –,
+bleibt es bei der Meldung und die Übergabe fragt, welche älteren Stationen nur
+noch mit dem Kopf (ohne Stichpunkte) stehen sollen. Gestrichen wird ohne
+Rückfrage nichts.
 
 #### Die erste Station ist immer New Monday
 
@@ -1531,7 +1572,7 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/figma_entwickler.py cv-anonym.json "<pfad/zu
 ```
 
 Es schreibt `figma_entwickler_bau.js` (der Bau, ein `use_figma`-Aufruf) und
-`figma_entwickler_bild.js` (Foto einsetzen, prüfen). Die Seiten sind Rahmen mit
+`figma_entwickler_bild.js` (Foto und Logos einsetzen, prüfen). Die Seiten sind Rahmen mit
 zwei Auto-Layout-Spalten aus denselben Bibliothekskomponenten – `CV/Seite` hat
 nur einen Slot von 428pt. Die Seitenaufteilung kommt auch hier aus dem PDF,
 Block für Block bis zur einzelnen Aufgabe. Einen Vorflug und einen rohen Weg gibt
@@ -1569,6 +1610,8 @@ Beide PDFs ausgeben – die vollständige Fassung zuerst – und dazu in wenigen
 Zeilen berichten:
 
 - Das Kurzprofil im Wortlaut, falls es generiert wurde, mit der Bitte um Freigabe
+- **Entwickler-Layout:** die Seitenzahl, und bei gestrafften Stichpunkten jede
+  gestraffte Fassung mit dem Original (`arbeit/gestrafft.json`) zur Freigabe
 - **Das Skillset**: was abgeleitet wurde (Branchen, Tools, Fähigkeiten, die der
   Eingang nicht nannte) mit Beleg aus Stationen oder Projekten und der Bitte um
   Freigabe; was aus dem Skillset gefallen ist, weil es in keine der vier Gruppen

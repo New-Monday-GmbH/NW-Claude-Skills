@@ -242,7 +242,9 @@ einspaltig. Jede Seite ist ein Rahmen (595 × 842), darin ein Auto-Layout
 „Spalten“ mit „Hauptspalte (2/3)“ und „Seitenspalte (1/3)“, Breiten aus
 `tokens.json` (`abgeleitet.entwickler_haupt`, `entwickler.seite_breite`).
 Stationsköpfe und die IT-Listen sind Textebenen mit den Farbvariablen der
-Bibliothek, keine lokalen Styles.
+Bibliothek, keine lokalen Styles. Ein Stationskopf mit Logo ist eine
+horizontale Zeile: Spalte „Logo“ (`logo_spalte` breit, darin ein Rechteck je
+Logo) und „Kopftext“ daneben.
 
 1. **Plan und Skripte** (je Fassung, nach dem Rendern):
    `figma_entwickler.py cv.json "<pdf>" arbeit/ --stufen arbeit/stufen.json --seite <ID>`.
@@ -253,10 +255,12 @@ Bibliothek, keine lokalen Styles.
    (`seite`, `frames`, `bilder_fill`, `warnungen`) als
    `arbeit/figma_bau_ergebnis.json` speichern. `warnungen` muss leer sein – eine
    Überlauf-Warnung heißt, die Spalte reicht über den Rand.
-3. **Foto:** wie oben unter „Bilder: Träger, Upload, Einsetzen“ – nur
-   `bilder_fill`, Logos gibt es hier nicht –, dann `figma_assets.py --ziele`.
-4. **Einsetzen und prüfen:** `figma_entwickler_bild.js`. Es setzt das Foto aus
-   dem Träger in die Ebene „Foto“, löscht den Träger und meldet Platzhaltertexte
+3. **Foto und Logos:** wie oben unter „Bilder: Träger, Upload, Einsetzen“ –
+   `bilder_fill` (Foto) und `bilder_fit` (Firmenlogos im Stationskopf, seit
+   06.11.2026; SVGs hat `figma_entwickler.py` nach `arbeit/figma_bilder/` als
+   PNG gerastert) –, dann `figma_assets.py --ziele`.
+4. **Einsetzen und prüfen:** `figma_entwickler_bild.js`. Es setzt Foto (FILL)
+   und Logos (FIT) aus den Trägern in ihre Ebenen, löscht die Träger und meldet Platzhaltertexte
    und – in der anonymen Fassung – Namensteile. `befunde: []`, dann ein
    Screenshot je Seite.
 

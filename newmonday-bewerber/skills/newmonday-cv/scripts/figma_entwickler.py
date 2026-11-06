@@ -5,7 +5,8 @@
             --stufen arbeit/stufen.json [--seite 12:34] [--unter 12:56]
 
 Schreibt arbeit/figma_entwickler_bau.js (der Bau, ein use_figma-Aufruf) und
-arbeit/figma_entwickler_bild.js (setzt das hochgeladene Foto ein und prueft).
+arbeit/figma_entwickler_bild.js (setzt hochgeladenes Foto und Logos ein und prueft).
+SVG-Logos werden dafuer nach arbeit/figma_bilder/ als PNG gerastert.
 Gebaut wird aus Instanzen der Master-Bibliothek, wie die freigegebene Vorlage
 (Figma „Portfolio - CV Master“, Seite Archive, Sektion Tech-CV, 03.11.2026):
 Kopfzeile, Profilkopf, Abschnittstitel, Listenpunkt, Gruppentitel,
@@ -32,8 +33,9 @@ import tokens  # noqa: E402
 from figma_plan import finde, norm, seitentexte  # noqa: E402
 from render_cv import (  # noqa: E402
     BESCHRIFTUNG, VERWEISTEXT, bildung_aufbereiten, entwickler_aufbereiten,
-    layout_von, zeitraeume_setzen,
+    layout_von, logo_groessen, logo_masse, logoliste, seitenverhaeltnis, zeitraeume_setzen,
 )
+from logo_lib import suche as logo_datei  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 LAUFZEIT = Path(__file__).resolve().parent / "figma_entwickler.js"
@@ -81,8 +83,19 @@ def hauptbloecke(daten, ew, labels):
         dazu("rubrik", titel, 0 if erster[0] else en["abschnitte"], text=titel)
         erster[0] = False
 
-    def kopf(titel, zeilen, oben):
-        dazu("kopf", titel, oben, titel=titel, zeilen=zeilen)
+    def kopf(titel, zeilen, oben, **rest):
+        dazu("kopf", titel, oben, titel=titel, zeilen=zeilen, **rest)
+
+    # Firmenlogos klein links im Stationskopf (seit 06.11.2026): Hat eine
+    # Station ein Logo, ruecken alle Stationskoepfe gleich ein - wie im PDF.
+    groesse = logo_groessen(daten)[0]
+    spalte = T["entwickler"]["logo_spalte"]
+    mit_logos = any(logoliste(s.get("logo")) for s in daten.get("stationen") or [])
+
+    def logos(s):
+        return [{"datei": str(logo_datei(d) or ROOT / "assets" / "logos" / d),
+                 "breite": b, "hoehe": h, "verhaeltnis": round(seitenverhaeltnis(d), 4)}
+                for d in logoliste(s.get("logo")) for b, h in [logo_masse(d, groesse, spalte)]]
 
     def aufgaben(liste, art="aufgabe"):
         for n, x in enumerate(liste):
@@ -104,7 +117,8 @@ def hauptbloecke(daten, ew, labels):
             for feld in ("zusammenfassung", "beschreibung"):
                 if s.get(feld):
                     zeilen.append({"text": norm(s[feld]), "stil": "fliesstext", "oben": a["zeitraum_text"]})
-            kopf(norm(s["titel"]), zeilen, dn["rubrik_inhalt"] if n == 0 else en["station"])
+            kopf(norm(s["titel"]), zeilen, dn["rubrik_inhalt"] if n == 0 else en["station"],
+                 **({"logos": logos(s)} if mit_logos else {}))
             aufgaben(s.get("aufgaben_ew") or [])
             if s.get("technik"):
                 dazu("technik", s["technik"], en["aufgaben"], text=s["technik"])
@@ -176,6 +190,25 @@ def seiten_verteilen(bloecke, texte):
     return seiten, hinweise
 
 
+def logos_rastern(plan, ordner):
+    """SVG-Logos als PNG fuer die Bildfuellung (wie im UX-Bibliotheksweg)."""
+    from figma_bibliothek import png_aus_svg
+    hinweise = []
+    for s in plan["seiten"]:
+        for b in s["haupt"]:
+            for l in b.get("logos") or []:
+                if not l["datei"].lower().endswith(".svg"):
+                    continue
+                d = Path(l["datei"])
+                png = png_aus_svg(d, Path(ordner).resolve() / "figma_bilder" / (d.stem + ".png"),
+                                  l["breite"], l["hoehe"])
+                if png is None:
+                    hinweise.append(f"{d.name}: SVG ohne PyMuPDF/WeasyPrint nicht in PNG gewandelt.")
+                else:
+                    l["datei"] = str(png)
+    return hinweise
+
+
 def plan_bauen(daten, pdf, stufen, seite=None, unter=None):
     zeitraeume_setzen(daten)
     if layout_von(daten) != "entwickler":
@@ -211,6 +244,8 @@ def plan_bauen(daten, pdf, stufen, seite=None, unter=None):
         "intro_inhalt": T["abstand"]["intro_inhalt"],
         "haupt": T["abgeleitet"]["entwickler_haupt"], "seite_breite": T["entwickler"]["seite_breite"],
         "spaltenabstand": r["spaltenabstand"], "frameabstand": 100, "reihenabstand": 120,
+        "logo_spalte": T["entwickler"]["logo_spalte"], "logo_abstand": T["entwickler"]["logo_abstand"],
+        "logo_oben": r["logo_oben"], "logo_stapel": T["entwickler"]["aufgaben"],
         "profil": {"name": norm(person.get("name")), "rolle": norm(person.get("rolle")),
                    "erfahrung": norm(person.get("erfahrung")), "verweise": verweise, "foto": foto},
         "seiten": [{"haupt": h, "seite": seitenbloecke(ew, labels, stufe) if nr == 0 else []}
@@ -225,16 +260,18 @@ const S = __SEITE__, NAMEN = __NAMEN__, VERBOTEN = __VERBOTEN__;
 if (S === "__SEITE__") throw new Error("Seiten-ID fehlt: den Wert `seite` aus dem Bau-Ergebnis statt \"__SEITE__\" eintragen");
 let seite = await figma.getNodeByIdAsync(S); await figma.setCurrentPageAsync(seite);
 const befunde = [];
-for (const t of seite.children.filter(n => n.name.startsWith("_Bild FILL → "))) {
+for (const t of seite.children.filter(n => /^_Bild (FILL|FIT) → /.test(n.name))) {
   const bild = (t.fills || []).find(f => f.type === "IMAGE");
   const ziel = await figma.getNodeByIdAsync(t.name.split("→ ")[1]);
   if (!bild || !ziel) { befunde.push(`Träger ${t.name} ohne Bild oder Ziel`); continue; }
-  ziel.fills = [{ type: "IMAGE", imageHash: bild.imageHash, scaleMode: "FILL" }];
+  const modus = t.name.startsWith("_Bild FIT") ? "FIT" : "FILL";   // FIT: Logos, nie beschnitten
+  ziel.fills = [{ type: "IMAGE", imageHash: bild.imageHash, scaleMode: modus }];
   t.remove();
 }
 const PLATZHALTER = /^(Vorname Nachname|Rolle|Abschnittstitel|Gruppentitel|Aufgabe|Hochschule|Abschluss|Zeitraum|X\+ Jahre Erfahrung)$/;
 for (const name of NAMEN) {
-  const F = seite.children.find(n => n.name === name);
+  // Gleichnamige Frames eines frueheren Laufs: der zuletzt angelegte gilt.
+  const F = seite.children.filter(n => n.name === name).pop();
   if (!F) { befunde.push(`Seite ${name} fehlt`); continue; }
   const sichtbar = n => { for (let p = n; p && p !== F; p = p.parent) if (p.visible === false) return false; return true; };
   for (const t of F.findAll(n => n.type === "TEXT" && sichtbar(n))) {
@@ -266,13 +303,16 @@ def main():
     plan, hinweise = plan_bauen(daten, Path(args[1]), stufen, seite, unter)
     ordner = Path(args[2])
     ordner.mkdir(parents=True, exist_ok=True)
+    hinweise += logos_rastern(plan, ordner)
     bau = "const P = " + json.dumps(plan, ensure_ascii=False) + ";\n" + LAUFZEIT.read_text(encoding="utf-8")
     if len(bau) > SKRIPT_GRENZE:
         hinweise.append(f"figma_entwickler_bau.js hat {len(bau)} Zeichen – über der Grenze von "
                         f"{SKRIPT_GRENZE}; use_figma nimmt es womöglich nicht.")
     (ordner / "figma_entwickler_bau.js").write_text(bau, encoding="utf-8")
     namen = [f"{plan['name']} – Seite {n + 1}" for n in range(len(plan["seiten"]))]
-    bild = (BILD.replace("__SEITE__", json.dumps(seite or "__SEITE__"))
+    # Nur die Zuweisung ersetzen - die Pruefzeile vergleicht weiter mit dem
+    # Platzhalter (sonst stuende dort ""0:1"" und das Skript liefe nicht).
+    bild = (BILD.replace("const S = __SEITE__", "const S = " + json.dumps(seite or "__SEITE__"))
             .replace("__NAMEN__", json.dumps(namen, ensure_ascii=False))
             .replace("__VERBOTEN__", json.dumps([t for t in norm(verboten).split() if len(t) > 2]
                                                 if verboten else [], ensure_ascii=False)))
