@@ -86,11 +86,9 @@ def hauptbloecke(daten, ew, labels):
     def kopf(titel, zeilen, oben, **rest):
         dazu("kopf", titel, oben, titel=titel, zeilen=zeilen, **rest)
 
-    # Firmenlogos klein links im Stationskopf (seit 06.11.2026): Hat eine
-    # Station ein Logo, ruecken alle Stationskoepfe gleich ein - wie im PDF.
+    # Firmenlogo ueber dem Stationstitel (seit 06.11.2026) - wie im PDF.
     groesse = logo_groessen(daten)[0]
-    spalte = T["entwickler"]["logo_spalte"]
-    mit_logos = any(logoliste(s.get("logo")) for s in daten.get("stationen") or [])
+    spalte = T["entwickler"]["logo_breite"]
 
     def logos(s):
         return [{"datei": str(logo_datei(d) or ROOT / "assets" / "logos" / d),
@@ -118,7 +116,7 @@ def hauptbloecke(daten, ew, labels):
                 if s.get(feld):
                     zeilen.append({"text": norm(s[feld]), "stil": "fliesstext", "oben": a["zeitraum_text"]})
             kopf(norm(s["titel"]), zeilen, dn["rubrik_inhalt"] if n == 0 else en["station"],
-                 **({"logos": logos(s)} if mit_logos else {}))
+                 **({"logos": logos(s)} if logoliste(s.get("logo")) else {}))
             aufgaben(s.get("aufgaben_ew") or [])
             if s.get("technik"):
                 dazu("technik", s["technik"], en["aufgaben"], text=s["technik"])
@@ -244,8 +242,7 @@ def plan_bauen(daten, pdf, stufen, seite=None, unter=None):
         "intro_inhalt": T["abstand"]["intro_inhalt"],
         "haupt": T["abgeleitet"]["entwickler_haupt"], "seite_breite": T["entwickler"]["seite_breite"],
         "spaltenabstand": r["spaltenabstand"], "frameabstand": 100, "reihenabstand": 120,
-        "logo_spalte": T["entwickler"]["logo_spalte"], "logo_abstand": T["entwickler"]["logo_abstand"],
-        "logo_oben": r["logo_oben"], "logo_stapel": T["entwickler"]["aufgaben"],
+        "logo_titel": T["entwickler"]["logo_titel"], "logo_reihe": T["entwickler"]["logo_reihe"],
         "profil": {"name": norm(person.get("name")), "rolle": norm(person.get("rolle")),
                    "erfahrung": norm(person.get("erfahrung")), "verweise": verweise, "foto": foto},
         "seiten": [{"haupt": h, "seite": seitenbloecke(ew, labels, stufe) if nr == 0 else []}

@@ -173,8 +173,8 @@ RAIL_BREITE = tokens.laden()["raster"]["logospalte"]
 # Hochformatige Marken duerfen nicht beliebig hoch werden, sonst schiebt sich
 # die Logospalte ueber den Stationskopf hinaus.
 LOGO_HOCH_FAKTOR = 1.4
-# Entwickler-Layout: das Logo steht klein links im Stationskopf, nicht in der
-# 88pt-Logospalte des UX-Layouts (die Hauptspalte ist nur 299pt breit).
+# Entwickler-Layout: das Logo steht ueber dem Stationstitel, nicht in der
+# Logospalte des UX-Layouts (die Hauptspalte ist nur 299pt breit).
 ENTWICKLER_LOGO = tokens.laden()["entwickler"]
 # Ein Entwickler-Lebenslauf hat hoechstens so viele Seiten (Nutzer, 06.11.2026).
 ENTWICKLER_MAX_SEITEN = 4
@@ -910,7 +910,7 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
     # Jedes Logo bekommt sein eigenes Mass, ausgerechnet aus dem
     # Seitenverhaeltnis der Datei. Das Template setzt nur noch, was hier steht.
     groesse, projekt_groesse = logo_groessen(daten)
-    max_breite = ENTWICKLER_LOGO["logo_spalte"] if layout_von(daten) == "entwickler" else None
+    max_breite = ENTWICKLER_LOGO["logo_breite"] if layout_von(daten) == "entwickler" else None
     for s in daten.get("stationen", []):
         s.setdefault("projekte", [])
         s["logos"] = [dict(zip(("datei", "src", "breite", "hoehe", "alt"),

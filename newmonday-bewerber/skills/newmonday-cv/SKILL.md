@@ -935,12 +935,12 @@ Der Aufbau steht fest:
 - **Danach** läuft die Hauptspalte allein weiter: die übrigen Stationen, dann
   **Projekte**, dann **Ausbildung** und **Sprachen** – Uni, Schule und Sprachen
   stehen ganz hinten (Entscheidung des Nutzers vom 03.11.2026).
-- **Firmenlogos klein im Stationskopf** (seit 06.11.2026, wie im UX-Layout
-  gehören sie dazu): links neben Titel, Firma und Zeitraum in einer schmalen
-  Spalte (`entwickler.logo_spalte` in `tokens.json`), die Aufgaben darunter
-  laufen in voller Breite. Hat eine Station ein Logo, rücken alle
-  Stationsköpfe gleich ein. Zugeordnet werden sie wie immer in Schritt 3
-  (`logo` an der Station); Projektlogos setzt das Entwickler-Layout nicht.
+- **Firmenlogos über dem Stationstitel** (seit 06.11.2026, wie im UX-Layout
+  gehören sie dazu): eine Zeile über Titel, Firma und Zeitraum, linksbündig –
+  nichts rückt ein, Titel und Aufgaben stehen an derselben Kante wie ohne
+  Logo. Maße in `tokens.json` (`entwickler.logo_breite`, `logo_titel`,
+  `logo_groesse`). Zugeordnet werden sie wie immer in Schritt 3 (`logo` an der
+  Station); Projektlogos setzt das Entwickler-Layout nicht.
 - **Keine Gruppen Fähigkeiten und Branchen.** Was davon in der `cv.json` steht,
   meldet `render_cv.py` und lässt es weg.
 - **Höchstens vier Seiten** – Abschnitt unten.
