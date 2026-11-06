@@ -10,6 +10,7 @@ assets/tokens.json entsprechen (pruefe_design). Danach dasselbe fuer die anonyme
 Fassung — ob vom Namen im fertigen PDF wirklich nichts uebrig ist. Schreibt
 nichts in den Skill-Ordner.
 """
+import copy
 import json
 import os
 import re
@@ -2014,6 +2015,7 @@ def pruefe_anonym(pdf, tmp):
 def pruefe_entwickler(tmp):
     """Entwickler-Layout (freigegeben am 03.11.2026) am Beispiel cv-entwickler.json.
 
+    Firmenlogo klein links im Stationskopf, hoechstens vier Seiten (06.11.2026).
     Seitenspalte nur auf Seite 1 (IT-Kompetenzen, Weiterbildung) rechts neben
     der Hauptspalte, die Technologien je Aufgabe in der Markenfarbe, Ausbildung
     und Sprachen hinter den Projekten, die anonyme Fassung ohne Repository-Link.
@@ -2040,6 +2042,19 @@ def pruefe_entwickler(tmp):
                               f"(x {seite_x}) auf Seite 1")
         if "Kurzprofil" not in woerter or abs(woerter["Kurzprofil"][0] - rand) > 1:
             fehler.append("Entwickler: „Kurzprofil“ steht nicht links in der Hauptspalte")
+        # Firmenlogo links im Stationskopf, der Kopftext rueckt ein (06.11.2026).
+        einzug = rand + T["entwickler"]["logo_spalte"] + T["entwickler"]["logo_abstand"]
+        # SVG-Logos landen als Vektoren im PDF, nicht als Bild.
+        titel = min((w for w in doc[0].get_text("words") if w[4] == "Software"),
+                    key=lambda w: w[1], default=None)
+        kopf_y = titel[1] if titel else 0
+        logo = [d["rect"] for d in doc[0].get_drawings()
+                if abs(d["rect"].y0 - kopf_y) < 20 and d["rect"].x0 >= rand - 0.5
+                and d["rect"].x1 <= rand + T["entwickler"]["logo_spalte"] + 0.5]
+        if not logo:
+            fehler.append("Entwickler: kein Firmenlogo links im Stationskopf")
+        if not titel or abs(titel[0] - einzug) > 1:
+            fehler.append(f"Entwickler: Stationstitel rueckt nicht neben das Logo ein (x {einzug})")
         farbig = [sp["text"] for s in doc for b in s.get_text("dict")["blocks"]
                   for z in b.get("lines", []) for sp in z["spans"] if sp["color"] == marke]
         if not any("Spring Boot" in t for t in farbig):
@@ -2066,7 +2081,21 @@ def pruefe_entwickler(tmp):
         else:
             fehler += barrierefrei(anonym_pdf, "de", "Platzhalter statt Profilfoto")
     fehler += _pruefe_entwickler_figma(daten, pdf, json.loads(stufen.read_text(encoding="utf-8")))
+    # Hoechstens vier Seiten: ein zu langer Lebenslauf wird laut gemeldet.
+    lang = copy.deepcopy(daten)
+    for st in lang["stationen"][1:]:
+        st["aufgaben"] = st["aufgaben"] * 8
+    _, lauf, _ = _rendern(tmp, lang, "entwickler-lang")
+    if "ZU LANG" not in lauf.stderr:
+        fehler.append("Entwickler: mehr als vier Seiten werden nicht als ZU LANG gemeldet")
+    if "ZU LANG" in _rendern(tmp, daten, "entwickler-kurz")[1].stderr:
+        fehler.append("Entwickler: kurzer Lebenslauf faelschlich als ZU LANG gemeldet")
     return fehler
+
+
+def T_LOGO_SPALTE():
+    import tokens
+    return tokens.laden()["entwickler"]["logo_spalte"]
 
 
 def _pruefe_entwickler_figma(daten, pdf, stufen):
@@ -2088,6 +2117,9 @@ def _pruefe_entwickler_figma(daten, pdf, stufen):
         fehler.append("Entwickler-Figma: Projekte/Sprachen nicht auf den Seiten des PDFs")
     if any(s["haupt"] and s["haupt"][0]["oben"] for s in seiten):
         fehler.append("Entwickler-Figma: erster Block einer Seite mit Abstand oben")
+    koepfe = [b for s in seiten for b in s["haupt"] if b["art"] == "kopf" and "logos" in b]
+    if not koepfe or len(koepfe[0]["logos"]) != 1 or koepfe[0]["logos"][0]["breite"] > T_LOGO_SPALTE():
+        fehler.append("Entwickler-Figma: Stationskopf ohne Logo oder Logo breiter als die Logospalte")
     gefaerbt = [b for s in seiten for b in s["haupt"] if b["art"] == "aufgabe" and b["technik"]]
     if not gefaerbt or not all(b["technik"].startswith("(") for b in gefaerbt):
         fehler.append("Entwickler-Figma: Technologien nicht als eigene Klammer geplant")
@@ -2168,7 +2200,7 @@ def main():
     print(f"  Durchkopplung: offene Schreibweisen gemeldet, Text unveraendert, nicht bei en")
     print(f"  Logos:     SVG-Verhaeltnisse richtig gelesen, im Plan unverzerrt, add_logo mit Kontrollbild")
     print(f"  Bibliothek: neue Logos ausserhalb des Skills, vor dem Grundstock gefunden, Uebernahme ins Repo")
-    print(f"  Entwickler: 2/3 Stationen, 1/3 IT-Kompetenzen und Weiterbildung, Technik in Markenfarbe, Ausbildung hinten")
+    print(f"  Entwickler: 2/3 Stationen, 1/3 IT-Kompetenzen und Weiterbildung, Logo im Stationskopf, Technik in Markenfarbe, Ausbildung hinten, max. 4 Seiten")
     print(f"  Barrierefrei: PDF/UA-1 getaggt, Sprache, Titel, Alternativtexte, H1 bis H4 ohne Sprung - beide Fassungen, beide Layouts, de und en")
     print(f"  Groesse:   jedes Beispiel-PDF unter {PDF_BUDGET // 1024} KB (Bilder auf 300 dpi)")
     print(f"  Geschlecht: Mischung gemeldet, anonym neutral (Designer:in), feminin = maskulin, en unveraendert")

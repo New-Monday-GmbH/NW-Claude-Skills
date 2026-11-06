@@ -4,6 +4,8 @@
 // Gruppentitel, Bildungseintrag, Kurzprofil, Fuss); Seiten und Spalten sind
 // Rahmen mit Auto-Layout, weil CV/Seite nur einen 428pt breiten Slot hat.
 // Alle Masse stehen im Plan (aus tokens.json), hier wird nichts gerechnet.
+// Firmenlogos (seit 06.11.2026): Rechteck „Logo“ im Stationskopf plus Traeger
+// „_Bild FIT → <id>“ - Upload und Einsetzen wie beim Foto (bilder_fit).
 
 let seite = null;
 if (P.seite) { let n = await figma.getNodeByIdAsync(P.seite); while (n && n.type !== "PAGE") n = n.parent; seite = n; }
@@ -54,10 +56,29 @@ function punkt(p, a, art) {
   }
 }
 function rubrik(p, titel) { const i = K.abschnittstitel.createInstance(); setz(i, { "Titel": titel, "Icon anzeigen": false }); p.appendChild(i); }
+let aktF = null, traeger = 0;
+const bilder_fit = [];
 function kopf(p, b) {
-  const k = voll(p, spalte("Kopf – " + b.titel, P.haupt));
-  voll(k, text(b.titel, P.stile.titel, P.haupt));
-  for (const z of b.zeilen) { abstand(k, z.oben); voll(k, text(z.text, P.stile[z.stil], P.haupt)); }
+  if (!b.logos) {
+    const k = voll(p, spalte("Kopf – " + b.titel, P.haupt));
+    voll(k, text(b.titel, P.stile.titel, P.haupt));
+    for (const z of b.zeilen) { abstand(k, z.oben); voll(k, text(z.text, P.stile[z.stil], P.haupt)); }
+    return;
+  }
+  // Stationskopf mit Logospalte links (seit 06.11.2026) - wie im PDF.
+  const zeile = figma.createAutoLayout("HORIZONTAL", { name: "Kopf – " + b.titel, itemSpacing: P.logo_abstand });
+  zeile.fills = []; voll(p, zeile);
+  const ls = spalte("Logo", P.logo_spalte, P.logo_stapel); ls.paddingTop = P.logo_oben; zeile.appendChild(ls);
+  for (const l of b.logos) {
+    const r = figma.createRectangle(); r.name = "Logo"; r.resize(l.breite, l.hoehe); r.fills = []; ls.appendChild(r);
+    const t = figma.createRectangle(); t.name = `_Bild FIT → ${r.id}`; t.resize(l.breite, l.hoehe); t.fills = [];
+    seite.appendChild(t); t.x = aktF.x + 80 + (traeger++ % 8) * 60; t.y = aktF.y + P.seite_h + 40;
+    bilder_fit.push({ nodeId: t.id, datei: l.datei, ziel: r.id, verhaeltnis: l.verhaeltnis });
+  }
+  const breite = P.haupt - P.logo_spalte - P.logo_abstand;
+  const k = spalte("Kopftext", breite); zeile.appendChild(k);
+  voll(k, text(b.titel, P.stile.titel, breite));
+  for (const z of b.zeilen) { abstand(k, z.oben); voll(k, text(z.text, P.stile[z.stil], breite)); }
 }
 function bildung(p, b) {
   const i = K.bildungseintrag.createInstance(); voll(p, i);
@@ -99,7 +120,7 @@ const frames = [], bilder_fill = [];
 P.seiten.forEach((s, nr) => {
   const F = figma.createFrame(); F.name = `${P.name} – Seite ${nr + 1}`; F.resize(P.seite_w, P.seite_h);
   F.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
-  seite.appendChild(F); F.x = x0 + nr * (P.seite_w + P.frameabstand); F.y = y0;
+  seite.appendChild(F); F.x = x0 + nr * (P.seite_w + P.frameabstand); F.y = y0; aktF = F;
   let oben = P.rand_oben;
   if (nr === 0) {
     const k = K.kopfzeile.createInstance(); F.appendChild(k); k.x = P.rand_links; k.y = P.rand_oben;
@@ -146,4 +167,4 @@ P.seiten.forEach((s, nr) => {
       warnungen.push(`${F.name}: ${c.name} endet bei ${Math.round(oben + c.height)}pt, Platz bis ${Math.round(grenze)}pt`);
   frames.push({ id: F.id, name: F.name });
 });
-return { seite: seite.id, frames, bilder_fill, bilder_fit: [], warnungen };
+return { seite: seite.id, frames, bilder_fill, bilder_fit, warnungen };

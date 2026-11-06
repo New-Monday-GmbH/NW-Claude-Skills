@@ -173,6 +173,11 @@ RAIL_BREITE = tokens.laden()["raster"]["logospalte"]
 # Hochformatige Marken duerfen nicht beliebig hoch werden, sonst schiebt sich
 # die Logospalte ueber den Stationskopf hinaus.
 LOGO_HOCH_FAKTOR = 1.4
+# Entwickler-Layout: das Logo steht klein links im Stationskopf, nicht in der
+# 88pt-Logospalte des UX-Layouts (die Hauptspalte ist nur 299pt breit).
+ENTWICKLER_LOGO = tokens.laden()["entwickler"]
+# Ein Entwickler-Lebenslauf hat hoechstens so viele Seiten (Nutzer, 06.11.2026).
+ENTWICKLER_MAX_SEITEN = 4
 
 MONATE = {
     "januar": 1, "februar": 2, "maerz": 3, "märz": 3, "april": 4, "mai": 5,
@@ -796,12 +801,12 @@ def logo_alt(datei):
     return Path(datei).stem.replace("-", " ").replace("_", " ")
 
 
-def logo_masse(datei, groesse):
+def logo_masse(datei, groesse, max_breite=None):
     """(Breite, Hoehe) in pt fuer ein Logo bei gegebener optischer Groesse."""
-    return masse_aus_verhaeltnis(seitenverhaeltnis(datei), groesse)
+    return masse_aus_verhaeltnis(seitenverhaeltnis(datei), groesse, max_breite)
 
 
-def masse_aus_verhaeltnis(verhaeltnis, groesse):
+def masse_aus_verhaeltnis(verhaeltnis, groesse, max_breite=None):
     """(Breite, Hoehe) in pt aus Seitenverhaeltnis und optischer Groesse.
 
     Gleiche Flaeche fuer alle: Breite = Groesse * sqrt(Verhaeltnis), Hoehe =
@@ -812,8 +817,9 @@ def masse_aus_verhaeltnis(verhaeltnis, groesse):
     """
     wurzel = math.sqrt(verhaeltnis)
     breite, hoehe = groesse * wurzel, groesse / wurzel
-    if breite > RAIL_BREITE:                  # breiter als die Spalte: kappen
-        breite, hoehe = RAIL_BREITE, RAIL_BREITE / verhaeltnis
+    spalte = max_breite or RAIL_BREITE
+    if breite > spalte:                       # breiter als die Spalte: kappen
+        breite, hoehe = spalte, spalte / verhaeltnis
     hoch = groesse * LOGO_HOCH_FAKTOR
     if hoehe > hoch:                          # hochformatig: Hoehe deckeln
         breite, hoehe = hoch * verhaeltnis, hoch
@@ -829,6 +835,8 @@ def logo_groessen(daten):
     nebeneinander und haben deshalb immer dieselbe Groesse.
     """
     stationen = daten.get("stationen", [])
+    if layout_von(daten) == "entwickler":       # kleine Logos im Stationskopf
+        return ENTWICKLER_LOGO["logo_groesse"], LOGO_PROJEKT_GROESSE
     st = max([len(logoliste(s.get("logo"))) for s in stationen] or [0])
     return LOGO_GROESSE.get(max(st, 1), LOGO_GROESSE_AB_4), LOGO_PROJEKT_GROESSE
 
@@ -852,12 +860,16 @@ def pruefe(daten):
                     f"{p.get('kunde')}: startet vor der Anstellung bei {s.get('firma')} "
                     f"({p.get('zeitraum')} vs. {s.get('zeitraum')})"
                 )
-    if layout_von(daten) == "entwickler":
-        return hinweise          # Das Entwickler-Layout setzt keine Logos.
-
     def fehlende(wert, wer):
         return [f"Logo fehlt in der Bibliothek: {d} ({wer})"
                 for d in logoliste(wert) if not logo_datei(d)]
+
+    if layout_von(daten) == "entwickler":
+        # Seit 06.11.2026 mit Firmenlogos im Stationskopf - Projektlogos
+        # setzt das Entwickler-Layout nicht.
+        for s in daten.get("stationen", []):
+            hinweise += fehlende(s.get("logo"), s.get("firma"))
+        return hinweise
 
     im_rail, im_projekt = set(), set()
     for s in daten.get("stationen", []):
@@ -898,10 +910,11 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
     # Jedes Logo bekommt sein eigenes Mass, ausgerechnet aus dem
     # Seitenverhaeltnis der Datei. Das Template setzt nur noch, was hier steht.
     groesse, projekt_groesse = logo_groessen(daten)
+    max_breite = ENTWICKLER_LOGO["logo_spalte"] if layout_von(daten) == "entwickler" else None
     for s in daten.get("stationen", []):
         s.setdefault("projekte", [])
         s["logos"] = [dict(zip(("datei", "src", "breite", "hoehe", "alt"),
-                               (d, logo_src(d), *logo_masse(d, groesse),
+                               (d, logo_src(d), *logo_masse(d, groesse, max_breite),
                                 s.get("firma") or logo_alt(d))))
                       for d in logoliste(s.get("logo"))]
         for p in s["projekte"]:
@@ -1328,6 +1341,12 @@ def main():
             break
         engine = setzen(fuss_abstand=FUSS_MIN)
 
+    gesamt = seitenzahl(ziel)
+    if layout == "entwickler" and gesamt > ENTWICKLER_MAX_SEITEN:
+        hinweise.insert(0,
+            f"ZU LANG: {gesamt} Seiten – ein Entwickler-Lebenslauf hat höchstens "
+            f"{ENTWICKLER_MAX_SEITEN}. Lange Stichpunkte straffen (SKILL.md, „Höchstens "
+            "vier Seiten“), jede gestraffte Fassung steht zur Freigabe, dann neu rendern.")
     seiten = deckblatt_seiten(ziel, daten)
     if layout == "entwickler" and seiten > 1:
         hinweise.append(
