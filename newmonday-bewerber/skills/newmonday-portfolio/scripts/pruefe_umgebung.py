@@ -19,6 +19,8 @@ PAKETE = [
     ("fitz", True, "PyMuPDF: liest Eingangs-PDFs aus und misst das Ergebnis "
                    "auf Überlauf. Zwingend."),
     ("PIL", True, "Pillow: schneidet Fotos zu und liest Bildmaße. Zwingend."),
+    ("pypdf", True, "Prüft das fertige PDF auf PDF/UA (Tags, Alternativtexte, "
+                    "Überschriften) und Größe. Zwingend."),
 ]
 WERKZEUGE = [
     ("pdftoppm", False, "Sichtprüfung einzelner Seiten in hoher Auflösung."),
@@ -27,13 +29,13 @@ WERKZEUGE = [
 BEFEHLE = {
     "Darwin": ["brew install python-pango pango libffi gdk-pixbuf",
                "brew install poppler potrace",
-               "pip3 install weasyprint pymupdf pillow"],
+               "pip3 install weasyprint pymupdf pillow pypdf"],
     "Linux": ["sudo apt install -y libpango-1.0-0 libpangoft2-1.0-0 "
               "poppler-utils potrace",
-              "pip3 install weasyprint pymupdf pillow"],
+              "pip3 install weasyprint pymupdf pillow pypdf"],
     "Windows": ["WeasyPrint braucht GTK. Einfacher ist es, Chrome installiert "
                 "zu lassen – der Skill nutzt ihn als Ausweichweg.",
-                "pip install pymupdf pillow"],
+                "pip install pymupdf pillow pypdf"],
 }
 
 

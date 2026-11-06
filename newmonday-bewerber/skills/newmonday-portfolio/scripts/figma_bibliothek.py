@@ -404,7 +404,7 @@ def folie_planen(nr: int, sec, bilder_je_el: dict, sprache: str, kat: dict,
         p.kind(["Prozess-Reihe"], schalter={"Spalte 4": len(spalten) >= 4})
         for i, sp in enumerate(spalten, 1):
             p.kind(["Prozess-Reihe", f"Spalte {i}"],
-                   texte={"Titel": laeufe(eins(sp, tag="h2")), "Text": laeufe(eins(sp, tag="p"))})
+                   texte={"Titel": laeufe(eins(sp, tag="h3")), "Text": laeufe(eins(sp, tag="p"))})
     elif "seite--arbeitsweise" in k:
         p = Plan(nr, "Prozess-Schritt")
         ki = "seite--ki" in k

@@ -106,9 +106,11 @@ Beim ersten Lauf auf einem unbekannten System zuerst:
 python3 ${CLAUDE_SKILL_DIR}/scripts/pruefe_umgebung.py
 ```
 
-- **Render-Engine**: Das Layout ist auf WeasyPrint abgestimmt. Fehlt sie, weicht
-  das Skript auf Chrome aus und sagt das – dann Seitenumbrüche und Textlängen
-  gegenprüfen, bevor das PDF rausgeht.
+- **Render-Engine**: Das Layout ist auf WeasyPrint abgestimmt, und nur WeasyPrint
+  schreibt das PDF barrierefrei (PDF/UA-1). Fehlt sie, weicht das Skript auf
+  Chrome aus und warnt deutlich: Dieses PDF ist **nicht barrierefrei** und geht
+  so nicht an Kunden – WeasyPrint installieren und neu rendern. Kundendokumente
+  entstehen immer mit WeasyPrint.
 - **Netz**: Lokal und in Claude Desktop offen, im Browser-Chat blockt der Proxy
   fremde Domains. Das betrifft die Logosuche und das Auslesen einer
   Portfolio-Website.
@@ -1317,9 +1319,18 @@ Abschlussseite, daneben die Graustufen-Fassungen der Kundenlogos
 (`logo-grau-*`). Sie sind Arbeitsdateien: Sie sparen dem zweiten Lauf nach einer
 Textkorrektur die Rechenzeit, sonst nichts, und dürfen weg. Im Ausgabeordner
 liegen sie mit Absicht nicht – der wird weitergereicht, und ein Zwischenspeicher
-ginge sonst mit. Zur Größenordnung: Fünf Projekte ergeben rund 6 MB
-Zwischenspeicher und ein PDF von rund 12 MB. Das PDF besteht zum größten Teil
-aus diesen Flächen; wer es per Mail schickt, prüft vorher die Größengrenze.
+ginge sonst mit. Daneben liegen die Fotos in PDF-Größe (`foto-pdf-*`).
+
+**Das PDF ist barrierefrei und klein.** Das Skript schreibt PDF/UA-1 (getaggt,
+Sprache aus `sprache`, Titel „Portfolio – Name – New Monday GmbH“) und prüft
+das Ergebnis nach: Strukturbaum, Alternativtext an jeder Abbildung, genau eine
+H1, Überschriften ohne Sprung, Größe unter 8 MB. Was davon abweicht, steht unter
+„Barrierefreiheit/Größe:“ in den Meldungen, und die Kopfzeile der Ausgabe nennt
+Größe und „PDF/UA-1“. Zur Größenordnung: drei Projekte rund 4–5 MB, fünf
+Projekte mit acht Screenseiten rund 7 MB (Nina, November 2026: 7,1 statt
+18,5 MB). Den Großteil tragen die Screenflächen; Fotos kommen beschnitten und
+mit 1,5 px je Punkt als JPEG ins PDF. Wie und warum: `references/layout.md`,
+„Barrierefrei und klein“.
 
 **Das fertige PDF ansehen, nicht nur die Meldungen lesen.** Besonders die
 Projektseiten: ob auf der Summary-Seite wirklich das Gebäude dieses Kunden
@@ -1468,6 +1479,13 @@ der Kaskade in Schritt 5.
   Quelle angesehen – siehe Schritt 5.
 - **Kundenlogos schwarz-weiß**, Werkzeuglogos der KI-Folie farbig – siehe
   Schritt 5.
+- **Jedes PDF ist barrierefrei und klein**: PDF/UA-1 aus WeasyPrint (nie
+  Chrome für Kunden), jede Abbildung mit Alternativtext aus dem Material
+  (Kundenlogo: Firmenname, Profilfoto: „Porträtfoto von …“, Screens: „Screens
+  aus <Projekt>“, HQ-Foto: „Firmensitz von <Kunde>“, KI-Werkzeug: Name),
+  Dekoration als Artefakt, Lesereihenfolge = DOM-Reihenfolge, Budget 8 MB. Wer
+  am Layout etwas ergänzt, hält sich an die Regeln in `references/layout.md`,
+  „Barrierefrei und klein“ – der Selbsttest prüft sie.
 - **Profilfoto immer in Graustufen.** Das Renderskript entfärbt es selbst;
   CSS-Filter setzt WeasyPrint nicht um.
 - **Keine Schatten auf den Folien.** Karten sind flach, wie in Figma. Die

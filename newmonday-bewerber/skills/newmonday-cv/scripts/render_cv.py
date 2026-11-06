@@ -30,6 +30,7 @@ ASSETS = ROOT / "assets"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import tokens  # noqa: E402  — erst nach sys.path.insert moeglich
 from logo_lib import suche as logo_datei  # noqa: E402
+import geschlecht  # noqa: E402
 
 BESCHRIFTUNG = {
     "de": {
@@ -42,6 +43,9 @@ BESCHRIFTUNG = {
         "berufserfahrung": "Berufserfahrung", "it_kompetenzen": "IT-Kompetenzen",
         "weiterbildung": "Weiterbildung", "projekte": "Projekte", "ausbildung": "Ausbildung",
         "weitere_tools": "Weitere Tools", "repository": "zum Repository",
+        # PDF-Titel und Alternativtexte (barrierefreies PDF)
+        "lebenslauf": "Lebenslauf", "foto_alt": "Porträtfoto von {name}",
+        "platzhalter_alt": "Platzhalter statt Profilfoto",
     },
     "en": {
         "bildung": "Education", "skillset": "Skillset", "links": "Further links",
@@ -52,6 +56,8 @@ BESCHRIFTUNG = {
         "berufserfahrung": "Work experience", "it_kompetenzen": "Technical skills",
         "weiterbildung": "Further training", "projekte": "Projects", "ausbildung": "Education",
         "weitere_tools": "Further tools", "repository": "to the repository",
+        "lebenslauf": "CV", "foto_alt": "Portrait photo of {name}",
+        "platzhalter_alt": "Placeholder instead of profile photo",
     },
 }
 
@@ -785,6 +791,11 @@ def logo_src(datei):
     return pfad.resolve().as_uri() if pfad else f"logos/{datei}"
 
 
+def logo_alt(datei):
+    """Alternativtext eines Logos ohne Firmennamen: der Dateiname als Wort."""
+    return Path(datei).stem.replace("-", " ").replace("_", " ")
+
+
 def logo_masse(datei, groesse):
     """(Breite, Hoehe) in pt fuer ein Logo bei gegebener optischer Groesse."""
     return masse_aus_verhaeltnis(seitenverhaeltnis(datei), groesse)
@@ -823,8 +834,11 @@ def logo_groessen(daten):
 
 
 def pruefe(daten):
-    """Sammelt Auffaelligkeiten in den Zeitraeumen. Aendert nichts."""
-    hinweise = []
+    """Sammelt Auffaelligkeiten in Zeitraeumen, Bezeichnungen und Logos.
+    Aendert nichts."""
+    # Dieselbe Person mal "Designerin", mal "Designer" - die Quellen liefern
+    # das gemischt, die cv.json steht einheitlich in der Form der Person.
+    hinweise = geschlecht.mischung(daten)
     for s in daten.get("stationen", []):
         start, ende = spanne(s.get("zeitraum", ""))
         if start and ende and ende != "laufend" and start != "laufend" and ende < start:
@@ -886,12 +900,14 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
     groesse, projekt_groesse = logo_groessen(daten)
     for s in daten.get("stationen", []):
         s.setdefault("projekte", [])
-        s["logos"] = [dict(zip(("datei", "src", "breite", "hoehe"),
-                               (d, logo_src(d), *logo_masse(d, groesse))))
+        s["logos"] = [dict(zip(("datei", "src", "breite", "hoehe", "alt"),
+                               (d, logo_src(d), *logo_masse(d, groesse),
+                                s.get("firma") or logo_alt(d))))
                       for d in logoliste(s.get("logo"))]
         for p in s["projekte"]:
-            p["logos"] = [dict(zip(("datei", "src", "breite", "hoehe"),
-                                   (d, logo_src(d), *logo_masse(d, projekt_groesse))))
+            p["logos"] = [dict(zip(("datei", "src", "breite", "hoehe", "alt"),
+                                   (d, logo_src(d), *logo_masse(d, projekt_groesse),
+                                    p.get("kunde") or logo_alt(d))))
                           for d in logoliste(p.get("logo"))]
 
     # Das Template wird aus assets/ heraus gerendert; ein Fotopfad aus der JSON
@@ -910,6 +926,13 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
     # mehrmals, und die Rohdaten muessen fuer den naechsten Durchgang bleiben.
     kontext = dict(daten)
     kontext["skillset"] = skillset_gruppen(daten)[0]
+    # <html lang> wird zur Dokumentsprache im PDF, der <title> zum PDF-Titel.
+    # Jedes Bild braucht einen Alternativtext (PDF/UA); welcher, entscheidet
+    # das Feld "anonym", das anonymisieren.py setzt - nicht der Dateiname.
+    kontext["sprache"] = sprache
+    kontext["foto_alt"] = (labels["platzhalter_alt"] if daten.get("anonym")
+                           else labels["foto_alt"].format(name=leerraum(
+                               daten.get("person", {}).get("name"))))
     # Abschluesse ohne Studieninhalte, Zertifikate als Liste ihrer Titel — je
     # Titel ein Tag. Beides fertig aufbereitet, wie es gesetzt wird.
     kontext["bildung"] = bildung_aufbereiten(daten)[0]
@@ -937,6 +960,15 @@ def chrome_pfad():
     return None
 
 
+# Jedes PDF ist barrierefrei und schlank (05.11.2026): PDF/UA-1 mit Tags,
+# Bilder ohne Verlust optimiert und auf Druckaufloesung begrenzt - mehr als
+# 300 dpi sieht auf Papier niemand, das Beispielfoto lag bei rund 540 dpi.
+# Schriften bettet WeasyPrint ohnehin nur als Teilmenge ein.
+PDF_OPTIONEN = {"pdf_variant": "pdf/ua-1", "optimize_images": True, "dpi": 300,
+                "jpeg_quality": 90}
+UA_MELDUNGEN = set()
+
+
 def rendern(html, ziel):
     """Erste verfuegbare Engine gewinnt. Gibt ihren Namen zurueck.
 
@@ -947,10 +979,17 @@ def rendern(html, ziel):
     basis = ASSETS.as_uri() + "/"
     try:
         from weasyprint import HTML
-        HTML(string=html, base_url=basis).write_pdf(str(ziel))
-        return "WeasyPrint"
+        from weasyprint.logger import capture_logs
     except ImportError:
         pass
+    else:
+        # PDF/UA-1: getaggt, Sprache, Titel, Alternativtexte. Was WeasyPrint
+        # dabei bemaengelt (Bild ohne alt, fehlende Sprache), sammelt
+        # UA_MELDUNGEN fuer die Hinweise.
+        with capture_logs() as meldungen:
+            HTML(string=html, base_url=basis).write_pdf(str(ziel), **PDF_OPTIONEN)
+        UA_MELDUNGEN.update(m for m in meldungen if m.startswith("ERROR"))
+        return "WeasyPrint"
 
     with tempfile.TemporaryDirectory() as tmp:
         seite = Path(tmp) / "cv.html"
@@ -1341,6 +1380,14 @@ def main():
         print(f"{stufen_datei} geschrieben")
 
     print(f"{ziel} geschrieben (Engine: {engine})")
+    hinweise += [f"PDF/UA: {m}" for m in sorted(UA_MELDUNGEN)]
+    if not engine.startswith("WeasyPrint"):
+        # Chrome taggt bestenfalls teilweise, wkhtmltopdf gar nicht - und
+        # beide setzen weder PDF/UA-Kennung noch optimierte Bilder.
+        hinweise.insert(0, "WARNUNG: Dieses PDF ist NICHT barrierefrei (kein PDF/UA-1, "
+                        "Tags fehlen oder sind unvollstaendig) und nicht verkleinert. "
+                        "Ein Kundendokument muss mit WeasyPrint entstehen – "
+                        "python3 scripts/pruefe_umgebung.py zeigt die Installation.")
     if hinweise:
         print("\nPruefen:", file=sys.stderr)
         for h in hinweise:

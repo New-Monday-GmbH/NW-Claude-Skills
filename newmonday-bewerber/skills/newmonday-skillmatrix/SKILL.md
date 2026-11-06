@@ -71,7 +71,10 @@ Nutzers bzw. nach `/mnt/user-data/outputs/`, nie in den Skill-Ordner.
 
 **Die A4-Fassung braucht WeasyPrint** (laufende Kopfzeile, gemessener Fuß);
 auf dem Ausweichweg über Chrome entsteht nur die lange, und das Renderskript
-sagt das.
+sagt das. **Kundendokumente entstehen immer mit WeasyPrint** – nur dort sind
+die PDFs barrierefrei (PDF/UA-1) und klein. Was der Ausweichweg erzeugt, ist
+Vorschau: das Skript warnt („WARNUNG: … NICHT barrierefrei“), und so geht es
+nicht raus. Fehlt WeasyPrint, die Installation anstoßen statt auszuliefern.
 
 Für die Figma-Frames (Schritt 4a) braucht es zusätzlich das Figma-MCP-Werkzeug
 und ein angemeldetes Konto mit **Bearbeitungsrechten** auf der Zieldatei.
@@ -889,14 +892,17 @@ ab, bricht ein Text anders um als geschätzt.
 Dabei zeichnet es die Kartenschatten (WeasyPrint kennt kein `box-shadow`) und
 prüft zum Schluss beide PDFs gegen `assets/tokens.json` (die A4-Fassung gegen
 den Block `a4`): Seitenformat jeder Seite, eingebettete Schriften, Schrift,
-Schnitt, Größe und Farbe jeder Textzeile, Flächen- und Linienfarben. **Endet es
-mit „FEHLER — das PDF weicht vom Design System ab" (Code 2), geht kein PDF
+Schnitt, Größe und Farbe jeder Textzeile, Flächen- und Linienfarben – und auf
+Barrierefreiheit und Größe: PDF/UA-Kennung, Tags, Sprache, Titel, jede
+Abbildung mit Alternativtext, genau ein H1, Überschriften ohne Ebenensprung,
+Datei unter dem Budget (lang 1000 KB, A4 500 KB). **Endet es
+mit „FEHLER — das PDF weicht vom Design System ab …" (Code 2), geht kein PDF
 raus.** Die Ursache ist fast immer ein
 Wert, der außerhalb von `tokens.json` gesetzt wurde, oder eine Ersatzschrift
 (etwa eine falsch geschriebene Schriftfamilie) – beheben, nicht übergehen.
 Fehlende Schriftdateien fängt das Skript schon vor dem Rendern ab; dann
-entsteht gar kein PDF. Die letzte Zeile eines sauberen Laufs lautet „Design
-System eingehalten".
+entsteht gar kein PDF. Ein sauberer Lauf endet mit „Design System
+eingehalten" und „Barrierefrei (PDF/UA-1 …); lang … KB, A4 … KB".
 
 **Beide Ergebnisse ansehen, bevor sie rausgehen** – immer, nicht nur bei
 Warnungen:
@@ -1095,6 +1101,14 @@ Fehlt nichts, steht hier nichts.
   (Überblick in `references/layout.md`). Kein Wert wird im CSS, im Template oder
   im Figma-Plan von Hand gesetzt – kein Umbau, keine neuen Rubriken, keine
   anderen Werte ohne ausdrückliche Ansage.
+- **Jedes PDF ist barrierefrei und klein** – beide Fassungen: PDF/UA-1 aus
+  WeasyPrint (getaggt, Sprache = `sprache`, Titel), ein H1 (der Name), darunter
+  H2/H3/H4 ohne Sprung, Listen als Listen, die Punkte zusätzlich als Text für
+  Screenreader („Bewertung: 4 von 5“), jedes Bild mit Alternativtext (Foto,
+  Logo, Zertifikat) oder als Dekoration ein CSS-Hintergrund (Icons, Schatten) –
+  nie ein `<img alt="">`. Bilder höchstens 150 dpi in ihrer Layoutgröße. Das
+  Renderskript prüft beides; Wie und Warum in `references/layout.md`
+  („Barrierefrei und klein“). Wer das Template ändert, hält sich daran.
 - **Ansprechpartner im Fuß**: immer Manuel Klein, CCO. Steht als Vorgabe im
   Renderskript.
 - **Keine anonymisierte Variante.** Name und Foto gehören ins Dokument.

@@ -164,7 +164,7 @@ ul.zeilen li + li { margin-top: var(--trenner-luft); padding-top: var(--trenner-
    Die linke Kante setzt das Renderskript. */
 .prozess-spalte { position: absolute; top: 434pt; width: 350pt; }
 .prozess-spalte .balken { width: 350pt; height: 12pt; background: var(--brand-primary); }
-.prozess-spalte h2 { margin-top: 16pt; color: var(--base-black); }
+.prozess-spalte h3 { margin-top: 16pt; color: var(--base-black); }
 .prozess-spalte p { margin-top: 24pt; }
 
 /* ── 7–10 · Arbeitsweise ──────────────────────────────────────────────── */
@@ -259,9 +259,12 @@ ul.zeilen li + li { margin-top: var(--trenner-luft); padding-top: var(--trenner-
 .seite--projekt .rolle-block { margin-top: 48pt; }
 /* Rollenkarte: der Akzentstrich so hoch wie die Rolle (als ::before, weil
    WeasyPrint gestreckte Flex-Kinder zu hoch setzt), die Rolle 20pt daneben. */
-.seite--projekt .rollenkarte { position: relative; margin-top: var(--rolle-stapel);
+/* Die Rollen sind eine Liste (<ul class="rollen">, Barrierefreiheit), ohne
+   Aufzählungszeichen: 24pt unter dem Label, dazwischen der Rollenstapel. */
+.seite--projekt .rollen { list-style: none; margin-top: 24pt; }
+.seite--projekt .rollenkarte { position: relative;
   padding-left: var(--rolle-einzug); color: var(--base-black); }
-.seite--projekt .label + .rollenkarte { margin-top: 24pt; }
+.seite--projekt .rollenkarte + .rollenkarte { margin-top: var(--rolle-stapel); }
 .seite--projekt .rollenkarte::before { content: ""; position: absolute; left: 0; top: 0;
   bottom: 0; width: var(--rolle-akzent); border-radius: var(--rolle-akzent-radius);
   background: var(--brand-primary); }
@@ -275,7 +278,7 @@ ul.zeilen li + li { margin-top: var(--trenner-luft); padding-top: var(--trenner-
   border-radius: var(--blick-radius); background: var(--blick-flaeche); }
 .seite--projekt .blick .gruppe + .gruppe { margin-top: var(--blick-gruppen-luft); }
 .seite--projekt .blick .gruppe-label { color: var(--neutral-80); }
-.seite--projekt .blick .chips { display: flex; flex-wrap: wrap;
+.seite--projekt .blick .chips { display: flex; flex-wrap: wrap; list-style: none;
   margin-top: var(--blick-label-abstand); }
 .seite--projekt .blick .chip { display: block;
   margin: 0 var(--chip-abstand) var(--chip-abstand) 0;

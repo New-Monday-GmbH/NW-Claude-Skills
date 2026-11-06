@@ -16,6 +16,20 @@
 /* Kein Hintergrund auf html/body, wie in der langen Fassung. */
 body { font-family: "Inter"; }
 
+/* Barrierefreiheit (PDF/UA, references/layout.md): Listen ohne Zeichen;
+   Dekorbilder (Icons) sind CSS-Hintergruende - die markiert
+   WeasyPrint als Artefakt, ein <img> dagegen als Abbildung ohne Alternativtext.
+   .vorgelesen traegt die Bewertung als Text fuer Screenreader: getaggt, aber
+   auf 1px beschnitten - unsichtbar und ohne Einfluss aufs Layout. */
+/* Der UA-Stil haelt Listen an ihrem Vorgaenger (break-before: avoid) - das
+   verschoebe Seitenumbrueche; Umbrueche regeln die Bloecke unten. */
+ul { list-style: none; break-before: auto; }
+.sektionstitel__icon, .zertplatz__icon { background-repeat: no-repeat; background-size: 100% 100%; }
+.vorgelesen {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
 .inhalt, .hero, .sektion { width: var(--seite-inhalt); }
 
 /* ---------- Kopfzeile (laufend) ---------- */

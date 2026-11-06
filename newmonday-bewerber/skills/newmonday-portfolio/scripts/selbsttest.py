@@ -60,6 +60,12 @@
    des Beispiels, je Rolle ein 4 pt breiter Akzentstrich so hoch wie die
    Zeile; ohne `schlagworte`, mit unbekannter Gruppe oder zu vielen
    Schlagworten ein Hinweis.
+16. Barrierefrei und klein: Das Beispiel-PDF ist PDF/UA-1 – Strukturbaum,
+   /MarkInfo Marked, /Lang aus `sprache` (auch „en“), pdfuaid im XMP,
+   DisplayDocTitle, jede /Figure mit /Alt, genau eine H1, Überschriften ohne
+   Sprung; jedes Bild ohne aria-hidden ist genau eine /Figure, Wortmarke,
+   Stimmungsfotos und Seitenzahl stehen als Artefakt; das Beispiel bleibt
+   unter BEISPIEL_BUDGET_MB.
 
 Schreibt nichts in den Skill-Ordner. Rückgabe 1, wenn etwas abweicht.
 """
@@ -86,6 +92,9 @@ TOL = 1.5          # pt – Lage und Größe
 TOL_ZEILE = 0.3    # pt – Zeilenhöhe
 TOL_GRAD = 0.2     # pt – Schriftgrad
 TOL_LINIE = 0.1    # pt – Stärke von Linien (Flächen mit einer Kante ≤ 2 pt)
+# Das Beispiel: 24 Folien, zwei Projekte mit vier Lösungs- und zwei
+# Abschlussflächen - gemessen 3,7 MB (vorher 6,7 MB).
+BEISPIEL_BUDGET_MB = 4.0
 
 
 def _norm(text: str) -> str:
@@ -589,7 +598,7 @@ def schwerpunkte_pruefen() -> list[str]:
         arten = [k.split()[-1].replace("seite--", "")
                  for k in re.findall(r'<section class="seite ([^"]+)"', html_text)]
         nummern = [int(n) for n in re.findall(
-            r'class="seitenzahl t-seitenzahl[^"]*">(\d+)<', html_text)]
+            r'class="seitenzahl t-seitenzahl[^"]*"[^>]*>(\d+)<', html_text)]
         return arten, nummern
 
     ohne, _ = folge(grund)
@@ -723,6 +732,51 @@ def durchkopplung_pruefen() -> list[str]:
     return befunde
 
 
+def _seitenzahl_artefakt(seite) -> list[bool]:
+    """Fuer jeden Text im Feld der Seitenzahl (x > 1800, y > 990 pt): steht
+    er in /Artifact? WeasyPrint setzt Text mit absolutem Tm in CSS-Pixeln,
+    0,75 pt je Pixel."""
+    import re
+    daten = seite.get_contents().get_data().decode("latin-1")
+    stapel, raus = [], []
+    for m in re.finditer(r"/Artifact\s+BMC|/\w+\s*<<[^>]*>>\s*BDC|\bEMC\b|"
+                         r"(-?[\d.]+) (-?[\d.]+) Tm", daten):
+        t = m.group(0)
+        if t.startswith("/Artifact"):
+            stapel.append(True)
+        elif t.endswith("BDC"):
+            stapel.append(False)
+        elif t == "EMC":
+            stapel.pop()
+        elif float(m.group(1)) * 0.75 > 1800 and float(m.group(2)) * 0.75 > 990:
+            raus.append(bool(stapel) and stapel[-1])
+    return raus
+
+
+def barrierefrei_pruefen(pdf: Path, html_text: str, sprache: str,
+                         budget: float = BEISPIEL_BUDGET_MB) -> list[str]:
+    from pypdf import PdfReader
+    from weasyprint import HTML
+    befunde = rp.pruefe_pdf_ua(pdf, sprache, budget)
+    r = PdfReader(str(pdf))
+    # Jedes <img> ohne aria-hidden (auch geerbt) ist genau eine /Figure; die
+    # anderen muessen Artefakte sein, sonst stuenden sie hier mit.
+    wurzel = HTML(string=html_text).etree_element
+    versteckt = {id(k) for el in wurzel.iter() if el.get("aria-hidden") == "true"
+                 for k in el.iter()}
+    soll = sum(1 for el in wurzel.iter()
+               if str(el.tag).endswith("img") and id(el) not in versteckt)
+    ist = sum(1 for el in rp.strukturelemente(r) if el["/S"] == "/Figure")
+    if ist != soll:
+        befunde.append(f"{ist} /Figure im PDF, aber {soll} Bilder mit Alternativtext "
+                       "– Dekoration steht nicht als Artefakt im PDF")
+    marken = [m for seite in r.pages for m in _seitenzahl_artefakt(seite)]
+    if len(marken) < html_text.count('class="seitenzahl') or not all(marken):
+        befunde.append(f"Seitenzahl: {marken.count(False)} von {len(marken)} im "
+                       "Strukturbaum statt als Artefakt")
+    return befunde
+
+
 def bibliothek_pruefen() -> list[str]:
     befunde = []
     kat = fb.katalog()
@@ -780,6 +834,7 @@ def main() -> None:
         html_text, _ = rp.baue_html(d, BEISPIEL, Path(tmp))
         rp.rendere(html_text, ziel)
         fehler += [f"Beispiel-PDF: {b}" for b in ds.pruefe_pdf(ziel)]
+        fehler += [f"Barrierefrei: {b}" for b in barrierefrei_pruefen(ziel, html_text, d["sprache"])]
         fehler += [f"Kopfseite: {b}" for b in kopfseite_pruefen(ziel, d)]
         # Dasselbe Beispiel mit den drei Schwerpunkt-Folien aus Florians Deck:
         # auch deren Texte muessen Textstile aus tokens.json tragen.
@@ -789,6 +844,12 @@ def main() -> None:
         html_text, _ = rp.baue_html(d, BEISPIEL, Path(tmp))
         rp.rendere(html_text, ziel)
         fehler += [f"Beispiel mit Schwerpunkten: {b}" for b in ds.pruefe_pdf(ziel)]
+        fehler += [f"Barrierefrei mit Schwerpunkten: {b}"
+                   for b in barrierefrei_pruefen(ziel, html_text, d["sprache"])]
+        d["sprache"] = "en"
+        html_text, _ = rp.baue_html(d, BEISPIEL, Path(tmp))
+        if '<html lang="en">' not in html_text:
+            fehler.append("Barrierefrei: sprache „en“ steht nicht in <html lang>")
 
     fehler += [f"Figma-Abgleich {b}" for b in figma_abgleich()]
     fehler += [f"Sprachen: {b}" for b in sprachen_pruefen()]
@@ -811,8 +872,8 @@ def main() -> None:
     print("Selbsttest bestanden: Tokens, Beispiel-PDF, Figma-Abgleich "
           f"({len(list(SOLL.glob('*.json')))} Vorlage(n)), Sprachen, Arbeitsjahre, "
           "Screen-Stil, Statement-Länge, Logo-Proportionen, Graustufen, Fläche, "
-          "Schwerpunkte, Rollenzeile, Kopfseite, Durchkopplung und Bibliotheksweg ohne "
-          "Abweichung.")
+          "Schwerpunkte, Rollenzeile, Kopfseite, Durchkopplung, Bibliotheksweg und "
+          "Barrierefreiheit/Größe (PDF/UA-1) ohne Abweichung.")
 
 
 if __name__ == "__main__":

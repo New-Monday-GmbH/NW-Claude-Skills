@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="{{ sprache }}">
 <head>
 <meta charset="utf-8">
-<title>{{ person.name }} — Lebenslauf</title>
+<title>{{ person.name }} — {{ t.lebenslauf }}</title>
 {# Entwickler-Layout (layout: entwickler, freigegeben am 03.11.2026; Vorlage:
    Figma „Portfolio - CV Master“, Seite Archive, Sektion Tech-CV). Kopf,
    Profilkopf und Fuss wie im UX-Layout; darunter zwei Spalten: links (2/3)
@@ -59,7 +59,7 @@
       {% for s in stationen %}
       <div class="station{% if s.aufgaben %} station--bullets{% endif %}">
         <div class="station__kopf">
-          <div class="station__title">{{ s.titel }}</div>
+          <h3 class="station__title">{{ s.titel }}</h3>
           {% if s.firma %}<div class="station__firma">{{ s.firma }}</div>{% endif %}
           {% if s.zeitraum %}<div class="station__zeitraum">{{ s.zeitraum }}</div>{% endif %}
           {% if s.zusammenfassung %}<p class="station__summary">{{ s.zusammenfassung }}</p>{% endif %}
@@ -71,7 +71,7 @@
         {% if s.technik %}<p class="ew-technik technik">{{ s.technik }}</p>{% endif %}
         {% for p in s.projekte %}
         <div class="project">
-          <div class="project__client">{{ p.kunde }}</div>
+          <h4 class="project__client">{{ p.kunde }}</h4>
           {% if p.zeitraum %}<div class="project__date">{{ p.zeitraum }}</div>{% endif %}
           {% if p.beschreibung %}<p class="project__text">{{ p.beschreibung }}</p>{% endif %}
           {% if p.aufgaben_ew %}
@@ -90,7 +90,7 @@
       {% for p in eigene_projekte %}
       <div class="station{% if p.aufgaben_ew %} station--bullets{% endif %}">
         <div class="station__kopf">
-          <div class="station__title">{{ p.titel }}</div>
+          <h3 class="station__title">{{ p.titel }}</h3>
           {% if p.beschreibung %}<div class="station__firma">{{ p.beschreibung }}</div>{% endif %}
           {% if p.zeitraum %}<div class="station__zeitraum">{{ p.zeitraum }}</div>{% endif %}
         </div>

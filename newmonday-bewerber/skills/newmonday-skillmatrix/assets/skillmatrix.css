@@ -15,6 +15,18 @@
    Pixelmethode zurueck (Chrome), zaehlt die letzte nicht weisse Zeile. */
 body { font-family: "Inter"; }
 
+/* Barrierefreiheit (PDF/UA, references/layout.md): Listen ohne Zeichen;
+   Dekorbilder (Icons, Schatten) sind CSS-Hintergruende - die markiert
+   WeasyPrint als Artefakt, ein <img> dagegen als Abbildung ohne Alternativtext.
+   .vorgelesen traegt die Bewertung als Text fuer Screenreader: getaggt, aber
+   auf 1px beschnitten - unsichtbar und ohne Einfluss aufs Layout. */
+ul { list-style: none; }
+.schatten, .sektionstitel__icon, .zertplatz__icon { background-repeat: no-repeat; background-size: 100% 100%; }
+.vorgelesen {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
 .seite { width: var(--seite-breite); }
 
 /* ---------- Kopf ---------- */

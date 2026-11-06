@@ -20,6 +20,8 @@ Schriften, und alle Funktionen hier nehmen das Ergebnis wie ds selbst:
   - schatten_bild() die Schatten als Bild — WeasyPrint kennt kein box-shadow
   - pruefe_pdf()   das fertige PDF gegen die Tokens: Seitenbreite, Schriften,
                    Textstile, Farben
+  - pruefe_barrierefrei()  PDF/UA-Kennung, Tags, Sprache, Titel, Alternativ-
+                   texte, Ueberschriften, Dateigroesse (BUDGET_KB)
 
 Wer einen Wert aendern will, aendert ihn in tokens.json. CSS, Template und
 figma_plan.py tragen keine eigenen Zahlen.
@@ -370,6 +372,75 @@ def _pruefe_seiten(dokument, ds, fehler):
         fehler.append("Farben ohne Token in Flaechen oder Linien: " + ", ".join(sorted(fremd)))
 
 
+# --- Barrierefreiheit und Groesse ------------------------------------------
+
+# Hoechstgroesse je Fassung in KB: mailtauglich unter 1 MB, das Zweieinhalb-
+# bis Vierfache der Beispielmatrix (6 Zertifikatsbilder, Foto; lang 385, A4
+# 128 KB). Mehr heisst fast immer, dass Bilder ungebremst eingebettet wurden
+# (ohne dpi-Grenze war die Beispielmatrix 4,5 MB gross).
+BUDGET_KB = {"lang": 1000, "a4": 500}
+
+
+def pruefe_barrierefrei(pdf, fassung_name="lang", sprache=None):
+    """Fehlerliste: PDF/UA-Kennung, Tags, Sprache, Titel, Alternativtexte,
+    Ueberschriften und Dateigroesse (references/layout.md, "Barrierefrei und
+    klein"). Liest den Strukturbaum mit pypdf - auch aus komprimierten Objekten."""
+    try:
+        from pypdf import PdfReader
+        from pypdf.generic import ArrayObject, DictionaryObject
+    except ImportError:
+        return ["pypdf fehlt — Barrierefreiheit ungeprueft (pip3 install pypdf)."]
+    fehler = []
+    leser = PdfReader(str(pdf))
+    katalog = leser.trailer["/Root"]
+    xmp = katalog["/Metadata"].get_object().get_data().decode("utf-8", "replace") \
+        if "/Metadata" in katalog else ""
+    if not re.search(r'pdfuaid:part(="|>)1', xmp):
+        fehler.append("Keine PDF/UA-Kennung (pdfuaid:part 1) in den XMP-Metadaten.")
+    if not (katalog.get("/MarkInfo") or {}).get("/Marked"):
+        fehler.append("/MarkInfo /Marked fehlt — das PDF ist nicht als getaggt markiert.")
+    lang = str(katalog.get("/Lang") or "")
+    if not lang or (sprache and not lang.lower().startswith(sprache.lower())):
+        fehler.append(f"Dokumentsprache /Lang ist „{lang}“, erwartet „{sprache or 'gesetzt'}“.")
+    if not (katalog.get("/ViewerPreferences") or {}).get("/DisplayDocTitle"):
+        fehler.append("DisplayDocTitle fehlt — der Viewer zeigt den Dateinamen statt des Titels.")
+    titel = str((leser.metadata or {}).get("/Title") or "")
+    if not titel.strip() or "<dc:title>" not in xmp:
+        fehler.append("Dokumenttitel fehlt (Dokumentinfo /Title und dc:title in XMP).")
+    if "/StructTreeRoot" not in katalog:
+        fehler.append("/StructTreeRoot fehlt — das PDF hat keinen Strukturbaum.")
+    else:
+        ebenen, ohne_alt = [], 0
+        stapel = [katalog["/StructTreeRoot"].get("/K")]
+        while stapel:                       # Tiefensuche in Dokumentreihenfolge
+            k = stapel.pop()
+            k = k.get_object() if hasattr(k, "get_object") else k
+            if isinstance(k, ArrayObject):
+                stapel.extend(reversed(k))
+            elif isinstance(k, DictionaryObject) and "/S" in k:   # MCIDs/OBJR: kein /S
+                art = str(k["/S"])
+                if art == "/Figure" and not str(k.get("/Alt") or "").strip():
+                    ohne_alt += 1
+                if re.fullmatch(r"/H[1-6]", art):
+                    ebenen.append(int(art[2]))
+                if "/K" in k:
+                    stapel.append(k["/K"])
+        if ohne_alt:
+            fehler.append(f"{ohne_alt} Abbildung(en) ohne Alternativtext (/Figure ohne /Alt) — "
+                          "Dekoration gehoert als CSS-Hintergrund ins Template, nicht als <img>.")
+        if ebenen.count(1) != 1:
+            fehler.append(f"{ebenen.count(1)} Ueberschriften H1 statt genau einer (der Name).")
+        spruenge = sorted({f"H{a}→H{b}" for a, b in zip([0] + ebenen, ebenen) if b > a + 1})
+        if spruenge:
+            fehler.append("Ueberschriften springen eine Ebene: " + ", ".join(spruenge) + ".")
+    kb = Path(pdf).stat().st_size / 1024
+    budget = BUDGET_KB[fassung_name or "lang"]
+    if kb > budget:
+        fehler.append(f"Datei {kb:.0f} KB, Budget {budget} KB — Bilder zu gross eingebettet? "
+                      "render_skillmatrix.py PDF_OPTIONEN (dpi) pruefen, Bilddateien ansehen.")
+    return fehler
+
+
 def main():
     if len(sys.argv) >= 2 and sys.argv[1] == "css":
         print(css(fassung(laden(), sys.argv[2] if len(sys.argv) > 2 else "lang")))
@@ -377,12 +448,16 @@ def main():
     if len(sys.argv) >= 3 and sys.argv[1] == "pruefe":
         name = sys.argv[3] if len(sys.argv) > 3 else "lang"
         fehler, hinweise = pruefe_pdf(sys.argv[2], fassung(laden(), name))
+        zugang = pruefe_barrierefrei(sys.argv[2], name)
         for h in hinweise:
             print(f"Hinweis: {h}")
-        for f in fehler:
+        for f in fehler + zugang:
             print(f"FEHLER: {f}")
         if not fehler:
             print("Design System eingehalten: Seitenbreite, Schriften, Textstile, Farben.")
+        if not zugang:
+            print(f"Barrierefrei (PDF/UA-1) und unter {BUDGET_KB[name]} KB.")
+        fehler += zugang
         sys.exit(1 if fehler else 0)
     raise SystemExit(__doc__)
 

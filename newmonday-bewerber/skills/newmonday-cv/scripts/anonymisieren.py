@@ -12,7 +12,8 @@ person.name abgeleitet sind: der Dateiname des PDF, der PDF-Titel in den
 Metadaten und die Frame-Namen im Figma-Plan.
 
 Voreingestellt ist nur die Person — Name zu Initialen, Links weg, Silhouette
-statt Foto, Namensnennungen im Fliesstext ersetzt. Arbeitgeber, Logos, Bildung,
+statt Foto, Namensnennungen im Fliesstext ersetzt, Berufsbezeichnungen der
+Person in der Doppelpunkt-Form ("UX-Designer:in", geschlecht.py; nur Deutsch). Arbeitgeber, Logos, Bildung,
 Zertifikate und Zeitraeume bleiben stehen: sie sind der Grund, warum ein Kunde
 das Dokument ueberhaupt liest. Weitergehendes steht auf Schaltern, und dort nur, was sich
 mechanisch entscheiden laesst:
@@ -37,6 +38,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from render_cv import MONATE, logoliste, zert_datum  # noqa: E402  — erst nach sys.path.insert moeglich
+import geschlecht  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
@@ -623,6 +625,15 @@ def main():
             f"{grund}. Ist an einer Stelle doch die Person gemeint, gehoert sie "
             "von Hand in die cv.json.")
 
+    # Aus der Bezeichnung darf nicht hervorgehen, ob Mann oder Frau: die
+    # Doppelpunkt-Form ("UX-Designer:in"), entschieden am 05.11.2026. Nur
+    # Deutsch; was danach noch auf ein Geschlecht deutet, wird gemeldet.
+    neutral = geschlecht.neutralisieren(daten)
+    hinweise += [f"Geschlecht erkennbar — {m}" for m in geschlecht.restmeldungen(daten)]
+    # Fuer den Renderer: Alternativtext des Platzhalters statt "Portraetfoto
+    # von ..." - nicht aus dem Dateinamen geraten.
+    daten["anonym"] = True
+
     gekuerzt = jahre_kuerzen(daten) if jahre else []
 
     # Erst ganz zum Schluss suchen: gemeldet wird nur, was auch nach allen
@@ -649,6 +660,8 @@ def main():
     for pfad, gefunden, ersatz, stelle in treffer:
         print(f'  {pfad}: "{gefunden}" -> "{ersatz}"')
         print(f"    {stelle}")
+    abschnitt(f"Bezeichnungen neutral gesetzt ({len(neutral)}):",
+              [f"{pfad}: „{alt}“ -> „{neu}“" for pfad, alt, neu in neutral])
     abschnitt(f"Zeitraeume auf Jahre gekuerzt ({len(gekuerzt)}):", gekuerzt)
     abschnitt(f"Firmen ersetzt ({len(firmen)}):", firmen)
     abschnitt("Logos entfernt — sie verrieten die ersetzte Firma sofort wieder:",

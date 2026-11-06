@@ -76,6 +76,147 @@ def pruefe(pdf):
 
 ADRESSE = "Stresemannstr. 23"
 
+# Groessenbudget je Lebenslauf-PDF. Das Beispiel traegt ein Foto (bei 300 dpi
+# 329 x 442 px in Graustufen, rund 57 KB), drei Rasterlogos und die Schriften
+# als Teilmenge: 124 KB. Ohne die Bildbegrenzung waren es 337 KB - genau
+# diesen Rueckfall faengt das Budget, mit Luft fuer mehr Logos.
+PDF_BUDGET = 200 * 1024
+
+# Eine feminine Form ohne Trenner ("Designerin") - in Dateiname und Titel der
+# anonymen Fassung darf sie nicht stehen ("Designer-in" ist neutral).
+FEMININ = re.compile(r"(?<![-:*/_])\b\w{3,}(?:erin|istin|entin|antin|ektin|eurin|orin)\b")
+
+
+def barrierefrei(pdf, sprache, foto_alt=None):
+    """PDF/UA-1 am fertigen PDF: Tags, Sprache, Kennung, Titel, Alternativtexte,
+    Ueberschriften, Groesse. Gibt Fehler zurueck.
+
+    pypdf liest die komprimierten Objekte selbst; der Strukturbaum wird ueber
+    /K abgelaufen, MCIDs (Zahlen) und Inhaltsverweise ohne /S uebersprungen.
+    """
+    from pypdf import PdfReader
+    from pypdf.generic import ArrayObject, DictionaryObject
+    name = Path(pdf).name
+    root = PdfReader(str(pdf)).trailer["/Root"]
+    fehler = []
+    if not (root.get("/MarkInfo") or {}).get("/Marked"):
+        fehler.append(f"Barrierefrei {name}: /MarkInfo Marked fehlt")
+    if str(root.get("/Lang") or "") != sprache:
+        fehler.append(f"Barrierefrei {name}: /Lang ist {root.get('/Lang')!r} statt {sprache!r}")
+    xmp = root["/Metadata"].get_object().get_data() if "/Metadata" in root else b""
+    if b'pdfuaid:part="1"' not in xmp:
+        fehler.append(f"Barrierefrei {name}: keine PDF/UA-1-Kennung (pdfuaid) in den XMP-Metadaten")
+    if b"<dc:title>" not in xmp:
+        fehler.append(f"Barrierefrei {name}: dc:title fehlt in den XMP-Metadaten")
+    if not (root.get("/ViewerPreferences") or {}).get("/DisplayDocTitle"):
+        fehler.append(f"Barrierefrei {name}: DisplayDocTitle fehlt")
+    groesse = Path(pdf).stat().st_size
+    if groesse > PDF_BUDGET:
+        fehler.append(f"Barrierefrei {name}: {groesse // 1024} KB, Budget {PDF_BUDGET // 1024} KB")
+    if "/StructTreeRoot" not in root:
+        return fehler + [f"Barrierefrei {name}: kein /StructTreeRoot - nicht getaggt"]
+
+    ebenen, figuren = [], []
+
+    def lauf(k):
+        k = k.get_object()
+        if isinstance(k, ArrayObject):
+            for x in k:
+                lauf(x)
+        elif isinstance(k, DictionaryObject) and "/S" in k:
+            art = str(k["/S"])
+            if re.fullmatch(r"/H[1-6]", art):
+                ebenen.append(int(art[2]))
+            if art == "/Figure":
+                figuren.append(str(k["/Alt"]) if "/Alt" in k else None)
+            if "/K" in k:
+                lauf(k["/K"])
+    lauf(root["/StructTreeRoot"]["/K"])
+
+    if ebenen.count(1) != 1 or ebenen[:1] != [1]:
+        fehler.append(f"Barrierefrei {name}: {ebenen.count(1)} H1 statt genau einer vorn")
+    spruenge = [(a, b) for a, b in zip(ebenen, ebenen[1:]) if b > a + 1]
+    if spruenge:
+        fehler.append(f"Barrierefrei {name}: Ueberschriftenebenen springen {spruenge[:3]}")
+    if not figuren or None in figuren or "" in figuren:
+        fehler.append(f"Barrierefrei {name}: Abbildung ohne Alternativtext ({figuren})")
+    if foto_alt and not any(foto_alt in (f or "") for f in figuren):
+        fehler.append(f"Barrierefrei {name}: kein Bild mit Alternativtext „{foto_alt}“ ({figuren})")
+    return fehler
+
+
+def pruefe_geschlecht(tmp):
+    """Berufsbezeichnungen: Mischung melden (vollstaendige Fassung), neutral
+    setzen (anonyme Fassung). Eine feminine und eine maskuline cv.json muessen
+    in der anonymen Fassung dieselben Texte ergeben."""
+    from render_cv import pruefe as render_pruefe
+    fehler = []
+    basis = json.loads((WURZEL / "beispiel" / "cv.json").read_text(encoding="utf-8"))
+    del basis["stationen"][1:]
+
+    def fassung(endung, rolle_x):
+        d = json.loads(json.dumps(basis))
+        d["person"]["rolle"] = f"Senior UX / UI Designer{endung}"
+        d["person"]["kurzprofil"] = (
+            f"Als UX-Designer{endung} habe ich Workshops geleitet. Als "
+            f"Customer-Insight-Manager{endung} betreute ich Zusteller:innen. "
+            "Koordination des UI-Designers. Schulungen für Entwickler.")
+        d["stationen"] += [
+            {"titel": f"UX/UI-Designer{endung}", "firma": "Designer GmbH", "zeitraum": "2020 - 2021"},
+            {"titel": f"Founding Product / UX-Designer{endung}", "firma": "X", "zeitraum": "2019 - 2020"},
+            {"titel": f"{rolle_x}, Berater{endung} für Barrierefreiheit", "firma": "Y",
+             "zeitraum": "2018 - 2019", "aufgaben": [f"Rolle: Frontend-Entwickler{endung}"]}]
+        return d
+
+    soll = {"rolle": "Senior UX / UI Designer:in",
+            "kurzprofil": ("Als UX-Designer:in habe ich Workshops geleitet. Als "
+                           "Customer-Insight-Manager:in betreute ich Zusteller:innen. "
+                           "Koordination des UI-Designers. Schulungen für Entwickler."),
+            "titel": ["UX/UI-Designer:in", "Founding Product / UX-Designer:in",
+                      "Werkstudent:in, Berater:in für Barrierefreiheit"],
+            "aufgabe": "Rolle: Frontend-Entwickler:in", "firma": "Designer GmbH"}
+    for wer, d in (("feminin", fassung("in", "Werkstudentin")),
+                   ("maskulin", fassung("", "Werkstudent"))):
+        if any("gemischt" in h for h in render_pruefe(json.loads(json.dumps(d)))):
+            fehler.append(f"Geschlecht: einheitlich {wer}e Fassung als gemischt gemeldet")
+        anonym, lauf = _anonymisiere(tmp, d, "Timo Muster")
+        if anonym is None:
+            fehler.append(f"Geschlecht: anonymisieren ({wer}) brach ab — {lauf.stderr[-200:]}")
+            continue
+        ist = {"rolle": anonym["person"]["rolle"], "kurzprofil": anonym["person"]["kurzprofil"],
+               "titel": [s["titel"] for s in anonym["stationen"][1:]],
+               "aufgabe": anonym["stationen"][-1]["aufgaben"][0],
+               "firma": anonym["stationen"][1]["firma"]}
+        for feld in soll:
+            if ist[feld] != soll[feld]:
+                fehler.append(f"Geschlecht ({wer}): {feld} ist {ist[feld]!r}, soll {soll[feld]!r}")
+        if anonym.get("anonym") is not True:
+            fehler.append("Geschlecht: cv-anonym.json traegt kein \"anonym\": true")
+
+    # Mischung aus zwei Quellen: LinkedIn "UX/UI-Designer", Lebenslauf "Designerin".
+    gemischt = json.loads(json.dumps(basis))
+    gemischt["person"]["rolle"] = "UX-Designerin"
+    gemischt["stationen"].append({"titel": "UX/UI-Designer", "firma": "Z", "zeitraum": "2020"})
+    if not any("gemischt" in h for h in render_pruefe(gemischt)):
+        fehler.append("Geschlecht: „Designerin“ neben „Designer“ nicht als gemischt gemeldet")
+
+    # Was danach noch verraet, kommt unter „Pruefen“; Englisch bleibt, wie es ist.
+    rest = fassung("in", "Werkstudentin")
+    rest["person"]["kurzprofil"] += " Sie leitete das Team von Frau Weber."
+    _, lauf = _anonymisiere(tmp, rest, "Timo Muster")
+    if "Pronomen „Sie“" not in lauf.stderr or "Anrede „Frau“" not in lauf.stderr:
+        fehler.append("Geschlecht: Pronomen/Anrede nicht unter „Pruefen“ gemeldet")
+    en = json.loads(json.dumps(basis))
+    en.update(sprache="en")
+    en["person"].update(rolle="UX Designer", kurzprofil="She led research. Her team grew.")
+    anonym, lauf = _anonymisiere(tmp, en, "Timo Muster")
+    if anonym is None or anonym["person"]["rolle"] != "UX Designer" \
+            or anonym["person"]["kurzprofil"] != en["person"]["kurzprofil"]:
+        fehler.append("Geschlecht: englischer Text wurde umgeschrieben")
+    if "„She“" not in lauf.stderr or "„Her“" not in lauf.stderr:
+        fehler.append("Geschlecht: she/her im englischen Text nicht gemeldet")
+    return fehler
+
 
 # Nachbau einer oeffentlichen Profilseite: oben das Foto der Person im
 # og:image-Tag, darunter — wie im Original unter "Weitere aehnliche Profile" —
@@ -712,6 +853,8 @@ def pruefe_zertifikate(tmp):
         fehler.append("Zertifikate englisch: PDF nicht gerendert")
     elif "Certificates" not in norm(PdfReader(str(ziel)).pages[0].extract_text()):
         fehler.append("Zertifikate englisch: „Certificates“ fehlt auf Seite 1")
+    else:
+        fehler += barrierefrei(ziel, "en", "Portrait photo of Florian Feiler")
 
     # Aeltere cv.json und alter Aufruf: zertifikate_darstellung und
     # --zertifikate werden ignoriert und gemeldet, es entstehen trotzdem Tags.
@@ -1769,7 +1912,7 @@ def pruefe_anonym(pdf, tmp):
 
     from pypdf import PdfReader
     leser = PdfReader(str(anonym_pdf))
-    fehler = []
+    fehler = barrierefrei(anonym_pdf, "de", "Platzhalter statt Profilfoto")
 
     text = " ".join(" ".join((s.extract_text() or "").split()) for s in leser.pages)
     for verboten in (ANONYM_NAME, vorname, nachname):
@@ -1794,6 +1937,16 @@ def pruefe_anonym(pdf, tmp):
         fehler.append(f"Anonym: Verweis noch im PDF — {offen[0]}")
 
     titel = str((leser.metadata or {}).get("/Title") or "")
+    # Kein Geschlecht in Dateiname und Titel: aus "UX-Designer:in" macht der
+    # Dateiname "UX-Designer-in" - neutral; "Designerin" oder blosses
+    # "Designer" waeren es nicht.
+    for wo, wert in (("Dateiname", anonym_pdf.name), ("PDF-Titel", titel)):
+        if FEMININ.search(wert):
+            fehler.append(f"Anonym: der {wo} verraet das Geschlecht — {wert}")
+    if "UX-Designer-in" not in anonym_pdf.name:
+        fehler.append(f"Anonym: die Rolle steht im Dateinamen nicht neutral — {anonym_pdf.name}")
+    if "Designer:in" not in text:
+        fehler.append("Anonym: „Designer:in“ steht nicht im PDF — Bezeichnung nicht neutral gesetzt")
     if any(t.lower() in titel.lower() for t in (vorname, nachname)):
         fehler.append(f"Anonym: der PDF-Titel traegt den Namen — {titel!r}")
     elif ANONYM_KUERZEL not in titel:
@@ -1902,9 +2055,16 @@ def pruefe_entwickler(tmp):
         fehler.append("Entwickler: Weiterbildung steht nicht auf Seite 1")
     if "Weitere Tools" not in texte[0]:
         fehler.append("Entwickler: Tools ohne IT-Gruppe (Jira) fehlen unter „Weitere Tools“")
+    fehler += barrierefrei(pdf, "de")
     anonym, _ = _anonymisiere(tmp, daten, daten["person"]["name"])
     if anonym is None or any(p.get("link") for p in anonym.get("projekte") or []):
         fehler.append("Entwickler: Repository-Link steht noch in der anonymen Fassung")
+    if anonym is not None:
+        anonym_pdf, lauf, _ = _rendern(tmp, anonym, "entwickler-anonym")
+        if not anonym_pdf.exists():
+            fehler.append(f"Entwickler: anonymes PDF nicht gerendert — {lauf.stderr[-200:]}")
+        else:
+            fehler += barrierefrei(anonym_pdf, "de", "Platzhalter statt Profilfoto")
     fehler += _pruefe_entwickler_figma(daten, pdf, json.loads(stufen.read_text(encoding="utf-8")))
     return fehler
 
@@ -1961,6 +2121,8 @@ def main():
 
         print(lauf.stdout.strip())
         seiten, breite, hoehe, schriften, bilder, fehler = pruefe(ziel)
+        fehler += barrierefrei(ziel, "de", "Porträtfoto von Florian Feiler")
+        fehler += pruefe_geschlecht(tmp)
         fehler += pruefe_gleicher_titel(tmp)
         fehler += pruefe_verweise(tmp)
         fehler += pruefe_stationsumbruch(tmp)
@@ -2007,6 +2169,9 @@ def main():
     print(f"  Logos:     SVG-Verhaeltnisse richtig gelesen, im Plan unverzerrt, add_logo mit Kontrollbild")
     print(f"  Bibliothek: neue Logos ausserhalb des Skills, vor dem Grundstock gefunden, Uebernahme ins Repo")
     print(f"  Entwickler: 2/3 Stationen, 1/3 IT-Kompetenzen und Weiterbildung, Technik in Markenfarbe, Ausbildung hinten")
+    print(f"  Barrierefrei: PDF/UA-1 getaggt, Sprache, Titel, Alternativtexte, H1 bis H4 ohne Sprung - beide Fassungen, beide Layouts, de und en")
+    print(f"  Groesse:   jedes Beispiel-PDF unter {PDF_BUDGET // 1024} KB (Bilder auf 300 dpi)")
+    print(f"  Geschlecht: Mischung gemeldet, anonym neutral (Designer:in), feminin = maskulin, en unveraendert")
     print(f"  Adresse:   {ADRESSE} im Footer")
 
     if fehler:
