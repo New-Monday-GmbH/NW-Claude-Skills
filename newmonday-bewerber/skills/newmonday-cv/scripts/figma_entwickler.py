@@ -270,7 +270,8 @@ for (const t of seite.children.filter(n => /^_Bild (FILL|FIT) → /.test(n.name)
 }
 const PLATZHALTER = /^(Vorname Nachname|Rolle|Abschnittstitel|Gruppentitel|Aufgabe|Hochschule|Abschluss|Zeitraum|X\+ Jahre Erfahrung)$/;
 for (const name of NAMEN) {
-  const F = seite.children.find(n => n.name === name);
+  // Gleichnamige Frames eines frueheren Laufs: der zuletzt angelegte gilt.
+  const F = seite.children.filter(n => n.name === name).pop();
   if (!F) { befunde.push(`Seite ${name} fehlt`); continue; }
   const sichtbar = n => { for (let p = n; p && p !== F; p = p.parent) if (p.visible === false) return false; return true; };
   for (const t of F.findAll(n => n.type === "TEXT" && sichtbar(n))) {
@@ -309,7 +310,9 @@ def main():
                         f"{SKRIPT_GRENZE}; use_figma nimmt es womöglich nicht.")
     (ordner / "figma_entwickler_bau.js").write_text(bau, encoding="utf-8")
     namen = [f"{plan['name']} – Seite {n + 1}" for n in range(len(plan["seiten"]))]
-    bild = (BILD.replace("__SEITE__", json.dumps(seite or "__SEITE__"))
+    # Nur die Zuweisung ersetzen - die Pruefzeile vergleicht weiter mit dem
+    # Platzhalter (sonst stuende dort ""0:1"" und das Skript liefe nicht).
+    bild = (BILD.replace("const S = __SEITE__", "const S = " + json.dumps(seite or "__SEITE__"))
             .replace("__NAMEN__", json.dumps(namen, ensure_ascii=False))
             .replace("__VERBOTEN__", json.dumps([t for t in norm(verboten).split() if len(t) > 2]
                                                 if verboten else [], ensure_ascii=False)))
