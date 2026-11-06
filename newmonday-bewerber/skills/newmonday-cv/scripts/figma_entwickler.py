@@ -68,9 +68,11 @@ def marke_von(text, woerter=6):
     return " ".join(norm(text).split()[:woerter])
 
 
-def hauptbloecke(daten, ew, labels):
-    """Die Bloecke der Hauptspalte in Lesereihenfolge, je mit Abstand und Marke."""
-    en, a = T["entwickler"], T["abstand"]
+def hauptbloecke(daten, ew, labels, st_stufe="normal"):
+    """Die Bloecke der Hauptspalte in Lesereihenfolge, je mit Abstand und Marke.
+    st_stufe: Notstufe der Stationen aus stufen.json, wie im PDF."""
+    en = dict(T["entwickler"], **T["verdichtung"]["entwickler_stationen"][st_stufe])
+    a = T["abstand"]
     dn = T["verdichtung"]["deckblatt"]["normal"]
     b = []
 
@@ -84,7 +86,10 @@ def hauptbloecke(daten, ew, labels):
         erster[0] = False
 
     def kopf(titel, zeilen, oben, **rest):
-        dazu("kopf", titel, oben, titel=titel, zeilen=zeilen, **rest)
+        # Marke aus Titel UND erster Zeile (Firma): ein Titel allein steht oft
+        # schon als Rolle im Profilkopf („Cloud & DevOps Engineer“).
+        marke = titel + (" " + zeilen[0]["text"] if zeilen else "")
+        dazu("kopf", marke, oben, titel=titel, zeilen=zeilen, **rest)
 
     # Firmenlogo ueber dem Stationstitel (seit 06.11.2026) - wie im PDF.
     groesse = logo_groessen(daten)[0]
@@ -215,7 +220,10 @@ def plan_bauen(daten, pdf, stufen, seite=None, unter=None):
     labels = BESCHRIFTUNG.get(sprache, BESCHRIFTUNG["de"])
     ew, _ = entwickler_aufbereiten(daten)
     texte = seitentexte(pdf)
-    haupt, hinweise = seiten_verteilen(hauptbloecke(daten, ew, labels), texte)
+    st_stufe = (stufen or {}).get("stationen", "normal")
+    if st_stufe not in T["verdichtung"]["entwickler_stationen"]:
+        st_stufe = "normal"
+    haupt, hinweise = seiten_verteilen(hauptbloecke(daten, ew, labels, st_stufe), texte)
     if len(haupt) < len(texte):
         haupt += [[] for _ in range(len(texte) - len(haupt))]
     stufe = (stufen or {}).get("deckblatt", "normal")

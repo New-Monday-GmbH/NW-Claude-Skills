@@ -998,6 +998,10 @@ Nutzers vom 06.11.2026). Hat das PDF mehr, meldet `render_cv.py` ganz oben
 „ZU LANG: <n> Seiten“. Dann werden **lange Stichpunkte gestrafft**, bis es
 passt – das ist die dritte Ausnahme von der Regel oben, und sie ist eng:
 
+- **Gestrafft werden Stichpunkte und, wenn das nicht reicht, die Beschreibung
+  einer Station** (Fließtext unter dem Kopf) – nach denselben Regeln. Vorher
+  setzt `render_cv.py` die Abstände der Stationen von selbst enger, wenn sonst
+  nur der Fuß auf der letzten Seite stünde.
 - **Straffen heißt auf den Kern bringen:** was getan wurde, womit, mit welchem
   Ergebnis. Raus fallen Füllwörter, Nebensätze, Wiederholungen derselben
   Floskel in jedem Punkt („for the German-speaking team“) und Wirkungsketten

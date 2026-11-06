@@ -18,7 +18,7 @@
 
 {% include "_kopf.html" %}
 
-<div class="ew{% if stufe != 'normal' %} ew--{{ stufe }}{% endif %}">
+<div class="ew{% if stufe != 'normal' %} ew--{{ stufe }}{% endif %}{% if stationen_kompakt %} ew-st--{{ stationen_kompakt }}{% endif %}">
   <div class="ew-seite">
     {% if it_kompetenzen %}
     <div class="ew-block">

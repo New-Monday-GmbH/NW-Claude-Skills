@@ -293,6 +293,14 @@ ul.tight { padding-left: {{ pt(r.listeneinzug) }}; list-style: disc; {{ css("lis
 .ew-link .intro__link { display: inline-block; }
 .ew .project { margin-top: {{ pt(en.projekt) }}; }
 .ew-eintrag + .ew-eintrag { margin-top: {{ pt(dn.gruppen) }}; }
+/* Notstufen der Hauptspalte (verdichtung.entwickler_stationen): nur wenn der
+   Footer sonst allein auf der letzten Seite stuende. */
+{% for stufe, w in tok.verdichtung.entwickler_stationen.items() if stufe != "normal" %}
+.ew-st--{{ stufe }} .station + .station { margin-top: {{ pt(w.station) }}; }
+.ew-st--{{ stufe }} .station > ul.tasks { margin-top: {{ pt(w.kopf_aufgaben) }}; }
+.ew-st--{{ stufe }} ul.tasks li + li, .ew-st--{{ stufe }} .ew-technik, .ew-st--{{ stufe }} .ew-link { margin-top: {{ pt(w.aufgaben) }}; }
+.ew-st--{{ stufe }} .project { margin-top: {{ pt(w.projekt) }}; }
+{% endfor %}
 
 /* Reicht Seite 1 fuer die Seitenspalte nicht, setzt render_cv.py sie enger -
    nur Abstaende, nie Schriftgroessen (verdichtung.entwickler). */
