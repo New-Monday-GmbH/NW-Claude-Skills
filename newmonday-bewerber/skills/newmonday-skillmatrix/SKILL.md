@@ -495,9 +495,33 @@ lesen – er ist der Wortschatz der Matrix.
 
 #### 2a. Kategorien festlegen
 
-Kategorien werden **nicht erfunden und nicht umgebaut**. Genommen werden
-Abschnittstitel aus `references/attribute-katalog.md` – dort stehen dreizehn,
-und sie decken jedes Profil ab, das dieses Haus vermittelt.
+**Die Kategorien richten sich nach dem Jobtitel, und die Matrix speist sich aus
+dem Lebenslauf.** Maßgeblich ist die Rolle aus dem Lebenslauf (im Gesamtlauf die
+NM-Rolle `entscheidungen.newmonday-cv.nm_rolle`, sonst die Rolle aus 2c); die
+Attribute kommen aus dessen Stationen, Projekten und Weiterbildungen, belegt wie
+immer. Welcher Katalog gilt, entscheidet die Rolle:
+
+- **UX-Rolle** (UX/UI Design, User Research, Service- und Produktdesign):
+  Abschnittstitel aus `references/attribute-katalog.md` – dort stehen dreizehn.
+- **Jede andere Rolle** (Business Analyst, Data Analyst, Entwickler, Consultant
+  …): der Rollenkatalog in `references/rollen/`, der zur Rolle passt (etwa
+  `business-data-analyst.md`). Kategorien, Namen und Beschreibungen kommen dann
+  von dort; UX-Kategorien wie „User Research & Insights“ stehen in solchen
+  Matrizen nicht.
+- **Gibt es für die Rolle noch keinen Rollenkatalog**, entsteht er in diesem
+  Lauf: drei bis fünf Kategorien, die die Rolle fachlich gliedern (englisch,
+  kurz, Fachbegriffe wie im UX-Katalog), die belegten Attribute darin, neue
+  Attribute nach „Neue Attribute formulieren“ im UX-Katalog; Katalog-Attribute
+  aus dem UX-Katalog, die passen, mit Name und Beschreibung wörtlich. Die
+  Kategorien stehen in der Freigabe (2e) zur Bestätigung. Nach dem Lauf kommt
+  der Katalog als `references/rollen/<rolle>.md` ins Repo (Format wie
+  `business-data-analyst.md`) – so wächst der Katalog mit jeder neuen Rolle. Ein
+  bestehender Rollenkatalog wird genauso ergänzt, wenn ein Lauf neue Attribute
+  für ihn belegt.
+
+Innerhalb eines Katalogs werden Kategorien **nicht erfunden und nicht
+umgebaut**. Das Renderskript wählt den Katalog nach den Kategorien der Matrix
+(`katalog_fuer`) und meldet jede Kategorie, die in ihm fehlt.
 
 **Jedes Attribut steht in seiner Katalog-Kategorie, wenn die in der Matrix
 vorkommt** – sonst in der inhaltlich nächsten Kategorie der Matrix, nie in einer
@@ -1008,6 +1032,9 @@ Beide PDFs ausgeben und in wenigen Zeilen berichten:
 - Die generierte Hero-Beschreibung im Wortlaut (falls seit der Freigabe
   geändert), mit Bitte um finalen Blick – ebenso Satz und Tags der Karte
   „Erworbene Qualifikationen“ mit dem Zertifikat je Tag, unter „Zur Freigabe“.
+- Welcher Katalog galt (UX oder Rollenkatalog) und – bei neuer Rolle oder
+  neuen Attributen – der Rollenkatalog zum Übernehmen ins Repo
+  (`references/rollen/<rolle>.md`, 2a).
 - Welche Attribute **nicht** aus dem Katalog stammen und neu formuliert
   wurden, welche Namen nach der Namensregel deutsch stehen, welche Attribute in
   einer nächstverwandten Kategorie stehen (Wortlaut der Hinweise) und – nur wenn
@@ -1082,6 +1109,9 @@ Fehlt nichts, steht hier nichts.
 - **Die Reihenfolge der Kategorien folgt der Anfrage**: Mit Anfrage steht die
   Kategorie zuerst, die für sie am wichtigsten ist, danach absteigend nach
   Bedeutung; ohne Anfrage steht die KI-Kategorie zuerst, danach die stärkste.
+- **Die Kategorien folgen dem Jobtitel**: UX-Rollen aus dem UX-Katalog, jede
+  andere Rolle aus ihrem Rollenkatalog in `references/rollen/` – fehlt er,
+  entsteht er im Lauf und kommt danach ins Repo.
 - **Jedes Attribut steht in seiner Katalog-Kategorie**, wenn die in der Matrix
   vorkommt, sonst in der nächstverwandten – nie in einer fachfremden und nie in
   der, die eine alte Matrix ihm gegeben hat. Höchstens fünf Kategorien, sechs
