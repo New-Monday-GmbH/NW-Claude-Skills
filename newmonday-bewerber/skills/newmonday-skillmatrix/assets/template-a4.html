@@ -42,14 +42,18 @@
     <div class="profil__text">
       <h1 class="profil__name t-hero-name">{{ person.name }}</h1>
       <div class="t-hero-rolle">{{ person.rolle }}</div>
+      {# Das Badge steht in der laufenden Kopfzeile; Inhalt der Seitenraender
+         nimmt WeasyPrint nicht in den Strukturbaum auf. Fuer Screenreader
+         deshalb hier noch einmal, unsichtbar. #}
+      <span class="vorgelesen t-badge">{{ t.verfuegbar }} {{ person.verfuegbar_ab }}</span>
       {% if person.schwerpunkte %}
-      <div class="schwerpunkte">
-        {% for s in person.schwerpunkte %}<span class="schwerpunkt t-schwerpunkt">{{ s }}</span>{% endfor %}
-      </div>
+      <ul class="schwerpunkte">
+        {% for s in person.schwerpunkte %}<li class="schwerpunkt t-schwerpunkt">{{ s }}</li>{% endfor %}
+      </ul>
       {% endif %}
     </div>
     <div class="fotokarte">
-      {% if person.foto %}<img class="fotokarte__bild" src="{{ person.foto }}" alt="">{% endif %}
+      {% if person.foto %}<img class="fotokarte__bild" src="{{ person.foto }}" alt="{{ t.foto.format(name=person.name) }}">{% endif %}
     </div>
   </div>
   <p class="hero__beschreibung t-hero-beschreibung">{{ person.beschreibung }}</p>
@@ -58,11 +62,11 @@
 {# Bild eingepasst (Seitenverhaeltnis der Datei), sonst Platzhalterfeld. #}
 {% macro zertbild(e) -%}
   {%- if e.src -%}
-  <img class="zertbild" src="{{ e.src }}" alt="" style="width: {{ e.a4_breite }}pt; height: {{ e.a4_hoehe }}pt">
+  <img class="zertbild" src="{{ e.src }}" alt="{{ t.zert_bild.format(titel=e.titel) }}" style="width: {{ e.a4_breite }}pt; height: {{ e.a4_hoehe }}pt">
   {%- else -%}
   <div class="zertplatz" style="width: {{ e.a4_breite }}pt; height: {{ e.a4_hoehe }}pt">
     {%- if e.art == 'buendel' %}<span class="t-zert-anzahl">+{{ e.anzahl }}</span>
-    {%- else %}<img class="zertplatz__icon" src="icon-zertifikat.svg" alt="">{% endif -%}
+    {%- else %}<i class="zertplatz__icon" style="background-image: url(icon-zertifikat.svg)"></i>{% endif -%}
   </div>
   {%- endif -%}
 {%- endmacro %}
@@ -73,32 +77,32 @@
   {% if z %}
   <section class="sektion zertsektion">
     <h2 class="sektionstitel t-sektion-titel" data-block="zert-titel">
-      <img class="sektionstitel__icon" src="icon-zertifikat.svg" alt=""><span>{{ t.zertifikate }}</span>
+      <i class="sektionstitel__icon" style="background-image: url(icon-zertifikat.svg)"></i><span>{{ t.zertifikate }}</span>
     </h2>
     {% if z.karte %}
     <div class="qualikarte" data-block="zert-karte">
-      <div class="t-quali-titel">{{ t.qualifikationen }}</div>
+      <h3 class="t-quali-titel">{{ t.qualifikationen }}</h3>
       <div class="qualikarte__block">
         {% if z.karte.text %}<p class="t-quali-text">{{ z.karte.text }}</p>{% endif %}
         {% if z.karte.tags %}
-        <div class="qualikarte__tags{% if z.karte.text %} qualikarte__tags--nach-text{% endif %}">
-          {% for tag in z.karte.tags %}<span class="qualitag t-quali-tag">{{ tag }}</span>{% endfor %}
-        </div>
+        <ul class="qualikarte__tags{% if z.karte.text %} qualikarte__tags--nach-text{% endif %}">
+          {% for tag in z.karte.tags %}<li class="qualitag t-quali-tag">{{ tag }}</li>{% endfor %}
+        </ul>
         {% endif %}
       </div>
     </div>
     {% endif %}
     <div class="zk">
       {% for zeile in z.eintraege | batch(g.spalten) %}
-      <div class="zk__zeile" data-block="zert-zeile-{{ loop.index }}">
+      <ul class="zk__zeile" data-block="zert-zeile-{{ loop.index }}">
         {% for e in zeile %}
-        <div class="zk__kachel">
+        <li class="zk__kachel">
           <div class="zk__buehne">{{ zertbild(e) }}</div>
-          <div class="zk__titel t-zert-titel" style="line-clamp: {{ g.titel_zeilen }}">{{ e.titel }}</div>
+          <h3 class="zk__titel t-zert-titel" style="line-clamp: {{ g.titel_zeilen }}">{{ e.titel }}</h3>
           {%- if e.meta %}<div class="zk__meta t-zert-aussteller" style="line-clamp: {{ g.meta_zeilen }}">{{ e.meta }}</div>{% endif %}
-        </div>
+        </li>
         {% endfor %}
-      </div>
+      </ul>
       {% endfor %}
     </div>
   </section>
@@ -106,21 +110,21 @@
 {% endmacro %}
 
 {# Zeilen ohne Karten, zwei Spalten: Kernkompetenzen und Tools gleich. #}
-{% macro eintraege(skills) %}
+{% macro eintraege(skills, ebene) %}
       {% for zeile in skills | batch(spalten) %}
-      <div class="eintraege__zeile">
+      <ul class="eintraege__zeile">
         {% for s in zeile %}
-        <div class="eintrag">
+        <li class="eintrag">
           <div class="eintrag__kopf">
-            <div class="eintrag__name t-eintrag-titel">{{ s.name }}</div>
+            <h{{ ebene }} class="eintrag__name t-eintrag-titel">{{ s.name }}</h{{ ebene }}>
             <div class="punkte">
-              {% for i in range(punkte_anzahl) %}<i class="punkt{% if i < s.punkte %} punkt--voll{% endif %}"></i>{% endfor %}
+              {% for i in range(punkte_anzahl) %}<i class="punkt{% if i < s.punkte %} punkt--voll{% endif %}"></i>{% endfor %}<span class="vorgelesen t-eintrag-beschreibung">{{ t.bewertung.format(n=s.punkte, m=punkte_anzahl) }}</span>
             </div>
           </div>
           <p class="eintrag__beschreibung t-eintrag-beschreibung">{{ s.beschreibung }}</p>
-        </div>
+        </li>
         {% endfor %}
-      </div>
+      </ul>
       {% endfor %}
 {% endmacro %}
 
@@ -129,12 +133,12 @@
 {% if kompetenzen %}
 <section class="sektion kompetenzen">
   <h2 class="sektionstitel t-sektion-titel" data-block="kompetenzen-titel">
-    <img class="sektionstitel__icon" src="icon-kernkompetenzen.svg" alt=""><span>{{ t.kernkompetenzen }}</span>
+    <i class="sektionstitel__icon" style="background-image: url(icon-kernkompetenzen.svg)"></i><span>{{ t.kernkompetenzen }}</span>
   </h2>
   {% for kategorie in kompetenzen %}
   <div class="kategorie" data-block="kategorie-{{ loop.index }}">
-    <div class="kategorie__label t-kategorie">{{ kategorie.kategorie }}</div>
-    {{ eintraege(kategorie.skills) }}
+    <h3 class="kategorie__label t-kategorie">{{ kategorie.kategorie }}</h3>
+    {{ eintraege(kategorie.skills, 4) }}
   </div>
   {% endfor %}
 </section>
@@ -143,10 +147,10 @@
 {% if tools %}
 <section class="sektion tools" data-block="tools">
   <h2 class="sektionstitel t-sektion-titel">
-    <img class="sektionstitel__icon" src="icon-tools.svg" alt=""><span>{{ t.tools }}</span>
+    <i class="sektionstitel__icon" style="background-image: url(icon-tools.svg)"></i><span>{{ t.tools }}</span>
   </h2>
   <div class="tools__eintraege">
-    {{ eintraege(tools) }}
+    {{ eintraege(tools, 3) }}
   </div>
 </section>
 {% endif %}

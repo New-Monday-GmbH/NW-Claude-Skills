@@ -90,7 +90,10 @@ except Exception:                                   # pragma: no cover
 # Desktop-Screens liegen als Karte. Stand 14: der Freisteller schneidet nur
 # einfarbige Unterlage weg, nie eine Kopfleiste am Bildrand. Stand 15: Grund
 # neutral/15 statt Petrol, Karten-Kontur auf hellem Grund in neutral/20.
-LAYOUT_STAND = 15
+# Stand 16: Guete 80 statt 88 (Dateigroesse, siehe _speichern) - nur
+# hochgezaehlt, damit alte Zwischenspeicher nicht die grossen Dateien liefern.
+LAYOUT_STAND = 16
+GUETE = 80
 
 # Zwei Pixel je Punkt: die Flaeche wird im PDF nur skaliert, nie vergroessert.
 PX_JE_PUNKT = 2
@@ -929,10 +932,16 @@ def _szene(s: Stueck, groesse: tuple, ziel_name: str) -> Image.Image:
 
 
 def _speichern(leinwand: Image.Image, ziel: Path) -> Path:
-    """Die fertige Flaeche als JPEG sichern - deterministisch, hohe Guete,
-    ohne Chromaunterabtastung (auf den Screens steht Schrift)."""
+    """Die fertige Flaeche als JPEG sichern - deterministisch, ohne
+    Chromaunterabtastung (auf den Screens steht Schrift).
+
+    Gemessen an Ninas Deck (November 2026, 11 Flaechen): Guete 80 statt 88
+    spart 13 % ohne sichtbaren Unterschied bei 2 px/pt; 4:2:0 spart nur 14 %
+    mehr und franst farbige Schrift aus; PNG waere dreimal so gross (gekippte
+    Kanten, Verlaeufe). Die 2 px/pt bleiben: bei 1,5 px/pt wird kleine Schrift
+    in Desktop-Screens auf einem Retina-Schirm bei 100 % sichtbar weich."""
     ziel.parent.mkdir(parents=True, exist_ok=True)
-    leinwand.save(ziel, "JPEG", quality=88, subsampling=0, optimize=True)
+    leinwand.save(ziel, "JPEG", quality=GUETE, subsampling=0, optimize=True)
     return ziel
 
 

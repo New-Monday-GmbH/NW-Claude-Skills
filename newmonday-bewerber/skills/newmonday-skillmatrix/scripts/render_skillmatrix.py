@@ -25,13 +25,17 @@ Alle Farben, Abstaende, Radien, Schatten und Schriften kommen aus
 assets/tokens.json (design_system.py erzeugt daraus das CSS). WeasyPrint kennt
 kein box-shadow; im ersten Durchgang werden deshalb die Karten vermessen und
 ihre Schatten als Bild gezeichnet, im zweiten liegen sie hinter den Karten.
-Zum Schluss wird jedes PDF gegen die Tokens seiner Fassung geprueft —
-Seitenformat, Schriften, Textstile, Farben. Weicht eins ab, endet das Skript
-mit Code 2.
+Beide Fassungen sind PDF/UA-1 (getaggt, Sprache, Titel, Alternativtexte) mit
+Bildern hoechstens in 150 dpi (PDF_OPTIONEN). Zum Schluss wird jedes PDF gegen
+die Tokens seiner Fassung geprueft — Seitenformat, Schriften, Textstile,
+Farben — und auf Barrierefreiheit und Dateigroesse
+(design_system.pruefe_barrierefrei). Weicht eins ab, endet das Skript mit
+Code 2.
 
 Sucht sich die Render-Engine selbst: WeasyPrint (bevorzugt), sonst headless
 Chrome, sonst wkhtmltopdf - der Ausweichweg gilt nur fuer die lange Fassung,
-die A4-Fassung braucht WeasyPrint (laufende Kopfzeile, gemessener Fuss). Prueft ausserdem die Daten auf Auffaelligkeiten und
+die A4-Fassung braucht WeasyPrint (laufende Kopfzeile, gemessener Fuss), und
+er ist nicht barrierefrei: nur Vorschau, das Skript warnt. Prueft ausserdem die Daten auf Auffaelligkeiten und
 schreibt sie nach stderr — darunter jedes Attribut ausserhalb seiner
 Katalog-Kategorie (verwandt: Hinweis, fachfremd: WARNUNG, Tabelle VERWANDT),
 jeder Name, der nicht der Katalogform der Dokumentsprache entspricht
@@ -64,6 +68,12 @@ ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
 KATALOG = ROOT / "references" / "attribute-katalog.md"
 
+# Jedes PDF ist barrierefrei (PDF/UA-1: getaggt, Sprache, Titel) und klein:
+# Bilder nur in der Aufloesung, die sie im Layout brauchen. Gilt fuer beide
+# Fassungen; Begruendung in references/layout.md ("Barrierefrei und klein").
+PDF_OPTIONEN = {"pdf_variant": "pdf/ua-1", "optimize_images": True,
+                "dpi": 150, "jpeg_quality": 85}
+
 VORRAT_HOEHE = 12000         # pt, erster Durchgang — reicht fuer jede Matrix
 PT_JE_PX = 0.75              # WeasyPrint rechnet intern in CSS-px (96 dpi)
 
@@ -87,6 +97,9 @@ BESCHRIFTUNG = {
         "sammel": "+ {n} weitere Zertifikate",
         "footer_frage": "Bereit für das nächste Projekt?",
         "ansprechpartner": "Ansprechpartner", "kontakt": "Kontakt", "adresse": "Adresse",
+        # Nur fuer Screenreader (Alternativtexte, Bewertung als Text)
+        "foto": "Porträtfoto von {name}", "zert_bild": "Zertifikat: {titel}",
+        "bewertung": "Bewertung: {n} von {m}",
     },
     "en": {
         "verfuegbar": "Available from",
@@ -98,6 +111,8 @@ BESCHRIFTUNG = {
         "sammel": "+ {n} more certificates",
         "footer_frage": "Ready for the next project?",
         "ansprechpartner": "Contact person", "kontakt": "Contact", "adresse": "Address",
+        "foto": "Portrait photo of {name}", "zert_bild": "Certificate: {titel}",
+        "bewertung": "Rating: {n} of {m}",
     },
 }
 
@@ -679,7 +694,7 @@ def rendern_weasyprint(daten, design, ziel, zplan=None):
                 "hoehe": round(k["hoehe"] + 2 * rand, 3),
             }
         HTML(string=html_bauen(daten, hoehe, design, schatten, zplan),
-             base_url=basis).write_pdf(str(ziel))
+             base_url=basis).write_pdf(str(ziel), **PDF_OPTIONEN)
     return "WeasyPrint", hoehe, len(schatten), hinweise, zert_hoehe
 
 
@@ -931,24 +946,15 @@ def _fuss_unterkante(doc):
     return None, None
 
 
-def seiten_ablegen(pdf, bloecke):
-    """Legt die Seitenaufteilung im PDF ab (Dokumentinfo /NewMondaySeiten):
+def seiten_ablegen(doc, bloecke):
+    """Legt die Seitenaufteilung in der Dokumentinfo ab (/NewMondaySeiten):
     {"seiten": n, "bloecke": {block: seite}}. figma_plan.py liest sie dort.
-    Gibt einen Hinweis zurueck, wenn pypdf fehlt, sonst None."""
-    try:
-        from pypdf import PdfReader, PdfWriter
-    except ImportError:
-        return ("A4: pypdf fehlt — die Seitenaufteilung steht nicht im PDF, figma_plan.py "
-                "kann die A4-Seiten nicht bauen (pip3 install pypdf).")
-    leser = PdfReader(str(pdf))
-    schreiber = PdfWriter(clone_from=leser)
-    schreiber.add_metadata({SEITEN_SCHLUESSEL: json.dumps(
-        {"fassung": "a4", "seiten": len(leser.pages),
-         "bloecke": {k: v[0] for k, v in bloecke.items()}}, ensure_ascii=False)})
-    with tempfile.NamedTemporaryFile(suffix=".pdf", dir=str(Path(pdf).parent), delete=False) as tmp:
-        schreiber.write(tmp)
-    os.replace(tmp.name, pdf)
-    return None
+    Direkt beim Schreiben (custom_metadata) statt mit pypdf hinterher: ein
+    zweites Schreiben liesse Tags und XMP des PDF/UA zwar stehen, aber es
+    wuerde groesser und ist ein Schritt mehr, der etwas verlieren kann."""
+    doc.metadata.custom[SEITEN_SCHLUESSEL.lstrip("/")] = json.dumps(
+        {"fassung": "a4", "seiten": len(doc.pages),
+         "bloecke": {k: v[0] for k, v in bloecke.items()}}, ensure_ascii=False)
 
 
 def seiten_lesen(pdf):
@@ -972,14 +978,14 @@ def rendern_a4(daten, design, ziel, zplan):
     luft_min = design_system.aufloesen(ds, K["fuss"]["abstand-min"])
     soll = K["seite"]["hoehe"] - K["seite"]["rand-unten"]
 
-    erster = HTML(string=html_bauen_a4(daten, ds, za4, luft_min), base_url=basis).render()
+    erster = HTML(string=html_bauen_a4(daten, ds, za4, luft_min), base_url=basis).render(**PDF_OPTIONEN)
     seite, unten = _fuss_unterkante(erster)
     doc = erster
     if unten is not None and soll - unten > 0.05:
         # Knapp unter dem Soll bleiben: fuellt die Luft die Seite auf den Punkt,
         # kippt der Fuss auf eine neue Seite.
         zweiter = HTML(string=html_bauen_a4(daten, ds, za4, luft_min + soll - unten - 0.02),
-                       base_url=basis).render()
+                       base_url=basis).render(**PDF_OPTIONEN)
         seite2, unten2 = _fuss_unterkante(zweiter)
         if len(zweiter.pages) == len(erster.pages) and seite2 == seite:
             doc, unten = zweiter, unten2
@@ -995,10 +1001,9 @@ def rendern_a4(daten, design, ziel, zplan):
     if letzte == ["fuss"] and len(doc.pages) > 1:
         hinweise.append("A4: Auf der letzten Seite steht nur der Fuss — der Inhalt endet knapp "
                         "zu tief. Ein Eintrag weniger oder eine kuerzere Beschreibung spart die Seite.")
-    doc.write_pdf(str(ziel))
-    hinweis = seiten_ablegen(ziel, bloecke)
-    if hinweis:
-        hinweise.append(hinweis)
+    seiten_ablegen(doc, bloecke)
+    # Bildoptionen (dpi) wirken beim render(), Variante und Metadaten beim Schreiben.
+    doc.write_pdf(str(ziel), custom_metadata=True, **PDF_OPTIONEN)
     return len(doc.pages), bloecke, hinweise
 
 
@@ -1055,6 +1060,11 @@ def main():
             hoehe = round(hoehe + 2)
             engine = rendern_ausweich(html_bauen(daten, hoehe, design, zplan=zplan), ziel)
             print(f"Seitenformat: {breite} x {hoehe}pt")
+        print("WARNUNG: Ausweichweg ohne WeasyPrint — dieses PDF ist NICHT barrierefrei "
+              "(kein PDF/UA, keine Tags, Bilder ungebremst) und geht so nicht an Kunden. "
+              "WeasyPrint installieren (pruefe_umgebung.py) und neu rendern.", file=sys.stderr)
+        hinweise.append("WARNUNG: nicht barrierefrei (Ausweichweg ohne WeasyPrint) — nur zur Vorschau, "
+                        "Kundendokumente entstehen mit WeasyPrint.")
         if zplan:
             hinweise.append(
                 f"Zertifikatssektion auf dem Ausweichweg nicht vermessen — geplant "
@@ -1070,6 +1080,9 @@ def main():
 
     fehler, design_hinweise = design_system.pruefe_pdf(ziel, design)
     hinweise += design_hinweise
+    sprache = daten.get("sprache", "de")
+    if engine == "WeasyPrint":
+        fehler += design_system.pruefe_barrierefrei(ziel, "lang", sprache)
 
     # Die A4-Fassung aus denselben Daten: dieselbe Reihenfolge der Kategorien,
     # dieselben Zertifikatskacheln und Buendel.
@@ -1079,6 +1092,7 @@ def main():
         print(f"Seitenformat A4: 595 x 842pt, {seiten} Seite{'n' if seiten != 1 else ''}")
         print(f"{ziel_a4} geschrieben (Engine: WeasyPrint)")
         a4_fehler, a4_design = design_system.pruefe_pdf(ziel_a4, design_system.fassung(design, "a4"))
+        a4_fehler += design_system.pruefe_barrierefrei(ziel_a4, "a4", sprache)
         fehler += [f"A4: {f}" for f in a4_fehler]
         hinweise += [f"A4: {h}" for h in a4_design]
     except ImportError:
@@ -1090,12 +1104,17 @@ def main():
         for h in hinweise:
             print(f"  - {h}", file=sys.stderr)
     if fehler:
-        print("\nFEHLER — das PDF weicht vom Design System ab (assets/tokens.json). "
-              "So nicht ausliefern:", file=sys.stderr)
+        print("\nFEHLER — das PDF weicht vom Design System ab (assets/tokens.json) oder ist "
+              "nicht barrierefrei bzw. zu gross. So nicht ausliefern:", file=sys.stderr)
         for f in fehler:
             print(f"  - {f}", file=sys.stderr)
         sys.exit(2)
     print("Design System eingehalten: Seitenformat, Schriften, Textstile, Farben.")
+    if engine == "WeasyPrint":
+        groessen = ", ".join(f"{f} {z.stat().st_size / 1024:.0f} KB" for f, z in
+                             (("lang", ziel), ("A4", ziel_a4)) if z.exists())
+        print(f"Barrierefrei (PDF/UA-1: Tags, Sprache, Titel, Alternativtexte, Ueberschriften); "
+              f"{groessen}.")
 
 
 if __name__ == "__main__":

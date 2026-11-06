@@ -72,6 +72,14 @@ FIRMA = {
     "web": "www.newmonday.co",
 }
 
+# Was auf assets/marke/nm-agentur-kunden.png steht - der Alternativtext der
+# Agenturseite. Wer das Bild tauscht, pflegt diese Liste mit.
+_AGENTUR_KUNDEN = ("SAP, Wunderman Thompson, Union Investment, Cariad, Hermes, Lufthansa, "
+                   "Porsche, ProSieben, EnBW, E.ON, Bosch, Miele, Axel Springer, Welt, "
+                   "Atruvia, RTL+, Xing, Vaillant, Daimler, Consorsbank, Volkswagen")
+AGENTUR_KUNDEN_DE = f"Logos von Kunden der New Monday Agentur: {_AGENTUR_KUNDEN}"
+AGENTUR_KUNDEN_EN = f"Logos of New Monday agency clients: {_AGENTUR_KUNDEN}"
+
 TEXTE = {
     "de": {
         "kunden": "Meine Kunden", "prozess": "Mein Design Prozess",
@@ -100,6 +108,10 @@ TEXTE = {
         "nda": "* Aus Datenschutzgründen zeigen wir nur eine Darstellung, "
                "die vom originalen Software-Layout und Inhalt abweicht.",
         "fehlt": "Bild fehlt",
+        "alt_foto": "Porträtfoto von {name}", "alt_hq": "Firmensitz von {kunde}",
+        "alt_screens": "Screens aus {projekt}",
+        "alt_badge": "Badge der UX Design Awards",
+        "alt_agentur_kunden": AGENTUR_KUNDEN_DE,
     },
     "en": {
         "kunden": "My Clients", "prozess": "My Design Process",
@@ -128,6 +140,10 @@ TEXTE = {
         "nda": "* For data protection reasons we show a representation that "
                "deviates from the original software layout and content.",
         "fehlt": "Image missing",
+        "alt_foto": "Portrait photo of {name}", "alt_hq": "Headquarters of {kunde}",
+        "alt_screens": "Screens from {projekt}",
+        "alt_badge": "UX Design Awards badge",
+        "alt_agentur_kunden": AGENTUR_KUNDEN_EN,
     },
 }
 
@@ -453,17 +469,93 @@ def ecke_dunkel(uri: str | None, oben: bool, klasse: str = "bild--breit",
         return None
 
 
+# ── Fotos in PDF-Groesse ─────────────────────────────────────────────────
+
+# Fotos stehen mit 1,5 Pixeln je Punkt im PDF, als JPEG in Guete 82. Die Folie
+# wird am Bildschirm gelesen: bei 100 % ist ein Punkt ein Pixel, auf einem
+# Retina-Schirm zwei - ein Foto hat keine harten Kanten, an denen der Rest
+# fehlte. Vorher kamen HQ-Fotos als PNG in voller Groesse ins PDF (Nina,
+# November 2026: fuenf HQ-Fotos 11 von 18,5 MB). Screens sind keine Fotos: die
+# Flaechen aus screens.py bleiben bei 2 px/pt (Schrift in den Screens).
+FOTO_PX_JE_PT, FOTO_GUETE = 1.5, 82
+
+
+def foto_fuer_pdf(uri: str, breite: float, hoehe: float, cache: Path,
+                  passung: str = "cover", oben: bool = False) -> str:
+    """Das Foto so, wie es auf der Folie zu sehen ist: bei `cover` auf den
+    sichtbaren Ausschnitt beschnitten (mittig, mit `oben` an der Oberkante wie
+    object-position: top), dann auf hoechstens 1,5 px je Punkt verkleinert und
+    als JPEG in den Zwischenspeicher. Nie hochgerechnet; ein JPEG, an dem es
+    nichts zu tun gibt, bleibt die Originaldatei. Das Layout aendert sich
+    nicht: Der Ausschnitt hat das Seitenverhaeltnis der Flaeche, cover zeigt
+    ihn also ganz."""
+    pfad = uri_pfad(uri)
+    try:
+        from PIL import Image, ImageOps
+        with Image.open(pfad) as roh:
+            unberuehrt = (roh.format == "JPEG" and roh.mode == "RGB"
+                          and roh.getexif().get(0x0112, 1) == 1)
+            im = ImageOps.exif_transpose(roh)
+            w, h = im.size
+            if passung == "cover":
+                # Der Ausschnitt auf Bruchteile eines Pixels genau: auf ganze
+                # Pixel gerundet rueckte das Foto bis 0,5 pt zur Seite.
+                s = max(breite / w, hoehe / h)
+                cw, ch = min(w, breite / s), min(h, hoehe / s)
+                x0, y0 = (w - cw) / 2, 0 if oben else (h - ch) / 2
+                anzeige = breite
+            else:
+                cw, ch, x0, y0 = w, h, 0, 0
+                anzeige = w * min(breite / w, hoehe / h)
+            f = min(1.0, anzeige * FOTO_PX_JE_PT / cw)
+            if unberuehrt and f > 0.9 and abs(cw - w) < 0.5 and abs(ch - h) < 0.5:
+                return uri          # schon klein genug - nicht neu komprimieren
+            marke = hashlib.sha1(f"{pfad}:{pfad.stat().st_mtime_ns}:{breite}:{hoehe}:2:"
+                                 f"{passung}:{oben}:{FOTO_PX_JE_PT}:{FOTO_GUETE}"
+                                 .encode()).hexdigest()[:12]
+            ziel = cache / f"foto-pdf-{pfad.stem}-{marke}.jpg"
+            if not ziel.exists():
+                if im.mode in ("RGBA", "LA", "P"):
+                    im = im.convert("RGBA")
+                    grund = Image.new("RGB", im.size, "white")
+                    grund.paste(im, mask=im.getchannel("A"))
+                    im = grund
+                im = im.convert("RGB")
+                groesse = (max(1, round(cw * f)), max(1, round(ch * f)))
+                im.resize(groesse, Image.LANCZOS, box=(x0, y0, x0 + cw, y0 + ch)).save(
+                    ziel, "JPEG", quality=FOTO_GUETE, optimize=True)
+        return ziel.resolve().as_uri()
+    except Exception as fehler:
+        merke(f"{pfad.name}: nicht für das PDF verkleinert ({fehler}) – steht in "
+              "voller Größe im PDF.")
+        return uri
+
+
 # ── Bausteine ────────────────────────────────────────────────────────────
+
+# Dekoration traegt aria-hidden="true": rendere() schreibt solche Elemente samt
+# Inhalt als Artefakt statt in den Strukturbaum (Wortmarke, Seitenzahl,
+# Streifen, Flaechen, Schrittleiste, Stimmungsfotos) - references/layout.md,
+# „Barrierefrei und klein“.
+DEKO = ' aria-hidden="true"'
+
+
+def alt(text) -> str:
+    """Alternativtext fuer ein <img>. Leer gibt es nicht: WeasyPrint 66 schreibt
+    <img alt=""> als /Figure ohne /Alt, das verletzt PDF/UA - Dekoration
+    bekommt DEKO statt eines leeren alt."""
+    return f' alt="{e(" ".join(str(text or "").split()) or "Bild")}"'
+
 
 def logo_block(hell_grund: bool) -> str:
     datei = "marke/nm-logo-weiss.svg" if hell_grund else "marke/nm-logo.svg"
-    return f'<div class="logo"><img src="{(ASSETS / datei).as_uri()}"></div>'
+    return f'<div class="logo"{DEKO}><img src="{(ASSETS / datei).as_uri()}"></div>'
 
 
 def seitenzahl(nr: int, hell_grund: bool = False) -> str:
     """Die Seitenzahl in der Schrift der Figma-Komponente slideNumber."""
     return (f'<div class="seitenzahl t-seitenzahl'
-            f'{" seitenzahl--hell" if hell_grund else ""}">{nr}</div>')
+            f'{" seitenzahl--hell" if hell_grund else ""}"{DEKO}>{nr}</div>')
 
 
 def kopfzeile(bild, basis: Path, nr: int, klasse: str = "bild--breit",
@@ -494,11 +586,14 @@ def pruefe_aufloesung(uri: str, klasse: str, was: str) -> None:
 
 
 def bildflaeche(bild, klasse: str, basis: Path, t: dict,
-                farbe: str | None = None, was: str = "", schatten=False) -> str:
+                farbe: str | None = None, was: str = "", schatten=False,
+                bildtext: str = "", foto_cache: Path | None = None) -> str:
     """Bildhaelfte. Fehlt das Bild, bleibt die Flaeche als Platzhalter stehen -
-    das Raster bricht nicht und es ist sofort zu sehen, was nachzuliefern ist."""
+    das Raster bricht nicht und es ist sofort zu sehen, was nachzuliefern ist.
+    `bildtext` ist der Alternativtext; mit `foto_cache` ist das Bild ein Foto
+    und kommt in PDF-Groesse (foto_fuer_pdf) - Screenflaechen nicht."""
     stil = f' style="background:{farbe}"' if farbe else ""
-    schicht = ('<div class="bildschatten" style="left:0;right:0"></div>'
+    schicht = ('<div class="bildschatten" style="left:0;right:0"{DEKO}></div>'
                if schatten else "")
     platzhalter = (f'<div class="bild {klasse} bild--platzhalter">'
                    f'<div class="hinweis t-subheadline-2-regular"><b>{e(t["fehlt"])}</b>'
@@ -512,8 +607,10 @@ def bildflaeche(bild, klasse: str, basis: Path, t: dict,
     if not uri:
         return platzhalter
     pruefe_aufloesung(uri, klasse, was)
+    if foto_cache is not None:
+        uri = foto_fuer_pdf(uri, FLAECHENBREITE[klasse], SEITE_HOCH, foto_cache, passung)
     return (f'<div class="bild {klasse}"{stil}>'
-            f'<img src="{uri}" style="object-fit:{passung}">{schicht}</div>')
+            f'<img src="{uri}"{alt(bildtext or was)} style="object-fit:{passung}">{schicht}</div>')
 
 
 # Obergrenze fuer die Logogroesse auf der Kundenwand, in Punkt. Der Wert ist die
@@ -560,9 +657,9 @@ def seite_cover(d, t, basis):
     if p.get("cover_titel") and p["cover_titel"] != COVER_TITEL:
         merke(f"cover_titel „{p['cover_titel']}“ ignoriert – das Cover traegt immer „{COVER_TITEL}“.")
     return f'''<section class="seite seite--cover">
-  <img class="cover-logo" src="{(ASSETS / 'marke/nm-logo-weiss.svg').as_uri()}">
+  <img class="cover-logo" src="{(ASSETS / 'marke/nm-logo-weiss.svg').as_uri()}"{alt("New Monday")}>
   <div class="kopf">
-    <div class="titel t-h1">{e(COVER_TITEL)}</div>
+    <h1 class="titel t-h1">{e(COVER_TITEL)}</h1>
     <div class="name t-h2">{e(p["name"])}</div>
     <div class="rolle t-h4-regular">{e(p.get("rolle"))}</div>
   </div>
@@ -696,7 +793,10 @@ def seite_profil(d, t, basis, nr, cache: Path):
     p = dict(d["person"])
     p["sprachen"] = sprachen_mit_vorgabe(p.get("sprachen"), d.get("sprache", "de"))
     foto = graues_foto(datei_suchen(p.get("foto"), basis), cache)
-    foto_html = f'<img src="{foto}">' if foto else ""
+    if foto:
+        foto = foto_fuer_pdf(foto, 320, 429, cache)
+    foto_html = (f'<img src="{foto}"{alt(t["alt_foto"].format(name=p["name"]))}>'
+                 if foto else "")
     if not foto:
         merke("Profilfoto fehlt - die Fotofläche bleibt leer.")
 
@@ -757,15 +857,15 @@ def seite_profil(d, t, basis, nr, cache: Path):
                f'{" • ".join(fett(k) for k in p["top_kenntnisse"])}</p></div>')
     profil_linke_spalte(p)
     return f'''<section class="seite seite--profil">
-  <div class="foto">{foto_html}</div>
   <div class="inhalt">
-    <div class="p-name t-h2">{e(p["name"])}</div>
+    <h2 class="p-name t-h2">{e(p["name"])}</h2>
     <div class="p-rolle t-h4-regular">{e(p.get("rolle"))}</div>
     <div class="skillset">{top}
       <div class="karte karte--koennen">{ktitel(t["koennen"])}
         <ul class="zeilen">{koennen}</ul></div></div>
   </div>
-  <div class="panel"></div><div class="pstapel" style="top:229pt">{"".join(karten)}</div>
+  <div class="foto">{foto_html}</div>
+  <div class="panel"{DEKO}></div><div class="pstapel" style="top:229pt">{"".join(karten)}</div>
   {logo_block(True)}{seitenzahl(nr, True)}
 </section>'''
 
@@ -783,6 +883,20 @@ def logo_entfaerbt(uri: str, cache: Path) -> str:
     return neu.resolve().as_uri()
 
 
+# Schreibweisen, die sich aus dem Dateinamen nicht ergeben - fuer den
+# Alternativtext eines Logos, wenn die JSON nur den Dateinamen fuehrt.
+NAMEN = {"chatgpt": "ChatGPT", "openai": "OpenAI", "github-copilot": "GitHub Copilot",
+         "claude-code": "Claude Code", "microsoft-copilot": "Microsoft Copilot",
+         "notebooklm": "NotebookLM", "deepl": "DeepL", "figjam": "FigJam"}
+
+
+def logo_name(quelle) -> str:
+    """Der Name hinter einer Logodatei („deutsche-bank.svg“ -> „Deutsche
+    Bank“), fuer den Alternativtext, wo die JSON keinen Namen fuehrt."""
+    stamm = re.sub(r"^logo[-_]", "", Path(str(quelle)).stem.lower())
+    return NAMEN.get(stamm) or " ".join(w[:1].upper() + w[1:] for w in re.split(r"[-_\s]+", stamm) if w)
+
+
 def seite_kunden(d, t, basis, nr, cache: Path):
     # Ein Eintrag ist {"name": "Deutsche Bank", "logo": "deutsche-bank.svg"}.
     # Ein blanker String wird als Dateiname gelesen - so bleiben von Hand
@@ -795,7 +909,8 @@ def seite_kunden(d, t, basis, nr, cache: Path):
             continue
         uri = datei_uri(quelle, basis)
         if uri:
-            dateien.append(logo_entfaerbt(uri, cache))
+            name = (k.get("name") if isinstance(k, dict) else None) or logo_name(quelle)
+            dateien.append((logo_entfaerbt(uri, cache), name))
     # Bis fuenf Logos: eine Reihe im Referenzmass von p-03, tiefer gesetzt und
     # mit gleichmaessigen Luecken verteilt wie in der Referenz - feste Zellen
     # liessen zwei breite Wortmarken aneinanderkleben, waehrend daneben Luft
@@ -804,7 +919,7 @@ def seite_kunden(d, t, basis, nr, cache: Path):
     kacheln = []
     if reihe and dateien:
         masse = []
-        for uri in dateien:
+        for uri, name in dateien:
             v = seitenverhaeltnis(uri)
             b = LOGO_MASS_REIHE * math.sqrt(v)
             h = b / v
@@ -812,17 +927,17 @@ def seite_kunden(d, t, basis, nr, cache: Path):
                 h, b = LOGO_HOEHE_REIHE, LOGO_HOEHE_REIHE * v
             if b > 420:
                 b, h = 420, 420 / v
-            masse.append((uri, b, h))
-        summe = sum(b for _, b, _ in masse)
+            masse.append((uri, b, h, name))
+        summe = sum(m[1] for m in masse)
         luecke = ((1605 - summe) / (len(masse) - 1)) if len(masse) > 1 else 0.0
         luecke = max(60.0, min(220.0, luecke))
         lead = max(0.0, (1605 - summe - luecke * (len(masse) - 1)) / 2)
-        for i, (uri, b, h) in enumerate(masse):
+        for i, (uri, b, h, name) in enumerate(masse):
             links = lead if i == 0 else luecke
             kacheln.append(
                 f'<div class="kachel" style="width:{b:.1f}pt;height:640pt;'
                 f'margin-left:{links:.1f}pt;padding-top:{(640 - h) / 2:.1f}pt">'
-                f'<img src="{uri}" style="{logo_masse(uri, b, h, "Kundenwand")}"></div>')
+                f'<img src="{uri}"{alt(name)} style="{logo_masse(uri, b, h, "Kundenwand")}"></div>')
     wand_stil = (f' style="left:193pt;top:{REIHE_OBEN}pt;width:1607pt;height:640pt"'
                  if reihe else "")
     if not reihe and dateien:
@@ -830,14 +945,14 @@ def seite_kunden(d, t, basis, nr, cache: Path):
     if not kacheln:
         merke("Logowand „Meine Kunden“ ist leer - keine Kundenlogos zugeordnet.")
     return f'''<section class="seite seite--kunden">
-  <div class="streifen streifen--weiter"></div>
-  <div class="h1 t-h1">{e(t["kunden"])}</div>
+  <div class="streifen streifen--weiter"{DEKO}></div>
+  <h2 class="h1 t-h1">{e(t["kunden"])}</h2>
   <div class="kundenwand{" kundenwand--reihe" if reihe else ""}"{wand_stil}>{"".join(kacheln)}</div>
   {logo_block(False)}{seitenzahl(nr)}
 </section>'''
 
 
-def logoraster(dateien: list[str]) -> list[str]:
+def logoraster(dateien: list[tuple[str, str]]) -> list[str]:
     """Das dichte Raster der Kundenwand, wie auf Folie 3 der Figma-Seite
     »Portfolio«: Zeilen zu 100pt mit 60pt Luft, je Zeile bis zu sieben Logos,
     das erste an der linken, das letzte an der rechten Kante, die Luft
@@ -862,7 +977,7 @@ def logoraster(dateien: list[str]) -> list[str]:
     raus, start = [], 0
     for z, k in enumerate(mengen):
         masse = []
-        for uri in dateien[start:start + k]:
+        for uri, name in dateien[start:start + k]:
             # Gleiche Flaeche statt gleicher Hoehe: ueber die Hoehe skaliert
             # wirkt eine kompakte Bildmarke doppelt so schwer wie ein breiter
             # Schriftzug. Hoehe und Breite zusaetzlich gedeckelt.
@@ -873,11 +988,11 @@ def logoraster(dateien: list[str]) -> list[str]:
                 h, b = hoehe_max, hoehe_max * v
             if b > LOGO_BREITE_MAX:
                 b, h = LOGO_BREITE_MAX, LOGO_BREITE_MAX / v
-            masse.append([uri, b, h])
+            masse.append([uri, b, h, name])
         start += k
         # Passt die Zeile nicht mit Mindestluft, schrumpfen alle Logos der
         # Zeile gleichmaessig - lieber kleiner als uebereinander.
-        summe = sum(b for _, b, _ in masse)
+        summe = sum(m[1] for m in masse)
         platz = WAND_BREIT - (k - 1) * LOGO_LUFT_MIN
         if summe > platz:
             f = platz / summe
@@ -887,8 +1002,8 @@ def logoraster(dateien: list[str]) -> list[str]:
         lucke = (WAND_BREIT - summe) / (k - 1) if k > 1 else 0
         x = 0.0 if k > 1 else (WAND_BREIT - summe) / 2
         bilder = []
-        for uri, b, h in masse:
-            bilder.append(f'<img src="{uri}" style="left:{x:.1f}pt;'
+        for uri, b, h, name in masse:
+            bilder.append(f'<img src="{uri}"{alt(name)} style="left:{x:.1f}pt;'
                           f'top:{(zeile_h - h) / 2:.1f}pt;{logo_masse(uri, b, h, "Kundenwand")}">')
             x += b + lucke
         raus.append(f'<div class="logozeile" style="top:{oben + z * (zeile_h + luft):.1f}pt;'
@@ -956,10 +1071,10 @@ def seite_statement(d, t, basis, nr):
         text = f"»{text}«"
     rolle = e(statement_rolle(p)).replace("\n", "<br>")
     return f'''<section class="seite seite--statement">
-  <div class="streifen streifen--weiter"></div>
-  <div class="halb-rechts"></div>
+  <div class="streifen streifen--weiter"{DEKO}></div>
+  <div class="halb-rechts"{DEKO}></div>
+  <h2 class="rolle h1 t-h1">{rolle}</h2>
   <div class="aussage t-h2-regular">{fett(text)}</div>
-  <div class="rolle h1 t-h1">{rolle}</div>
   {logo_block(False)}{seitenzahl(nr)}
 </section>'''
 
@@ -967,7 +1082,7 @@ def seite_statement(d, t, basis, nr):
 def seite_divider(titel):
     zeilen = e(titel).replace("\n", "<br>")
     return f'''<section class="seite seite--divider">
-  <div class="h1 t-h1">{zeilen}</div>{logo_block(True)}
+  <h2 class="h1 t-h1">{zeilen}</h2>{logo_block(True)}
 </section>'''
 
 
@@ -986,13 +1101,13 @@ def seite_prozess(d, t, basis, nr):
                  for s in d.get("prozess", [])[:PROZESS_MAX]]
     spalten = "".join(
         f'<div class="prozess-spalte" style="left:{193 + i * PROZESS_TAKT}pt;">'
-        f'<div class="balken"></div>'
-        f'<h2 class="t-h4">{e(titel).replace(chr(10), "<br>")}</h2>'
+        f'<div class="balken"{DEKO}></div>'
+        f'<h3 class="t-h4">{e(titel).replace(chr(10), "<br>")}</h3>'
         f'<p class="t-body-1-regular">{fett(kurztext)}</p></div>'
         for i, (titel, kurztext) in enumerate(eintraege))
     return f'''<section class="seite seite--prozess">
-  <div class="streifen streifen--start"></div>
-  <div class="eyebrow t-eyebrow">{e(t["prozess"])}</div>
+  <div class="streifen streifen--start"{DEKO}></div>
+  <h2 class="eyebrow t-eyebrow">{e(t["prozess"])}</h2>
   {spalten}
   {logo_block(False)}{seitenzahl(nr)}
 </section>'''
@@ -1123,23 +1238,24 @@ def schrittleiste(schritte, t, aktiv: int) -> str:
                    + (" aufbild" if aufbild else ""))
         balken.append(f'<div class="{klassen}" style="left:{links}pt">'
                       f'<div class="balken"></div><span class="t-body-1-bold">{name}</span></div>')
-    return f'<div class="schritte">{"".join(balken)}</div>'
+    return f'<div class="schritte"{DEKO}>{"".join(balken)}</div>'
 
 
-def seite_arbeitsweise(d, t, basis, nr, i):
+def seite_arbeitsweise(d, t, basis, nr, i, cache: Path):
     schritte = d.get("prozess", [])
     s = schritte[i]
-    bild = (ASSETS / f"bilder/arbeitsweise-{i + 1}.jpg").as_uri()
+    bild = foto_fuer_pdf((ASSETS / f"bilder/arbeitsweise-{i + 1}.jpg").as_uri(),
+                         FLAECHENBREITE["bild--halb"], SEITE_HOCH, cache)
     grad, zeilen = kopfmass(s["titel"])
     # Verkleinerte Grade laufen in derselben Schrift, nur der Grad wechselt -
     # der Stil bleibt h1, die Zeilenhoehe wandert als Anteil mit.
     gross = f' style="font-size:{grad}pt"' if grad != KOPF_GRAD else ""
     return f'''<section class="seite seite--arbeitsweise">
-  <div class="streifen streifen--weiter"></div>
-  <div class="bild bild--halb"><img src="{bild}">
-    <div class="bildschatten" style="left:0;right:0"></div></div>
+  <div class="streifen streifen--weiter"{DEKO}></div>
+  <div class="bild bild--halb"{DEKO}><img src="{bild}">
+    <div class="bildschatten" style="left:0;right:0"{DEKO}></div></div>
   <div class="eyebrow t-h6-regular">{e(t["arbeitsweise"])}</div>
-  <div class="h1 t-{KOPF_STIL}"{gross}>{e(s["titel"]).replace(chr(10), "<br>")}</div>
+  <h2 class="h1 t-{KOPF_STIL}"{gross}>{e(s["titel"]).replace(chr(10), "<br>")}</h2>
   {absaetze(s.get("langtext", ""), stil=f"top:{textkante(zeilen, grad):.1f}pt")}
   {schrittleiste(schritte, t, i)}
   {kopfzeile(ASSETS / f"bilder/arbeitsweise-{i + 1}.jpg", basis, nr, "bild--halb", True)}
@@ -1170,7 +1286,7 @@ def werkzeugreihe(ki, basis) -> tuple[str, float]:
     for werkzeug in ki.get("tools", []):
         uri = datei_uri(werkzeug, basis)
         if uri:
-            uris.append(uri)
+            uris.append((uri, logo_name(werkzeug)))
     if len(uris) > WERKZEUG_MAX:
         merke(f"{len(uris)} KI-Werkzeuge – gezeigt werden die ersten "
               f"{WERKZEUG_MAX}, mehr passen nicht über die Schrittleiste.")
@@ -1188,20 +1304,20 @@ def werkzeugreihe(ki, basis) -> tuple[str, float]:
     # Seitenverhaeltnis der Datei statt eines Quadrats.
     rand, innen = mass * 0.175, mass * 0.65
     kacheln = []
-    for uri in uris:
+    for uri, name in uris:
         v = seitenverhaeltnis(uri)
         b, h = (innen, innen / v) if v >= 1 else (innen * v, innen)
         kacheln.append(
             f'<div class="werkzeug" style="width:{mass:.1f}pt;height:{mass:.1f}pt;'
             f'border-radius:{mass * 0.0625:.1f}pt;'
             f'padding:{rand + (innen - h) / 2:.1f}pt {rand + (innen - b) / 2:.1f}pt">'
-            f'<img src="{uri}" style="{logo_masse(uri, b, h, "KI-Folie")}"></div>')
+            f'<img src="{uri}"{alt(name)} style="{logo_masse(uri, b, h, "KI-Folie")}"></div>')
     kacheln = "".join(kacheln)
     return (f'<div class="werkzeuge" style="top:{oben:.1f}pt;'
             f'width:{breite:.1f}pt">{kacheln}</div>', oben - 11)
 
 
-def seite_ki(d, t, basis, nr) -> tuple[str, float]:
+def seite_ki(d, t, basis, nr, cache: Path) -> tuple[str, float]:
     """Die KI-Seite haengt hinter den drei Arbeitsweise-Seiten, ist aber kein
     vierter Prozessschritt - KI laeuft in allen Phasen mit. Deshalb traegt sie
     keine Schrittleiste: eine fruehere Fassung zaehlte sie dort als vierten
@@ -1211,14 +1327,15 @@ def seite_ki(d, t, basis, nr) -> tuple[str, float]:
     mit der Seite ihre Textzone - wie tief der Text reichen darf, haengt an der
     Werkzeugreihe."""
     ki = (d.get("person") or {}).get("ki") or {}
-    bild = (ASSETS / "bilder/arbeitsweise-4.jpg").as_uri()
+    bild = foto_fuer_pdf((ASSETS / "bilder/arbeitsweise-4.jpg").as_uri(),
+                         FLAECHENBREITE["bild--halb"], SEITE_HOCH, cache)
     werkzeuge, zone = werkzeugreihe(ki, basis)
     return f'''<section class="seite seite--arbeitsweise seite--ki">
-  <div class="streifen streifen--weiter"></div>
-  <div class="bild bild--halb"><img src="{bild}">
-    <div class="bildschatten" style="left:0;right:0"></div></div>
+  <div class="streifen streifen--weiter"{DEKO}></div>
+  <div class="bild bild--halb"{DEKO}><img src="{bild}">
+    <div class="bildschatten" style="left:0;right:0"{DEKO}></div></div>
   <div class="eyebrow t-h6-regular">{e(t["arbeitsweise"])}</div>
-  <div class="h1 t-{KOPF_STIL}">{e(t["ki"])}</div>
+  <h2 class="h1 t-{KOPF_STIL}">{e(t["ki"])}</h2>
   {absaetze(nuechtern(ki.get("text", "")), stil=f"top:{textkante(1):.1f}pt")}
   {werkzeuge}
   {kopfzeile(ASSETS / "bilder/arbeitsweise-4.jpg", basis, nr, "bild--halb", True)}
@@ -1288,10 +1405,10 @@ def seite_schwerpunkt(sp: dict, t, basis, nr) -> str:
         merke(f"Schwerpunkt „{titel.replace(chr(10), ' ')}“: die Karten sind zusammen "
               f"{stapel:.0f}pt hoch und laufen an den Folienrand – Kartentexte kürzen.")
     return f'''<section class="seite seite--schwerpunkt">
-  <div class="streifen streifen--weiter"></div>
-  <div class="panel"></div>
+  <div class="streifen streifen--weiter"{DEKO}></div>
+  <div class="panel"{DEKO}></div>
   <div class="eyebrow t-h6-regular">{e(t["arbeitsweise"])}</div>
-  <div class="h1 t-{KOPF_STIL}"{gross}>{e(titel).replace(chr(10), "<br>")}</div>
+  <h2 class="h1 t-{KOPF_STIL}"{gross}>{e(titel).replace(chr(10), "<br>")}</h2>
   {absaetze(sp.get("text", ""), stil=f"top:{textkante(zeilen, grad):.1f}pt")}
   <div class="pstapel pstapel--mitte"><div class="pstapel-inhalt">{"".join(html_karten)}</div></div>
   {logo_block(True)}{seitenzahl(nr, True)}
@@ -1303,13 +1420,13 @@ def seite_agentur(d, t, basis, nr):
     karte = lambda titel, zahl: (f'<div class="pkarte"><h3 class="t-subheadline-2-bold">'
                                  f'{e(titel)}</h3><div class="zahl t-h1">{zahl}</div></div>')
     return f'''<section class="seite seite--agentur">
-  <div class="streifen streifen--weiter"></div>
-  <div class="h1 t-h1">{e(t["agentur_h"]).replace(chr(10), "<br>")}</div>
+  <div class="streifen streifen--weiter"{DEKO}></div>
+  <h2 class="h1 t-h1">{e(t["agentur_h"]).replace(chr(10), "<br>")}</h2>
   <div class="subline t-subheadline-2-regular">{e(t["agentur_sub"])}</div>
-  <div class="kunden"><img src="{(ASSETS / 'marke/nm-agentur-kunden.png').as_uri()}"></div>
-  <div class="badge"><img src="{(ASSETS / 'marke/ux-awards-badge.png').as_uri()}"></div>
+  <div class="kunden"><img src="{(ASSETS / 'marke/nm-agentur-kunden.png').as_uri()}"{alt(t["alt_agentur_kunden"])}></div>
+  <div class="badge"><img src="{(ASSETS / 'marke/ux-awards-badge.png').as_uri()}"{alt(t["alt_badge"])}></div>
   <div class="badge-text t-badge-text">{e(b[0])}<br>{e(b[1])}<br>{e(b[2])}</div>
-  <div class="panel"></div>
+  <div class="panel"{DEKO}></div>
   <div class="pstapel" style="top:278pt">{karte(t["team"], AGENTUR["teammitglieder"])}
     {karte(t["gegruendet"], AGENTUR["gegruendet"])}
     {karte(t["zufriedenheit"], AGENTUR["zufriedenheit"])}</div>
@@ -1328,7 +1445,7 @@ LOGO_PROJEKT_HOCH = 80
 LOGO_PROJEKT_BREIT = 420
 
 
-def kundenlogo(pr, basis, cache: Path):
+def kundenlogo(pr, basis, cache: Path, deko: bool = False):
     # "logo" nimmt einen Dateinamen oder eine Liste: Projekte mit mehreren
     # Auftraggebern (Postbank & FYRST, Opel/Peugeot/Citroen) fuehren alle
     # Marken nebeneinander, wie in den Showcases der Kandidaten. Schwarz-weiss
@@ -1350,11 +1467,16 @@ def kundenlogo(pr, basis, cache: Path):
         if b > LOGO_PROJEKT_BREIT:
             b, h = LOGO_PROJEKT_BREIT, LOGO_PROJEKT_BREIT / v
         wo = f"Kopfseite {pr.get('kunde')}"
-        imgs.append(f'<img src="{uri}" style="{logo_masse(uri, b, h, wo)}">')
+        # Der Kundenname nennt alle Marken („Opel, Peugeot und Citroën“): er
+        # steht am ersten Logo, die weiteren sind dann Dekoration.
+        # Auf Summary und Loesung wiederholt das Logo nur die Kopfseite - dort
+        # ist es Dekoration wie eine Kopfzeile.
+        text = alt(pr.get("kunde") or logo_name(eintrag)) if not (imgs or deko) else DEKO
+        imgs.append(f'<img src="{uri}"{text} style="{logo_masse(uri, b, h, wo)}">')
     if not imgs:
         merke(f"Kundenlogo fehlt: {pr.get('kunde')}")
         return ""
-    return f'<div class="kundenlogo">{"".join(imgs)}</div>'
+    return f'<div class="kundenlogo"{DEKO if deko else ""}>{"".join(imgs)}</div>'
 
 
 def flaechenfarbe(pr: dict) -> str | None:
@@ -1422,6 +1544,18 @@ def screens_meldungen() -> list[str]:
     return raus
 
 
+_flaechen_inhalt: dict[str, Path] = {}
+
+
+def einmal(pfad: Path) -> Path:
+    """Dieselbe Flaeche als dieselbe Datei. WeasyPrint bettet ein Bild je
+    Adresse einmal ein; zwei Loesungsseiten mit denselben Screens ergaben aber
+    zwei byte-gleiche Dateien unter verschiedenen Namen (Seed im
+    Fingerabdruck) - im Beispiel 1,3 MB doppelt."""
+    marke = hashlib.sha1(pfad.read_bytes()).hexdigest()
+    return _flaechen_inhalt.setdefault(marke, pfad)
+
+
 def screenflaeche(bilder, farbe, variante: str, basis: Path, cache: Path,
                   seed: int, was: str, nda: bool = False) -> Path | None:
     """Die Screenflaeche mit dem gekippten Raster. Das Rechnen
@@ -1459,7 +1593,7 @@ def screenflaeche(bilder, farbe, variante: str, basis: Path, cache: Path,
             for zeile in notiz.read_text(encoding="utf-8").splitlines():
                 if zeile.strip():
                     merke(zeile)
-        return fertig[0]
+        return einmal(fertig[0])
     try:
         gebaut = Path(baue_screens(pfade, farbe, ziel, variante=variante, seed=seed,
                                    nda=bool(nda)))
@@ -1474,7 +1608,7 @@ def screenflaeche(bilder, farbe, variante: str, basis: Path, cache: Path,
         pass                     # Ohne Notiz meldet nur dieser Lauf - kein Grund abzubrechen
     for zeile in neu:
         merke(zeile)
-    return gebaut
+    return einmal(gebaut)
 
 
 # Die Kopfseite traegt seit November 2026 drei gleich breite Spalten wie die
@@ -1534,9 +1668,9 @@ def blick_karte(pr: dict, t: dict, oben: float) -> str:
         return ""
     teile = []
     for gruppe, liste in gruppen.items():
-        chips = "".join(f'<span class="chip t-chip">{e(x)}</span>' for x in liste)
+        chips = "".join(f'<li class="chip t-chip">{e(x)}</li>' for x in liste)
         teile.append(f'<div class="gruppe gruppe--{gruppe}"><div class="gruppe-label t-blick-label">'
-                     f'{e(t[gruppe])}</div><div class="chips">{chips}</div></div>')
+                     f'{e(t[gruppe])}</div><ul class="chips">{chips}</ul></div>')
     return (f'<div class="blick" style="top:{oben:.1f}pt;left:{KOPF_SPALTEN_X[2]:.2f}pt">'
             f'{"".join(teile)}</div>')
 
@@ -1558,7 +1692,7 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
               "höchstens drei. Aufgaben gehören in den Projekttext.")
     # Jede Rolle eine Rollenkarte: Akzentstrich in Petrol, die Rolle daneben -
     # mehrere stehen untereinander (Komponente »Rollenkarte«).
-    rolle = "".join(f'<div class="rollenkarte t-rolle">{e(nuechtern(r))}</div>'
+    rolle = "".join(f'<li class="rollenkarte t-rolle">{e(nuechtern(r))}</li>'
                     for r in punkte_rolle)
     # Lange Kundennamen brechen um und schoeben die Labels sonst unter die
     # zweite Zeile ("Opel, Peugeot und Citroën").
@@ -1575,13 +1709,13 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
     # so sitzt der Block dort, wo der Text endet, wie in der Referenz
     # (p-13/18/23). Die alte Fassung liess ihn von der Blattkante nach oben
     # wachsen; bei kurzen Texten klebte er dann allein am unteren Rand.
-    label = lambda s: f'<div class="label t-kopf-label">{e(s)}</div>'
-    rolle_html = (f'<div class="rolle-block">{label(t["meine_rolle"])}{rolle}</div>'
-                  if rolle else "")
+    label = lambda s: f'<h3 class="label t-kopf-label">{e(s)}</h3>'
+    rolle_html = (f'<div class="rolle-block">{label(t["meine_rolle"])}'
+                  f'<ul class="rollen">{rolle}</ul></div>' if rolle else "")
     out.append((f'''<section class="seite seite--projekt">
-  <div class="streifen streifen--start"></div>
+  <div class="streifen streifen--start"{DEKO}></div>
+  <h2 class="h1 t-h1">{e(titel)}</h2>
   {kundenlogo(pr, basis, cache)}
-  <div class="h1 t-h1">{e(titel)}</div>
   <div class="sp-projekt" style="top:{spalten_oben:.1f}pt;left:{KOPF_SPALTEN_X[0]:.2f}pt">{label(t["projekt"])}
     {absaetze(pr.get("projekt", ""), ts="kopf-text")}{rolle_html}</div>
   <div class="sp-kunde" style="top:{spalten_oben:.1f}pt;left:{KOPF_SPALTEN_X[1]:.2f}pt">{label(t["kunde"])}
@@ -1603,30 +1737,32 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
     elif not isinstance(sm, dict):
         sm = {}
     out.append((f'''<section class="seite seite--summary">
-  <div class="streifen streifen--weiter"></div>
-  {bildflaeche(sm.get("bild"), "bild--breit", basis, t,
-               was=f'{pr.get("kunde", "")} – {t["summary"]}')}
-  {kundenlogo(pr, basis, cache)}
-  <div class="h1 t-h1">{e(t["summary"])}</div>
+  <div class="streifen streifen--weiter"{DEKO}></div>
+  <h3 class="h1 t-h1">{e(t["summary"])}</h3>
   {absaetze(sm.get("text", ""))}
+  {bildflaeche(sm.get("bild"), "bild--breit", basis, t,
+               was=f'{pr.get("kunde", "")} – {t["summary"]}',
+               bildtext=t["alt_hq"].format(kunde=pr.get("kunde", "")), foto_cache=cache)}
+  {kundenlogo(pr, basis, cache, deko=True)}
   {kopfzeile(sm.get("bild"), basis, nr)}
 </section>''', Zone(PROJEKT_OBEN, 1010, BILDKANTE_BREIT - 12, '„summary.text“ kürzen')))
     nr += 1
 
     farbe = flaechenfarbe(pr)
+    screens_text = t["alt_screens"].format(projekt=titel)
     for k, lo in enumerate((pr.get("loesungen") or [])[:2]):
         was = f'{pr.get("kunde", "")} – {t["loesung"]}'
         bild = screenflaeche(lo.get("screens"), farbe, "panel", basis, cache, k, was,
                              nda=pr.get("nda"))
         punkte = "".join(f"<li>{fett(x)}</li>" for x in lo.get("punkte", []))
         out.append((f'''<section class="seite seite--loesung">
-  <div class="streifen streifen--weiter"></div>
-  {bildflaeche(bild, "bild--breit", basis, t, farbe=farbe, was=was)}
-  {kundenlogo(pr, basis, cache)}
+  <div class="streifen streifen--weiter"{DEKO}></div>
   <div class="inhalt">
-    <div class="einleitung t-subheadline-2-bold">{fett(lo.get("titel") or t["loesung"])}</div>
+    <h3 class="einleitung t-subheadline-2-bold">{fett(lo.get("titel") or t["loesung"])}</h3>
     {absaetze(lo.get("text", ""), ts="body-1-regular")}
     {f'<ul class="punkte t-body-1-regular" style="margin-top:30pt">{punkte}</ul>' if punkte else ""}</div>
+  {bildflaeche(bild, "bild--breit", basis, t, farbe=farbe, was=was, bildtext=screens_text)}
+  {kundenlogo(pr, basis, cache, deko=True)}
   {marken_moebel(pr, t, nr, bild, farbe)}
 </section>''', Zone(PROJEKT_OBEN, 1010, BILDKANTE_BREIT - 12,
                      "kürzen oder auf eine weitere Lösungsseite verteilen")))
@@ -1641,7 +1777,7 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
         # Randlos und ohne Text - es bleiben Wortmarke, Seitenzahl und der
         # Hinweis, alle drei nach dem Grund der Flaeche gesetzt.
         out.append((f'''<section class="seite seite--abschluss">
-  <div class="vollflaeche"><img src="{voll.resolve().as_uri()}"></div>
+  <div class="vollflaeche"><img src="{voll.resolve().as_uri()}"{alt(screens_text)}></div>
   {marken_moebel(pr, t, nr, voll, farbe, "vollflaeche")}
 </section>''', Zone(900, 1010, 1920, RAT_STD)))
         nr += 1
@@ -1651,18 +1787,18 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
     return out, nr
 
 
-def seite_kontakt(d, t, basis, nr):
+def seite_kontakt(d, t, basis, nr, cache: Path):
     a = ANSPRECHPARTNER
     titel = a["titel_de"] if d.get("sprache", "de") == "de" else a["titel_en"]
     # Die Box traegt wie in Figma nur Frage, E-Mail und Telefon - der fruehere
     # Satz zum Ansprechpartner stand dort nicht mehr (Abgleich September 2026).
     return f'''<section class="seite seite--kontakt">
-  <div class="band"></div>
+  <div class="band"{DEKO}></div>
+  <div class="aufruf"><h2 class="t-h5">{e(t["aufruf_h"])}</h2>
+    <p class="t-subheadline-2-regular">{e(t["aufruf_p"].format(name=a["name"]))}</p></div>
   <div class="adresse t-subheadline-2-regular">{e(FIRMA["name"])}<br>{e(FIRMA["strasse"])}<br>{e(FIRMA["ort"])}
     <br><br><a href="mailto:{e(FIRMA["mail"])}">{e(FIRMA["mail"])}</a>
     <br><a href="https://{e(FIRMA["web"])}">{e(FIRMA["web"])}</a></div>
-  <div class="aufruf"><h2 class="t-h5">{e(t["aufruf_h"])}</h2>
-    <p class="t-subheadline-2-regular">{e(t["aufruf_p"].format(name=a["name"]))}</p></div>
   <div class="box"><h3 class="t-subheadline-1-bold">{e(t["fragen_h"])}</h3>
     <div class="felder">
       <div><b class="t-body-1-bold">{e(t["mail"])}</b>
@@ -1670,7 +1806,7 @@ def seite_kontakt(d, t, basis, nr):
       <div><b class="t-body-1-bold">{e(t["telefon"])}</b>
         <a class="t-body-1-regular" href="tel:{re.sub(r"[^+0-9]", "", a["telefon"])}">{e(a["telefon"])}</a></div>
     </div></div>
-  <div class="person"><img src="{(ASSETS / a["foto"]).as_uri()}">
+  <div class="person"><img src="{foto_fuer_pdf((ASSETS / a["foto"]).as_uri(), 320, 320, cache, oben=True)}"{alt(t["alt_foto"].format(name=a["name"]))}>
     <div class="name"><b class="t-person-name">{e(a["name"])}</b>
       <span class="t-person-rolle">{"<br>".join(e(x) for x in titel)}</span></div></div>
   {logo_block(False)}{seitenzahl(nr)}
@@ -1738,12 +1874,12 @@ def baue_html(d: dict, basis: Path, cache: Path) -> tuple[str, dict[int, Zone]]:
               "Text und Werkzeuge nachtragen.")
     for i in range(min(3, len(schritte))):
         # Unterhalb von 940pt liegt die Schrittleiste; Text darf da nicht hin.
-        lege_ab(seite_arbeitsweise(d, t, basis, len(seiten) + 1, i),
+        lege_ab(seite_arbeitsweise(d, t, basis, len(seiten) + 1, i, cache),
                 ARBEIT_UNTEN, BILDKANTE_HALB, oben=112, rat='„prozess.langtext“ kürzen')
     if ki.get("text"):
         # Mit Werkzeugreihe endet die Textzone schon über deren Oberkante -
         # wo genau, weiß nur die Seite selbst.
-        aufbau, unten = seite_ki(d, t, basis, len(seiten) + 1)
+        aufbau, unten = seite_ki(d, t, basis, len(seiten) + 1, cache)
         lege_ab(aufbau, unten, BILDKANTE_HALB, oben=112, rat='„person.ki.text“ kürzen')
     # Schwerpunkt-Folien nach der KI-Folie, vor der Agenturseite - nur, wenn
     # die JSON welche fuehrt. Die Seitenzahlen zaehlen einfach weiter.
@@ -1765,19 +1901,65 @@ def baue_html(d: dict, basis: Path, cache: Path) -> tuple[str, dict[int, Zone]]:
             lege_zone(seite)
 
     lege_ab(seite_divider(t["kontakt"]), oben=330)
-    lege_ab(seite_kontakt(d, t, basis, len(seiten) + 1), oben=85)
+    lege_ab(seite_kontakt(d, t, basis, len(seiten) + 1, cache), oben=85)
 
     # Zuerst das Design System (Schriften, Farben, Textstile aus tokens.json),
     # dann das Layout. portfolio.css traegt selbst keine Farb- und Schriftwerte.
     css = ds.css() + (ASSETS / "portfolio.css").read_text()
     schablone = (ASSETS / "template.html").read_text()
-    return (schablone.replace("{{css}}", css).replace("{{seiten}}", "\n".join(seiten)),
-            grenzen)
+    # Sprache und Titel landen im PDF als /Lang und dc:title (PDF/UA).
+    titel = f'{COVER_TITEL} – {d["person"].get("name") or ""} – {FIRMA["name"]}'
+    return (schablone.replace("{{sprache}}", sprache).replace("{{titel}}", e(titel))
+            .replace("{{css}}", css).replace("{{seiten}}", "\n".join(seiten)), grenzen)
 
 
 # ── Rendern ──────────────────────────────────────────────────────────────
 
+# Wie WeasyPrint schreibt - eine Stelle fuer alle Laeufe (auch den Selbsttest).
+# Bewusst ohne optimize_images/jpeg_quality/dpi: siehe rendere().
+PDF_OPTIONEN = {"pdf_variant": "pdf/ua-1"}
+
+
+def deko_als_artefakt() -> bool:
+    """Elemente mit aria-hidden="true" zeichnet WeasyPrint wie bisher, schreibt
+    sie aber als Artefakt statt in den Strukturbaum. Von sich aus kennt
+    WeasyPrint 66 als Artefakt nur Hintergruende und Rahmen; jedes <img> wird
+    /Figure (mit alt="" ohne /Alt - ein PDF/UA-Fehler), jeder Text /Span. Die
+    Wortmarke als CSS-Hintergrund ginge auch, aber figma_plan und
+    figma_bibliothek lesen sie als <img>, und die Seitenzahl ist Text.
+    shortcut: greift in zwei interne Funktionen von WeasyPrint 66
+    (Stream.marked, tags._build_box_tree); fehlen sie nach einem Update, meldet
+    das Skript es, und der Selbsttest wird rot (Figure ohne Alt)."""
+    try:
+        from weasyprint.pdf import stream as w_stream, tags as w_tags
+        markieren, baum = w_stream.Stream.marked, w_tags._build_box_tree
+    except (ImportError, AttributeError):
+        return False
+    if getattr(w_stream.Stream, "_nm_deko", False):
+        return True
+
+    def deko(box) -> bool:
+        el = getattr(getattr(box, "_box", box), "element", None)
+        return el is not None and el.get("aria-hidden") == "true"
+
+    def markieren_neu(self, box, tag):
+        return self.artifact() if deko(box) else markieren(self, box, tag)
+
+    def baum_neu(box, *args, **kwargs):
+        return iter(()) if deko(box) else baum(box, *args, **kwargs)
+
+    w_stream.Stream.marked = markieren_neu
+    w_tags._build_box_tree = baum_neu
+    w_stream.Stream._nm_deko = True
+    return True
+
+
 def rendere(html_text: str, ziel: Path) -> str:
+    """PDF/UA-1 mit WeasyPrint: getaggt, Sprache aus <html lang>, Titel als
+    dc:title, DisplayDocTitle. Kein optimize_images/jpeg_quality: WeasyPrint
+    kodiert damit jedes JPEG neu (Guete 75, 4:2:0) - die Schrift in den
+    Screens litte. Die Bilder kommen schon in PDF-Groesse (foto_fuer_pdf,
+    screens.py)."""
     # Die eingebetteten Schriftschnitte tragen sonst die Uhrzeit des Laufs im
     # Kopf, und zwei Laeufe derselben Datei sind nicht mehr byte-gleich. Wer
     # den Wert selbst setzt, behaelt ihn.
@@ -1787,7 +1969,19 @@ def rendere(html_text: str, ziel: Path) -> str:
     tmp.write_text(html_text, encoding="utf-8")
     try:
         from weasyprint import HTML
-        HTML(filename=str(tmp)).write_pdf(str(ziel))
+        if not deko_als_artefakt():
+            merke("WeasyPrint kennt Stream.marked/_build_box_tree nicht mehr – "
+                  "Wortmarke, Seitenzahl und Stimmungsfotos stehen nicht als "
+                  "Artefakt im PDF, es ist nicht PDF/UA-konform. render_portfolio."
+                  "deko_als_artefakt() an die neue Version anpassen.")
+        dok = HTML(filename=str(tmp))
+        # aria-hidden gilt fuer den ganzen Teilbaum - WeasyPrint fragt je Box
+        # nur ihr eigenes Element, die Elemente kennen ihre Eltern nicht.
+        for el in dok.etree_element.iter():
+            if el.get("aria-hidden") == "true":
+                for kind in el.iter():
+                    kind.set("aria-hidden", "true")
+        dok.write_pdf(str(ziel), **PDF_OPTIONEN)
         return "WeasyPrint"
     except ImportError:
         pass
@@ -1797,6 +1991,10 @@ def rendere(html_text: str, ziel: Path) -> str:
             subprocess.run([chrome, "--headless", "--disable-gpu", "--no-sandbox",
                             f"--print-to-pdf={ziel}", "--no-pdf-header-footer",
                             tmp.as_uri()], check=True, capture_output=True)
+            merke("WARNUNG: Gerendert mit Chrome statt WeasyPrint – das PDF ist "
+                  "NICHT barrierefrei (kein PDF/UA, Bilder ohne Alternativtext, "
+                  "Dekoration im Lesefluss) und nicht verkleinert geprüft. So "
+                  "nicht an Kunden geben: WeasyPrint installieren und neu rendern.")
             merke("Gerendert mit Chrome statt WeasyPrint – Seitenumbrüche und "
                   "Schriftgrößen vor dem Versand gegenprüfen.")
             return "Chrome"
@@ -1854,6 +2052,82 @@ def pruefe_ueberlauf(pdf: Path, grenzen: dict[int, Zone]) -> None:
     doc.close()
 
 
+# Hoechstgroesse eines Decks: deutlich unter 10 MB. Den groessten Teil tragen
+# die Screenflaechen (0,4-0,8 MB je Seite bei 2 px/pt, weniger geht nicht ohne
+# weiche Schrift in den Screens); Fotos und Grafik zusammen 1-2 MB. Ein Deck mit
+# fuenf Projekten und acht Screenseiten landet bei rund 7 MB (Nina, November
+# 2026: 7,2 MB statt 18,5), eines mit drei Projekten bei rund 4-5 MB.
+BUDGET_MB = 8.0
+
+
+def strukturelemente(reader):
+    """Die Strukturelemente eines getaggten PDFs in Lesereihenfolge. Zahlen
+    (MCIDs) und Verweise auf Inhalt oder Annotationen (/MCR, /OBJR) sind
+    Blaetter und werden uebersprungen."""
+    from pypdf.generic import ArrayObject, DictionaryObject
+    stapel = [reader.trailer["/Root"]["/StructTreeRoot"].get_object()]
+    while stapel:
+        el = stapel.pop()
+        if isinstance(el, ArrayObject):
+            stapel.extend(reversed([k.get_object() for k in el]))
+            continue
+        if not isinstance(el, DictionaryObject) or el.get("/Type") in ("/MCR", "/OBJR"):
+            continue
+        if "/S" in el:
+            yield el
+        if "/K" in el:
+            k = el["/K"].get_object()
+            stapel.append(k if isinstance(k, ArrayObject) else ArrayObject([k]))
+
+
+def pruefe_pdf_ua(pdf: Path, sprache: str, budget_mb: float = BUDGET_MB) -> list[str]:
+    """Was PDF/UA-1 und die Vorgabe „barrierefrei und klein“ am fertigen PDF
+    verlangen und sich ohne veraPDF pruefen laesst: Strukturbaum, MarkInfo,
+    Sprache, pdfuaid im XMP, Titel und DisplayDocTitle, jede /Figure mit /Alt,
+    genau eine H1, Ueberschriften ohne Sprung, Groesse im Budget."""
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        return ["pypdf fehlt – Barrierefreiheit und Größe nicht geprüft "
+                "(pip3 install pypdf)"]
+    befunde = []
+    r = PdfReader(str(pdf))
+    kat = r.trailer["/Root"]
+    if "/StructTreeRoot" not in kat:
+        return ["kein Strukturbaum (/StructTreeRoot) – das PDF ist nicht getaggt"]
+    if not (kat.get("/MarkInfo") or {}).get("/Marked"):
+        befunde.append("/MarkInfo /Marked fehlt")
+    lang = str(kat.get("/Lang") or "")
+    if not lang.lower().startswith(sprache.lower()):
+        befunde.append(f"/Lang ist „{lang}“, erwartet „{sprache}“")
+    if not (kat.get("/ViewerPreferences") or {}).get("/DisplayDocTitle"):
+        befunde.append("/DisplayDocTitle fehlt")
+    xmp = kat["/Metadata"].get_object().get_data() if "/Metadata" in kat else b""
+    if b"pdfuaid" not in xmp or not re.search(rb"pdfuaid:part[^0-9]{1,3}1", xmp):
+        befunde.append("XMP ohne pdfuaid:part 1")
+    if b"<dc:title>" not in xmp:
+        befunde.append("XMP ohne dc:title")
+    ohne_alt, ebenen = 0, []
+    for el in strukturelemente(r):
+        typ = str(el.get("/S") or "")
+        if typ == "/Figure" and not str(el.get("/Alt") or "").strip():
+            ohne_alt += 1
+        if re.fullmatch(r"/H[1-6]", typ):
+            ebenen.append(int(typ[2]))
+    if ohne_alt:
+        befunde.append(f"{ohne_alt} Abbildung(en) ohne Alternativtext (/Figure ohne /Alt)")
+    if ebenen.count(1) != 1:
+        befunde.append(f"{ebenen.count(1)} H1 im Dokument, erwartet genau eine")
+    for vor, nach in zip([0] + ebenen, ebenen):
+        if nach > vor + 1:
+            befunde.append(f"Überschrift springt von H{vor} auf H{nach}")
+            break
+    mb = pdf.stat().st_size / 1e6
+    if mb > budget_mb:
+        befunde.append(f"{mb:.1f} MB – über dem Budget von {budget_mb:g} MB")
+    return befunde
+
+
 def zwischenlager(quelle: Path) -> Path:
     """Die gerechneten Screenflaechen sind Arbeitsdateien und gehoeren neben die
     portfolio.json, nicht in den Ausgabeordner: der wird weitergereicht, und ein
@@ -1880,6 +2154,9 @@ def main() -> None:
     # Jede Textstelle im PDF muss einen Schnitt und Grad aus tokens.json tragen.
     for befund in ds.pruefe_pdf(ziel):
         merke(f"Design System: {befund}")
+    if engine == "WeasyPrint":
+        for befund in pruefe_pdf_ua(ziel, d["sprache"]):
+            merke(f"Barrierefreiheit/Größe: {befund}")
     # Der Regelfall ist schon beim Bauen der Flaechen abgeholt; hier bleibt der
     # Rest - Meldungen, die screens.py ausserhalb eines Flaechenbaus abgelegt
     # hat. Ohne diesen Abruf verschwaenden sie stumm.
@@ -1888,7 +2165,8 @@ def main() -> None:
 
     import fitz
     n = fitz.open(ziel).page_count
-    print(f"{ziel}  ·  {n} Seiten  ·  {engine}")
+    print(f"{ziel}  ·  {n} Seiten  ·  {ziel.stat().st_size / 1e6:.1f} MB  ·  {engine}"
+          + ("  ·  PDF/UA-1" if engine == "WeasyPrint" else "  ·  NICHT barrierefrei"))
     if hinweise:
         print("\nHinweise:", file=sys.stderr)
         for h in dict.fromkeys(hinweise):

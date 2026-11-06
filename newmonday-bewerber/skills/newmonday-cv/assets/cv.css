@@ -261,10 +261,12 @@ ul.tight { padding-left: {{ pt(r.listeneinzug) }}; list-style: disc; {{ css("lis
 .ew ~ .fussbereich { clear: both; }
 .ew-seite { float: right; width: {{ pt(en.seite_breite) }}; }
 .ew-haupt { width: {{ pt(ab.entwickler_haupt) }}; }
-.ew h2 { {{ css("rubrik") }} }
-.ew-haupt h2 { margin-bottom: {{ pt(dn.rubrik_inhalt) }}; }
-.ew-seite h2 { margin-bottom: {{ pt(es.rubrik_inhalt) }}; }
-.ew h3 { {{ css("gruppe") }} margin-bottom: {{ pt(es.gruppe_liste) }}; break-after: avoid; }
+/* Nur die Rubriken und Gruppentitel: Stationstitel (h3) und Kunden (h4)
+   sind auch Ueberschriften, tragen aber ihre eigenen Stile. */
+.ew-block > h2, .ew-abschnitt > h2 { {{ css("rubrik") }} }
+.ew-abschnitt > h2 { margin-bottom: {{ pt(dn.rubrik_inhalt) }}; }
+.ew-block > h2 { margin-bottom: {{ pt(es.rubrik_inhalt) }}; }
+.ew-gruppe > h3 { {{ css("gruppe") }} margin-bottom: {{ pt(es.gruppe_liste) }}; break-after: avoid; }
 .ew-liste { {{ css("it_liste") }} }
 .ew-gruppe + .ew-gruppe { margin-top: {{ pt(es.gruppen) }}; }
 .ew-block + .ew-block { margin-top: {{ pt(es.abschnitte) }}; }
@@ -291,7 +293,7 @@ ul.tight { padding-left: {{ pt(r.listeneinzug) }}; list-style: disc; {{ css("lis
    nur Abstaende, nie Schriftgroessen (verdichtung.entwickler). */
 {% for stufe, w in tok.verdichtung.entwickler.items() if stufe != "normal" %}
 .ew--{{ stufe }} .ew-seite h2 { margin-bottom: {{ pt(w.rubrik_inhalt) }}; }
-.ew--{{ stufe }} h3 { margin-bottom: {{ pt(w.gruppe_liste) }}; }
+.ew--{{ stufe }} .ew-gruppe > h3 { margin-bottom: {{ pt(w.gruppe_liste) }}; }
 .ew--{{ stufe }} .ew-gruppe + .ew-gruppe { margin-top: {{ pt(w.gruppen) }}; }
 .ew--{{ stufe }} .ew-block + .ew-block { margin-top: {{ pt(w.abschnitte) }}; }
 {% endfor %}

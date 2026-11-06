@@ -41,8 +41,9 @@ nicht im Eingang, weil sie nicht aus ihm stammen können.
 Die anonymisierte Fassung ist **keine dritte Ausnahme**, sondern ein zweites
 Dokument: Sie entsteht aus derselben `cv.json` und lässt nur weg, was auf die
 Person zeigt. Jeder Satz in ihr steht wörtlich auch in der vollständigen Fassung.
-Der einzige Eingriff in fremden Text ist die Namensnennung im Fließtext – und die
-wird gemeldet, siehe "Die anonymisierte Fassung".
+Die einzigen Eingriffe in fremden Text sind die Namensnennung im Fließtext und
+die Geschlechtsform der Berufsbezeichnungen („Designer:in“) – beide werden
+gemeldet, siehe "Die anonymisierte Fassung".
 
 ### Die erste Ausnahme: das Kurzprofil
 
@@ -99,12 +100,30 @@ Zertifikate und Skillset stehen unverändert. Was verschwindet, ist eng umrissen
   und wird gemeldet – der Skill zerschießt lieber keinen Satz, als einen zu raten.
   **Diese Meldungen müssen gelesen werden**: Darunter kann eine echte
   Namensnennung sein, die dann von Hand in die `cv.json` gehört.
+- **Das Geschlecht.** Ob Mann oder Frau, darf nicht erkennbar sein (Entscheidung
+  vom 05.11.2026). `anonymisieren.py` setzt jede Bezeichnung der Person in die
+  Doppelpunkt-Form: „Senior UX / UI Designerin“ → „Senior UX / UI Designer:in“,
+  „UX/UI-Designer“ → „UX/UI-Designer:in“, „Als UX-Designerin habe ich“ → „Als
+  UX-Designer:in habe ich“, „Customer-Insight-Managerin“ →
+  „Customer-Insight-Manager:in“ – ebenso Entwickler, Berater, Leiter, Researcher,
+  Developer, Engineer, Consultant, Architekt, Analyst, Spezialist, Werkstudent,
+  Praktikant, Referent, Mitarbeiter und weitere (Liste in `scripts/geschlecht.py`).
+  Feminine Formen immer, maskuline Grundformen dort, wo sie die Person
+  bezeichnen: `person.rolle`, Stationstitel, „Als …“, „Rolle: …“. Unberührt bleiben
+  gebeugte Formen, die andere meinen („Koordination des UI-Designers“), Plurale
+  („Schulungen für Entwickler“, „Zusteller:innen“) und Firmennamen. Was danach
+  noch auf ein Geschlecht deutet – Pronomen, „Frau“/„Herr“, übrige -in-Formen,
+  ein Artikel oder Adjektiv davor („zur Mediengestalter:in“) –, meldet das
+  Skript unter „Prüfen“ und wird von Hand gelöst. Nur Deutsch: Ein englischer
+  Lebenslauf wird nicht umgeschrieben, gemeldet werden she/he/her/his.
 
 Drei Stellen kommen dazu, die im Dokument selbst nicht zu sehen sind und genau
 deshalb übersehen werden:
 
-- **Der Dateiname.** `New-Monday - T. M. - UX-Designer - CV.pdf`. Ein Anhang, der
-  im Namen den Kandidaten trägt, macht das Dokument darin sinnlos.
+- **Der Dateiname.** `New-Monday - T. M. - UX-Designer-in - CV.pdf` (der
+  Doppelpunkt aus „Designer:in“ wird im Dateinamen zum Bindestrich). Ein Anhang,
+  der im Namen den Kandidaten oder sein Geschlecht trägt, macht das Dokument
+  darin sinnlos.
 - **Der PDF-Titel in den Metadaten.** Er steht in der Fensterleiste jedes
   PDF-Betrachters, noch bevor jemand die erste Seite gelesen hat.
 - **Die Frame- und Seitennamen in Figma.**
@@ -165,9 +184,10 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/pruefe_umgebung.py
 Das nennt fehlende Abhängigkeiten samt Installationsbefehl für das jeweilige
 System. Meldet es Lücken, dem Nutzer den Befehl weiterreichen statt zu raten.
 
-- **Render-Engine**: Das Layout ist auf WeasyPrint abgestimmt. Fehlt sie, weicht
-  das Skript auf Chrome aus und sagt das auch – dann Seitenumbrüche und
-  Skillset-Spalten gegenprüfen, bevor die PDFs rausgehen.
+- **Render-Engine**: Das Layout ist auf WeasyPrint abgestimmt, und nur damit
+  wird das PDF barrierefrei (PDF/UA-1). Fehlt sie, weicht das Skript auf Chrome
+  aus und warnt – ein so erzeugtes PDF ist ein Entwurf; das Kundendokument
+  entsteht mit WeasyPrint.
 - **Netz**: Lokal und in Claude Desktop ist es offen, im Browser-Chat blockt der
   Proxy fremde Domains. Das betrifft nur die Logosuche, siehe Schritt 3.
 - **Ausgabeort**: In Claude Code ins Arbeitsverzeichnis des Nutzers schreiben,
@@ -265,7 +285,11 @@ Schritt 1b die Quelle aus `vorrang` in `auftrag.json`, danach Lebenslauf,
 Portfolio, LinkedIn – in allen drei Dokumenten gleich; fehlt `vorrang`, der
 Lebenslauf. Die Ergänzungsregeln aus Schritt 1b bleiben (LinkedIn füllt Lücken,
 vollständige Firmierung aus LinkedIn, die feinere Angabe, solange sie nicht
-widerspricht).
+widerspricht). Unterscheiden sich zwei Quellen nur in der Geschlechtsform einer
+Bezeichnung („UX/UI-Designer“ gegen „Designerin“), ist das keine Abweichung: Die
+Form wird beim Bau der `cv.json` an die Person angeglichen (Schritt 2,
+„Berufsbezeichnungen“) und kommt weder unter `abweichungen` noch unter „Quellen
+weichen ab“.
 
 **`skillset.tools` kommt aus der Skill Matrix.** Lebenslauf und Skill Matrix
 führen dieselben Tools – gleiche Einträge, gleiche Schreibweise („Figma /
@@ -558,7 +582,8 @@ beim Kandidaten angefragt.
 
 Liegen Lebenslauf und LinkedIn-Export vor, gilt:
 
-- **Bei Widersprüchen gewinnt immer der Lebenslauf.** Abweichende Zeiträume,
+- **Bei Widersprüchen gewinnt immer der Lebenslauf.** (Nur die Geschlechtsform
+  eines Titels ist keiner – die wird angeglichen, Schritt 2.) Abweichende Zeiträume,
   andere Jobtitel, andere Firmennamen: Die Fassung aus dem Lebenslauf kommt ins
   Dokument, ohne Rückfrage. Nicht abwägen, welche plausibler wirkt – der
   Lebenslauf ist das, was die Person selbst für die Bewerbung aufbereitet hat.
@@ -794,6 +819,25 @@ Kurzprofil, Stationen, Projekten und Skillset, nicht in Eigennamen und nicht im
 englischen Lebenslauf. Die Liste ist ein Netz für die häufigsten Fälle, nicht
 die Regel: Was nicht darauf steht, wird trotzdem gekoppelt. Gemeldetes in der
 `cv.json` korrigieren und neu rendern.
+
+#### Berufsbezeichnungen in der Form der Person
+
+**Alles, was die Person selbst bezeichnet, steht einheitlich in ihrer Form** –
+`person.rolle`, die Stationstitel, Projektrollen und Wendungen wie „Als
+UX-Designerin habe ich …“ oder „Als Customer-Insight-Managerin …“. Die Quellen
+liefern das oft gemischt: LinkedIn „UX/UI-Designer“, der Lebenslauf
+„Designerin“. Beim Bau der `cv.json` wird angeglichen – an die Form, in der sich
+die Person im Lebenslauf selbst beschreibt. Das ist Rechtschreibung im Sinne der
+einen Regel oben, keine Umformulierung, und keine Abweichung zwischen Quellen,
+die gemeldet werden müsste. Gilt nur für die Person: Wer andere meint
+(„Abstimmung mit den Entwicklern“), bleibt, wie er dasteht; Firmennamen auch.
+
+`render_cv.py` meldet, wenn dieselbe Person feminin und maskulin bezeichnet
+wird („Berufsbezeichnungen gemischt: feminin „Designerin“ (person.rolle) –
+maskulin „UX/UI-Designer“ (stationen[1].titel)“). Die Meldung in der `cv.json`
+beheben, nicht übergehen. Die neutrale Form für die anonyme Fassung setzt
+`anonymisieren.py` selbst, siehe „Die anonymisierte Fassung“ – in der `cv.json`
+steht nie „Designer:in“, wenn die Person sich anders nennt.
 
 #### Bildung und Zertifikate
 
@@ -1401,6 +1445,12 @@ Kunden ankommt, deshalb wird hier nicht abgekürzt und nicht umbenannt.
 
 Das Skript sucht sich die Engine selbst: WeasyPrint, sonst headless Chrome, sonst
 wkhtmltopdf. Fehlt alles, hilft `pip install weasyprint --break-system-packages`.
+**Das Kundendokument entsteht mit WeasyPrint.** Nur damit ist das PDF
+barrierefrei (PDF/UA-1, getaggt) und schlank; Chrome taggt bestenfalls
+teilweise, wkhtmltopdf gar nicht, und beide lassen die Bilder in voller Größe.
+Dann steht ganz oben unter „Prüfen“ eine WARNUNG – das PDF ist ein Entwurf, kein
+Ausgang, und gehört mit WeasyPrint neu gerendert. Meldet das Skript Zeilen mit
+„PDF/UA:“ (etwa ein Bild ohne Alternativtext), ist das ebenso zu beheben.
 Zusätzlich prüft es die Zeiträume und meldet nach stderr: Ende vor Anfang,
 Projekte außerhalb der Anstellung, fehlende Logodateien. Den Strich im Zeitraum
 setzt es selbst, offene Schreibweisen wie „UX Design“ meldet es nur (beides
@@ -1556,7 +1606,9 @@ Zeilen berichten:
   ein Name ersetzt wurde, mit Feld und altem Wortlaut. **Was das Skript unter
   "Prüfen" als mehrdeutig stehen gelassen hat, gehört immer hierher**, mit dem
   Satz drumherum: Dort steht möglicherweise noch der Name im Dokument, und die
-  Entscheidung darüber trifft nicht der Skill. Wurde eine der Stufen aus
+  Entscheidung darüber trifft nicht der Skill. Ebenso die Zeilen „Geschlecht
+  erkennbar“ – und welche Bezeichnungen neutral gesetzt wurden, als eine
+  Sammelzeile („neutral: UX-Designer:in, Berater:in“). Wurde eine der Stufen aus
   "Wenn mehr weg soll" gezogen, steht hier auch, welche. Ist keine gezogen worden,
   steht hier nichts dazu: Der Normalfall braucht keine Erklärung.
 - **Die Figma-Frames**: der Link auf den ersten Frame jeder Fassung
@@ -1639,6 +1691,13 @@ Regeln dazu:
   nicht als Kasten, und die Skill Matrix setzt ihre Tags genauso.
 - **Kein Umbau des Layouts.** Neue Rubriken, andere Farben, zusätzliche Spalten:
   nur nach ausdrücklicher Ansage.
+- **Jedes erzeugte PDF ist barrierefrei und schlank** – beide Fassungen, beide
+  Layouts: PDF/UA-1 mit Tags (Name als H1, Rubriken und Stationen als
+  Überschriften ohne Sprung, Listen als Listen), Dokumentsprache aus `sprache`,
+  Titel in der Fensterleiste, Alternativtext an jedem Bild (Foto, Platzhalter,
+  Logos). Schriften als Teilmenge, Bilder auf 300 dpi begrenzt: das Beispiel
+  wiegt 124 KB statt 337 KB. Entsteht nur mit WeasyPrint; Hintergrund in
+  `references/layout.md` unter „Barrierefreies PDF“, geprüft im Selbsttest.
 - **Die PDFs sind der Ausgang**, die Figma-Frames die bearbeitbare Zweitschrift.
   Sie entstehen in jedem Lauf, aber nie statt der PDFs, und ihr Ausfall hält die
   PDFs nicht auf.

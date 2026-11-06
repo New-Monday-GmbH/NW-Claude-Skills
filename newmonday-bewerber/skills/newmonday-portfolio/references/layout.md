@@ -531,6 +531,64 @@ keine Umbrüche, die zu erhalten wären. Diese Fallen gehören dazu:
 - **CSS-Variablen gehen, auch in Kurzschreibweisen** (`padding`, `border`,
   `background` mit Verlauf) – darauf baut das Token-CSS.
 
+## Barrierefrei und klein
+
+**Seit November 2026 ist jedes PDF PDF/UA-1 und bleibt unter 8 MB.** Anlass war
+ein echtes Deck (Nina, 32 Folien) mit 18,5 MB: fünf HQ-Fotos lagen als PNG in
+voller Größe darin (11 MB), die Screenflächen als JPEG in Güte 88 (5,4 MB).
+
+**Wie WeasyPrint taggt** (Version 66, `write_pdf(**PDF_OPTIONEN)` mit
+`pdf_variant="pdf/ua-1"`): Der Strukturbaum folgt dem DOM, nicht der Lage auf
+der Folie – bei absolut positionierten Folien also die Reihenfolge im
+Renderskript. `<section>` wird `/Sect`, `h1`–`h6` werden `/H1`–`/H6`, `ul/li`
+werden `/L`/`/LI`, Text wird `/Span`, **jedes `<img>` wird `/Figure`** – mit
+`alt=""` ohne `/Alt`, ein PDF/UA-Fehler. Als Artefakt schreibt WeasyPrint von
+sich aus nur Hintergründe, Verläufe und Rahmen. `/Lang` kommt aus
+`<html lang>`, `dc:title` und DisplayDocTitle aus `<title>`.
+
+**Dekoration** trägt `aria-hidden="true"` (`DEKO` im Renderskript): Wortmarke,
+Seitenzahl, Streifen, Panels, Bildverläufe, Prozessbalken, Schrittleiste, die
+Stimmungsfotos der Arbeitsweise-Seiten und das Kundenlogo auf Summary und
+Lösung (es wiederholt die Kopfseite). `rendere()` vererbt das Attribut an den
+Teilbaum, und `deko_als_artefakt()` lässt WeasyPrint solche Elemente als
+`/Artifact` zeichnen und aus dem Baum lassen. Der naheliegende Weg – Dekobilder
+als CSS-Hintergrund – reicht hier nicht: `figma_plan` und `figma_bibliothek`
+lesen Wortmarke und Bilder als `<img>` (Figma-Abgleich, Wortmarke hell/dunkel),
+und die Seitenzahl ist Text, für den es keinen Hintergrund gibt. Der Eingriff
+sitzt auf zwei internen Funktionen von WeasyPrint 66; nach einem Update meldet
+das Skript, wenn sie fehlen, und der Selbsttest wird rot.
+
+**Regeln für jede Änderung am Layout:**
+
+- Eine Folie hat eine H2 (Cover: die einzige H1 „Portfolio“), Unterteile H3 –
+  ohne Ebenensprung. Summary und Lösung sind H3 unter dem Projekt (H2).
+- DOM-Reihenfolge = Lesereihenfolge: Überschrift, Text, dann Karten, Bilder und
+  Logos. Wer umstellt, achtet auf die Malreihenfolge: Positionierte Elemente
+  ohne z-index malen in DOM-Reihenfolge, das Kundenlogo muss nach der
+  Bildfläche stehen.
+- Aufzählungen sind Listen (`ul/li`, auch Rollen und Schlagworte).
+- Jedes `<img>` bekommt `alt(...)` mit einem Text aus dem Material oder `DEKO`,
+  nie `alt=""`.
+
+**Bildgrößen.** Die Folie wird am Bildschirm gelesen: bei 100 % ist ein Punkt
+ein Pixel, auf Retina zwei. *Fotos* (HQ, Profil, Ansprechpartner,
+Arbeitsweise) beschneidet `foto_fuer_pdf()` auf den sichtbaren Ausschnitt (auf
+Bruchteile eines Pixels genau, das Layout bleibt) und legt sie mit 1,5 px/pt als
+JPEG Güte 82 ab – ein Foto hat keine harten Kanten, an denen die Reserve bis 2×
+fehlte. *Screenflächen* bleiben bei 2 px/pt: Bei 1,5 px/pt wird kleine Schrift
+in Desktop-Screens auf Retina sichtbar weich (Vergleich an Ninas SAP-Folie).
+Sie gehen als JPEG Güte 80, 4:4:4 – 13 % kleiner als 88 ohne sichtbaren
+Unterschied; 4:2:0 spart nur 14 % mehr und franst farbige Schrift aus, PNG wäre
+dreimal so groß. Byte-gleiche Flächen gehen als eine Datei ins PDF (`einmal()`).
+Agenturkunden und Badge liegen in Graustufen auf 2× bzw. 3,2× ihrer Fläche.
+`optimize_images`, `jpeg_quality` und `dpi` von WeasyPrint bleiben aus: Sie
+kodieren JPEGs mit Güte 75 und 4:2:0 neu.
+
+**Budget.** 8 MB je Deck (`BUDGET_MB`), deutlich unter 10 MB; drei Projekte
+landen bei 4–5 MB, fünf mit acht Screenseiten bei rund 7 MB – die
+Screenflächen tragen 0,4–0,8 MB je Seite. Das Beispiel hat im Selbsttest ein
+eigenes Budget von 4 MB (gemessen 3,7, vorher 6,7).
+
 ## Die Screenflächen sind vorgerenderte Bilder
 
 Auf Lösungs- und Abschlussseite liegen die Screens schräg und laufen über die
@@ -540,7 +598,8 @@ die Fläche als Bild, bevor gerendert wird, und das Template setzt nur noch ein
 `<img>` ein. Zwei Größen, doppelt aufgelöst gegen die Punktmaße der Folie:
 `panel` 1976 × 2160 px für die rechte Fläche (988 × 1080 pt, Bildkante 932 wie
 in Figma), `voll` 3840 × 2160 px für die ganze Folie. Gesichert wird als JPEG:
-Die Fläche ist ein Foto aus Fotos, und PNG speichert davon vor allem Rauschen.
+Die Fläche ist ein Foto aus Fotos, und PNG speichert davon vor allem Rauschen
+(Güte und Begründung: „Barrierefrei und klein“).
 Ohne `markenfarbe` steht die neutrale Fläche `neutral/15` (siehe unten).
 
 **Die Anordnung ist die gestalterische Entscheidung des Skills** (seit

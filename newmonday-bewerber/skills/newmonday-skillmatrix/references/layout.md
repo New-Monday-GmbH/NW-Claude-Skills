@@ -315,6 +315,64 @@ Vorlagentexten sieht man keinen Unterschied, sie greifen erst bei langen Texten:
    (Rezept in `references/figma.md`), falls sich Komponenten, Keys oder
    Property-Namen im Master geändert haben.
 
+## Barrierefrei und klein
+
+Beide Fassungen entstehen als **PDF/UA-1** und mit gebremsten Bildern
+(`PDF_OPTIONEN` in `render_skillmatrix.py`). Warum: Die Matrix geht an Kunden,
+auch an Behörden und Konzerne mit Barrierefreiheitspflicht, und sie wird per
+Mail verschickt. Wie – und was dabei zu beachten ist:
+
+- **PDF/UA-1 mit WeasyPrint** (`pdf_variant="pdf/ua-1"`): Strukturbaum,
+  `/MarkInfo`, Sprache aus `<html lang>` (= `sprache` der JSON), Titel aus
+  `<title>` als `/Title` und `dc:title`, `DisplayDocTitle`, `pdfuaid:part` in
+  XMP. Die A4-Seitenaufteilung (`/NewMondaySeiten`) kommt per
+  `custom_metadata` direkt beim Schreiben in die Dokumentinfo, kein zweites
+  Schreiben mit pypdf. Chrome und wkhtmltopdf können das nicht – der
+  Ausweichweg warnt und ist nur Vorschau.
+- **Semantik ohne Layoutänderung:** genau ein H1 (Name), Sektionen H2,
+  darunter H3 (Kategorie, Qualifikationskarte, Zertifikatstitel, Toolname)
+  und H4 (Skill unter einer Kategorie) – kein Ebenensprung. Schwerpunkte, Tags,
+  Kachel- und Kartenreihen sind `<ul>`/`<li>`; weil das Raster zeilenweise
+  gebaut ist, ist jede Reihe eine eigene Liste. Alle Klassen bleiben, der
+  Reset (`* { margin: 0; padding: 0 }`, `ul { list-style: none }`) hebt die
+  Standardstile von `h*`/`ul` auf; in A4 zusätzlich `ul { break-before: auto }`,
+  sonst hielte der UA-Stil jede Kachelreihe an ihrem Vorgänger fest.
+- **Punkte als Text:** Neben den fünf Punkten steht `.vorgelesen` – „Bewertung:
+  4 von 5“, absolut positioniert und auf 1px beschnitten. WeasyPrint taggt den
+  Text (Screenreader lesen ihn), zeichnet ihn aber nicht sichtbar; PyMuPDF
+  meldet beschnittenen Text nicht, die Designprüfung bleibt also unberührt (die
+  Textklasse ist trotzdem ein Token-Stil). `pdftotext` liest ihn mit. Genauso
+  steht das Badge der A4-Kopfzeile noch einmal im Hero: Inhalt in Seitenrändern
+  nimmt WeasyPrint nicht in den Strukturbaum auf.
+- **Bilder:** Das Foto trägt „Porträtfoto von <Name>“, Zertifikatsbilder
+  „Zertifikat: <Titel>“ (ungekürzt – der sichtbare Titel endet oft mit „…“),
+  Logos „New Monday“. **Dekoration ist CSS-Hintergrund, kein `<img>`:**
+  WeasyPrint 66 taggt jedes `<img>` als `/Figure`, auch mit `alt=""`, und
+  lässt `/Alt` dann weg – das verletzt PDF/UA. Hintergrundbilder zeichnet es
+  dagegen als `/Artifact`. Deshalb sind Sektions-Icons, das Icon im
+  Platzhalterfeld und die Schattenbilder `<i>`/`<div>` mit
+  `background-image` (`background-size: 100% 100%` = Darstellung wie `<img>`).
+  Ein neues Dekorbild kommt genauso ins Template.
+- **Dateigröße:** `dpi: 150` begrenzt jedes Bild auf 150 dpi in seiner
+  Layoutgröße (Bildschirm bis 200 % Zoom und Büro-Druck; Zertifikatstext
+  bleibt lesbar), `optimize_images` komprimiert verlustfrei nach,
+  `jpeg_quality: 85` greift nur bei JPEG-Quellen (Fotos und Zertifikate sind
+  meist PNG – die werden verkleinert, nicht umkodiert). Schriften bleiben
+  Teilmengen. In der A4-Fassung wirken die Bildoptionen nur, wenn sie schon
+  `render()` bekommt, nicht erst `write_pdf()`. Die Schattenbilder sind wenige
+  KB und bleiben, wie sie sind. Gemessen an der Beispielmatrix: lang 4529 →
+  385 KB, A4 4418 → 128 KB; bei einer Matrix ohne Zertifikatsbilder kosten
+  Tags und XMP 6–18 KB (lang 74 → 92 KB, A4 61 → 67 KB).
+- **Budget** (`BUDGET_KB` in `design_system.py`): lang 1000 KB, A4 500 KB –
+  mailtauglich unter 1 MB und das Zweieinhalb- bis Vierfache der Beispielmatrix;
+  wer darüber kommt, hat fast immer Bilder ungebremst eingebettet.
+- **Prüfung:** `design_system.pruefe_barrierefrei()` läuft beim Rendern für
+  beide Fassungen (und mit `design_system.py pruefe`): PDF/UA-Kennung,
+  `/MarkInfo`, `/Lang` = Dokumentsprache, `DisplayDocTitle`, Titel, jede
+  `/Figure` mit `/Alt`, genau ein H1, kein Ebenensprung, Größe unter Budget.
+  Ein Verstoß ist ein FEHLER wie eine Abweichung vom Design System. Einen
+  vollständigen PDF/UA-Validator (veraPDF) ersetzt das nicht.
+
 ## Renderweg
 
 WeasyPrint zuerst, sonst headless Chrome, sonst wkhtmltopdf — dieselbe Kette wie

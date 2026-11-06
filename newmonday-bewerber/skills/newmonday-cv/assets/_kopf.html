@@ -8,10 +8,10 @@
 
 <div class="intro">
   <div class="intro__col">
-    {% if person.foto %}<img class="intro__photo" src="{{ person.foto }}" alt="">{% endif %}
+    {% if person.foto %}<img class="intro__photo" src="{{ person.foto }}" alt="{{ foto_alt }}">{% endif %}
   </div>
   <div class="intro__info">
-    <div class="name">{{ person.name }}</div>
+    <h1 class="name">{{ person.name }}</h1>
     {% if person.rolle %}<div class="role">{{ person.rolle }}</div>{% endif %}
     {% if person.erfahrung %}<div class="role">{{ person.erfahrung }}</div>{% endif %}
     {# Benannt statt als Adresse: "zum LinkedIn Profil" statt "linkedin.com/in/…".

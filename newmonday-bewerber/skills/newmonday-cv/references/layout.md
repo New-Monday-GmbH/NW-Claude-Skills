@@ -217,6 +217,61 @@ mit 4pt Abstand — so ist es in Figma gebaut. Die Adresse lautet „New Monday
 GmbH, Stresemannstr. 23, 10963 Berlin“, genau so geschrieben (Vorgabe vom
 2026-10-03, `KONTAKT_VORGABE` in `render_cv.py`; der Selbsttest prüft sie).
 
+## Barrierefreies PDF
+
+Jedes PDF – beide Fassungen, beide Layouts – entsteht als **PDF/UA-1**
+(Entscheidung vom 2026-11-05): `rendern()` ruft WeasyPrint mit
+`pdf_variant="pdf/ua-1"` (`PDF_OPTIONEN` in `render_cv.py`). Damit ist das PDF
+getaggt (`/StructTreeRoot`, `/MarkInfo Marked`), trägt die PDF/UA-Kennung in
+den XMP-Metadaten, den Titel als `dc:title` und zeigt ihn statt des Dateinamens
+(`DisplayDocTitle`). Warum: Kundendokumente werden vorgelesen, durchsucht und
+von Bewerbermanagement-Systemen ausgelesen – ohne Tags ist die Lesereihenfolge
+der zwei Spalten Zufall.
+
+Was das Template dafür liefert, ohne dass sich ein Punkt verschiebt:
+
+- **Sprache**: `<html lang="{{ sprache }}">` – `de` oder `en` aus der `cv.json`,
+  wird zu `/Lang`. Der Titel heißt „<Name> — Lebenslauf“ bzw. „— CV“.
+- **Überschriften**: Name `h1.name`; UX-Layout: Rubriken `h2`, Zertifikate und
+  Skillset-Gruppen `h3`, Stationstitel `h2.station__title`, Kunde
+  `h3.project__client`. Entwickler-Layout: Rubriken `h2`, IT-Gruppen `h3`, und
+  weil die Stationen unter der Rubrik „Berufserfahrung“ stehen, eine Ebene
+  tiefer: `h3.station__title`, `h4.project__client`. Keine Ebene wird
+  übersprungen. Die Klassen bleiben; `* { margin: 0; padding: 0 }` und die
+  Textstile über die Klassen heben die Vorgaben des Browsers für `h1`–`h4` auf.
+  Im Entwickler-CSS gelten die Rubrikstile deshalb nur für `.ew-block > h2`,
+  `.ew-abschnitt > h2` und `.ew-gruppe > h3` – ein `.ew h2` träfe sonst auch die
+  Stationstitel.
+- **Alternativtexte**: Ein `<img alt="">` taggt WeasyPrint als Abbildung ohne
+  Alternativtext – ein PDF/UA-Fehler. Foto „Porträtfoto von <Name>“ (en
+  „Portrait photo of <name>“), Platzhalter der anonymen Fassung „Platzhalter
+  statt Profilfoto“ – unterschieden über `"anonym": true`, das
+  `anonymisieren.py` in die `cv-anonym.json` schreibt, nicht über den
+  Dateinamen. Logos tragen Firma bzw. Kunde, ohne die den Dateinamen als Wort;
+  Kopf- und Fußlogo „New Monday“.
+- **Listen** bleiben `<ul>` und werden zu `L`/`LI`.
+
+**Schlank**: `optimize_images=True`, `dpi=300`, `jpeg_quality=90`. Mehr als
+300 dpi sieht auf Papier niemand; das Beispielfoto (596 × 800 px auf 79 × 106pt,
+rund 540 dpi) wird auf 329 × 442 px verkleinert, ein 1018 px breites Logo auf
+seine gedruckten 35pt. Das Beispiel-PDF fällt damit von 337 KB auf 124 KB, die
+Tags kosten etwa 6 KB. `optimize_images` allein bringt bei den PNGs nichts
+Messbares, `jpeg_quality` greift nur bei JPEG-Fotos. Schriften bettet
+WeasyPrint ohnehin nur als Teilmenge ein. Der Selbsttest hält jedes
+Beispiel-PDF unter 200 KB.
+
+**Layoutneutral nachgewiesen**: Beide Beispiele (UX und Entwickler, vollständig
+und anonym) vorher/nachher mit `pdftotext -bbox` verglichen – gleiche Wortzahl,
+keine Abweichung über 0,5pt. `text_tiefe()` liest die Footer-Lage auch aus dem
+getaggten PDF richtig (die Marked-Content-Klammern ändern die Textmatrizen
+nicht).
+
+Nur WeasyPrint kann das. Fällt `render_cv.py` auf Chrome oder wkhtmltopdf
+zurück, steht eine WARNUNG unter „Prüfen“; Fehler, die WeasyPrint beim Taggen
+meldet (Bild ohne `alt`, fehlende Sprache), kommen als „PDF/UA: …“ dazu.
+Geprüft wird ohne veraPDF: `selbsttest.py` (`barrierefrei()`) liest Tags,
+Sprache, Kennung, Titel, Alternativtexte und Überschriftenebenen mit pypdf.
+
 ## Bewusste Abweichungen von der Figma-Vorlage
 
 Entschieden am 2026-09-28. Wer abgleicht, zieht diese Punkte **nicht** nach.

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="{{ sprache }}">
 <head>
 <meta charset="utf-8">
-<title>{{ person.name }} — Lebenslauf</title>
+<title>{{ person.name }} — {{ t.lebenslauf }}</title>
 {# cv.css wird mitgerendert, nicht verlinkt: sie ist ein Template, das seine
    Werte aus tokens.json bekommt. Schrift-URLs darin loesen sich gegen assets/
    auf — render_cv.py gibt WeasyPrint und Chrome diese Basis mit. #}
@@ -95,14 +95,14 @@
      naechsten weitergeht. Breite und Hoehe je Logo kommen aus render_cv.py. #}
   <div class="station__kopf">
     <div class="station__rail">
-      {% for l in s.logos %}<img src="{{ l.src }}" alt="{{ s.firma }}"
+      {% for l in s.logos %}<img src="{{ l.src }}" alt="{{ l.alt }}"
         style="width:{{ l.breite }}pt;height:{{ l.hoehe }}pt">{% endfor %}
     </div>
     {# Wie in Figma: Titel, Firma, darunter der Zeitraum als eigene Zeile. Die
        Schlagwortzeile steht zusaetzlich darunter (in Figma nicht vorgesehen,
        im Skill bewusst behalten). #}
     <div class="station__kopftext">
-      <div class="station__title">{{ s.titel }}</div>
+      <h2 class="station__title">{{ s.titel }}</h2>
       {% if s.firma %}<div class="station__firma">{{ s.firma }}</div>{% endif %}
       {% if s.zeitraum %}<div class="station__zeitraum">{{ s.zeitraum }}</div>{% endif %}
       {% if s.zusammenfassung %}<p class="station__summary">{{ s.zusammenfassung }}</p>{% endif %}
@@ -120,10 +120,10 @@
          Ein <img> direkt als Flex-Element bekommt in WeasyPrint (66) die Breite
          0 — alle Logos einer Reihe landeten uebereinander an derselben Stelle. #}
       {% if p.logos %}<div class="project__logos">
-        {% for l in p.logos %}<span class="project__logo"><img src="{{ l.src }}" alt="{{ p.kunde }}"
+        {% for l in p.logos %}<span class="project__logo"><img src="{{ l.src }}" alt="{{ l.alt }}"
           style="width:{{ l.breite }}pt;height:{{ l.hoehe }}pt"></span>{% endfor %}
       </div>{% endif %}
-      <div class="project__client">{{ p.kunde }}</div>
+      <h3 class="project__client">{{ p.kunde }}</h3>
       {% if p.zeitraum %}<div class="project__date">{{ p.zeitraum }}</div>{% endif %}
       {% if p.beschreibung %}<p class="project__text">{{ p.beschreibung }}</p>{% endif %}
       {% if p.aufgaben %}

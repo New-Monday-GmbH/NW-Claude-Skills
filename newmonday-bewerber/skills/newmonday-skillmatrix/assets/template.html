@@ -16,7 +16,7 @@
 
 {# Schattenbild einer Karte. Nur im zweiten WeasyPrint-Durchgang gesetzt, wenn
    die Kartengroessen feststehen; sonst leer (Chrome zeichnet box-shadow). #}
-{% macro schatten_von(id) %}{% if schatten and schatten.get(id) %}{% set s = schatten[id] %}<img class="schatten" src="{{ s.src }}" alt="" style="left: {{ s.links }}pt; top: {{ s.oben }}pt; width: {{ s.breite }}pt; height: {{ s.hoehe }}pt">{% endif %}{% endmacro %}
+{% macro schatten_von(id) %}{% if schatten and schatten.get(id) %}{% set s = schatten[id] %}<div class="schatten" style="background-image: url({{ s.src }}); left: {{ s.links }}pt; top: {{ s.oben }}pt; width: {{ s.breite }}pt; height: {{ s.hoehe }}pt"></div>{% endif %}{% endmacro %}
 
 <header class="kopf">
   <img class="kopf__logo" src="nm-logo-weiss.svg" alt="New Monday">
@@ -31,14 +31,14 @@
     <div class="hero__rolle t-hero-rolle">{{ person.rolle }}</div>
     <p class="hero__beschreibung t-hero-beschreibung">{{ person.beschreibung }}</p>
     {% if person.schwerpunkte %}
-    <div class="hero__schwerpunkte">
-      {% for s in person.schwerpunkte %}<span class="schwerpunkt t-schwerpunkt">{{ s }}</span>{% endfor %}
-    </div>
+    <ul class="hero__schwerpunkte">
+      {% for s in person.schwerpunkte %}<li class="schwerpunkt t-schwerpunkt">{{ s }}</li>{% endfor %}
+    </ul>
     {% endif %}
   </div>
   {# Fotokarte: Graustufenfoto, unten der Verlauf mit Name und Erfahrung. #}
   <div class="fotokarte">
-    {% if person.foto %}<img class="fotokarte__bild" src="{{ person.foto }}" alt="">{% endif %}
+    {% if person.foto %}<img class="fotokarte__bild" src="{{ person.foto }}" alt="{{ t.foto.format(name=person.name) }}">{% endif %}
     <div class="fotokarte__verlauf">
       <div class="t-foto-name">{{ person.name }}</div>
       <div class="t-foto-erfahrung">{{ person.erfahrung }}</div>
@@ -57,11 +57,11 @@
    sonst das Platzhalterfeld: Icon, bei einem Buendel "+3". #}
 {% macro zertbild(e) -%}
   {%- if e.src -%}
-  <img class="zertbild" src="{{ e.src }}" alt="" style="width: {{ e.breite }}pt; height: {{ e.hoehe }}pt">
+  <img class="zertbild" src="{{ e.src }}" alt="{{ t.zert_bild.format(titel=e.titel) }}" style="width: {{ e.breite }}pt; height: {{ e.hoehe }}pt">
   {%- else -%}
   <div class="zertplatz" style="width: {{ e.breite }}pt; height: {{ e.hoehe }}pt">
     {%- if e.art == 'buendel' %}<span class="t-zert-anzahl">+{{ e.anzahl }}</span>
-    {%- else %}<img class="zertplatz__icon" src="icon-zertifikat.svg" alt="">{% endif -%}
+    {%- else %}<i class="zertplatz__icon" style="background-image: url(icon-zertifikat.svg)"></i>{% endif -%}
   </div>
   {%- endif -%}
 {%- endmacro %}
@@ -70,18 +70,18 @@
   {% if z %}
   <section class="sektion zertsektion">
     <h2 class="sektionstitel t-sektion-titel">
-      <img class="sektionstitel__icon" src="icon-zertifikat.svg" alt=""><span>{{ t.zertifikate }}</span>
+      <i class="sektionstitel__icon" style="background-image: url(icon-zertifikat.svg)"></i><span>{{ t.zertifikate }}</span>
     </h2>
     {# Erworbene Qualifikationen: Titel, Satz, Tags - nie gekuerzt. #}
     {% if z.karte %}
     <div class="qualikarte">
-      <div class="t-quali-titel">{{ t.qualifikationen }}</div>
+      <h3 class="t-quali-titel">{{ t.qualifikationen }}</h3>
       <div class="qualikarte__block">
         {% if z.karte.text %}<p class="t-quali-text">{{ z.karte.text }}</p>{% endif %}
         {% if z.karte.tags %}
-        <div class="qualikarte__tags{% if z.karte.text %} qualikarte__tags--nach-text{% endif %}">
-          {% for tag in z.karte.tags %}<span class="qualitag t-quali-tag">{{ tag }}</span>{% endfor %}
-        </div>
+        <ul class="qualikarte__tags{% if z.karte.text %} qualikarte__tags--nach-text{% endif %}">
+          {% for tag in z.karte.tags %}<li class="qualitag t-quali-tag">{{ tag }}</li>{% endfor %}
+        </ul>
         {% endif %}
       </div>
     </div>
@@ -92,19 +92,19 @@
     <div class="zertinhalt">
       {% for zeile in z.eintraege | batch(g.spalten) %}
       {% set r = loop.index %}
-      <div class="zk__zeile">
+      <ul class="zk__zeile">
         {% for e in zeile %}
         {% set id = 'schatten-zk-' ~ r ~ '-' ~ loop.index %}
-        <div class="zk__kachel" data-schatten="zertkachel" id="{{ id }}">
+        <li class="zk__kachel" data-schatten="zertkachel" id="{{ id }}">
           {{ schatten_von(id) }}
           <div class="zk__buehne">{{ zertbild(e) }}</div>
           <div class="zk__text" style="min-height: {{ g.text_hoehe }}pt">
-            <div class="t-karte-titel" style="line-clamp: {{ e.titel_max }}">{{ e.titel }}</div>
+            <h3 class="t-karte-titel" style="line-clamp: {{ e.titel_max }}">{{ e.titel }}</h3>
             {%- if e.meta %}<div class="zk__meta t-zert-aussteller" style="line-clamp: {{ e.meta_max }}">{{ e.meta }}</div>{% endif %}
           </div>
-        </div>
+        </li>
         {% endfor %}
-      </div>
+      </ul>
       {% endfor %}
     </div>
   </section>
@@ -113,25 +113,25 @@
 
 {# Kartenraster fuer Kernkompetenzen und Tools: dieselben Karten, dieselben
    Abstaende. praefix macht die Karten-IDs fuer die Schattenbilder eindeutig. #}
-{% macro skillraster(skills, praefix) %}
+{% macro skillraster(skills, praefix, ebene) %}
       <div class="skillraster">
         {% for zeile in skills | batch(skill_spalten) %}
         {% set z = loop.index %}
-        <div class="skillraster__zeile">
+        <ul class="skillraster__zeile">
           {% for s in zeile %}
           {% set id = 'schatten-' ~ praefix ~ '-' ~ z ~ '-' ~ loop.index %}
-          <div class="skillkarte" data-schatten="skillkarte" id="{{ id }}">
+          <li class="skillkarte" data-schatten="skillkarte" id="{{ id }}">
             {{ schatten_von(id) }}
             <div class="skillkarte__kopf">
-              <div class="skillkarte__name t-karte-titel">{{ s.name }}</div>
+              <h{{ ebene }} class="skillkarte__name t-karte-titel">{{ s.name }}</h{{ ebene }}>
               <div class="punkte">
-                {% for i in range(punkte_anzahl) %}<i class="punkt{% if i < s.punkte %} punkt--voll{% endif %}"></i>{% endfor %}
+                {% for i in range(punkte_anzahl) %}<i class="punkt{% if i < s.punkte %} punkt--voll{% endif %}"></i>{% endfor %}<span class="vorgelesen t-karte-beschreibung">{{ t.bewertung.format(n=s.punkte, m=punkte_anzahl) }}</span>
               </div>
             </div>
             <p class="skillkarte__beschreibung t-karte-beschreibung">{{ s.beschreibung }}</p>
-          </div>
+          </li>
           {% endfor %}
-        </div>
+        </ul>
         {% endfor %}
       </div>
 {% endmacro %}
@@ -146,15 +146,15 @@
   {% if kompetenzen %}
   <section class="sektion kompetenzen">
     <h2 class="sektionstitel t-sektion-titel">
-      <img class="sektionstitel__icon" src="icon-kernkompetenzen.svg" alt=""><span>{{ t.kernkompetenzen }}</span>
+      <i class="sektionstitel__icon" style="background-image: url(icon-kernkompetenzen.svg)"></i><span>{{ t.kernkompetenzen }}</span>
     </h2>
 
     {% for kategorie in kompetenzen %}
     <div class="kategorie">
       <div class="kategorie__kopf">
-        <div class="kategorie__label t-kategorie">{{ kategorie.kategorie }}</div>
+        <h3 class="kategorie__label t-kategorie">{{ kategorie.kategorie }}</h3>
       </div>
-      {{ skillraster(kategorie.skills, 'karte-' ~ loop.index) }}
+      {{ skillraster(kategorie.skills, 'karte-' ~ loop.index, 4) }}
     </div>
     {% endfor %}
   </section>
@@ -164,9 +164,9 @@
   {% if tools %}
   <section class="sektion tools">
     <h2 class="sektionstitel t-sektion-titel">
-      <img class="sektionstitel__icon" src="icon-tools.svg" alt=""><span>{{ t.tools }}</span>
+      <i class="sektionstitel__icon" style="background-image: url(icon-tools.svg)"></i><span>{{ t.tools }}</span>
     </h2>
-    {{ skillraster(tools, 'tool') }}
+    {{ skillraster(tools, 'tool', 3) }}
   </section>
   {% endif %}
 

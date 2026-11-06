@@ -33,12 +33,12 @@ System. Kurzfassung für macOS:
 
 ```bash
 brew install python-pango pango libffi gdk-pixbuf poppler potrace
-pip3 install weasyprint pymupdf pillow
+pip3 install weasyprint pymupdf pillow pypdf
 ```
 
-`weasyprint` rendert das PDF. Fehlt sie, weicht der Skill auf Chrome aus – das
-funktioniert, aber Textlängen und Seitenumbrüche sind dann vor dem Versand
-gegenzuprüfen. `pymupdf` und `pillow` sind zwingend: damit werden Eingangs-PDFs
+`weasyprint` rendert das PDF – barrierefrei als PDF/UA-1. Fehlt sie, weicht der
+Skill auf Chrome aus; dieses PDF ist **nicht barrierefrei** und geht so nicht an
+Kunden. `pypdf` prüft das fertige PDF auf PDF/UA und Größe. `pymupdf` und `pillow` sind zwingend: damit werden Eingangs-PDFs
 ausgelesen, Fotos zugeschnitten und das fertige PDF auf Überlauf geprüft.
 `potrace` ist optional und wird nur gebraucht, um zu kleine Logos zu
 vektorisieren.

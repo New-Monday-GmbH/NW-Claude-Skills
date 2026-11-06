@@ -65,14 +65,19 @@ Sollwerte:
 
 Unter „Pruefen:“ stehen genau zwei Hinweise („Product Thinking“ und „Workshop
 Facilitation“ stehen in der nächstverwandten Kategorie „User Research &
-Insights“) – keiner mit „A4:“, keiner zur Durchkopplung –, und zuletzt steht
-`Design System eingehalten`. In der Vorschau sind die leeren Punkte Ringe,
+Insights“) – keiner mit „A4:“, keiner zur Durchkopplung –, und zuletzt stehen
+`Design System eingehalten` und `Barrierefrei (PDF/UA-1: …); lang 385 KB, A4
+128 KB` (ohne dpi-Grenze wären es 4,5 MB). In
+der Vorschau sind die leeren Punkte Ringe,
 gleich groß wie die vollen – lang 9, A4 5 auf Seite 2 und 4 auf Seite 3.
 Dann funktioniert die ganze Kette: Templates, Tokens beider Fassungen,
 Schriften, Schatten, Bilder samt A4-Fotozuschnitt (`material/foto-karte-a4.png`),
 Qualifikationskarte, Zertifikatsplanung, Katalogprüfung, Durchkopplung,
-Höhenmessung, Seitenumbruch und Fuß der A4-Fassung und die Designprüfung beider
-PDFs, die den Ring (`roh/punkt-rahmen`) als Palettenfarbe kennt.
+Höhenmessung, Seitenumbruch und Fuß der A4-Fassung, die Designprüfung beider
+PDFs, die den Ring (`roh/punkt-rahmen`) als Palettenfarbe kennt, und die
+Prüfung auf Barrierefreiheit und Größe (PDF/UA-Kennung, Tags, Sprache, Titel,
+Alternativtexte, ein H1, Ebenen ohne Sprung, Budget). Einzeln:
+`python3 ../scripts/design_system.py pruefe "/tmp/… - Skillmatrix A4.pdf" a4`.
 
 Die Figma-Pläne dazu, aus dem Ordner `beispiel/` heraus (relative Bildpfade):
 
