@@ -6,7 +6,7 @@
 {# Entwickler-Layout (layout: entwickler, freigegeben am 03.11.2026; Vorlage:
    Figma „Portfolio - CV Master“, Seite Archive, Sektion Tech-CV). Kopf,
    Profilkopf und Fuss wie im UX-Layout; darunter zwei Spalten: links (2/3)
-   Kurzprofil, Berufserfahrung (Logo klein im Stationskopf), Projekte, Ausbildung, Sprachen - rechts (1/3)
+   Kurzprofil, Berufserfahrung (Logo ueber dem Stationstitel), Projekte, Ausbildung, Sprachen - rechts (1/3)
    nur auf Seite 1 IT-Kompetenzen und Weiterbildung. Die Seitenspalte ist ein
    Float: Die Hauptspalte laeuft auf den Folgeseiten in derselben Breite
    weiter, rechts daneben bleibt frei. #}
@@ -18,7 +18,7 @@
 
 {% include "_kopf.html" %}
 
-<div class="ew{% if stufe != 'normal' %} ew--{{ stufe }}{% endif %}">
+<div class="ew{% if stufe != 'normal' %} ew--{{ stufe }}{% endif %}{% if stationen_kompakt %} ew-st--{{ stationen_kompakt }}{% endif %}">
   <div class="ew-seite">
     {% if it_kompetenzen %}
     <div class="ew-block">
@@ -54,24 +54,20 @@
     {% endif %}
 
     {% if stationen %}
-    {# Firmenlogos klein links im Stationskopf (seit 06.11.2026). Hat eine
-       Station ein Logo, ruecken alle Koepfe gleich ein - die Aufgaben darunter
-       laufen in voller Breite. Masse je Logo kommen aus render_cv.py. #}
-    {% set ew_logos = stationen | selectattr("logos") | list | length > 0 %}
+    {# Firmenlogo ueber dem Stationstitel (seit 06.11.2026) - nichts rueckt
+       ein. Masse je Logo kommen aus render_cv.py. #}
     <div class="ew-abschnitt">
       <h2>{{ t.berufserfahrung }}</h2>
       {% for s in stationen %}
       <div class="station{% if s.aufgaben %} station--bullets{% endif %}">
-        <div class="station__kopf{% if ew_logos %} ew-kopf--logo{% endif %}">
-          {% if ew_logos %}<div class="ew-logo">{% for l in s.logos %}<img src="{{ l.src }}" alt="{{ l.alt }}"
+        <div class="station__kopf">
+          {% if s.logos %}<div class="ew-logo">{% for l in s.logos %}<img src="{{ l.src }}" alt="{{ l.alt }}"
             style="width:{{ l.breite }}pt;height:{{ l.hoehe }}pt">{% endfor %}</div>{% endif %}
-          <div class="ew-kopftext">
           <h3 class="station__title">{{ s.titel }}</h3>
           {% if s.firma %}<div class="station__firma">{{ s.firma }}</div>{% endif %}
           {% if s.zeitraum %}<div class="station__zeitraum">{{ s.zeitraum }}</div>{% endif %}
           {% if s.zusammenfassung %}<p class="station__summary">{{ s.zusammenfassung }}</p>{% endif %}
           {% if s.beschreibung %}<p class="station__text">{{ s.beschreibung }}</p>{% endif %}
-          </div>
         </div>
         {% if s.aufgaben_ew %}
         <ul class="tasks">{% for a in s.aufgaben_ew %}<li>{{ a.text }}{% if a.technik %} <span class="technik">{{ a.technik }}</span>{% endif %}</li>{% endfor %}</ul>

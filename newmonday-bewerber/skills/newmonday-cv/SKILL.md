@@ -935,12 +935,12 @@ Der Aufbau steht fest:
 - **Danach** läuft die Hauptspalte allein weiter: die übrigen Stationen, dann
   **Projekte**, dann **Ausbildung** und **Sprachen** – Uni, Schule und Sprachen
   stehen ganz hinten (Entscheidung des Nutzers vom 03.11.2026).
-- **Firmenlogos klein im Stationskopf** (seit 06.11.2026, wie im UX-Layout
-  gehören sie dazu): links neben Titel, Firma und Zeitraum in einer schmalen
-  Spalte (`entwickler.logo_spalte` in `tokens.json`), die Aufgaben darunter
-  laufen in voller Breite. Hat eine Station ein Logo, rücken alle
-  Stationsköpfe gleich ein. Zugeordnet werden sie wie immer in Schritt 3
-  (`logo` an der Station); Projektlogos setzt das Entwickler-Layout nicht.
+- **Firmenlogos über dem Stationstitel** (seit 06.11.2026, wie im UX-Layout
+  gehören sie dazu): eine Zeile über Titel, Firma und Zeitraum, linksbündig –
+  nichts rückt ein, Titel und Aufgaben stehen an derselben Kante wie ohne
+  Logo. Maße in `tokens.json` (`entwickler.logo_breite`, `logo_titel`,
+  `logo_groesse`). Zugeordnet werden sie wie immer in Schritt 3 (`logo` an der
+  Station); Projektlogos setzt das Entwickler-Layout nicht.
 - **Keine Gruppen Fähigkeiten und Branchen.** Was davon in der `cv.json` steht,
   meldet `render_cv.py` und lässt es weg.
 - **Höchstens vier Seiten** – Abschnitt unten.
@@ -998,6 +998,10 @@ Nutzers vom 06.11.2026). Hat das PDF mehr, meldet `render_cv.py` ganz oben
 „ZU LANG: <n> Seiten“. Dann werden **lange Stichpunkte gestrafft**, bis es
 passt – das ist die dritte Ausnahme von der Regel oben, und sie ist eng:
 
+- **Gestrafft werden Stichpunkte und, wenn das nicht reicht, die Beschreibung
+  einer Station** (Fließtext unter dem Kopf) – nach denselben Regeln. Vorher
+  setzt `render_cv.py` die Abstände der Stationen von selbst enger, wenn sonst
+  nur der Fuß auf der letzten Seite stünde.
 - **Straffen heißt auf den Kern bringen:** was getan wurde, womit, mit welchem
   Ergebnis. Raus fallen Füllwörter, Nebensätze, Wiederholungen derselben
   Floskel in jedem Punkt („for the German-speaking team“) und Wirkungsketten
