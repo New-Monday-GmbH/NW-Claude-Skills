@@ -36,6 +36,12 @@ STAEMME = (
 # steht auch bei Frauen oft so) - sie zaehlen fuer die Mischung nur gegen
 # ihre eigene feminine Form.
 ENGLISCH = {"researcher", "developer", "engineer", "consultant", "owner"}
+# Englische Berufsbezeichnungen werden nicht gegendert (Entscheidung vom
+# 09.11.2026): "Cloud & DevOps Engineer" bleibt, "Frontend Developerin" wird
+# "Frontend Developer". Woerter, die es in beiden Sprachen gibt, gelten nur als
+# englisch, wenn sie im Titel frei stehen ("Senior UX Designer"); im Kompositum
+# ("UX-Designer", "Projektmanager") und im Fliesstext sind sie deutsch.
+BEIDE = {"designer", "manager", "analyst", "trainer", "mentor", "moderator", "freelancer"}
 
 # Ein Wort, das auf einen Stamm endet, optional mit -in. Danach kein
 # Wortzeichen und kein Gender-Zeichen: "Designers", "Entwicklerinnen",
@@ -186,6 +192,13 @@ def mischung(daten):
             "schreiben (SKILL.md, Schritt 2)."]
 
 
+def _englisch(fund, ist_titel):
+    """Englische Bezeichnung - neutral ist dann die Grundform, nicht ":in"."""
+    stamm = fund.group("stamm").lower()
+    return stamm in ENGLISCH or (ist_titel and stamm in BEIDE
+                                 and fund.group("wort").lower() == stamm)
+
+
 def neutralisieren(daten):
     """Doppelpunkt-Form in den Texten der Person. Aendert die Daten an Ort und
     Stelle, gibt jede Ersetzung als (Pfad, altes Wort, neues Wort) zurueck.
@@ -197,10 +210,14 @@ def neutralisieren(daten):
         alt = behaelter[schluessel]
         teile, stelle = [], 0
         for fund, person in _funde(alt, ist_titel):
-            if fund.group("in") or person:
-                teile += [alt[stelle:fund.start()], fund.group("wort") + ":in"]
-                stelle = fund.end()
-                geaendert.append((pfad, fund.group(0), teile[-1]))
+            if not (fund.group("in") or person):
+                continue
+            neu = fund.group("wort") if _englisch(fund, ist_titel) else fund.group("wort") + ":in"
+            if neu == fund.group(0):
+                continue                    # englisch und schon ohne Endung
+            teile += [alt[stelle:fund.start()], neu]
+            stelle = fund.end()
+            geaendert.append((pfad, fund.group(0), neu))
         if teile:
             behaelter[schluessel] = "".join(teile) + alt[stelle:]
     return geaendert

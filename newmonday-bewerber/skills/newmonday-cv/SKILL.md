@@ -108,13 +108,20 @@ Zertifikate und Skillset stehen unverändert. Was verschwindet, ist eng umrissen
   **Diese Meldungen müssen gelesen werden**: Darunter kann eine echte
   Namensnennung sein, die dann von Hand in die `cv.json` gehört.
 - **Das Geschlecht.** Ob Mann oder Frau, darf nicht erkennbar sein (Entscheidung
-  vom 05.11.2026). `anonymisieren.py` setzt jede Bezeichnung der Person in die
-  Doppelpunkt-Form: „Senior UX / UI Designerin“ → „Senior UX / UI Designer:in“,
-  „UX/UI-Designer“ → „UX/UI-Designer:in“, „Als UX-Designerin habe ich“ → „Als
+  vom 05.11.2026). `anonymisieren.py` setzt jede deutsche Bezeichnung der
+  Person in die Doppelpunkt-Form: „UX/UI-Designer“ → „UX/UI-Designer:in“, „Als UX-Designerin habe ich“ → „Als
   UX-Designer:in habe ich“, „Customer-Insight-Managerin“ →
   „Customer-Insight-Manager:in“ – ebenso Entwickler, Berater, Leiter, Researcher,
   Developer, Engineer, Consultant, Architekt, Analyst, Spezialist, Werkstudent,
   Praktikant, Referent, Mitarbeiter und weitere (Liste in `scripts/geschlecht.py`).
+  **Englische Berufsbezeichnungen werden nicht gegendert** (Entscheidung vom
+  09.11.2026): „Cloud & DevOps Engineer“ und „Product Owner“ bleiben, wie sie
+  sind; eine eingedeutschte feminine Form wird zur englischen Grundform
+  („Frontend Developerin“ → „Frontend Developer“, „Senior UX / UI Designerin“ →
+  „Senior UX / UI Designer“). Englisch heißt: Developer, Engineer, Consultant,
+  Researcher, Owner immer; Designer, Manager, Analyst, Trainer, Mentor,
+  Moderator, Freelancer nur, wenn sie im Titel frei stehen – im Kompositum
+  („UX-Designer“, „Projektmanagerin“) und im Fließtext sind sie deutsch.
   Feminine Formen immer, maskuline Grundformen dort, wo sie die Person
   bezeichnen: `person.rolle`, Stationstitel, „Als …“, „Rolle: …“. Unberührt bleiben
   gebeugte Formen, die andere meinen („Koordination des UI-Designers“), Plurale

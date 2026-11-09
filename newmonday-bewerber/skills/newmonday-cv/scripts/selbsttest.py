@@ -169,7 +169,7 @@ def pruefe_geschlecht(tmp):
              "zeitraum": "2018 - 2019", "aufgaben": [f"Rolle: Frontend-Entwickler{endung}"]}]
         return d
 
-    soll = {"rolle": "Senior UX / UI Designer:in",
+    soll = {"rolle": "Senior UX / UI Designer",   # englisch: nicht gegendert
             "kurzprofil": ("Als UX-Designer:in habe ich Workshops geleitet. Als "
                            "Customer-Insight-Manager:in betreute ich Zusteller:innen. "
                            "Koordination des UI-Designers. Schulungen für Entwickler."),
@@ -193,6 +193,18 @@ def pruefe_geschlecht(tmp):
                 fehler.append(f"Geschlecht ({wer}): {feld} ist {ist[feld]!r}, soll {soll[feld]!r}")
         if anonym.get("anonym") is not True:
             fehler.append("Geschlecht: cv-anonym.json traegt kein \"anonym\": true")
+
+    # Englische Titel nicht gendern; die feminine Form wird zur englischen Grundform.
+    for quelle, soll_titel in (("Cloud & DevOps Engineer", "Cloud & DevOps Engineer"),
+                               ("Frontend Developerin", "Frontend Developer"),
+                               ("Product Managerin", "Product Manager"),
+                               ("Projektmanagerin", "Projektmanager:in")):
+        en_titel = json.loads(json.dumps(basis))
+        en_titel["stationen"].append({"titel": quelle, "firma": "Z", "zeitraum": "2020"})
+        anonym, _ = _anonymisiere(tmp, en_titel, "Timo Muster")
+        ist_titel = anonym["stationen"][-1]["titel"] if anonym else None
+        if ist_titel != soll_titel:
+            fehler.append(f"Geschlecht: „{quelle}“ wurde „{ist_titel}“, soll „{soll_titel}“")
 
     # Mischung aus zwei Quellen: LinkedIn "UX/UI-Designer", Lebenslauf "Designerin".
     gemischt = json.loads(json.dumps(basis))
