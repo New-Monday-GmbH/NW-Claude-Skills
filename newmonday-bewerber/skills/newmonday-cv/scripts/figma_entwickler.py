@@ -121,7 +121,7 @@ def hauptbloecke(daten, ew, labels, st_stufe="normal"):
                 if s.get(feld):
                     zeilen.append({"text": norm(s[feld]), "stil": "fliesstext", "oben": a["zeitraum_text"]})
             kopf(norm(s["titel"]), zeilen, dn["rubrik_inhalt"] if n == 0 else en["station"],
-                 **({"logos": logos(s)} if logoliste(s.get("logo")) else {}))
+                 **({"logos": logos(s)} if logoliste(stationslogo(s)) else {}))
             aufgaben(s.get("aufgaben_ew") or [])
             if s.get("technik"):
                 dazu("technik", s["technik"], en["aufgaben"], text=s["technik"])
