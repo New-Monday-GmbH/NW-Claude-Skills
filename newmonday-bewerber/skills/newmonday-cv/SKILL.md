@@ -35,8 +35,9 @@ an Kunden geht – jede stille Korrektur ist eine Behauptung, die jemand anders
 verantworten muss.
 
 Zwei Stellen sind davon ausgenommen: das **Kurzprofil** (gleich unten) und die
-**erste Station bei New Monday** (Schritt 2). Beide stehen nicht im Eingang, weil
-sie nicht aus ihm stammen können. Dazu kommt eine dritte, eng begrenzte: Ein
+**erste Station bei New Monday** (Schritt 2) – die es bei Kandidaten aus dem
+Bewerberpool nicht gibt. Beide stehen nicht im Eingang, weil sie nicht aus ihm
+stammen können. Dazu kommt eine dritte, eng begrenzte: Ein
 **Entwickler-Lebenslauf hat höchstens vier Seiten**; ist er länger, werden lange
 Stichpunkte gestrafft – nach den Regeln in Schritt 2 unter „Höchstens vier
 Seiten“, und jede gestraffte Fassung steht zur Freigabe.
@@ -70,10 +71,13 @@ wieder die Regel oben, also nur Rechtschreibung.
 
 ### Die zweite Ausnahme: die Station bei New Monday
 
-Jeder Lebenslauf beginnt mit New Monday als erster Station. Deren Inhalt kommt
-nicht aus dem Eingang, sondern von New Monday selbst – und ist deshalb
-vorgegeben, nicht frei formuliert. Wortlaut und Regeln stehen in Schritt 2 unter
-"Die erste Station ist immer New Monday".
+Jeder Lebenslauf einer Person, die bei New Monday angestellt ist oder gerade
+anfängt, beginnt mit New Monday als erster Station. Deren Inhalt kommt nicht aus
+dem Eingang, sondern von New Monday selbst – und ist deshalb vorgegeben, nicht
+frei formuliert. **Liegt die Person noch im Bewerberpool**, also noch nicht
+eingestellt, gibt es diese Station nicht: Ein Kundendokument, das eine
+Anstellung behauptet, die es nicht gibt, ist falsch. Wortlaut und Regeln stehen
+in Schritt 2 unter "Die erste Station ist New Monday – außer im Bewerberpool".
 
 ## Die anonymisierte Fassung
 
@@ -104,13 +108,20 @@ Zertifikate und Skillset stehen unverändert. Was verschwindet, ist eng umrissen
   **Diese Meldungen müssen gelesen werden**: Darunter kann eine echte
   Namensnennung sein, die dann von Hand in die `cv.json` gehört.
 - **Das Geschlecht.** Ob Mann oder Frau, darf nicht erkennbar sein (Entscheidung
-  vom 05.11.2026). `anonymisieren.py` setzt jede Bezeichnung der Person in die
-  Doppelpunkt-Form: „Senior UX / UI Designerin“ → „Senior UX / UI Designer:in“,
-  „UX/UI-Designer“ → „UX/UI-Designer:in“, „Als UX-Designerin habe ich“ → „Als
+  vom 05.11.2026). `anonymisieren.py` setzt jede deutsche Bezeichnung der
+  Person in die Doppelpunkt-Form: „UX/UI-Designer“ → „UX/UI-Designer:in“, „Als UX-Designerin habe ich“ → „Als
   UX-Designer:in habe ich“, „Customer-Insight-Managerin“ →
   „Customer-Insight-Manager:in“ – ebenso Entwickler, Berater, Leiter, Researcher,
   Developer, Engineer, Consultant, Architekt, Analyst, Spezialist, Werkstudent,
   Praktikant, Referent, Mitarbeiter und weitere (Liste in `scripts/geschlecht.py`).
+  **Englische Berufsbezeichnungen werden nicht gegendert** (Entscheidung vom
+  09.11.2026): „Cloud & DevOps Engineer“ und „Product Owner“ bleiben, wie sie
+  sind; eine eingedeutschte feminine Form wird zur englischen Grundform
+  („Frontend Developerin“ → „Frontend Developer“, „Senior UX / UI Designerin“ →
+  „Senior UX / UI Designer“). Englisch heißt: Developer, Engineer, Consultant,
+  Researcher, Owner immer; Designer, Manager, Analyst, Trainer, Mentor,
+  Moderator, Freelancer nur, wenn sie im Titel frei stehen – im Kompositum
+  („UX-Designer“, „Projektmanagerin“) und im Fließtext sind sie deutsch.
   Feminine Formen immer, maskuline Grundformen dort, wo sie die Person
   bezeichnen: `person.rolle`, Stationstitel, „Als …“, „Rolle: …“. Unberührt bleiben
   gebeugte Formen, die andere meinen („Koordination des UI-Designers“), Plurale
@@ -247,7 +258,9 @@ Anfrage verlangt und der Eingang nicht belegt, kommt nach `anfrage_luecken`.
 **Phase vorbereiten: Schritte 1 bis 1c.** Statt der Frage-Nachricht aus Schritt
 1d entsteht `fragen.json`:
 
-- `fragen`: `nm_rolle` und `nm_start` immer, `fachfremd` und `weiterbildung`
+- `fragen`: `nm_rolle` und `nm_start` immer – auch für eine Person, die schon
+  als Bewerberpool genannt ist: Die Antwort „Noch nicht – Bewerberpool“ setzt
+  dann der Orchestrator selbst, und das Portfolio liest sie von dort, `fachfremd` und `weiterbildung`
   nur, wenn es etwas zu entscheiden gibt – Wortlaut, Optionen, `multiSelect` und
   „(Empfohlen)“ genau wie in Schritt 1d. Entstünde durch das Streichen einer
   Station eine Lücke, steht sie in der `description` dieser Option.
@@ -277,7 +290,8 @@ Keine `cv.json`, keine Logos, nichts rendern.
 
 - `nm_rolle`, `nm_start` → Titel und Zeitraum von `stationen[0]` und die
   Textbausteine dazu (Schritt 2). Ein eigener Titel über „Other“ wird genommen,
-  wie er dasteht.
+  wie er dasteht. Steht `nm_start` auf „Noch nicht – Bewerberpool“, gibt es
+  keine New-Monday-Station, und `nm_rolle` wählt nur das Layout.
 - `fachfremd`, `weiterbildung` → die angehakten Einträge bleiben drin, alle
   anderen aus der Frage fallen weg. Fehlt die `id`, gab es nichts zu entscheiden
   – dann bleibt alles drin. Behaltene Weiterbildungen landen in `zertifikate`
@@ -657,7 +671,8 @@ Eine einzige `AskUserQuestion`-Nachricht, gestellt **nach** dem Auslesen
 nimmt das Werkzeug nicht:
 
 1. **Die Rolle bei New Monday** – Titel der ersten Station, siehe Schritt 2.
-2. **Der Startmonat bei New Monday** – Zeitraum derselben Station.
+2. **Der Startmonat bei New Monday** – Zeitraum derselben Station, oder „noch
+   nicht“: die Person liegt im Bewerberpool.
 3. **Fachfremde Stationen** – rein oder raus.
 4. **Weiterbildungen** – rein oder raus.
 
@@ -676,7 +691,18 @@ Frage:   Ab wann ist <Vorname> bei New Monday?
 Header:  NM-Start
 Optionen: August 2026 (Empfohlen)   — der laufende Monat
         | September 2026            — der folgende Monat
+        | Noch nicht – Bewerberpool — noch nicht eingestellt, keine New-Monday-Station
 ```
+
+**Bewerberpool.** „Noch nicht – Bewerberpool“ heißt: keine Station bei New
+Monday (Schritt 2, „außer im Bewerberpool“). Die Rollenfrage bleibt trotzdem
+stehen, denn ihre Antwort wählt das Layout (unten); ihr Titel erscheint dann
+nirgends im Dokument. Hat der Nutzer schon beim Aufruf gesagt, dass die Person
+im Pool liegt oder noch nicht eingestellt ist, entfällt die Startfrage, und die
+Rollenfrage heißt „Ist <Vorname> ein UX- oder ein Entwicklerprofil?“ mit den
+Optionen `UX-Profil` | `Entwicklerprofil`. Im Zweifel – etwa wenn eine Mappe
+für eine Kundenanfrage entsteht, die Person aber noch nicht unterschrieben hat
+– wird gefragt, nicht angenommen.
 
 Die empfohlene Option ist die, die zum Eingang passt: Bei einem UX-Lebenslauf
 steht die UX-Rolle vorn, bei einem Entwicklerlebenslauf die Entwicklerrolle. Für
@@ -1022,9 +1048,28 @@ bleibt es bei der Meldung und die Übergabe fragt, welche älteren Stationen nur
 noch mit dem Kopf (ohne Stichpunkte) stehen sollen. Gestrichen wird ohne
 Rückfrage nichts.
 
-#### Die erste Station ist immer New Monday
+#### Die erste Station ist New Monday – außer im Bewerberpool
 
-**`stationen[0]` ist New Monday, in jedem Lebenslauf.** Die Person wird über New
+**Bewerberpool: keine New-Monday-Station** (Entscheidung vom 09.11.2026).
+Personen, die noch nicht bei New Monday angestellt sind, sondern im
+Bewerberpool liegen, bekommen **keine** Station New Monday – auch keine ohne
+Stichpunkte, und New Monday wird in keinem Text der Person als Arbeitgeber
+genannt. Dann gilt:
+
+- `stationen[0]` ist die neueste eigene Station aus dem Eingang.
+- **Offene Zeiträume bleiben offen**, wie im Eingang („Juni 2024 – Heute“). Die
+  Regel „"Heute" steht nur bei New Monday“ und das abgeleitete Enddatum
+  entfallen – es gibt keinen Startmonat, aus dem eines folgen könnte.
+- Footer und Layout bleiben: New Monday stellt die Person vor, Manuel Klein ist
+  der Ansprechpartner. Das ist keine Aussage über eine Anstellung.
+- **In der Übergabe** steht, dass der Lebenslauf als Bewerberpool-Fassung ohne
+  New-Monday-Station gebaut ist. Wird die Person eingestellt, kommt die Station
+  mit einem neuen Lauf dazu (Startfrage beantworten, Schritte 2 bis 4).
+
+Alles Weitere in diesem Abschnitt gilt für Personen, die bei New Monday
+angestellt sind oder anfangen.
+
+**`stationen[0]` ist New Monday, in jedem Lebenslauf einer angestellten Person.** Die Person wird über New
 Monday vermittelt; das Dokument geht an Kunden, und dort steht die aktuelle
 Station oben. Wie das aussieht, zeigt `beispiel/cv.json` und das gerenderte
 Beispiel-PDF.
@@ -1209,8 +1254,8 @@ Zum Modell:
   Renderskript sagt, wenn der Block trotz aller Stufen überläuft, und nennt die
   Gruppe, in der gekürzt werden sollte.
 - **`projekte[].zeitraum`** weglassen, wenn er mit dem der Station identisch ist.
-- **Reihenfolge**: New Monday zuerst, danach die eigenen Stationen, neueste
-  zuerst.
+- **Reihenfolge**: New Monday zuerst (außer im Bewerberpool), danach die
+  eigenen Stationen, neueste zuerst.
 - `kontakt` weglassen – die Vorgaben stehen im Skript.
 
 ### 3. Logos zuordnen
@@ -1632,6 +1677,12 @@ Zeilen berichten:
 - Welches Enddatum die letzte eigene Station bekommen hat, wenn sie im Eingang
   noch offen lief – mit der Bitte, den Ausstiegsmonat zu bestätigen. Abgeleitet
   ist er aus dem Startmonat bei New Monday, nicht aus dem Eingang.
+- **Bewerberpool:** dass der Lebenslauf ohne New-Monday-Station gebaut ist, weil
+  die Person noch nicht eingestellt ist.
+- **Barrierefreiheit:** ob veraPDF beide Fassungen bestanden hat. Jede Zeile
+  „veraPDF PDF/UA-1 …“ unter „Prüfen“ ist ein Fehler im PDF, kein Hinweis. Fehlt
+  veraPDF (`brew install verapdf`), steht das hier – geprüft ist dann nur mit der
+  Eigenprüfung des Skills.
 - Welche Schulabschlüsse aus dem Bildungsblock weggefallen sind, und – bei
   einer älteren `cv.json` – welche Studieninhalte `render_cv.py` als ignoriert
   gemeldet hat.
@@ -1707,8 +1758,9 @@ Regeln dazu:
   darunter die Zertifikate) und Skillset. Ab Seite 2 folgen Kurzprofil und Stationen, am Ende der Footer, der
   immer am unteren Rand der letzten Seite sitzt. Bildung und Skillset stehen
   vorn, nicht hinten – daran wird nicht getauscht.
-- **Erste Station ist New Monday**, immer – und **nur sie läuft auf "Heute"**.
-  Siehe Schritt 2.
+- **Erste Station ist New Monday** – außer bei Kandidaten aus dem
+  Bewerberpool, die keine bekommen – und **nur sie läuft auf "Heute"**. Siehe
+  Schritt 2.
 - **Das Skillset hat im UX-Layout immer dieselben vier Gruppen**, 2 × 2: links Fähigkeiten und
   Branchen, rechts Tools und Sprachen. Deutsch – Muttersprache und Englisch –
   Business Niveau stehen immer drin. Siehe Schritt 2.

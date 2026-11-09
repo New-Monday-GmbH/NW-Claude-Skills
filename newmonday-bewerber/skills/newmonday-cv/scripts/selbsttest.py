@@ -169,7 +169,7 @@ def pruefe_geschlecht(tmp):
              "zeitraum": "2018 - 2019", "aufgaben": [f"Rolle: Frontend-Entwickler{endung}"]}]
         return d
 
-    soll = {"rolle": "Senior UX / UI Designer:in",
+    soll = {"rolle": "Senior UX / UI Designer",   # englisch: nicht gegendert
             "kurzprofil": ("Als UX-Designer:in habe ich Workshops geleitet. Als "
                            "Customer-Insight-Manager:in betreute ich Zusteller:innen. "
                            "Koordination des UI-Designers. Schulungen für Entwickler."),
@@ -194,6 +194,18 @@ def pruefe_geschlecht(tmp):
         if anonym.get("anonym") is not True:
             fehler.append("Geschlecht: cv-anonym.json traegt kein \"anonym\": true")
 
+    # Englische Titel nicht gendern; die feminine Form wird zur englischen Grundform.
+    for quelle, soll_titel in (("Cloud & DevOps Engineer", "Cloud & DevOps Engineer"),
+                               ("Frontend Developerin", "Frontend Developer"),
+                               ("Product Managerin", "Product Manager"),
+                               ("Projektmanagerin", "Projektmanager:in")):
+        en_titel = json.loads(json.dumps(basis))
+        en_titel["stationen"].append({"titel": quelle, "firma": "Z", "zeitraum": "2020"})
+        anonym, _ = _anonymisiere(tmp, en_titel, "Timo Muster")
+        ist_titel = anonym["stationen"][-1]["titel"] if anonym else None
+        if ist_titel != soll_titel:
+            fehler.append(f"Geschlecht: „{quelle}“ wurde „{ist_titel}“, soll „{soll_titel}“")
+
     # Mischung aus zwei Quellen: LinkedIn "UX/UI-Designer", Lebenslauf "Designerin".
     gemischt = json.loads(json.dumps(basis))
     gemischt["person"]["rolle"] = "UX-Designerin"
@@ -207,6 +219,14 @@ def pruefe_geschlecht(tmp):
     _, lauf = _anonymisiere(tmp, rest, "Timo Muster")
     if "Pronomen „Sie“" not in lauf.stderr or "Anrede „Frau“" not in lauf.stderr:
         fehler.append("Geschlecht: Pronomen/Anrede nicht unter „Pruefen“ gemeldet")
+    # Indirekt: in Firma und Bildung, nicht nur in den Texten der Person.
+    rest["stationen"].append({"titel": "Zivildienst", "firma": "Women in Tech e. V.",
+                              "zeitraum": "2010"})
+    _, lauf = _anonymisiere(tmp, rest, "Timo Muster")
+    if "„Zivildienst“" not in lauf.stderr or "„Women“" not in lauf.stderr:
+        fehler.append("Geschlecht: Zivildienst/Women in Tech nicht als indirekt gemeldet")
+    if "indirekt" in _anonymisiere(tmp, basis, "Timo Muster")[1].stderr:
+        fehler.append("Geschlecht: das Beispiel meldet indirekte Hinweise, die es nicht hat")
     en = json.loads(json.dumps(basis))
     en.update(sprache="en")
     en["person"].update(rolle="UX Designer", kurzprofil="She led research. Her team grew.")

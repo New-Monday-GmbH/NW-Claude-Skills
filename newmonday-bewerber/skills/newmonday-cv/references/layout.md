@@ -269,8 +269,12 @@ nicht).
 Nur WeasyPrint kann das. Fällt `render_cv.py` auf Chrome oder wkhtmltopdf
 zurück, steht eine WARNUNG unter „Prüfen“; Fehler, die WeasyPrint beim Taggen
 meldet (Bild ohne `alt`, fehlende Sprache), kommen als „PDF/UA: …“ dazu.
-Geprüft wird ohne veraPDF: `selbsttest.py` (`barrierefrei()`) liest Tags,
-Sprache, Kennung, Titel, Alternativtexte und Überschriftenebenen mit pypdf.
+Geprüft wird zweimal: `selbsttest.py` (`barrierefrei()`) liest Tags, Sprache,
+Kennung, Titel, Alternativtexte und Überschriftenebenen mit pypdf, und
+`render_cv.py` lässt jedes PDF zusätzlich von veraPDF gegen PDF/UA-1 prüfen
+(`scripts/verapdf.py`), wenn es installiert ist – Befunde stehen als
+„veraPDF PDF/UA-1 …“ unter „Prüfen“. axesCheck (check.axes4.com) ist kein
+automatischer Weg: Captcha, und der Upload gibt Kandidatendaten an Dritte.
 
 ## Bewusste Abweichungen von der Figma-Vorlage
 

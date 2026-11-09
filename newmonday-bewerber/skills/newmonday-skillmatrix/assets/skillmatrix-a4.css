@@ -93,7 +93,6 @@ ul { list-style: none; break-before: auto; }
 .fotokarte__bild {
   display: block; object-fit: cover;
   width: var(--fotokarte-bild-breite); height: var(--fotokarte-bild-hoehe);
-  opacity: var(--fotokarte-bild-deckkraft);
 }
 .hero__beschreibung { margin-top: var(--hero-abstand-beschreibung); }
 

@@ -563,6 +563,34 @@ def _pfad_zu_uri(wert):
 _GEMELDET = set()
 
 
+def _foto_auf_karte(wert, fk, ds):
+    """Das Foto mit der Deckkraft der Fotokarte auf ihren Grund gerechnet, als
+    Datei. Statt CSS-opacity: opacity legt das Foto in eine Transparenzgruppe,
+    und dort verliert WeasyPrint den /Figure-Tag (veraPDF PDF/UA-1 7.1-3,
+    09.11.2026). Gleiche Rechnung wie kopf_ausschnitt.kontrollbild()."""
+    uri = _pfad_zu_uri(wert)
+    if not uri or not uri.startswith("file:"):
+        return uri
+    from urllib.parse import urlparse
+    from urllib.request import url2pathname
+    import hashlib
+    p = Path(url2pathname(urlparse(uri).path))
+    if not p.exists():
+        return uri
+    from PIL import Image
+    d = fk["bild-deckkraft"]
+    grund = design_system.rgb(design_system.farbe(ds, fk["hintergrund"]))
+    ziel = (Path(tempfile.gettempdir()) / "newmonday-skillmatrix" / "deckkraft"
+            / f"{hashlib.sha1(p.read_bytes()).hexdigest()[:12]}-{d}-{''.join(f'{c:02x}' for c in grund)}.jpg")
+    if not ziel.exists():
+        foto = Image.open(p)
+        flaeche = Image.new("RGBA", foto.size, grund + (255,))
+        foto = Image.alpha_composite(flaeche, foto.convert("RGBA")).convert("RGB")
+        ziel.parent.mkdir(parents=True, exist_ok=True)
+        Image.blend(flaeche.convert("RGB"), foto, d).save(ziel, quality=92)
+    return ziel.as_uri()
+
+
 def html_bauen(daten, hoehe, design, schatten=None, zplan=None):
     """schatten: Karten-ID -> Schattenbild samt Lage, nur im zweiten
     WeasyPrint-Durchgang. Ohne sie zeichnet Chrome box-shadow selbst.
@@ -576,7 +604,7 @@ def html_bauen(daten, hoehe, design, schatten=None, zplan=None):
 
     daten = dict(daten)
     person = dict(daten.get("person") or {})
-    person["foto"] = _pfad_zu_uri(person.get("foto"))
+    person["foto"] = _foto_auf_karte(person.get("foto"), design["komponenten"]["fotokarte"], design)
     daten["person"] = person
     if zplan:
         zplan = dict(zplan, eintraege=[dict(e, src=_pfad_zu_uri(e["bild"]) if e.get("bild") else None)
@@ -911,7 +939,7 @@ def html_bauen_a4(daten, ds_a4, za4, fussluft):
                       autoescape=select_autoescape(["html"]))
     daten = dict(daten)
     person = dict(daten.get("person") or {})
-    person["foto"] = _pfad_zu_uri(foto_a4(daten)[0])
+    person["foto"] = _foto_auf_karte(foto_a4(daten)[0], ds_a4["komponenten"]["fotokarte"], ds_a4)
     daten["person"] = person
     daten["kontakt"] = dict(KONTAKT_VORGABE, **(daten.get("kontakt") or {}))
     K = ds_a4["komponenten"]

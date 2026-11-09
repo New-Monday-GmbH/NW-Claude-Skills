@@ -40,6 +40,11 @@ pip3 install weasyprint pymupdf pillow pypdf
 Skill auf Chrome aus; dieses PDF ist **nicht barrierefrei** und geht so nicht an
 Kunden. `pypdf` prüft das fertige PDF auf PDF/UA und Größe. `pymupdf` und `pillow` sind zwingend: damit werden Eingangs-PDFs
 ausgelesen, Fotos zugeschnitten und das fertige PDF auf Überlauf geprüft.
+
+**Empfohlen: veraPDF** (`brew install verapdf`, bringt Java mit). Damit prüft
+jedes Renderskript das fertige PDF lokal auf PDF/UA-1 – dieselben maschinell
+prüfbaren Regeln wie PAC 2026 und axesCheck, ohne Upload. Ohne veraPDF bleibt
+es bei der Eigenprüfung des Skills und einem Hinweis.
 `potrace` ist optional und wird nur gebraucht, um zu kleine Logos zu
 vektorisieren.
 

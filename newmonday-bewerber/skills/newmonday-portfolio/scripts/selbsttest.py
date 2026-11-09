@@ -810,6 +810,16 @@ def bibliothek_pruefen() -> list[str]:
         for datei in dateien:
             if len(datei.read_text(encoding="utf-8")) > 50000:
                 befunde.append(f"{datei.name} über 50 000 Zeichen")
+    agentur = [p.direkt for p in plaene if p.typ == "Agentur"]
+    if agentur != [[]]:
+        befunde.append(f"Agentur ohne Bewerberpool: Überschrift überschrieben – {agentur}")
+    # Bewerberpool: keine Anstellung behaupten, auch nicht in Figma (Kopf/Titel).
+    with tempfile.TemporaryDirectory() as tmp:
+        html_pool, _ = rp.baue_html({**d, "bewerberpool": True}, BEISPIEL, Path(tmp))
+        pool = [p.direkt for p in fb.plaene_bauen(fp.folien_lesen(html_pool)[0], d)[0]
+                if p.typ == "Agentur"]
+    if pool != [[[["Kopf", "Titel"], rp.TEXTE["de"]["agentur_h_pool"]]]]:
+        befunde.append(f"Agentur im Bewerberpool: Figma-Überschrift falsch – {pool}")
     typen = {p.typ for p in plaene}
     for erwartet in ("Cover", "Profil", "Kundenwand", "Statement", "Trenner", "Prozess-Übersicht",
                      "Prozess-Schritt", "Schwerpunkt", "Agentur", "Projekt-Kopf v2",

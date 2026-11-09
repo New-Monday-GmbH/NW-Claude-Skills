@@ -107,7 +107,6 @@ ul { list-style: none; }
 .fotokarte__bild {
   display: block; object-fit: cover;
   width: var(--fotokarte-bild-breite); height: var(--fotokarte-bild-hoehe);
-  opacity: var(--fotokarte-bild-deckkraft);
 }
 .fotokarte__verlauf {
   position: absolute; left: 0; right: 0; bottom: 0;

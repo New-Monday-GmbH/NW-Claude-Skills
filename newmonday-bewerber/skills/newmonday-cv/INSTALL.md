@@ -78,6 +78,11 @@ pip3 install weasyprint jinja2 pypdf pillow
 `pango` ist der Teil, an dem WeasyPrint auf macOS am häufigsten scheitert — ohne
 die Bibliothek startet der Import nicht.
 
+**Empfohlen: veraPDF** (`brew install verapdf`, bringt Java mit). Damit prüft
+jedes Renderskript das fertige PDF lokal auf PDF/UA-1 – dieselben maschinell
+prüfbaren Regeln wie PAC 2026 und axesCheck, ohne Upload. Ohne veraPDF bleibt
+es bei der Eigenprüfung des Skills und einem Hinweis.
+
 ## Figma
 
 Der Skill legt den fertigen Lebenslauf zusätzlich als bearbeitbare Frames in ein

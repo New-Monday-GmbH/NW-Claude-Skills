@@ -36,6 +36,12 @@ STAEMME = (
 # steht auch bei Frauen oft so) - sie zaehlen fuer die Mischung nur gegen
 # ihre eigene feminine Form.
 ENGLISCH = {"researcher", "developer", "engineer", "consultant", "owner"}
+# Englische Berufsbezeichnungen werden nicht gegendert (Entscheidung vom
+# 09.11.2026): "Cloud & DevOps Engineer" bleibt, "Frontend Developerin" wird
+# "Frontend Developer". Woerter, die es in beiden Sprachen gibt, gelten nur als
+# englisch, wenn sie im Titel frei stehen ("Senior UX Designer"); im Kompositum
+# ("UX-Designer", "Projektmanager") und im Fliesstext sind sie deutsch.
+BEIDE = {"designer", "manager", "analyst", "trainer", "mentor", "moderator", "freelancer"}
 
 # Ein Wort, das auf einen Stamm endet, optional mit -in. Danach kein
 # Wortzeichen und kein Gender-Zeichen: "Designers", "Entwicklerinnen",
@@ -73,6 +79,35 @@ REST_EN = [
     (re.compile(r"\b(?:she|he|her|hers|herself|him|his|himself|Mrs?|Ms|Miss)\b",
                 re.IGNORECASE), "Pronomen/Anrede"),
 ]
+
+# Was das Geschlecht indirekt verraet (Entscheidung vom 09.11.2026) - in jedem
+# Feld der cv.json und in beiden Sprachen, denn es steckt oft in Firma,
+# Bildung oder Ehrenamt. Nur gemeldet: ob "Zivildienst" raus soll, entscheidet
+# ein Mensch.
+INDIREKT = [
+    (re.compile(r"\b(?:Mutterschutz|Mutterschaft|Vaterschaftsurlaub|"
+                r"maternity|paternity)\b", re.IGNORECASE), "Mutterschutz/Vaterschaft"),
+    (re.compile(r"\b(?:Grundwehrdienst|Wehrdienst|Zivildienst|Wehrpflicht|"
+                r"military service|civilian service)\b", re.IGNORECASE), "Wehr-/Zivildienst"),
+    (re.compile(r"\b(?:Frauen|Mädchen|Damen|Männer|Herren)\w*|"
+                r"\b(?:women|woman|girls?|ladies|female|men's|male)\b"
+                r"|\b(?:Burschenschaft|Sorority|Fraternity)\b", re.IGNORECASE),
+     "Frauen-/Männerbezug"),
+]
+OHNE_INDIREKT = {"logo", "foto", "link", "link_text", "url"}
+
+
+def _alle_texte(wert, pfad=""):
+    """(Pfad, Text) fuer jeden String in der cv.json, ohne Dateien und Links."""
+    if isinstance(wert, str):
+        yield pfad, wert
+    elif isinstance(wert, dict):
+        for k, v in wert.items():
+            if k not in OHNE_INDIREKT:
+                yield from _alle_texte(v, f"{pfad}.{k}" if pfad else k)
+    elif isinstance(wert, list):
+        for i, v in enumerate(wert):
+            yield from _alle_texte(v, f"{pfad}[{i}]")
 
 
 def _person_texte(daten):
@@ -157,6 +192,13 @@ def mischung(daten):
             "schreiben (SKILL.md, Schritt 2)."]
 
 
+def _englisch(fund, ist_titel):
+    """Englische Bezeichnung - neutral ist dann die Grundform, nicht ":in"."""
+    stamm = fund.group("stamm").lower()
+    return stamm in ENGLISCH or (ist_titel and stamm in BEIDE
+                                 and fund.group("wort").lower() == stamm)
+
+
 def neutralisieren(daten):
     """Doppelpunkt-Form in den Texten der Person. Aendert die Daten an Ort und
     Stelle, gibt jede Ersetzung als (Pfad, altes Wort, neues Wort) zurueck.
@@ -168,10 +210,14 @@ def neutralisieren(daten):
         alt = behaelter[schluessel]
         teile, stelle = [], 0
         for fund, person in _funde(alt, ist_titel):
-            if fund.group("in") or person:
-                teile += [alt[stelle:fund.start()], fund.group("wort") + ":in"]
-                stelle = fund.end()
-                geaendert.append((pfad, fund.group(0), teile[-1]))
+            if not (fund.group("in") or person):
+                continue
+            neu = fund.group("wort") if _englisch(fund, ist_titel) else fund.group("wort") + ":in"
+            if neu == fund.group(0):
+                continue                    # englisch und schon ohne Endung
+            teile += [alt[stelle:fund.start()], neu]
+            stelle = fund.end()
+            geaendert.append((pfad, fund.group(0), neu))
         if teile:
             behaelter[schluessel] = "".join(teile) + alt[stelle:]
     return geaendert
@@ -187,5 +233,11 @@ def restmeldungen(daten):
             for fund in regel.finditer(text):
                 links, rechts = max(0, fund.start() - 25), fund.end() + 25
                 meldungen.append(f"{art} „{fund.group(0)}“ in {pfad}: "
+                                 f"…{' '.join(text[links:rechts].split())}…")
+    for pfad, text in _alle_texte(daten):
+        for regel, art in INDIREKT:
+            for fund in regel.finditer(text):
+                links, rechts = max(0, fund.start() - 25), fund.end() + 25
+                meldungen.append(f"indirekt, {art} „{fund.group(0)}“ in {pfad}: "
                                  f"…{' '.join(text[links:rechts].split())}…")
     return meldungen

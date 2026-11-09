@@ -465,6 +465,14 @@ Eine Sitzung, in dieser Reihenfolge:
    Fragetext zurück; bei gleichem Text hängt der Orchestrator „ (<Dokument>)“ an.
    Übersprungen werden Skills ohne Fragen und Skills, deren `vorbereiten` nicht
    auf `fertig` steht.
+
+   **Bewerberpool.** Hat der Nutzer schon gesagt, dass die Person noch nicht
+   bei New Monday angestellt ist („liegt im Pool“, „noch nicht eingestellt“),
+   wird `nm_start` des Lebenslaufs nicht gefragt, sondern direkt mit „Noch
+   nicht – Bewerberpool“ beantwortet. Diese eine Antwort gilt für die ganze
+   Mappe: Der Lebenslauf bekommt keine New-Monday-Station, das Portfolio die
+   Agentur-Überschrift „Vorgestellt von der New Monday Agentur.“. Im Zweifel
+   wird gefragt – eine behauptete Anstellung geht an den Kunden.
 4. **Antworten ablegen** in `auftrag.json` unter
    `entscheidungen.<skill>.<id>`. Die Antworten kommen nach Fragetext zurück;
    die `id` ist die der Frage mit diesem Text. Gespeichert wird wörtlich, was
@@ -688,6 +696,9 @@ dieser.
 - **Reihenfolge**: Lebenslauf → Skill Matrix → Portfolio, nacheinander, nie
   parallel.
 - **Eine Sprache** für alle drei Dokumente.
+- **Ein Anstellungsstatus** für alle drei Dokumente: Liegt die Person noch im
+  Bewerberpool, steht New Monday nirgends als Arbeitgeber (Antwort `nm_start`
+  des Lebenslaufs).
 - **Eine Anfrage** für alle drei Dokumente, einmal eingeholt – sie gewichtet,
   sie belegt nichts. Ein Kundenlogo ist keine Domänenerfahrung.
 - **Vor dem Bauen die Matching-Prüfung**, wenn es eine Anfrage gibt: ohne

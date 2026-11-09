@@ -31,6 +31,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import tokens  # noqa: E402  — erst nach sys.path.insert moeglich
 from logo_lib import suche as logo_datei  # noqa: E402
 import geschlecht  # noqa: E402
+import verapdf  # noqa: E402
 
 BESCHRIFTUNG = {
     "de": {
@@ -1400,7 +1401,9 @@ def main():
 
     print(f"{ziel} geschrieben (Engine: {engine})")
     hinweise += [f"PDF/UA: {m}" for m in sorted(UA_MELDUNGEN)]
-    if not engine.startswith("WeasyPrint"):
+    if engine.startswith("WeasyPrint"):
+        hinweise += verapdf.pruefe(ziel)
+    else:
         # Chrome taggt bestenfalls teilweise, wkhtmltopdf gar nicht - und
         # beide setzen weder PDF/UA-Kennung noch optimierte Bilder.
         hinweise.insert(0, "WARNUNG: Dieses PDF ist NICHT barrierefrei (kein PDF/UA-1, "
