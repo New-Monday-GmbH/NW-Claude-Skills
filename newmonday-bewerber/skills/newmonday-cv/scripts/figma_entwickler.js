@@ -4,7 +4,7 @@
 // Gruppentitel, Bildungseintrag, Kurzprofil, Fuss); Seiten und Spalten sind
 // Rahmen mit Auto-Layout, weil CV/Seite nur einen 428pt breiten Slot hat.
 // Alle Masse stehen im Plan (aus tokens.json), hier wird nichts gerechnet.
-// Firmenlogos (seit 06.11.2026): Rechteck „Logo“ im Stationskopf plus Traeger
+// Firmenlogos (seit 06.11.2026): Rechteck „Logo“ ueber dem Stationstitel plus Traeger
 // „_Bild FIT → <id>“ - Upload und Einsetzen wie beim Foto (bilder_fit).
 
 let seite = null;
@@ -59,26 +59,21 @@ function rubrik(p, titel) { const i = K.abschnittstitel.createInstance(); setz(i
 let aktF = null, traeger = 0;
 const bilder_fit = [];
 function kopf(p, b) {
-  if (!b.logos) {
-    const k = voll(p, spalte("Kopf – " + b.titel, P.haupt));
-    voll(k, text(b.titel, P.stile.titel, P.haupt));
-    for (const z of b.zeilen) { abstand(k, z.oben); voll(k, text(z.text, P.stile[z.stil], P.haupt)); }
-    return;
-  }
-  // Stationskopf mit Logospalte links (seit 06.11.2026) - wie im PDF.
-  const zeile = figma.createAutoLayout("HORIZONTAL", { name: "Kopf – " + b.titel, itemSpacing: P.logo_abstand });
-  zeile.fills = []; voll(p, zeile);
-  const ls = spalte("Logo", P.logo_spalte, P.logo_stapel); ls.paddingTop = P.logo_oben; zeile.appendChild(ls);
-  for (const l of b.logos) {
+  const k = voll(p, spalte("Kopf – " + b.titel, P.haupt));
+  // Firmenlogo ueber dem Titel (seit 06.11.2026) - wie im PDF, nichts rueckt ein.
+  if (b.logos && b.logos.length) {
+    const ls = figma.createAutoLayout("HORIZONTAL", { name: "Logo", itemSpacing: P.logo_reihe, counterAxisAlignItems: "CENTER" });
+    ls.fills = []; k.appendChild(ls);
+    for (const l of b.logos) {
     const r = figma.createRectangle(); r.name = "Logo"; r.resize(l.breite, l.hoehe); r.fills = []; ls.appendChild(r);
     const t = figma.createRectangle(); t.name = `_Bild FIT → ${r.id}`; t.resize(l.breite, l.hoehe); t.fills = [];
     seite.appendChild(t); t.x = aktF.x + 80 + (traeger++ % 8) * 60; t.y = aktF.y + P.seite_h + 40;
     bilder_fit.push({ nodeId: t.id, datei: l.datei, ziel: r.id, verhaeltnis: l.verhaeltnis });
+    }
+    abstand(k, P.logo_titel);
   }
-  const breite = P.haupt - P.logo_spalte - P.logo_abstand;
-  const k = spalte("Kopftext", breite); zeile.appendChild(k);
-  voll(k, text(b.titel, P.stile.titel, breite));
-  for (const z of b.zeilen) { abstand(k, z.oben); voll(k, text(z.text, P.stile[z.stil], breite)); }
+  voll(k, text(b.titel, P.stile.titel, P.haupt));
+  for (const z of b.zeilen) { abstand(k, z.oben); voll(k, text(z.text, P.stile[z.stil], P.haupt)); }
 }
 function bildung(p, b) {
   const i = K.bildungseintrag.createInstance(); voll(p, i);

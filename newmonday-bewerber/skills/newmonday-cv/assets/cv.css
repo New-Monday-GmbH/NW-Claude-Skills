@@ -279,13 +279,11 @@ ul.tight { padding-left: {{ pt(r.listeneinzug) }}; list-style: disc; {{ css("lis
 .ew .station::after { content: none; }
 .ew .station + .station { margin-top: {{ pt(en.station) }}; }
 .ew .station > ul.tasks { margin-top: {{ pt(en.kopf_aufgaben) }}; }
-/* Firmenlogo links im Stationskopf (seit 06.11.2026): eigene schmale Spalte,
-   der Kopftext rueckt ein, die Aufgaben darunter nicht. */
-.ew-kopf--logo::after { content: ""; display: table; clear: left; }  /* nur das Logo, nie die Seitenspalte rechts */
-.ew-logo { float: left; width: {{ pt(en.logo_spalte) }}; padding-top: {{ pt(r.logo_oben) }}; }
-.ew-logo img { display: block; max-width: {{ pt(en.logo_spalte) }}; }
-.ew-logo img + img { margin-top: {{ pt(en.aufgaben) }}; }
-.ew-kopf--logo .ew-kopftext { margin-left: {{ pt(en.logo_spalte + en.logo_abstand) }}; }
+/* Firmenlogo ueber dem Stationstitel (seit 06.11.2026): eine Zeile, links
+   buendig - nichts rueckt ein. Mehrere Logos stehen nebeneinander. */
+.ew-logo { display: flex; align-items: center; margin-bottom: {{ pt(en.logo_titel) }}; }
+.ew-logo img { display: block; max-width: {{ pt(en.logo_breite) }}; }
+.ew-logo img + img { margin-left: {{ pt(en.logo_reihe) }}; }
 .ew ul.tasks li + li { margin-top: {{ pt(en.aufgaben) }}; }
 /* Die Technologien hinter einer Aufgabe: dieselbe Zeile, in der Markenfarbe. */
 .technik { {{ css("technik") }} }
@@ -295,6 +293,14 @@ ul.tight { padding-left: {{ pt(r.listeneinzug) }}; list-style: disc; {{ css("lis
 .ew-link .intro__link { display: inline-block; }
 .ew .project { margin-top: {{ pt(en.projekt) }}; }
 .ew-eintrag + .ew-eintrag { margin-top: {{ pt(dn.gruppen) }}; }
+/* Notstufen der Hauptspalte (verdichtung.entwickler_stationen): nur wenn der
+   Footer sonst allein auf der letzten Seite stuende. */
+{% for stufe, w in tok.verdichtung.entwickler_stationen.items() if stufe != "normal" %}
+.ew-st--{{ stufe }} .station + .station { margin-top: {{ pt(w.station) }}; }
+.ew-st--{{ stufe }} .station > ul.tasks { margin-top: {{ pt(w.kopf_aufgaben) }}; }
+.ew-st--{{ stufe }} ul.tasks li + li, .ew-st--{{ stufe }} .ew-technik, .ew-st--{{ stufe }} .ew-link { margin-top: {{ pt(w.aufgaben) }}; }
+.ew-st--{{ stufe }} .project { margin-top: {{ pt(w.projekt) }}; }
+{% endfor %}
 
 /* Reicht Seite 1 fuer die Seitenspalte nicht, setzt render_cv.py sie enger -
    nur Abstaende, nie Schriftgroessen (verdichtung.entwickler). */
