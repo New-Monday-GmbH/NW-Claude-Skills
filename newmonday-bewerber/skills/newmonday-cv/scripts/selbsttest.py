@@ -207,6 +207,14 @@ def pruefe_geschlecht(tmp):
     _, lauf = _anonymisiere(tmp, rest, "Timo Muster")
     if "Pronomen „Sie“" not in lauf.stderr or "Anrede „Frau“" not in lauf.stderr:
         fehler.append("Geschlecht: Pronomen/Anrede nicht unter „Pruefen“ gemeldet")
+    # Indirekt: in Firma und Bildung, nicht nur in den Texten der Person.
+    rest["stationen"].append({"titel": "Zivildienst", "firma": "Women in Tech e. V.",
+                              "zeitraum": "2010"})
+    _, lauf = _anonymisiere(tmp, rest, "Timo Muster")
+    if "„Zivildienst“" not in lauf.stderr or "„Women“" not in lauf.stderr:
+        fehler.append("Geschlecht: Zivildienst/Women in Tech nicht als indirekt gemeldet")
+    if "indirekt" in _anonymisiere(tmp, basis, "Timo Muster")[1].stderr:
+        fehler.append("Geschlecht: das Beispiel meldet indirekte Hinweise, die es nicht hat")
     en = json.loads(json.dumps(basis))
     en.update(sprache="en")
     en["person"].update(rolle="UX Designer", kurzprofil="She led research. Her team grew.")

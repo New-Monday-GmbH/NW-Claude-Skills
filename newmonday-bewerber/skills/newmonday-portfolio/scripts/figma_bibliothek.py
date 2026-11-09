@@ -201,6 +201,7 @@ class Plan:
         self.texte: dict = {}
         self.kinder: list[dict] = []
         self.bilder: list[dict] = []
+        self.direkt: list = []   # [[Pfad], Text] für Textebenen ohne Text-Eigenschaft
         self.chrome = {"Logo": "aus", "Seitenzahl": "aus", "Nummer": None}
 
     def kind(self, pfad: list[str], schalter=None, texte=None, variante=None) -> dict:
@@ -224,7 +225,7 @@ class Plan:
         return {"name": f"{self.nr:02d}", "typ": self.typ, "key": eintrag["key"],
                 "set": eintrag["typ"] == "set", "v": self.variante, "b": self.schalter,
                 "t": sauber(self.texte),
-                "k": self.kinder, "i": self.bilder, "c": self.chrome}
+                "k": self.kinder, "i": self.bilder, "c": self.chrome, "d": self.direkt}
 
 
 def _t(s: str) -> dict:
@@ -460,6 +461,11 @@ def folie_planen(nr: int, sec, bilder_je_el: dict, sprache: str, kat: dict,
     elif "seite--agentur" in k:
         p = Plan(nr, "Agentur")
         p.variante.update(sprachvariante)
+        # Der Master hat die Standard-Überschrift fest im Text; im Bewerberpool
+        # steht im PDF eine andere – dann direkt auf die Ebene Kopf/Titel.
+        titel = laeufe(eins(sec, "h1"))
+        if titel and titel["s"] not in {t["agentur_h"] for t in rp.TEXTE.values()}:
+            p.direkt.append([["Kopf", "Titel"], titel["s"]])
     elif "seite--projekt" in k:
         # Projekt-Kopf v2 (November 2026): drei Spalten, Rollenkarten statt
         # Aufzählung, Karte „Auf einen Blick“ mit drei Schlagwort-Gruppen.
@@ -770,6 +776,7 @@ for (const s of P.folien) {
   await schriften(I);
   await texte(I, s.t);
   for (const k of s.k) if (k.t) await texte(such(I, k.pfad), k.t);
+  for (const [pfad, text] of s.d || []) such(I, pfad).characters = text;
   for (const b of s.i) {
     if (b.versteckt) { such(I, b.versteckt).visible = false; continue; }
     const z = such(I, b.pfad);

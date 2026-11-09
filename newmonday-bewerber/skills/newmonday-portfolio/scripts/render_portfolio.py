@@ -38,6 +38,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import design_tokens as ds  # noqa: E402
 import logo_grau  # noqa: E402
 import screens  # noqa: E402
+import verapdf  # noqa: E402
 from logo_lib import ordner as logo_ordner  # noqa: E402
 from screens import baue_screens  # noqa: E402
 
@@ -86,6 +87,8 @@ TEXTE = {
         "arbeitsweise": "Arbeitsweise", "projekte": "Meine Projekte",
         "kontakt": "Kontakt",
         "agentur_h": "Ich bin Teil der\nNew Monday Agentur.",
+        # Bewerberpool (noch nicht angestellt): keine Anstellung behaupten.
+        "agentur_h_pool": "Vorgestellt von der\nNew Monday Agentur.",
         "agentur_sub": "Seit 2018 verlängern 100% unserer Kunden ihre Projekte mit uns.",
         "team": "Teammitglieder", "gegruendet": "Gegründet",
         "zufriedenheit": "Kundenzufriedenheit",
@@ -118,6 +121,7 @@ TEXTE = {
         "arbeitsweise": "How I Work", "projekte": "My Projects",
         "kontakt": "Contact",
         "agentur_h": "I am part of the\nNew Monday agency.",
+        "agentur_h_pool": "Presented by the\nNew Monday agency.",
         "agentur_sub": "Since 2018, 100% of our clients have extended their projects with us.",
         "team": "Team members", "gegruendet": "Founded",
         "zufriedenheit": "Client satisfaction",
@@ -1421,7 +1425,7 @@ def seite_agentur(d, t, basis, nr):
                                  f'{e(titel)}</h3><div class="zahl t-h1">{zahl}</div></div>')
     return f'''<section class="seite seite--agentur">
   <div class="streifen streifen--weiter"{DEKO}></div>
-  <h2 class="h1 t-h1">{e(t["agentur_h"]).replace(chr(10), "<br>")}</h2>
+  <h2 class="h1 t-h1">{e(t["agentur_h_pool" if d.get("bewerberpool") else "agentur_h"]).replace(chr(10), "<br>")}</h2>
   <div class="subline t-subheadline-2-regular">{e(t["agentur_sub"])}</div>
   <div class="kunden"><img src="{(ASSETS / 'marke/nm-agentur-kunden.png').as_uri()}"{alt(t["alt_agentur_kunden"])}></div>
   <div class="badge"><img src="{(ASSETS / 'marke/ux-awards-badge.png').as_uri()}"{alt(t["alt_badge"])}></div>
@@ -2082,9 +2086,9 @@ def strukturelemente(reader):
 
 def pruefe_pdf_ua(pdf: Path, sprache: str, budget_mb: float = BUDGET_MB) -> list[str]:
     """Was PDF/UA-1 und die Vorgabe „barrierefrei und klein“ am fertigen PDF
-    verlangen und sich ohne veraPDF pruefen laesst: Strukturbaum, MarkInfo,
-    Sprache, pdfuaid im XMP, Titel und DisplayDocTitle, jede /Figure mit /Alt,
-    genau eine H1, Ueberschriften ohne Sprung, Groesse im Budget."""
+    verlangen: Strukturbaum, MarkInfo, Sprache, pdfuaid im XMP, Titel und
+    DisplayDocTitle, jede /Figure mit /Alt, genau eine H1, Ueberschriften ohne
+    Sprung, Groesse im Budget - danach veraPDF, wenn installiert."""
     try:
         from pypdf import PdfReader
     except ImportError:
@@ -2125,7 +2129,7 @@ def pruefe_pdf_ua(pdf: Path, sprache: str, budget_mb: float = BUDGET_MB) -> list
     mb = pdf.stat().st_size / 1e6
     if mb > budget_mb:
         befunde.append(f"{mb:.1f} MB – über dem Budget von {budget_mb:g} MB")
-    return befunde
+    return befunde + verapdf.pruefe(pdf)
 
 
 def zwischenlager(quelle: Path) -> Path:

@@ -102,7 +102,10 @@ Ränder `spacing-10xl`. Von oben:
   437,33 × 435,34: Rahmen 1 `neutral/40`, Radius 16, Foto 435,33 × 433,34 mit
   90 % Deckkraft (Kopf waagerecht mittig, Haaransatz bei 5 %, Kinn bei 70 %,
   mindestens 5 % Luft über dem Scheitel), unten der Verlauf mit 24 Padding,
-  Name und Erfahrung.
+  Name und Erfahrung. Die Deckkraft rechnet `render_skillmatrix.py`
+  (`_foto_auf_karte`) ins Bild, auf den Kartengrund – nicht per CSS-`opacity`:
+  die legt das Foto in eine Transparenzgruppe, und dort verliert WeasyPrint den
+  `/Figure`-Tag (veraPDF 7.1-3, gefunden am 09.11.2026).
 - **Rumpf** `neutral/10`, oben 1pt Linie `neutral/15`, Padding oben 64, unten 64
   (`spacer/--space-64-32`), Sektionen 64 auseinander. Der Rumpf reicht bis an
   den Fuß — kein weißer Streifen dazwischen.
@@ -361,7 +364,7 @@ Mail verschickt. Wie – und was dabei zu beachten ist:
   Teilmengen. In der A4-Fassung wirken die Bildoptionen nur, wenn sie schon
   `render()` bekommt, nicht erst `write_pdf()`. Die Schattenbilder sind wenige
   KB und bleiben, wie sie sind. Gemessen an der Beispielmatrix: lang 4529 →
-  385 KB, A4 4418 → 128 KB; bei einer Matrix ohne Zertifikatsbilder kosten
+  294 KB, A4 4418 → 107 KB (Foto seit 09.11.2026 als JPEG eingerechnet); bei einer Matrix ohne Zertifikatsbilder kosten
   Tags und XMP 6–18 KB (lang 74 → 92 KB, A4 61 → 67 KB).
 - **Budget** (`BUDGET_KB` in `design_system.py`): lang 1000 KB, A4 500 KB –
   mailtauglich unter 1 MB und das Zweieinhalb- bis Vierfache der Beispielmatrix;
@@ -370,8 +373,9 @@ Mail verschickt. Wie – und was dabei zu beachten ist:
   beide Fassungen (und mit `design_system.py pruefe`): PDF/UA-Kennung,
   `/MarkInfo`, `/Lang` = Dokumentsprache, `DisplayDocTitle`, Titel, jede
   `/Figure` mit `/Alt`, genau ein H1, kein Ebenensprung, Größe unter Budget.
-  Ein Verstoß ist ein FEHLER wie eine Abweichung vom Design System. Einen
-  vollständigen PDF/UA-Validator (veraPDF) ersetzt das nicht.
+  Ein Verstoß ist ein FEHLER wie eine Abweichung vom Design System. Ist
+  veraPDF installiert, prüft es danach alle maschinell prüfbaren PDF/UA-1-Regeln
+  (`scripts/verapdf.py`); jede verletzte Regel ist ebenfalls ein FEHLER.
 
 ## Renderweg
 

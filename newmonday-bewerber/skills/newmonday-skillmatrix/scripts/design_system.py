@@ -32,6 +32,8 @@ import re
 import sys
 from pathlib import Path
 
+import verapdf
+
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
 TOKENS = ASSETS / "tokens.json"
@@ -375,8 +377,8 @@ def _pruefe_seiten(dokument, ds, fehler):
 # --- Barrierefreiheit und Groesse ------------------------------------------
 
 # Hoechstgroesse je Fassung in KB: mailtauglich unter 1 MB, das Zweieinhalb-
-# bis Vierfache der Beispielmatrix (6 Zertifikatsbilder, Foto; lang 385, A4
-# 128 KB). Mehr heisst fast immer, dass Bilder ungebremst eingebettet wurden
+# bis Vierfache der Beispielmatrix (6 Zertifikatsbilder, Foto; lang 294, A4
+# 107 KB). Mehr heisst fast immer, dass Bilder ungebremst eingebettet wurden
 # (ohne dpi-Grenze war die Beispielmatrix 4,5 MB gross).
 BUDGET_KB = {"lang": 1000, "a4": 500}
 
@@ -438,7 +440,7 @@ def pruefe_barrierefrei(pdf, fassung_name="lang", sprache=None):
     if kb > budget:
         fehler.append(f"Datei {kb:.0f} KB, Budget {budget} KB — Bilder zu gross eingebettet? "
                       "render_skillmatrix.py PDF_OPTIONEN (dpi) pruefen, Bilddateien ansehen.")
-    return fehler
+    return fehler + verapdf.pruefe(pdf)
 
 
 def main():

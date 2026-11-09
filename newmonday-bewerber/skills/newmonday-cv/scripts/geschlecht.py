@@ -74,6 +74,35 @@ REST_EN = [
                 re.IGNORECASE), "Pronomen/Anrede"),
 ]
 
+# Was das Geschlecht indirekt verraet (Entscheidung vom 09.11.2026) - in jedem
+# Feld der cv.json und in beiden Sprachen, denn es steckt oft in Firma,
+# Bildung oder Ehrenamt. Nur gemeldet: ob "Zivildienst" raus soll, entscheidet
+# ein Mensch.
+INDIREKT = [
+    (re.compile(r"\b(?:Mutterschutz|Mutterschaft|Vaterschaftsurlaub|"
+                r"maternity|paternity)\b", re.IGNORECASE), "Mutterschutz/Vaterschaft"),
+    (re.compile(r"\b(?:Grundwehrdienst|Wehrdienst|Zivildienst|Wehrpflicht|"
+                r"military service|civilian service)\b", re.IGNORECASE), "Wehr-/Zivildienst"),
+    (re.compile(r"\b(?:Frauen|Mädchen|Damen|Männer|Herren)\w*|"
+                r"\b(?:women|woman|girls?|ladies|female|men's|male)\b"
+                r"|\b(?:Burschenschaft|Sorority|Fraternity)\b", re.IGNORECASE),
+     "Frauen-/Männerbezug"),
+]
+OHNE_INDIREKT = {"logo", "foto", "link", "link_text", "url"}
+
+
+def _alle_texte(wert, pfad=""):
+    """(Pfad, Text) fuer jeden String in der cv.json, ohne Dateien und Links."""
+    if isinstance(wert, str):
+        yield pfad, wert
+    elif isinstance(wert, dict):
+        for k, v in wert.items():
+            if k not in OHNE_INDIREKT:
+                yield from _alle_texte(v, f"{pfad}.{k}" if pfad else k)
+    elif isinstance(wert, list):
+        for i, v in enumerate(wert):
+            yield from _alle_texte(v, f"{pfad}[{i}]")
+
 
 def _person_texte(daten):
     """(Behaelter, Schluessel, Pfad, ist_titel) fuer jeden Text der Person."""
@@ -187,5 +216,11 @@ def restmeldungen(daten):
             for fund in regel.finditer(text):
                 links, rechts = max(0, fund.start() - 25), fund.end() + 25
                 meldungen.append(f"{art} „{fund.group(0)}“ in {pfad}: "
+                                 f"…{' '.join(text[links:rechts].split())}…")
+    for pfad, text in _alle_texte(daten):
+        for regel, art in INDIREKT:
+            for fund in regel.finditer(text):
+                links, rechts = max(0, fund.start() - 25), fund.end() + 25
+                meldungen.append(f"indirekt, {art} „{fund.group(0)}“ in {pfad}: "
                                  f"…{' '.join(text[links:rechts].split())}…")
     return meldungen

@@ -45,6 +45,11 @@ ohne die Bibliothek startet der Import nicht. Ohne WeasyPrint weicht der
 Skill auf Chrome aus; das Layout ist aber auf WeasyPrint abgestimmt, das
 Ergebnis dann einmal ganz durchsehen.
 
+**Empfohlen: veraPDF** (`brew install verapdf`, bringt Java mit). Damit prüft
+jedes Renderskript das fertige PDF lokal auf PDF/UA-1 – dieselben maschinell
+prüfbaren Regeln wie PAC 2026 und axesCheck, ohne Upload. Ohne veraPDF bleibt
+es bei der Eigenprüfung des Skills und einem Hinweis.
+
 ## Selbsttest
 
 Die mitgelieferte Beispielmatrix (Wissems Vorlage) rendern – es entstehen
@@ -66,8 +71,8 @@ Sollwerte:
 Unter „Pruefen:“ stehen genau zwei Hinweise („Product Thinking“ und „Workshop
 Facilitation“ stehen in der nächstverwandten Kategorie „User Research &
 Insights“) – keiner mit „A4:“, keiner zur Durchkopplung –, und zuletzt stehen
-`Design System eingehalten` und `Barrierefrei (PDF/UA-1: …); lang 385 KB, A4
-128 KB` (ohne dpi-Grenze wären es 4,5 MB). In
+`Design System eingehalten` und `Barrierefrei (PDF/UA-1: …); lang 294 KB, A4
+107 KB` (ohne dpi-Grenze wären es 4,5 MB). In
 der Vorschau sind die leeren Punkte Ringe,
 gleich groß wie die vollen – lang 9, A4 5 auf Seite 2 und 4 auf Seite 3.
 Dann funktioniert die ganze Kette: Templates, Tokens beider Fassungen,

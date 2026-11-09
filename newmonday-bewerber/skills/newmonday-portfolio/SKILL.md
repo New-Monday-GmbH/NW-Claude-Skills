@@ -229,6 +229,10 @@ Keine `portfolio.json`, keine Logos, keine Recherche, nichts rendern.
 - `projekte` → die gewählten Projekte in der Reihenfolge der Optionen; nennt der
   Text über „Other“ eine andere Reihenfolge, gilt die.
 - `nda` → `"nda": true` bei den gewählten Projekten.
+- **Bewerberpool:** Steht in `auftrag.json` unter
+  `entscheidungen.newmonday-cv.nm_start` „Noch nicht – Bewerberpool“, setze
+  `"bewerberpool": true` in der `portfolio.json` (Schritt 0, 1b). Frage 1b
+  entfällt im Gesamtlauf.
 - `statement` → „Ich gebe es ein: <Text>“: der Text als `statement.text`,
   wörtlich; „Fassung …“: der Wortlaut aus der `description` dieser Option in
   `fragen.json`, wörtlich; „Fläche leer lassen“: kein Statement. Jede andere
@@ -318,6 +322,24 @@ liegt. Das Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    entsteht ein neues File. **Figma hält das PDF nicht auf**: Geht dort etwas
    schief, geht das PDF trotzdem raus, und der Grund steht in der Übergabe.
    Nur `figma.com/design/…` – `/board/`, `/slides/`, `/make/`, `/proto/` nicht.
+
+1b. **Ob die Person schon bei New Monday angestellt ist**, als
+   `AskUserQuestion` neben der Sprachfrage – außer der Auftrag sagt es schon
+   („liegt im Pool“, „noch nicht eingestellt“, „fängt am 1. an“):
+
+   ```
+   Frage:   Ist <Vorname> schon bei New Monday angestellt?
+   Header:  Anstellung
+   Optionen: Ja, angestellt oder fängt an | Noch nicht – Bewerberpool
+   ```
+
+   Bewerberpool heißt `"bewerberpool": true` in der `portfolio.json`. Dann
+   lautet die Überschrift der Agenturseite „Vorgestellt von der New Monday
+   Agentur.“ / „Presented by the New Monday agency.“ statt „Ich bin Teil der
+   New Monday Agentur.“ (Entscheidung vom 09.11.2026) – eine Anstellung, die es
+   nicht gibt, steht nicht im Kundendokument. Der Rest der Seite bleibt. In
+   Figma überschreibt der Bauplan die Ebene „Kopf/Titel“ der Agenturfolie, die
+   im Master keine Text-Eigenschaft hat.
 
 2. **Material**, als Text in derselben Nachricht, sinngemäß so:
 
@@ -528,6 +550,7 @@ Tabelle unten.
 ```json
 {
   "sprache": "de",
+  "bewerberpool": false,
   "person": {
     "name", "rolle", "jahr", "foto", "erfahrung_jahre",
     "top_kenntnisse": [3], "kenntnisse": [8],
@@ -1465,7 +1488,8 @@ der Kaskade in Schritt 5.
   mit Anfrage) · New Monday Agentur · Divider · Projektblöcke · Divider ·
   Kontakt. Daran wird nicht getauscht.
 - **Statische Seiten**: die drei Divider, die Agenturseite und die Kontaktseite.
-  Ihr Inhalt kommt aus dem Skript, nicht aus dem Kandidatenmaterial.
+  Ihr Inhalt kommt aus dem Skript, nicht aus dem Kandidatenmaterial. Einzige
+  Variante: die Agentur-Überschrift im Bewerberpool (Schritt 0, 1b).
 - **Ansprechpartner im Footer**: immer Manuel Klein, CCO.
 - **Agenturzahlen**: 26 Teammitglieder, gegründet 2018, 100 % Zufriedenheit,
   UX-Design-Awards-Badge. Stehen als Konstanten in `render_portfolio.py` und
