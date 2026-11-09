@@ -47,7 +47,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import tokens  # noqa: E402  — erst nach sys.path.insert moeglich
 from render_cv import (  # noqa: E402
     BESCHRIFTUNG, KONTAKT_VORGABE, VERWEISTEXT, bildung_aufbereiten, dateiname,
-    logo_groessen, logo_masse, logoliste, seitenverhaeltnis, skillset_gruppen,
+    logo_groessen, logo_masse, logoliste, seitenverhaeltnis, skillset_gruppen, stationslogo,
     zeitraeume_setzen, zertifikate_aufbereiten,
 )
 from logo_lib import suche as logo_datei  # noqa: E402
@@ -265,7 +265,7 @@ def bloecke_bauen(daten, deckblatt, stationen):
             marke=station.get("titel"),
             rail={"breite": r["logospalte"], "oben": r["logo_oben"], "abstand": r["logo_stapel"],
                   "logos": [logo_eintrag(f, st_groesse)
-                            for f in logoliste(station.get("logo"))]},
+                            for f in logoliste(stationslogo(station))]},
             spaltenabstand=r["logoabstand"], koerperbreite=ab["inhaltsspalte"],
             titel=dict(text=norm(station.get("titel")), **typo("titel")),
             firma=(dict(text=norm(station["firma"]), abstand_oben=a["titel_firma"],

@@ -33,7 +33,7 @@ import tokens  # noqa: E402
 from figma_plan import finde, norm, seitentexte  # noqa: E402
 from render_cv import (  # noqa: E402
     BESCHRIFTUNG, VERWEISTEXT, bildung_aufbereiten, entwickler_aufbereiten,
-    layout_von, logo_groessen, logo_masse, logoliste, seitenverhaeltnis, zeitraeume_setzen,
+    layout_von, logo_groessen, logo_masse, logoliste, seitenverhaeltnis, stationslogo, zeitraeume_setzen,
 )
 from logo_lib import suche as logo_datei  # noqa: E402
 
@@ -90,12 +90,12 @@ def hauptbloecke(daten, ew, labels):
     # Station ein Logo, ruecken alle Stationskoepfe gleich ein - wie im PDF.
     groesse = logo_groessen(daten)[0]
     spalte = T["entwickler"]["logo_spalte"]
-    mit_logos = any(logoliste(s.get("logo")) for s in daten.get("stationen") or [])
+    mit_logos = any(logoliste(stationslogo(s)) for s in daten.get("stationen") or [])
 
     def logos(s):
         return [{"datei": str(logo_datei(d) or ROOT / "assets" / "logos" / d),
                  "breite": b, "hoehe": h, "verhaeltnis": round(seitenverhaeltnis(d), 4)}
-                for d in logoliste(s.get("logo")) for b, h in [logo_masse(d, groesse, spalte)]]
+                for d in logoliste(stationslogo(s)) for b, h in [logo_masse(d, groesse, spalte)]]
 
     def aufgaben(liste, art="aufgabe"):
         for n, x in enumerate(liste):

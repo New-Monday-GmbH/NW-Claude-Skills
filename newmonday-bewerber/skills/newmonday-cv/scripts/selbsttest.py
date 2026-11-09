@@ -146,6 +146,32 @@ def barrierefrei(pdf, sprache, foto_alt=None):
     return fehler
 
 
+def pruefe_freelance(tmp):
+    """Freelance-Zeichen (09.11.2026): selbststaendig ohne Logo -> freelance.svg in
+    PDF und Figma-Plan beider Layouts; ein eigenes Logo gewinnt; in der anonymen
+    Fassung weicht das Logo einer eigenen Marke mit Namen dem Zeichen."""
+    from render_cv import FREELANCE_LOGO, stationslogo
+    from logo_lib import suche
+    fehler = []
+    if not suche(FREELANCE_LOGO):
+        fehler.append("Freelance: assets/logos/freelance.svg fehlt")
+    for firma, soll in (("Selbstständig", FREELANCE_LOGO), ("Freelance", FREELANCE_LOGO),
+                        ("Freiberuflich", FREELANCE_LOGO), ("Tollwerk GmbH", None)):
+        if stationslogo({"firma": firma}) != soll:
+            fehler.append(f"Freelance: „{firma}“ bekommt {stationslogo({'firma': firma})!r}, soll {soll!r}")
+    if stationslogo({"firma": "Selbstständig", "logo": "eigen.svg"}) != "eigen.svg":
+        fehler.append("Freelance: eigenes Logo einer Selbststaendigen-Station überschrieben")
+    basis = json.loads((WURZEL / "beispiel" / "cv.json").read_text(encoding="utf-8"))
+    basis["stationen"].append({"titel": "Inhaber", "firma": "Timo Muster Design", "logo": "tollwerk.png",
+                               "zeitraum": "2016 - 2018", "aufgaben": ["Beratung"]})
+    anonym, lauf = _anonymisiere(tmp, basis, "Timo Muster")
+    if anonym is None or anonym["stationen"][-1].get("logo") != FREELANCE_LOGO:
+        fehler.append("Freelance: Logo der eigenen Marke steht in der anonymen Fassung noch")
+    elif "Freelance-Zeichen ersetzt" not in lauf.stderr:
+        fehler.append("Freelance: Tausch des Marken-Logos nicht unter „Pruefen“ gemeldet")
+    return fehler
+
+
 def pruefe_geschlecht(tmp):
     """Berufsbezeichnungen: Mischung melden (vollstaendige Fassung), neutral
     setzen (anonyme Fassung). Eine feminine und eine maskuline cv.json muessen
@@ -2175,6 +2201,7 @@ def main():
         seiten, breite, hoehe, schriften, bilder, fehler = pruefe(ziel)
         fehler += barrierefrei(ziel, "de", "Porträtfoto von Florian Feiler")
         fehler += pruefe_geschlecht(tmp)
+        fehler += pruefe_freelance(tmp)
         fehler += pruefe_gleicher_titel(tmp)
         fehler += pruefe_verweise(tmp)
         fehler += pruefe_stationsumbruch(tmp)

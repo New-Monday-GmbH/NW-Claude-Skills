@@ -100,6 +100,11 @@ Zertifikate und Skillset stehen unverändert. Was verschwindet, ist eng umrissen
   Titel bleiben stehen ("Dr. T. M."), Namenspartikel wie "von" fallen weg.
 - **Die Verweise** unter der Erfahrungszeile entfallen ganz. LinkedIn, Xing und
   Portfolio führen alle in einem Klick zum Namen.
+- **Das Logo einer eigenen Marke** („Timo Muster Design“) wird zum
+  Freelance-Zeichen, sobald `anonymisieren.py` den Namen im Firmennamen ersetzt –
+  das Logo nennt die Person sonst genauso. Gemeldet unter „Prüfen“. Eine Marke
+  ohne Namen darin („Pixelwerk“) erkennt das Skript nicht: Führt sie auf die
+  Person, `"logo": "freelance.svg"` von Hand in die `cv-anonym.json`.
 - **Namensnennungen im Fließtext** werden mitgezogen, falls das Kurzprofil oder
   eine Stationsbeschreibung die Person beim Namen nennt. Der **volle** Name immer;
   ein **einzelner** Namensteil nur, wenn nichts im Dokument dagegenspricht. Heißt
@@ -1350,6 +1355,17 @@ Danach zu prüfen:
   Reihenfolge, in der die Marken in der Firmenzeile stehen.
 - **Anonymisierte Kunden** ("Speditionsdienstleister", "Maschinenbauunternehmen")
   haben naturgemäß kein Logo und bleiben offen. Das ist richtig so.
+- **Freelance-Stationen bekommen das Freelance-Zeichen** (Entscheidung vom
+  09.11.2026): Koffer-Symbol mit dem Wort „Freelance“, grau, `assets/logos/freelance.svg`.
+  Steht in `firma` „Selbstständig“, „Freiberuflich“, „Freelance“, „Freelancer“
+  oder „Self-employed“ und hat die Station kein `logo`, setzen es Renderskript
+  und Figma-Skripte selbst ein (`stationslogo()` in `render_cv.py`), in beiden
+  Layouts – nichts in die `cv.json` schreiben, und es fehlt auch kein Logo.
+  **Keine Kundenlogos auf die Station**: Ein Allianz-Logo über „Freelance UX
+  Designer“ liest sich wie eine Anstellung; Kunden hängen als Projekte darunter.
+  Hat die Person eine eigene Marke mit eigenem Logo („Muster Design“), kommt
+  dieses Logo in `logo` und gewinnt. Ist der Firmenname ein anderer Begriff für
+  Selbstständigkeit („Freie Mitarbeit“), `"logo": "freelance.svg"` von Hand setzen.
 
 **Logos gehören in die Originalfarben der Marke, wo es sie gibt.** Nichts wird
 entfärbt, aufgehellt oder ans Layout angeglichen – das Skript fasst Logofarben
