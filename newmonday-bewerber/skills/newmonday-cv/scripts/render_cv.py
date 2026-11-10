@@ -174,8 +174,8 @@ RAIL_BREITE = tokens.laden()["raster"]["logospalte"]
 # Hochformatige Marken duerfen nicht beliebig hoch werden, sonst schiebt sich
 # die Logospalte ueber den Stationskopf hinaus.
 LOGO_HOCH_FAKTOR = 1.4
-# Entwickler-Layout: das Logo steht klein links im Stationskopf, nicht in der
-# 88pt-Logospalte des UX-Layouts (die Hauptspalte ist nur 299pt breit).
+# Entwickler-Layout: das Logo steht ueber dem Stationstitel, nicht in der
+# Logospalte des UX-Layouts (die Hauptspalte ist nur 299pt breit).
 ENTWICKLER_LOGO = tokens.laden()["entwickler"]
 # Ein Entwickler-Lebenslauf hat hoechstens so viele Seiten (Nutzer, 06.11.2026).
 ENTWICKLER_MAX_SEITEN = 4
@@ -348,6 +348,21 @@ def logoliste(wert):
     if not wert:
         return []
     return [wert] if isinstance(wert, str) else list(wert)
+
+
+# Freelance-Zeichen (Entscheidung vom 09.11.2026): Eine selbststaendige Station
+# ohne eigenes Logo bekommt das neutrale Zeichen aus assets/logos/ - keine Luecke
+# in der Logospalte, keine Meldung "Logo fehlt". Ein eigenes Logo gewinnt.
+FREELANCE_LOGO = "freelance.svg"
+FREELANCE = re.compile(r"^\s*(selbstst(ä|ae)ndig|freiberuflich|freischaffend|freelancer?|self[- ]employed)\b",
+                       re.IGNORECASE)
+
+
+def stationslogo(station):
+    """Das logo-Feld einer Station - selbststaendig ohne Logo: das Freelance-Zeichen."""
+    if station.get("logo"):
+        return station["logo"]
+    return FREELANCE_LOGO if FREELANCE.match(str(station.get("firma") or "")) else None
 
 
 def _sprache_zerlegen(eintrag):
@@ -838,7 +853,7 @@ def logo_groessen(daten):
     stationen = daten.get("stationen", [])
     if layout_von(daten) == "entwickler":       # kleine Logos im Stationskopf
         return ENTWICKLER_LOGO["logo_groesse"], LOGO_PROJEKT_GROESSE
-    st = max([len(logoliste(s.get("logo"))) for s in stationen] or [0])
+    st = max([len(logoliste(stationslogo(s))) for s in stationen] or [0])
     return LOGO_GROESSE.get(max(st, 1), LOGO_GROESSE_AB_4), LOGO_PROJEKT_GROESSE
 
 
@@ -869,13 +884,13 @@ def pruefe(daten):
         # Seit 06.11.2026 mit Firmenlogos im Stationskopf - Projektlogos
         # setzt das Entwickler-Layout nicht.
         for s in daten.get("stationen", []):
-            hinweise += fehlende(s.get("logo"), s.get("firma"))
+            hinweise += fehlende(stationslogo(s), s.get("firma"))
         return hinweise
 
     im_rail, im_projekt = set(), set()
     for s in daten.get("stationen", []):
-        hinweise += fehlende(s.get("logo"), s.get("firma"))
-        im_rail.update(logoliste(s.get("logo")))
+        hinweise += fehlende(stationslogo(s), s.get("firma"))
+        im_rail.update(logoliste(stationslogo(s)))
         for p in s.get("projekte", []):
             hinweise += fehlende(p.get("logo"), p.get("kunde"))
             im_projekt.update(logoliste(p.get("logo")))
@@ -911,13 +926,13 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
     # Jedes Logo bekommt sein eigenes Mass, ausgerechnet aus dem
     # Seitenverhaeltnis der Datei. Das Template setzt nur noch, was hier steht.
     groesse, projekt_groesse = logo_groessen(daten)
-    max_breite = ENTWICKLER_LOGO["logo_spalte"] if layout_von(daten) == "entwickler" else None
+    max_breite = ENTWICKLER_LOGO["logo_breite"] if layout_von(daten) == "entwickler" else None
     for s in daten.get("stationen", []):
         s.setdefault("projekte", [])
         s["logos"] = [dict(zip(("datei", "src", "breite", "hoehe", "alt"),
                                (d, logo_src(d), *logo_masse(d, groesse, max_breite),
                                 s.get("firma") or logo_alt(d))))
-                      for d in logoliste(s.get("logo"))]
+                      for d in logoliste(stationslogo(s))]
         for p in s["projekte"]:
             p["logos"] = [dict(zip(("datei", "src", "breite", "hoehe", "alt"),
                                    (d, logo_src(d), *logo_masse(d, projekt_groesse),

@@ -146,6 +146,32 @@ def barrierefrei(pdf, sprache, foto_alt=None):
     return fehler
 
 
+def pruefe_freelance(tmp):
+    """Freelance-Zeichen (09.11.2026): selbststaendig ohne Logo -> freelance.svg in
+    PDF und Figma-Plan beider Layouts; ein eigenes Logo gewinnt; in der anonymen
+    Fassung weicht das Logo einer eigenen Marke mit Namen dem Zeichen."""
+    from render_cv import FREELANCE_LOGO, stationslogo
+    from logo_lib import suche
+    fehler = []
+    if not suche(FREELANCE_LOGO):
+        fehler.append("Freelance: assets/logos/freelance.svg fehlt")
+    for firma, soll in (("Selbstständig", FREELANCE_LOGO), ("Freelance", FREELANCE_LOGO),
+                        ("Freiberuflich", FREELANCE_LOGO), ("Tollwerk GmbH", None)):
+        if stationslogo({"firma": firma}) != soll:
+            fehler.append(f"Freelance: „{firma}“ bekommt {stationslogo({'firma': firma})!r}, soll {soll!r}")
+    if stationslogo({"firma": "Selbstständig", "logo": "eigen.svg"}) != "eigen.svg":
+        fehler.append("Freelance: eigenes Logo einer Selbststaendigen-Station überschrieben")
+    basis = json.loads((WURZEL / "beispiel" / "cv.json").read_text(encoding="utf-8"))
+    basis["stationen"].append({"titel": "Inhaber", "firma": "Timo Muster Design", "logo": "tollwerk.png",
+                               "zeitraum": "2016 - 2018", "aufgaben": ["Beratung"]})
+    anonym, lauf = _anonymisiere(tmp, basis, "Timo Muster")
+    if anonym is None or anonym["stationen"][-1].get("logo") != FREELANCE_LOGO:
+        fehler.append("Freelance: Logo der eigenen Marke steht in der anonymen Fassung noch")
+    elif "Freelance-Zeichen ersetzt" not in lauf.stderr:
+        fehler.append("Freelance: Tausch des Marken-Logos nicht unter „Pruefen“ gemeldet")
+    return fehler
+
+
 def pruefe_geschlecht(tmp):
     """Berufsbezeichnungen: Mischung melden (vollstaendige Fassung), neutral
     setzen (anonyme Fassung). Eine feminine und eine maskuline cv.json muessen
@@ -2035,7 +2061,7 @@ def pruefe_anonym(pdf, tmp):
 def pruefe_entwickler(tmp):
     """Entwickler-Layout (freigegeben am 03.11.2026) am Beispiel cv-entwickler.json.
 
-    Firmenlogo klein links im Stationskopf, hoechstens vier Seiten (06.11.2026).
+    Firmenlogo ueber dem Stationstitel, hoechstens vier Seiten (06.11.2026).
     Seitenspalte nur auf Seite 1 (IT-Kompetenzen, Weiterbildung) rechts neben
     der Hauptspalte, die Technologien je Aufgabe in der Markenfarbe, Ausbildung
     und Sprachen hinter den Projekten, die anonyme Fassung ohne Repository-Link.
@@ -2062,19 +2088,18 @@ def pruefe_entwickler(tmp):
                               f"(x {seite_x}) auf Seite 1")
         if "Kurzprofil" not in woerter or abs(woerter["Kurzprofil"][0] - rand) > 1:
             fehler.append("Entwickler: „Kurzprofil“ steht nicht links in der Hauptspalte")
-        # Firmenlogo links im Stationskopf, der Kopftext rueckt ein (06.11.2026).
-        einzug = rand + T["entwickler"]["logo_spalte"] + T["entwickler"]["logo_abstand"]
+        # Firmenlogo ueber dem Stationstitel, nichts rueckt ein (06.11.2026).
         # SVG-Logos landen als Vektoren im PDF, nicht als Bild.
         titel = min((w for w in doc[0].get_text("words") if w[4] == "Software"),
                     key=lambda w: w[1], default=None)
         kopf_y = titel[1] if titel else 0
         logo = [d["rect"] for d in doc[0].get_drawings()
-                if abs(d["rect"].y0 - kopf_y) < 20 and d["rect"].x0 >= rand - 0.5
-                and d["rect"].x1 <= rand + T["entwickler"]["logo_spalte"] + 0.5]
+                if kopf_y - 45 < d["rect"].y1 <= kopf_y + 0.5 and d["rect"].x0 >= rand - 0.5
+                and d["rect"].x1 <= rand + T["entwickler"]["logo_breite"] + 0.5]
         if not logo:
-            fehler.append("Entwickler: kein Firmenlogo links im Stationskopf")
-        if not titel or abs(titel[0] - einzug) > 1:
-            fehler.append(f"Entwickler: Stationstitel rueckt nicht neben das Logo ein (x {einzug})")
+            fehler.append("Entwickler: kein Firmenlogo über dem Stationstitel")
+        if not titel or abs(titel[0] - rand) > 1:
+            fehler.append(f"Entwickler: Stationstitel rueckt ein (x {titel and titel[0]}, erwartet {rand})")
         farbig = [sp["text"] for s in doc for b in s.get_text("dict")["blocks"]
                   for z in b.get("lines", []) for sp in z["spans"] if sp["color"] == marke]
         if not any("Spring Boot" in t for t in farbig):
@@ -2115,7 +2140,7 @@ def pruefe_entwickler(tmp):
 
 def T_LOGO_SPALTE():
     import tokens
-    return tokens.laden()["entwickler"]["logo_spalte"]
+    return tokens.laden()["entwickler"]["logo_breite"]
 
 
 def _pruefe_entwickler_figma(daten, pdf, stufen):
@@ -2175,6 +2200,7 @@ def main():
         seiten, breite, hoehe, schriften, bilder, fehler = pruefe(ziel)
         fehler += barrierefrei(ziel, "de", "Porträtfoto von Florian Feiler")
         fehler += pruefe_geschlecht(tmp)
+        fehler += pruefe_freelance(tmp)
         fehler += pruefe_gleicher_titel(tmp)
         fehler += pruefe_verweise(tmp)
         fehler += pruefe_stationsumbruch(tmp)
@@ -2220,7 +2246,7 @@ def main():
     print(f"  Durchkopplung: offene Schreibweisen gemeldet, Text unveraendert, nicht bei en")
     print(f"  Logos:     SVG-Verhaeltnisse richtig gelesen, im Plan unverzerrt, add_logo mit Kontrollbild")
     print(f"  Bibliothek: neue Logos ausserhalb des Skills, vor dem Grundstock gefunden, Uebernahme ins Repo")
-    print(f"  Entwickler: 2/3 Stationen, 1/3 IT-Kompetenzen und Weiterbildung, Logo im Stationskopf, Technik in Markenfarbe, Ausbildung hinten, max. 4 Seiten")
+    print(f"  Entwickler: 2/3 Stationen, 1/3 IT-Kompetenzen und Weiterbildung, Logo ueber dem Titel, Technik in Markenfarbe, Ausbildung hinten, max. 4 Seiten")
     print(f"  Barrierefrei: PDF/UA-1 getaggt, Sprache, Titel, Alternativtexte, H1 bis H4 ohne Sprung - beide Fassungen, beide Layouts, de und en")
     print(f"  Groesse:   jedes Beispiel-PDF unter {PDF_BUDGET // 1024} KB (Bilder auf 300 dpi)")
     print(f"  Geschlecht: Mischung gemeldet, anonym neutral (Designer:in), feminin = maskulin, en unveraendert")

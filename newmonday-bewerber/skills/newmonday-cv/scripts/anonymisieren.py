@@ -37,7 +37,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from render_cv import MONATE, logoliste, zert_datum  # noqa: E402  — erst nach sys.path.insert moeglich
+from render_cv import FREELANCE_LOGO, MONATE, logoliste, zert_datum  # noqa: E402  — erst nach sys.path.insert moeglich
 import geschlecht  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -619,6 +619,15 @@ def main():
     if kuerzel:
         regeln, volle, offen = namensregeln(name, daten)
         treffer = ersetze_namen(daten, regeln, volle)
+    # Eigene Marke ("Timo Muster Design"): Mit dem Namen im Firmennamen nennt
+    # auch ihr Logo die Person - es weicht dem Freelance-Zeichen (09.11.2026).
+    for pfad in dict.fromkeys(p for p, *_ in treffer if p.endswith(".firma")):
+        station = daten["stationen"][int(pfad.split("[")[1].split("]")[0])]
+        alt = [d for d in logoliste(station.get("logo")) if d != FREELANCE_LOGO]
+        if alt:
+            station["logo"] = FREELANCE_LOGO
+            hinweise.append(f"{pfad}: Logo der eigenen Marke ({', '.join(alt)}) durch das "
+                            "Freelance-Zeichen ersetzt - es hätte die Person benannt.")
     for teil, grund in offen:
         hinweise.append(
             f'"{teil}" wurde im Fliesstext nicht ersetzt, weil der Namensteil '

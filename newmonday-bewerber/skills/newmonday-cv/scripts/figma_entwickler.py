@@ -33,7 +33,7 @@ import tokens  # noqa: E402
 from figma_plan import finde, norm, seitentexte  # noqa: E402
 from render_cv import (  # noqa: E402
     BESCHRIFTUNG, VERWEISTEXT, bildung_aufbereiten, entwickler_aufbereiten,
-    layout_von, logo_groessen, logo_masse, logoliste, seitenverhaeltnis, zeitraeume_setzen,
+    layout_von, logo_groessen, logo_masse, logoliste, seitenverhaeltnis, stationslogo, zeitraeume_setzen,
 )
 from logo_lib import suche as logo_datei  # noqa: E402
 
@@ -68,9 +68,11 @@ def marke_von(text, woerter=6):
     return " ".join(norm(text).split()[:woerter])
 
 
-def hauptbloecke(daten, ew, labels):
-    """Die Bloecke der Hauptspalte in Lesereihenfolge, je mit Abstand und Marke."""
-    en, a = T["entwickler"], T["abstand"]
+def hauptbloecke(daten, ew, labels, st_stufe="normal"):
+    """Die Bloecke der Hauptspalte in Lesereihenfolge, je mit Abstand und Marke.
+    st_stufe: Notstufe der Stationen aus stufen.json, wie im PDF."""
+    en = dict(T["entwickler"], **T["verdichtung"]["entwickler_stationen"][st_stufe])
+    a = T["abstand"]
     dn = T["verdichtung"]["deckblatt"]["normal"]
     b = []
 
@@ -84,18 +86,19 @@ def hauptbloecke(daten, ew, labels):
         erster[0] = False
 
     def kopf(titel, zeilen, oben, **rest):
-        dazu("kopf", titel, oben, titel=titel, zeilen=zeilen, **rest)
+        # Marke aus Titel UND erster Zeile (Firma): ein Titel allein steht oft
+        # schon als Rolle im Profilkopf („Cloud & DevOps Engineer“).
+        marke = titel + (" " + zeilen[0]["text"] if zeilen else "")
+        dazu("kopf", marke, oben, titel=titel, zeilen=zeilen, **rest)
 
-    # Firmenlogos klein links im Stationskopf (seit 06.11.2026): Hat eine
-    # Station ein Logo, ruecken alle Stationskoepfe gleich ein - wie im PDF.
+    # Firmenlogo ueber dem Stationstitel (seit 06.11.2026) - wie im PDF.
     groesse = logo_groessen(daten)[0]
-    spalte = T["entwickler"]["logo_spalte"]
-    mit_logos = any(logoliste(s.get("logo")) for s in daten.get("stationen") or [])
+    spalte = T["entwickler"]["logo_breite"]
 
     def logos(s):
         return [{"datei": str(logo_datei(d) or ROOT / "assets" / "logos" / d),
                  "breite": b, "hoehe": h, "verhaeltnis": round(seitenverhaeltnis(d), 4)}
-                for d in logoliste(s.get("logo")) for b, h in [logo_masse(d, groesse, spalte)]]
+                for d in logoliste(stationslogo(s)) for b, h in [logo_masse(d, groesse, spalte)]]
 
     def aufgaben(liste, art="aufgabe"):
         for n, x in enumerate(liste):
@@ -118,7 +121,7 @@ def hauptbloecke(daten, ew, labels):
                 if s.get(feld):
                     zeilen.append({"text": norm(s[feld]), "stil": "fliesstext", "oben": a["zeitraum_text"]})
             kopf(norm(s["titel"]), zeilen, dn["rubrik_inhalt"] if n == 0 else en["station"],
-                 **({"logos": logos(s)} if mit_logos else {}))
+                 **({"logos": logos(s)} if logoliste(stationslogo(s)) else {}))
             aufgaben(s.get("aufgaben_ew") or [])
             if s.get("technik"):
                 dazu("technik", s["technik"], en["aufgaben"], text=s["technik"])
@@ -217,7 +220,10 @@ def plan_bauen(daten, pdf, stufen, seite=None, unter=None):
     labels = BESCHRIFTUNG.get(sprache, BESCHRIFTUNG["de"])
     ew, _ = entwickler_aufbereiten(daten)
     texte = seitentexte(pdf)
-    haupt, hinweise = seiten_verteilen(hauptbloecke(daten, ew, labels), texte)
+    st_stufe = (stufen or {}).get("stationen", "normal")
+    if st_stufe not in T["verdichtung"]["entwickler_stationen"]:
+        st_stufe = "normal"
+    haupt, hinweise = seiten_verteilen(hauptbloecke(daten, ew, labels, st_stufe), texte)
     if len(haupt) < len(texte):
         haupt += [[] for _ in range(len(texte) - len(haupt))]
     stufe = (stufen or {}).get("deckblatt", "normal")
@@ -244,8 +250,7 @@ def plan_bauen(daten, pdf, stufen, seite=None, unter=None):
         "intro_inhalt": T["abstand"]["intro_inhalt"],
         "haupt": T["abgeleitet"]["entwickler_haupt"], "seite_breite": T["entwickler"]["seite_breite"],
         "spaltenabstand": r["spaltenabstand"], "frameabstand": 100, "reihenabstand": 120,
-        "logo_spalte": T["entwickler"]["logo_spalte"], "logo_abstand": T["entwickler"]["logo_abstand"],
-        "logo_oben": r["logo_oben"], "logo_stapel": T["entwickler"]["aufgaben"],
+        "logo_titel": T["entwickler"]["logo_titel"], "logo_reihe": T["entwickler"]["logo_reihe"],
         "profil": {"name": norm(person.get("name")), "rolle": norm(person.get("rolle")),
                    "erfahrung": norm(person.get("erfahrung")), "verweise": verweise, "foto": foto},
         "seiten": [{"haupt": h, "seite": seitenbloecke(ew, labels, stufe) if nr == 0 else []}

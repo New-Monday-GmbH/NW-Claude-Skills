@@ -242,9 +242,9 @@ einspaltig. Jede Seite ist ein Rahmen (595 × 842), darin ein Auto-Layout
 „Spalten“ mit „Hauptspalte (2/3)“ und „Seitenspalte (1/3)“, Breiten aus
 `tokens.json` (`abgeleitet.entwickler_haupt`, `entwickler.seite_breite`).
 Stationsköpfe und die IT-Listen sind Textebenen mit den Farbvariablen der
-Bibliothek, keine lokalen Styles. Ein Stationskopf mit Logo ist eine
-horizontale Zeile: Spalte „Logo“ (`logo_spalte` breit, darin ein Rechteck je
-Logo) und „Kopftext“ daneben.
+Bibliothek, keine lokalen Styles. Hat eine Station ein Logo, steht im
+Stationskopf über dem Titel eine Zeile „Logo“ (ein Rechteck je Logo,
+höchstens `logo_breite` breit), danach `logo_titel` Abstand.
 
 1. **Plan und Skripte** (je Fassung, nach dem Rendern):
    `figma_entwickler.py cv.json "<pdf>" arbeit/ --stufen arbeit/stufen.json --seite <ID>`.
