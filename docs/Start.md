@@ -5,10 +5,11 @@ Menschen geschrieben und kurz. Die vollständigen Regeln stehen in den
 `SKILL.md`-Dateien, die für Claude geschrieben sind – jede Notiz verlinkt
 dorthin, statt sie zu wiederholen.
 
-## Die vier Skills
+## Die fünf Skills
 
 | Skill | Ergebnis | Wann |
 |---|---|---|
+| [newmonday-anfrage](skills/newmonday-anfrage.md) | Unterlagen der Top-Kandidaten auf eine Ausschreibung angepasst, PDFs plus ein Figma-File je Anfrage | Nach dem Matching, wenn eingereicht werden soll |
 | [newmonday-bewerbermappe](skills/newmonday-bewerbermappe.md) | Alle drei Dokumente in einem Lauf, PDFs plus eine Figma-Seite je Kandidat | Wenn ein Kandidat das ganze Set bekommt |
 | [newmonday-cv](skills/newmonday-cv.md) | Lebenslauf, vollständig und anonymisiert, je als PDF und Figma-Frame | Wenn nur der Lebenslauf gebraucht wird |
 | [newmonday-skillmatrix](skills/newmonday-skillmatrix.md) | Skill Matrix als eine lange PDF-Seite, auf Wunsch als Figma-Frame | Wenn nur die Kompetenzübersicht gebraucht wird |
@@ -17,6 +18,7 @@ dorthin, statt sie zu wiederholen.
 ## Wie sie zusammenhängen
 
 ```
+newmonday-anfrage         liest Matching und Original-Figma, dann wie die Bewerbermappe
 newmonday-bewerbermappe   fragt, prüft, verteilt – baut selbst nichts
   ├─ 1. newmonday-cv
   ├─ 2. newmonday-skillmatrix
