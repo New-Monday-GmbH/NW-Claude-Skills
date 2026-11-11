@@ -139,10 +139,8 @@ Zertifikate und Skillset stehen unverändert. Was verschwindet, ist eng umrissen
 Drei Stellen kommen dazu, die im Dokument selbst nicht zu sehen sind und genau
 deshalb übersehen werden:
 
-- **Der Dateiname.** `New-Monday - T. M. - UX-Designer-in - CV.pdf` (der
-  Doppelpunkt aus „Designer:in“ wird im Dateinamen zum Bindestrich). Ein Anhang,
-  der im Namen den Kandidaten oder sein Geschlecht trägt, macht das Dokument
-  darin sinnlos.
+- **Der Dateiname.** `New Monday - T. M. - CV.pdf`. Ein Anhang, der im Namen
+  den Kandidaten trägt, macht das Dokument darin sinnlos.
 - **Der PDF-Titel in den Metadaten.** Er steht in der Fensterleiste jedes
   PDF-Betrachters, noch bevor jemand die erste Seite gelesen hat.
 - **Die Frame- und Seitennamen in Figma.**
@@ -1539,12 +1537,12 @@ Verweiszeile im Profilkopf, sie kann deshalb in einer anderen Stufe landen als d
 vollständige.
 
 **Den Dateinamen setzt das Skript**, nicht der Aufruf: es baut ihn aus
-`person.name` und `person.rolle` zusammen und legt die Datei im angegebenen
+`person.name` zusammen und legt die Datei im angegebenen
 Ordner ab.
 
 ```
-New-Monday - Vorname Nachname - Jobtitel - CV.pdf
-New-Monday - V. N. - Jobtitel - CV.pdf
+New Monday - Vorname Nachname - CV.pdf
+New Monday - V. N. - CV.pdf
 ```
 
 **Die beiden Fassungen unterscheiden sich damit von selbst** und dürfen in

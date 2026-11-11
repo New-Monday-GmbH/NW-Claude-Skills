@@ -1998,14 +1998,13 @@ def pruefe_anonym(pdf, tmp):
         fehler.append(f"Anonym: Verweis noch im PDF — {offen[0]}")
 
     titel = str((leser.metadata or {}).get("/Title") or "")
-    # Kein Geschlecht in Dateiname und Titel: aus "UX-Designer:in" macht der
-    # Dateiname "UX-Designer-in" - neutral; "Designerin" oder blosses
-    # "Designer" waeren es nicht.
+    # Kein Geschlecht in Dateiname und Titel: "Designerin" oder blosses
+    # "Designer" waeren nicht neutral.
     for wo, wert in (("Dateiname", anonym_pdf.name), ("PDF-Titel", titel)):
         if FEMININ.search(wert):
             fehler.append(f"Anonym: der {wo} verraet das Geschlecht — {wert}")
-    if "UX-Designer-in" not in anonym_pdf.name:
-        fehler.append(f"Anonym: die Rolle steht im Dateinamen nicht neutral — {anonym_pdf.name}")
+    if anonym_pdf.name != f"New Monday - {ANONYM_KUERZEL} - CV.pdf":
+        fehler.append(f"Anonym: Dateiname nicht im Format \"New Monday - Name - CV\" — {anonym_pdf.name}")
     if "Designer:in" not in text:
         fehler.append("Anonym: „Designer:in“ steht nicht im PDF — Bezeichnung nicht neutral gesetzt")
     if any(t.lower() in titel.lower() for t in (vorname, nachname)):

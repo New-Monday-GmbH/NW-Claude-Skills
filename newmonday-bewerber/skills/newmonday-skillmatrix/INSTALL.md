@@ -64,7 +64,7 @@ Sollwerte:
 
 | | lang | A4 |
 |---|---|---|
-| Datei | `New-Monday - Wissem Kordi - Senior UX-UI Designer - Skillmatrix.pdf` | `… - Skillmatrix A4.pdf` |
+| Datei | `New Monday - Wissem Kordi - Skillmatrix.pdf` | `… - Skillmatrix A4.pdf` |
 | Meldung | `Seitenformat: 1444 x 3786pt, 33 Kartenschatten` und `Zertifikatssektion: 803pt hoch (8 Kacheln, geplant 803, Grenze 924)` | `Seitenformat A4: 595 x 842pt, 3 Seiten` |
 | Inhalt | eine Seite | Seite 1 Hero und Zertifikate, Seite 2 Kernkompetenzen bis „User Research & Insights“, Seite 3 „Design Systems & Scaling“, „Coding Skills“, Tools und Fuß |
 
@@ -88,7 +88,7 @@ Die Figma-Pläne dazu, aus dem Ordner `beispiel/` heraus (relative Bildpfade):
 
 ```bash
 python3 ../scripts/figma_plan.py skillmatrix.json /tmp/plan/ \
-        --pdf "/tmp/New-Monday - Wissem Kordi - Senior UX-UI Designer - Skillmatrix.pdf"
+        --pdf "/tmp/New Monday - Wissem Kordi - Skillmatrix.pdf"
 ```
 
 Soll: `figma_bibliothek.json` für den Bibliotheksweg – „lang und A4 (3

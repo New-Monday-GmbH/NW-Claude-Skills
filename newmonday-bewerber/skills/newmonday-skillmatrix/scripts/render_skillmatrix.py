@@ -5,12 +5,12 @@
 
 Es entstehen immer beide Fassungen, aus derselben JSON:
 
-  - lang: "New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf" - eine
+  - lang: "New Monday - Vorname Nachname - Skillmatrix.pdf" - eine
     einzige lange Seite, so breit wie der Figma-Frame der Vorlage (1444pt), so
     hoch wie ihr Inhalt; sie bildet eine Webseite ab. Weil CSS keine Seite "so
     hoch wie der Inhalt" kennt, wird zweimal gerendert: erst auf Vorrat hoch,
     dann mit der gemessenen Inhaltshoehe.
-  - A4:   "New-Monday - Vorname Nachname - Jobtitel - Skillmatrix A4.pdf" -
+  - A4:   "New Monday - Vorname Nachname - Skillmatrix A4.pdf" -
     595 x 842pt, mehrseitig, im Format des Lebenslaufs (Template
     template-a4.html, Tokens im Block "a4"). Kein Block bricht in sich um; der
     Fuss sitzt unten auf der letzten Seite (Luft davor gemessen, zweiter
@@ -838,7 +838,7 @@ def seitenzahl(pdf):
 
 
 def dateiname(daten, fassung="lang"):
-    """New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf, fuer die
+    """New Monday - Vorname Nachname - Skillmatrix.pdf, fuer die
     A4-Fassung "... - Skillmatrix A4.pdf".
 
     Der Name kommt aus den Daten, nicht aus dem Aufrufargument: so heisst jede
@@ -846,8 +846,8 @@ def dateiname(daten, fassung="lang"):
     Feld, faellt nur sein Abschnitt weg — eine Datei entsteht trotzdem.
     """
     person = daten.get("person") or {}
-    teile = ["New-Monday"]
-    for feld in ("name", "rolle"):
+    teile = ["New Monday"]
+    for feld in ("name",):
         wert = re.sub(r'[/\\:*?"<>|]', "-", str(person.get(feld) or ""))
         wert = re.sub(r"\s+", " ", wert).strip(" .")
         if wert:

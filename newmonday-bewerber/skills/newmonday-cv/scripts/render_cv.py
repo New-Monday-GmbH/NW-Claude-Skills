@@ -5,7 +5,7 @@
     python3 scripts/render_cv.py daten/cv.json ausgabe/ --stufen-json arbeit/stufen.json
 
 Den Dateinamen setzt das Skript selbst aus den Daten:
-"New-Monday - Vorname Nachname - Jobtitel - CV.pdf". Das zweite Argument
+"New Monday - Vorname Nachname - CV.pdf". Das zweite Argument
 bestimmt nur den Ordner — ein dort angehaengter Dateiname wird ersetzt
 (Ausnahme: --pfad-genau, siehe main()).
 
@@ -1227,15 +1227,15 @@ def deckblatt_seiten(ziel, daten):
 
 
 def dateiname(daten):
-    """New-Monday - Vorname Nachname - Jobtitel - CV.pdf
+    """New Monday - Vorname Nachname - CV.pdf
 
     Der Name kommt aus den Daten, nicht aus dem Aufrufargument: so heisst jeder
     Lebenslauf beim Kunden gleich, egal wie der Zielpfad getippt war. Fehlt ein
     Feld, faellt nur sein Abschnitt weg — eine Datei entsteht trotzdem.
     """
     person = daten.get("person") or {}
-    teile = ["New-Monday"]
-    for feld in ("name", "rolle"):
+    teile = ["New Monday"]
+    for feld in ("name",):
         wert = re.sub(r'[/\\:*?"<>|]', "-", str(person.get(feld) or ""))
         # Nur Leerzeichen weg, Punkte bleiben: die anonyme Fassung traegt
         # Initialen im Namensfeld, und "F. F" statt "F. F." saehe nach Panne
