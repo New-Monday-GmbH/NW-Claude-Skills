@@ -43,8 +43,8 @@ nicht pro Block nachsehen.
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py skillmatrix.json arbeit/ \
-        --pdf "ausgabe/New-Monday - … - Skillmatrix.pdf" \
-        --pdf-a4 "ausgabe/New-Monday - … - Skillmatrix A4.pdf"
+        --pdf "ausgabe/New Monday - … - Skillmatrix.pdf" \
+        --pdf-a4 "ausgabe/New Monday - … - Skillmatrix A4.pdf"
 ```
 
 Das schreibt `arbeit/figma_bibliothek.json` – je Fassung der Befüllungsplan

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Baut aus portfolio.json das fertige PDF im New-Monday-Portfolio-Layout.
 
-    python3 render_portfolio.py portfolio.json ausgabe/nachname-vorname-portfolio.pdf
+    python3 render_portfolio.py portfolio.json "ausgabe/New Monday - Vorname Nachname - Portfolio.pdf"
 
 Das Skript sucht sich die Render-Engine selbst (WeasyPrint, sonst headless
 Chrome) und prueft danach das erzeugte PDF auf Ueberlauf: Text, der aus seiner

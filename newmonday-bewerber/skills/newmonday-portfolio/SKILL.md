@@ -250,7 +250,7 @@ Portfolio“ (Schritt 2) die Quelle aus `vorrang` in `auftrag.json`, danach
 Lebenslauf, Portfolio, LinkedIn – in allen drei Dokumenten gleich; fehlt
 `vorrang`, der Lebenslauf. Die vollständige Firmierung aus LinkedIn bleibt.
 
-Gerendert wird nach `<laufordner>/ausgabe/<nachname>-<vorname>-portfolio.pdf`.
+Gerendert wird nach `<laufordner>/ausgabe/New Monday - <Vorname Nachname> - Portfolio.pdf`.
 Die Übergabe aus Schritt 8 geht nach `uebergabe.md`: Cover-Titel, KI- und
 Prozesstexte, die Texte der Schwerpunkt-Folien, die ausgebauten Projekttexte
 mit Quellen, die abgeleiteten Schlagworte mit ihrer Herleitung, Kundentexte mit
@@ -1287,7 +1287,7 @@ verschwänden weiße Screens.
 ### 7. Rendern
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/scripts/render_portfolio.py portfolio.json ausgabe/nachname-vorname-portfolio.pdf
+python3 ${CLAUDE_SKILL_DIR}/scripts/render_portfolio.py portfolio.json "ausgabe/New Monday - Vorname Nachname - Portfolio.pdf"
 ```
 
 Die Flächen mit den Screens entstehen dabei vorab als Bild –
@@ -1375,7 +1375,7 @@ kein Fehler, sondern das Gate – dann fehlen scharfe Screens, und genau das ste
 in der Übergabe unter „Folgende Bilder fehlen".
 
 ```bash
-pdftoppm -png -r 60 ausgabe/nachname-vorname-portfolio.pdf arbeit/blick
+pdftoppm -png -r 60 "ausgabe/New Monday - Vorname Nachname - Portfolio.pdf" arbeit/blick
 ```
 
 ### 7a. Die Figma-Frames ablegen

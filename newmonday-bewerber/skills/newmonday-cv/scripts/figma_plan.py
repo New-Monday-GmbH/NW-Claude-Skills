@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Baut aus cv.json und dem fertigen PDF den Bauplan fuer den Figma-Frame.
 
-    python3 scripts/figma_plan.py cv.json "ausgabe/New-Monday - ... - CV.pdf" arbeit/
+    python3 scripts/figma_plan.py cv.json "ausgabe/New Monday - ... - CV.pdf" arbeit/
 
 Schreibt arbeit/figma_plan.json: je PDF-Seite ein Frame, darin die Bloecke in
 Lesereihenfolge — alle Werte fertig ausgerechnet (Schriftfamilie, Figma-Schnitt,

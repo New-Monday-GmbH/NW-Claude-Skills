@@ -1,8 +1,8 @@
 # Übergabe newmonday-cv
 
 ## Dateien
-- ausgabe/New-Monday - Timo Muster - UX Designer - CV.pdf
-- ausgabe/New-Monday - T. M. - UX Designer - CV.pdf
+- ausgabe/New Monday - Timo Muster - CV.pdf
+- ausgabe/New Monday - T. M. - CV.pdf
 - Figma: https://www.figma.com/design/AbCdEf123456/Bewerbermappen?node-id=12-40
 
 ## Zur Freigabe

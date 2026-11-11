@@ -848,12 +848,12 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/render_skillmatrix.py skillmatrix.json ausga
 ```
 
 **Die Dateinamen setzt das Skript**, nicht der Aufruf: es baut sie aus
-`person.name` und `person.rolle` zusammen und legt beide Dateien im
+`person.name` zusammen und legt beide Dateien im
 angegebenen Ordner ab.
 
 ```
-New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf      (lang)
-New-Monday - Vorname Nachname - Jobtitel - Skillmatrix A4.pdf   (A4)
+New Monday - Vorname Nachname - Skillmatrix.pdf      (lang)
+New Monday - Vorname Nachname - Skillmatrix A4.pdf   (A4)
 ```
 
 Steht im Aufruf trotzdem ein Dateiname, gilt davon nur der Ordner — das
@@ -908,8 +908,8 @@ eingehalten" und „Barrierefrei (PDF/UA-1 …); lang … KB, A4 … KB".
 Warnungen:
 
 ```bash
-pdftoppm -png -r 40 "ausgabe/New-Monday - Vorname Nachname - Jobtitel - Skillmatrix.pdf" arbeit/vorschau
-pdftoppm -png -r 72 "ausgabe/New-Monday - Vorname Nachname - Jobtitel - Skillmatrix A4.pdf" arbeit/vorschau-a4
+pdftoppm -png -r 40 "ausgabe/New Monday - Vorname Nachname - Skillmatrix.pdf" arbeit/vorschau
+pdftoppm -png -r 72 "ausgabe/New Monday - Vorname Nachname - Skillmatrix A4.pdf" arbeit/vorschau-a4
 ```
 
 Auf der Vorschau prüfen: Steht der Kopf mittig in der Fotokarte und das
@@ -948,8 +948,8 @@ Properties, Mengen und bekannte Lücken in `references/figma.md`.
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py skillmatrix.json arbeit/ \
-        --pdf "ausgabe/New-Monday - … - Skillmatrix.pdf" \
-        --pdf-a4 "ausgabe/New-Monday - … - Skillmatrix A4.pdf"
+        --pdf "ausgabe/New Monday - … - Skillmatrix.pdf" \
+        --pdf-a4 "ausgabe/New Monday - … - Skillmatrix A4.pdf"
 python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py --skript vorflug arbeit/ --seite <ID>
 ```
 

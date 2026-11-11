@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Das Design System der Skillmatrix — eine Quelle fuer PDF und Figma.
 
-    python3 scripts/design_system.py pruefe "ausgabe/New-Monday - … - Skillmatrix.pdf"
-    python3 scripts/design_system.py pruefe "ausgabe/New-Monday - … - Skillmatrix A4.pdf" a4
+    python3 scripts/design_system.py pruefe "ausgabe/New Monday - … - Skillmatrix.pdf"
+    python3 scripts/design_system.py pruefe "ausgabe/New Monday - … - Skillmatrix A4.pdf" a4
     python3 scripts/design_system.py css [a4]     # erzeugtes CSS ansehen
 
 Alle Farben, Abstaende, Radien, Schatten, Schriften und Masse stehen einmal, in
