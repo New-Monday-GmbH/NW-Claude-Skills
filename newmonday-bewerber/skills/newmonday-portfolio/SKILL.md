@@ -693,7 +693,10 @@ Portfolio-Website zuerst, dann LinkedIn, dann Xing oder Dribbble, wenn sie im
 Material stehen. Wer ein eigenes Portfolio betreibt, wird darüber gefunden;
 eine Connect-Karte, die nur LinkedIn zeigt, unterschlägt den stärksten Link –
 auch das kam als Rückmeldung zurück. Passwortgeschützte Portfolios stehen
-trotzdem drin: Der Kunde fragt das Passwort beim Kandidaten an.
+trotzdem drin: Der Kunde fragt das Passwort beim Kandidaten an. **Eine
+Figma-Datei ist keine Portfolio-Website:** Sie ist Arbeitsdatei der Agentur und
+wird nie verlinkt – `render_portfolio.py` lässt einen solchen Verweis weg und
+meldet es.
 
 **Die Kopfseite hat drei Spalten** (Folie »Projekt-Kopf v2«, November 2026):
 `projekt` mit „Meine Rolle“ darunter, `kunde_text`, und die Karte „Auf einen

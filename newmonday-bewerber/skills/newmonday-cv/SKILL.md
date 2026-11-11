@@ -455,6 +455,10 @@ nacheinander: der Nutzer soll alles auf einmal beantworten und liefern können.
    Lücken (Schritt 1c) und, wenn sonst nichts ein Foto hergibt, eine dritte
    Fotoquelle (Schritt 1a). Ein PDF taugt nur als Quelle, verlinken lässt es sich
    nicht – dann bleibt die Zeile weg oder trägt einen Hinweis ohne Adresse.
+   **Verlinkt wird nur eine Website.** Eine Figma-Datei (`figma.com/…`) ist
+   Arbeitsdatei der Agentur – dort liegen auch die vollständigen Fassungen – und
+   wird nie verlinkt, auch nicht auf Nachfrage; sie dient wie ein PDF nur als
+   Quelle. Eine Frage nach einem Portfolio-Verweis gibt es dann nicht.
 
    **Kommt nichts, wird das übersprungen.** Nicht nachhaken, nicht als fehlend
    melden: Ein Lebenslauf ohne Portfolio ist vollständig. Die Verweise im
@@ -944,6 +948,10 @@ verlinken lässt:
 
 Gibt es weder Profil noch Portfolio, entfällt `links` und unter der
 Erfahrungszeile steht nichts mehr.
+
+Ein Verweis auf eine Figma-Datei kommt nie in `links` (Schritt 0, Punkt 5).
+`render_cv.py` und `figma_plan.py` lassen ihn trotzdem weg, falls er in einer
+cv.json steht, und melden das.
 
 `logo` nimmt einen Dateinamen oder eine Liste davon – siehe Schritt 3.
 `beschreibung` ist der Fließtext einer Station. Manche Lebensläufe beschreiben

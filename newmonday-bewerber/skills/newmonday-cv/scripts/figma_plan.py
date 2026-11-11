@@ -47,7 +47,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import tokens  # noqa: E402  — erst nach sys.path.insert moeglich
 from render_cv import (  # noqa: E402
     BESCHRIFTUNG, KONTAKT_VORGABE, VERWEISTEXT, bildung_aufbereiten, dateiname,
-    logo_groessen, logo_masse, logoliste, seitenverhaeltnis, skillset_gruppen, stationslogo,
+    logo_groessen, logo_masse, logoliste, ohne_arbeitsdateien, seitenverhaeltnis, skillset_gruppen, stationslogo,
     zeitraeume_setzen, zertifikate_aufbereiten,
 )
 from logo_lib import suche as logo_datei  # noqa: E402
@@ -148,7 +148,7 @@ def bloecke_bauen(daten, deckblatt, stationen):
         z["abstand_oben"] = a["rolle_erfahrung"] if i else 0
     verweistexte = VERWEISTEXT.get(sprache, VERWEISTEXT["de"])
     verweise = []
-    for l in person.get("links") or []:
+    for l in ohne_arbeitsdateien(person.get("links") or []):
         titel = norm(l.get("titel"))
         verweise.append({
             "text": l.get("text") or verweistexte.get(titel.lower()) or titel,

@@ -122,6 +122,25 @@ SPRACH_TRENNER = " – "
 # ausserhalb des Browsers ist eine URL ohnehin nur Zeichensalat.
 # Was hier nicht steht, faellt auf den Titel aus der cv.json zurueck; ein
 # eigenes "text" in der cv.json schlaegt beides.
+# Verlinkt wird nur eine Website. Eine Figma-Datei ist Arbeitsdatei der Agentur
+# (dort liegen auch die vollstaendigen Fassungen) und geht nie an den Kunden.
+ARBEITSDATEI_HOSTS = ("figma.com",)
+
+
+def ohne_arbeitsdateien(links: list) -> list:
+    """Laesst Verweise auf Arbeitsdateien (Figma) weg und meldet sie."""
+    from urllib.parse import urlparse
+    bleibt = []
+    for l in links:
+        host = urlparse(str(l.get("url") or "")).netloc.lower()
+        if any(host == h or host.endswith("." + h) for h in ARBEITSDATEI_HOSTS):
+            print(f"Hinweis: Verweis {l.get('titel')!r} auf {host} weggelassen - "
+                  "verlinkt wird nur eine Website, nie eine Figma-Datei.", file=sys.stderr)
+            continue
+        bleibt.append(l)
+    return bleibt
+
+
 VERWEISTEXT = {
     "de": {
         "linkedin": "zum LinkedIn Profil",
@@ -919,7 +938,10 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
     # Angezeigt wird der benannte Verweis, nicht die Adresse — verlinkt bleibt
     # die volle URL. Das Template setzt nur noch, was hier steht.
     verweise = VERWEISTEXT.get(sprache, VERWEISTEXT["de"])
-    for l in daten.get("person", {}).get("links") or []:
+    person = daten.get("person", {})
+    if person.get("links"):
+        person["links"] = ohne_arbeitsdateien(person["links"])
+    for l in person.get("links") or []:
         titel = str(l.get("titel") or "").strip()
         l["anzeige"] = l.get("text") or verweise.get(titel.lower()) or titel
     daten.setdefault("kontakt", dict(KONTAKT_VORGABE))
