@@ -814,6 +814,15 @@ def seite_profil(d, t, basis, nr, cache: Path):
     # der petrolfarbene Pfeil-Link - kein schwarzer Titel daruber, kein
     # "Anzeigen", keine Trennlinie. Diese Karte bleibt immer in diesem Muster,
     # auch gegen Figma V2 (Entscheidung vom September 2026).
+    # Verlinkt wird nur eine Website, nie eine Figma-Datei (Arbeitsdatei der
+    # Agentur mit den vollstaendigen Fassungen).
+    bleiben = []
+    for l in p.get("links", []):
+        if "figma.com" in urlparse(str(l.get("url") or "")).netloc.lower():
+            merke(f"Verweis {l.get('titel')!r} auf Figma weggelassen – verlinkt wird nur eine Website.")
+        else:
+            bleiben.append(l)
+    p["links"] = bleiben
     links = "".join(
         (f'<div class="paar paar--link"><a class="t-body-1-regular" href="{e(l["url"])}">'
          f'{e(l["titel"])} →</a></div>') if l.get("url") else

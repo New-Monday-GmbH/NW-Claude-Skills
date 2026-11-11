@@ -311,6 +311,20 @@ PORTFOLIOSEITE = '''
 '''
 
 
+def pruefe_keine_figma_verweise():
+    """Ein Verweis auf eine Figma-Datei faellt weg, eine Website bleibt."""
+    sys.path.insert(0, str(WURZEL / "scripts"))
+    from render_cv import ohne_arbeitsdateien
+
+    links = [{"titel": "Portfolio", "url": "https://www.figma.com/design/abc/Mappe"},
+             {"titel": "Portfolio", "url": "https://timo-muster.de"},
+             {"titel": "Portfolio"}]
+    bleibt = [l.get("url") for l in ohne_arbeitsdateien(links)]
+    if bleibt != ["https://timo-muster.de", None]:
+        return [f"Verweise: Figma-Datei nicht weggelassen — {bleibt}"]
+    return []
+
+
 def pruefe_website_auswahl():
     """Die Bildersuche auf einer Website muss den offensichtlichen Ballast filtern."""
     sys.path.insert(0, str(WURZEL / "scripts"))
@@ -2222,6 +2236,7 @@ def main():
     fehler += pruefe_svg_verhaeltnisse()
     fehler += pruefe_linkedin_auswahl()
     fehler += pruefe_website_auswahl()
+    fehler += pruefe_keine_figma_verweise()
 
     print(f"\n  Seiten:    {seiten}")
     print(f"  Format:    {breite} x {hoehe} pt")
