@@ -184,6 +184,24 @@ mit Modellnamen und Einsatzzweck, nicht als Schlagwort.
 gelegen – Profil, Satz oder Timing?“ Die Antwort geht als K.o.-Kriterium in den
 nächsten Lauf.
 
+### Schritt 7 · Übergabe an die Unterlagen (Artifact)
+
+Sollen danach Unterlagen entstehen, holt sie `newmonday-anfrage` in Claude Code
+ab – über ein Artifact, denn die Unterhaltung hier kann Claude Code nicht
+lesen. Am Ende jedes Matchings, das Kandidaten nennt, deshalb **ein Artifact
+anlegen**:
+
+- **Titel:** `Matching – <Job ID oder Rolle> – <TT.MM.JJJJ>` (genau so, mit
+  Halbgeviertstrichen – danach sucht newmonday-anfrage).
+- **Inhalt:** die vollständige Auswertung nach `references/auswertung-vorlage.md`,
+  davor die **Ausschreibung im Wortlaut**, dahinter eine Tabelle der Kandidaten
+  nach Score absteigend: Name · Score bzw. „x von n Muss“ · Muss-Lücken ·
+  Empfehlung.
+- **Privat lassen.** Nicht teilen, nicht öffentlich machen – Regel 6 gilt
+  weiter, das Artifact ist nur die Übergabe an Claude Code im selben Account.
+  Findet newmonday-anfrage es nicht in der Artifact-Liste, das Artifact in
+  Claude Chat einmal veröffentlichen (bleibt privat) und neu starten.
+
 ## Die Auswertung
 
 Immer im Aufbau von `references/auswertung-vorlage.md`, abgelegt im internen

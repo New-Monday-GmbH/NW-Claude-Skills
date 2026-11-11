@@ -1,0 +1,7 @@
+{
+  "_hinweis": "Kopie nach ~/.newmonday/anfrage.json, Werte eintragen. Nicht ins Repo – die IDs sind intern.",
+  "plan_key": "team::<Team-ID aus dem Figma-Link>",
+  "kandidaten_ordner": "<Ordner-ID der Original-Files: figma.com/files/team/<team>/folder/<ID>>",
+  "anfragen_projekt": "<Projekt-/Ordner-ID für neue Anfrage-Files>",
+  "ablage": "~/Desktop/Bewerberunterlagen"
+}

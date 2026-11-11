@@ -1,11 +1,12 @@
 # newmonday-bewerber
 
-Vier Claude-Code-Skills der New Monday GmbH rund um Bewerber-Unterlagen:
+Fünf Claude-Code-Skills der New Monday GmbH rund um Bewerber-Unterlagen:
 
 - `skills/newmonday-cv` — Lebenslauf im New-Monday-Layout als PDF und Figma-Frames, vollständig und anonymisiert
 - `skills/newmonday-skillmatrix` — Skill Matrix im New-Monday-Layout als PDF
 - `skills/newmonday-portfolio` — Portfolio im New-Monday-Layout als PDF
 - `skills/newmonday-bewerbermappe` — alle drei in einem Lauf: gemeinsame Fragen einmal, Lückencheck und Matching-Prüfung vorab, alle drei Dokumente auf die Anfrage aus dem Profilmatching ausgerichtet (Gewichtung, nie Beleg), Entscheidungen gebündelt (braucht die drei anderen daneben)
+- `skills/newmonday-anfrage` — bestehende Unterlagen der passendsten Kandidaten auf eine Ausschreibung anpassen: Matching-Artifact aus Claude Chat, Bestand aus dem Original-Figma, neues Figma-File je Anfrage, PDFs unter `~/Desktop/Bewerberunterlagen/`; nichts erfinden, nichts entfernen (braucht die vier anderen daneben und `~/.newmonday/anfrage.json`)
 
 ## Installation
 
