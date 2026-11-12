@@ -9,7 +9,8 @@ angehängte Sätze sind erlaubt, Streichungen nicht. Umsortieren ist erlaubt,
 Pfade spielen keine Rolle, Bild- und Dateipfade zählen nicht. Für die Felder,
 die newmonday-anfrage austauschen darf (SKILL.md, „Nichts entfernen“), gilt:
   FREI      – dürfen ganz neu sein
-  WOANDERS  – ein herausgefallener Eintrag muss irgendwo sonst im Dokument stehen
+  Kenntnisse – ein herausgefallener Eintrag muss irgendwo sonst im Dokument
+              stehen (gilt ohnehin, weil Pfade nicht zählen)
 --ausnahmen: Datei mit je einem alten Text pro Zeile, dessen Änderung der
 Nutzer freigegeben hat (z. B. Kürzungen fürs Layout); er wird nicht gemeldet.
 Exit 1, wenn etwas fehlt.
@@ -20,7 +21,6 @@ import re
 import sys
 
 FREI = {"person.kurzprofil", "person.schwerpunkte", "person.beschreibung", "anfrage"}
-WOANDERS = {"person.top_kenntnisse", "person.kenntnisse"}
 DATEIENDUNGEN = (".png", ".jpg", ".jpeg", ".svg", ".pdf", ".webp")
 
 
@@ -48,17 +48,13 @@ def enthalten(alt: list[str], neu: list[str]) -> bool:
 
 def fehlend(bestand, neu, ausnahmen=frozenset()) -> list[tuple[str, str]]:
     neue = [woerter(t) for _, t in blaetter(neu)]
-    alle = " " + " ".join(" ".join(ws) for ws in neue) + " "
     weg = []
     for pfad, text in blaetter(bestand):
         if (pfad in FREI or text in ausnahmen or text.startswith("/")
                 or text.lower().endswith(DATEIENDUNGEN)):
             continue
         alt = woerter(text)
-        if pfad in WOANDERS:  # als Begriff irgendwo im Dokument
-            da = f" {' '.join(alt)} " in alle
-        else:
-            da = any(enthalten(alt, ws) for ws in neue)
+        da = any(enthalten(alt, ws) for ws in neue)
         if not da:
             weg.append((pfad, text))
     return weg
