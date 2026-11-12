@@ -262,7 +262,10 @@ def bloecke_bauen(daten, deckblatt, stationen):
         bloecke.append(block(
             "station", abstand_oben=naechster_abstand, token=naechster_token,
             seitenanfang=(nr == 0 and not person.get("kurzprofil")),
-            marke=station.get("titel"),
+            # Titel und Firma, wie sie im PDF aufeinander folgen: der Titel allein
+            # wiederholt sich ("Senior UI/UX Designer" bei zwei Firmen), und die
+            # Suche fand die fruehere Station - die Station landete eine Seite zu frueh.
+            marke=" ".join(filter(None, [norm(station.get("titel")), norm(station.get("firma"))])),
             rail={"breite": r["logospalte"], "oben": r["logo_oben"], "abstand": r["logo_stapel"],
                   "logos": [logo_eintrag(f, st_groesse)
                             for f in logoliste(stationslogo(station))]},
