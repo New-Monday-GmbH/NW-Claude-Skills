@@ -70,6 +70,10 @@ pruefe(fehlend(einschub, {"a": "Optimierung von Accessibility (WCAG/BITV), UX un
        "Einschub mitten im Satz als Streichung gemeldet")
 pruefe(fehlend(einschub, {"a": "Optimierung von UX und Aufbau."}) != [], "Streichung im Satz nicht gemeldet")
 pruefe(fehlend(einschub, {"a": "Kurz."}, frozenset(einschub.values())) == [], "freigegebene Ausnahme gemeldet")
+kenntnis = {"person": {"kenntnisse": ["User Research (Usability-Testing, Interviews, etc.)"]}}
+pruefe(fehlend(kenntnis, {"person": {"kenntnisse": [
+    "User Research (Usability-Testing, Interviews, Analytics, etc.)"]}}) == [],
+    "Einschub in einer Kenntnis als Streichung gemeldet")
 
 if fehler:
     sys.exit("Selbsttest fehlgeschlagen:\n- " + "\n- ".join(fehler))
