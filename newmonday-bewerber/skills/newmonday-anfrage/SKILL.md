@@ -68,6 +68,17 @@ der vorhandenen Instanzen. Die PDFs werden aus der JSON neu gerendert.
    Umbrüche bleiben: als angehängter Satz an einen bestehenden Stichpunkt
    statt als neuer Stichpunkt.
 7. **Nach Phase 4 wird nicht mehr gefragt** – wie in newmonday-bewerbermappe.
+8. **PDFs entstehen ohne Rückfrage – barrierefrei und komprimiert.** Ist eine
+   Anpassung fertig, ob Lauf, Nachbesserung oder einzelne Ergänzung direkt in
+   den Frames, werden die fünf PDFs je Kandidat sofort neu gerendert und
+   eingesammelt (Phase 6, Punkt 3). Der Nutzer wird dazu nicht gefragt.
+   Gerendert wird immer mit den Renderskripten der Skills aus der JSON. Sie
+   liefern PDF/UA-1, komprimierte Bilder und den veraPDF-Befund. **Nie aus
+   Figma exportieren** (`download_assets`, `exportAsync`): Das ergibt kein
+   PDF/UA, und das Portfolio wird ein Vielfaches größer. Wurde nur in Figma
+   geändert, kommt dieselbe Änderung auch in die JSON. Fehlt die JSON, kommt
+   sie aus dem Laufordner der allgemeinen Mappe oder aus dem Bestand
+   (Phase 2, Punkt 3).
 
 ## Voraussetzungen
 
@@ -218,6 +229,8 @@ Je Kandidat:
    `python3 ${CLAUDE_SKILL_DIR}/scripts/ablage.py einsammeln "<ablage>/<Anfrage>/<Kandidat>"`
    → `New Monday - Vorname Nachname - CV.pdf`, `New Monday - V. N. - CV.pdf`,
    `… - Skillmatrix.pdf`, `… - Skillmatrix A4.pdf`, `… - Portfolio.pdf`.
+   Ohne Rückfrage (Regel 8). Jede „veraPDF PDF/UA-1 …“-Zeile der
+   Renderskripte ist ein Fehler: beheben und neu rendern, nicht nur melden.
 
 Dann **eine** Gesamtübergabe wie newmonday-bewerbermappe Phase 6, je
 Kandidat ein Abschnitt, dazu: Link aufs Anfrage-File, Ordner der PDFs,
@@ -247,7 +260,8 @@ Kommt Feedback aus dem Matching („Barrierefreiheit fehlt im Portfolio“):
 Punkte als `Änderung des Nutzers: …` in den Bauen-Auftrag der betroffenen
 Dokumente; Technik-Antworten des Nutzers nach `entscheidungen`. Auch hier
 wird nicht neu gebaut: JSON ändern, PDFs neu rendern und dieselben Frames auf
-der Anfrage-Seite anpassen (`references/figma-anpassen.md`). Muss ein
+der Anfrage-Seite anpassen (`references/figma-anpassen.md`). Danach die PDFs
+sofort neu einsammeln, ohne Rückfrage (Regel 8). Muss ein
 Dokument doch neu gebaut werden, kommt es neben das alte. Das alte wird nur
 mit OK des Nutzers gelöscht.
 
