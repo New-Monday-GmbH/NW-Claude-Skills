@@ -1,6 +1,6 @@
 ---
 name: newmonday-anfrage
-description: Passt die bestehenden New-Monday-Unterlagen der passendsten Kandidaten auf eine konkrete Ausschreibung an – Lebenslauf (voll und anonym), Skill Matrix (lang und A4) und Portfolio als PDF und in einem neuen Figma-File je Anfrage. Liest die Ausschreibung aus dem Chat und das neueste Matching-Artifact aus Claude Chat, lässt die Top 3 bestätigen, liest den Bestand jedes Kandidaten aus seinem Original-Figma-File, schmückt Bestehendes realistisch aus, ergänzt erwartbare Methoden, fragt Technik nach, entfernt nichts und erfindet keine Projekte. Nutze diesen Skill immer, wenn eine Ausschreibung, Stellenbeschreibung, Projektanfrage oder Job ID kommt und dazu Unterlagen für Kandidaten entstehen oder angepasst werden sollen – „mach die Unterlagen zu dieser Ausschreibung“, „pass die Mappe auf die Stelle an“, „Unterlagen für Job ID …“, „das selbe für diese Stellenbeschreibung“ – auch wenn nur eine Ausschreibung eingefügt wird. Für eine allgemeine Mappe ohne Ausschreibung ist newmonday-bewerbermappe zuständig, für das Matching selbst newmonday-matching.
+description: Passt die bestehenden New-Monday-Unterlagen der passendsten Kandidaten auf eine konkrete Ausschreibung an – Lebenslauf (voll und anonym), Skill Matrix (lang und A4) und Portfolio als PDF und in einem neuen Figma-File je Anfrage, in das die Frames aus dem Original-File kopiert und dort angepasst statt neu gebaut werden. Liest die Ausschreibung aus dem Chat und das neueste Matching-Artifact aus Claude Chat, lässt die Top 3 bestätigen, liest den Bestand jedes Kandidaten aus seinem Original-Figma-File, schmückt Bestehendes realistisch aus, ergänzt erwartbare Methoden, fragt Technik nach, entfernt nichts und erfindet keine Projekte. Nutze diesen Skill immer, wenn eine Ausschreibung, Stellenbeschreibung, Projektanfrage oder Job ID kommt und dazu Unterlagen für Kandidaten entstehen oder angepasst werden sollen – „mach die Unterlagen zu dieser Ausschreibung“, „pass die Mappe auf die Stelle an“, „Unterlagen für Job ID …“, „das selbe für diese Stellenbeschreibung“ – auch wenn nur eine Ausschreibung eingefügt wird. Für eine allgemeine Mappe ohne Ausschreibung ist newmonday-bewerbermappe zuständig, für das Matching selbst newmonday-matching.
 ---
 
 # New Monday Anfrage
@@ -12,6 +12,11 @@ gebaut wird von `newmonday-cv`, `newmonday-skillmatrix` und
 `newmonday-portfolio` nach dem Ablauf von `newmonday-bewerbermappe`
 (Phase 3–5, Subagenten, `auftrag.json`). Hier steht, was davor, dazwischen
 und danach anders ist.
+
+In Figma heißt das: **kopieren und anpassen, nicht neu bauen.** Der Nutzer
+kopiert die fertigen Frames aus dem Original-File ins Anfrage-File; danach
+ändern die Skills dort nur Texte, Sichtbarkeiten, Varianten und Reihenfolge
+der vorhandenen Instanzen. Die PDFs werden aus der JSON neu gerendert.
 
 ## Die Regeln, die über allem stehen
 
@@ -49,9 +54,20 @@ und danach anders ist.
    Schwerpunkt-Folien stehen – immer mit der Tätigkeit, die belegt ist. Eine
    Fachpraxis, die nicht belegt ist, wird nie behauptet. Branchen bleiben
    stehen. Das geht der strengeren Domänenregel der drei Skills vor.
-5. **Original-Files werden nur gelesen.** Neue Frames entstehen im
-   Anfrage-File. Verlinkt wird nie eine Figma-Datei, nur Websites.
-6. **Nach Phase 4 wird nicht mehr gefragt** – wie in newmonday-bewerbermappe.
+5. **Original-Files werden nur gelesen.** Ins Anfrage-File kommen Kopien
+   ihrer Frames (Phase 3, Punkt 2). Verlinkt wird nie eine Figma-Datei, nur
+   Websites.
+6. **Anpassen statt neu bauen.** In Figma werden die kopierten Frames
+   angepasst: Text-Properties, eingeblendete Einträge, Varianten (etwa die
+   Bewertung), Reihenfolge, eine zusätzliche Folie als Instanz derselben
+   Master-Komponente. Neu gebaut wird ein Frame nur, wenn Anpassen nicht
+   geht: Das Dokument bekommt eine andere Seitenzahl, oder ein Inhalt passt
+   nicht in die Komponente, etwa mehr Einträge als sie Plätze hat. Dann wird
+   nur dieses Dokument neu gebaut, und die Übergabe nennt den Grund
+   (`references/figma-anpassen.md`). Inhalte deshalb so ergänzen, dass die
+   Umbrüche bleiben: als angehängter Satz an einen bestehenden Stichpunkt
+   statt als neuer Stichpunkt.
+7. **Nach Phase 4 wird nicht mehr gefragt** – wie in newmonday-bewerbermappe.
 
 ## Voraussetzungen
 
@@ -120,14 +136,35 @@ Je gewähltem Kandidat, nacheinander:
    - `figma` siehe Phase 3, alle Status `offen`.
    Danach `pruefe_lauf.py` wie in newmonday-bewerbermappe.
 
-### Phase 3 — Figma-Ziel
+### Phase 3 — Figma-Ziel und Kopie
 
-Einmal je Anfrage: Skill `figma:figma-create-new-file` laden, dann
-`create_new_file` mit `fileName` „<Job ID> <Stelle>“, `planKey` und
-`projectId` aus der Konfiguration. Die erste Seite heißt wie der erste
-Kandidat, für jeden weiteren eine neue Seite. Bibliotheks-Vorflug wie
-newmonday-bewerbermappe Phase 2, Punkt 7. `figma.link` jedes Laufordners
-zeigt mit `node-id` auf die Seite seines Kandidaten.
+1. **Anfrage-File**, einmal je Anfrage: Skill `figma:figma-create-new-file`
+   laden, dann `create_new_file` mit `fileName` „<Job ID> <Stelle>“,
+   `planKey` und `projectId` aus der Konfiguration. Die erste Seite heißt wie
+   der erste Kandidat, für jeden weiteren eine neue Seite.
+   Bibliotheks-Vorflug wie newmonday-bewerbermappe Phase 2, Punkt 7.
+   `figma.link` jedes Laufordners zeigt mit `node-id` auf die Seite seines
+   Kandidaten.
+2. **Frames kopieren lassen.** Die Figma-Schnittstelle sieht immer nur ein
+   File und kann keine Knoten von einem File ins andere übertragen. Deshalb
+   kopiert der Nutzer. In einer Nachricht nennt der Skill je Kandidat die
+   Bestands-Frames aus Phase 2, Punkt 3, mit Name und Link aufs
+   Original-File (`figma.com/design/<key>?node-id=<id>`):
+   - Lebenslauf voll und anonym, alle Seiten,
+   - Skill Matrix lang und A4,
+   - den Portfolio-Sammelrahmen.
+
+   Darunter steht die Bitte: auswählen, Cmd+C, auf der Seite „Vorname
+   Nachname“ im Anfrage-File Cmd+V. Dazu eine Klickbox:
+   *Alles kopiert (Empfohlen)* | *Ohne Figma weiter*. Bei *Ohne Figma
+   weiter* gilt `figma.aktiv = false`.
+
+   Danach prüft ein lesender `use_figma`-Aufruf je Seite, ob alle Frames da
+   sind (Namen, Anzahl, Seiten bzw. Folien wie im Bestand). Die neuen IDs
+   kommen nach `_arbeit/eingang/bestand/kopie.md`, als Zuordnung „Bestand-ID →
+   Kopie-ID“. Fehlt etwas, wird einmal nachgefragt.
+   Instanzen der Master-Bibliothek bleiben beim Kopieren an die Bibliothek
+   gebunden.
 
 ### Phase 4 — Vorbereiten und Entscheiden
 
@@ -157,8 +194,12 @@ Regeln newmonday-anfrage (gehen den Regeln des Skills vor):
 - Methoden und Arbeitsweisen, die bei Rolle, Seniorität und Stationen sehr wahrscheinlich sind, ergänzen wie belegte Skills (Bewertung nach Seniorität, auch Schwerpunkt-Folien) und an passenden Projekten als angehängten Satz/Stichpunkt (alter Wortlaut bleibt; keine Zahlen, Normstufen, Ergebnisse). Jede Stelle in uebergabe.md unter „Zur Freigabe“ mit „abgeleitet: <Begründung>“.
 - Technologien, Tools, Normen/Standards, Frameworks, Programmiersprachen, Zertifikate und Domänen nie ableiten – nur, was in auftrag.json → entscheidungen bejaht ist.
 - Projekte aus derselben oder verwandten Domäne der Anfrage nach vorn (Reihenfolge, Schwerpunkt-Folien), mit der belegten Tätigkeit; keine Fachpraxis behaupten; Branchen bleiben.
-- Figma-Frames auf die Seite aus figma.link im Anfrage-File; das Original-File nicht anfassen. Kein Verweis auf eine Figma-Datei.
+- Figma: NICHT neu bauen – den Figma-Bau-Schritt des Skills auslassen. Die kopierten Frames auf der Seite aus figma.link anpassen nach <skills>/newmonday-anfrage/references/figma-anpassen.md (Zuordnung in eingang/bestand/kopie.md). Neu bauen nur, wenn figma-anpassen.md es verlangt (Seitenzahl ändert sich, Komponente zu klein) – dann nur dieses Dokument, rechts neben die Kopie, Grund in uebergabe.md. Das Original-File nicht anfassen. Kein Verweis auf eine Figma-Datei.
+- Inhalte so ergänzen, dass Seitenumbrüche bleiben: angehängter Satz an einen bestehenden Stichpunkt statt neuer Stichpunkt; die Seitenzahl jedes PDFs bleibt wie im Bestand, wo es geht.
 ```
+
+Die PDFs entstehen wie gewohnt aus der JSON mit den Renderskripten der Skills.
+Nur der Figma-Teil ist anders: Die Kopie wird angepasst und nicht neu gebaut.
 
 ### Phase 6 — Prüfen und Übergabe
 
@@ -196,25 +237,30 @@ Claude Chat.
 ```
 
 Figma: ein File „<Job ID> <Stelle>“ im Anfragen-Projekt, eine Seite je
-Kandidat. Der Skill löscht nie etwas in Figma; aufgeräumt wird von Hand.
+Kandidat mit den kopierten und angepassten Frames. Der Skill löscht nie etwas
+in Figma; aufgeräumt wird von Hand.
 
 ## Wiederaufnahme und Nachbesserung
 
 Ein Lauf setzt an `_arbeit/auftrag.json` an wie in newmonday-bewerbermappe.
 Kommt Feedback aus dem Matching („Barrierefreiheit fehlt im Portfolio“):
 Punkte als `Änderung des Nutzers: …` in den Bauen-Auftrag der betroffenen
-Dokumente; Technik-Antworten des Nutzers nach `entscheidungen`. Ersetzt werden
-die Frames dieser Anfrage-Seite – vorher die alten auf der Seite löschen, nur
-mit OK des Nutzers.
+Dokumente; Technik-Antworten des Nutzers nach `entscheidungen`. Auch hier
+wird nicht neu gebaut: JSON ändern, PDFs neu rendern und dieselben Frames auf
+der Anfrage-Seite anpassen (`references/figma-anpassen.md`). Muss ein
+Dokument doch neu gebaut werden, kommt es neben das alte. Das alte wird nur
+mit OK des Nutzers gelöscht.
 
 ## Frühere Anfrage-Fassungen in Original-Files umziehen
 
 Liegen in einem Original-File noch Anfrage-Fassungen aus der Zeit vor diesem
 Skill (Frames mit Job ID oder Stellenname im Namen, Überschrift darüber) und
-deren Laufordner: Anfrage-File anlegen (Phase 3), Laufordner nach
-`<ablage>/<Anfrage>/<Kandidat>/_arbeit/` kopieren, `figma.link` auf die neue
-Seite setzen und alle drei Dokumente ohne Rückfrage neu bauen lassen (Phase 5,
-Entscheidungen stehen schon in `auftrag.json`), PDFs einsammeln, Screenshots
-gegen die alten Frames prüfen. Erst danach und **nur mit OK des Nutzers** die
-alten Frames samt Überschrift im Original-File löschen. Frames lassen sich
-zwischen Files nicht kopieren – deshalb der Neubau.
+deren Laufordner:
+1. Anfrage-File anlegen (Phase 3, Punkt 1).
+2. Laufordner nach `<ablage>/<Anfrage>/<Kandidat>/_arbeit/` kopieren und
+   `figma.link` auf die neue Seite setzen.
+3. Die Anfrage-Frames vom Nutzer ins Anfrage-File kopieren lassen (Phase 3,
+   Punkt 2). Damit sind sie fertig, es wird nichts neu gebaut.
+4. PDFs einsammeln und per Screenshot prüfen, dass die Kopie vollständig ist.
+5. Erst danach und **nur mit OK des Nutzers** die alten Frames samt
+   Überschrift im Original-File löschen.
