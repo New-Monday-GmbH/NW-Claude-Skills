@@ -16,7 +16,7 @@ import shutil
 import sys
 from pathlib import Path
 
-ROOT = Path.home() / "Desktop" / "Bewerberunterlagen"
+ROOT = Path.home() / "Desktop" / "Bewerberunterlagen" / "Ausschreibungen"
 # Reihenfolge zählt: „Skillmatrix A4“ vor „Skillmatrix“
 ARTEN = [("skillmatrix a4", "Skillmatrix A4"), ("skillmatrix", "Skillmatrix"),
          ("portfolio", "Portfolio"), ("cv", "CV")]
@@ -51,7 +51,8 @@ def einsammeln(kandidatenordner: Path) -> list[tuple[str, str]]:
     ausgabe = kandidatenordner / "_arbeit" / "ausgabe"
     kandidat = kandidatenordner.name
     kopiert = []
-    for pdf in sorted(ausgabe.glob("*.pdf")):
+    # älteste zuerst: liegt ein Dokument doppelt da (altes Namensschema), gewinnt das neueste
+    for pdf in sorted(ausgabe.glob("*.pdf"), key=lambda d: d.stat().st_mtime):
         neu = zielname(pdf.name, kandidat)
         if neu:
             shutil.copy2(pdf, kandidatenordner / neu)

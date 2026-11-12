@@ -28,7 +28,7 @@ Original-Files, Projekt für Anfrage-Files, Ablageort).
 
 ## Ausgang
 
-- `~/Desktop/Bewerberunterlagen/<Job ID> <Stelle>/<Vorname Nachname>/` mit
+- `~/Desktop/Bewerberunterlagen/Ausschreibungen/<Job ID> <Stelle>/<Vorname Nachname>/` mit
   `New Monday - Vorname Nachname - CV.pdf`, `New Monday - V. N. - CV.pdf`,
   `… - Skillmatrix.pdf`, `… - Skillmatrix A4.pdf`, `… - Portfolio.pdf`;
   Arbeitsdateien in `_arbeit/`

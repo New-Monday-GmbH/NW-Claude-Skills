@@ -63,7 +63,7 @@ und danach anders ist.
 - **Konfiguration** in `~/.newmonday/anfrage.json` (Vorlage:
   `scripts/anfrage.config.beispiel.json`): `plan_key`, `kandidaten_ordner`
   (Figma-Ordner der Original-Files), `anfragen_projekt` (Figma-Projekt für
-  neue Anfrage-Files), `ablage` (Standard `~/Desktop/Bewerberunterlagen`).
+  neue Anfrage-Files), `ablage` (Standard `~/Desktop/Bewerberunterlagen/Ausschreibungen`; allgemeine Mappen liegen daneben unter `Originale/`).
   Fehlt die Datei, fragt Phase 1 nach den beiden Figma-Links und legt sie an.
   Die IDs gehören nie ins Repo.
 

@@ -40,8 +40,14 @@ with tempfile.TemporaryDirectory() as tmp:
               "New-Monday - Timo Muster - UX - Skillmatrix A4.pdf",
               "New-Monday - Timo Muster - UX - Portfolio.pdf"):
         (lauf / "ausgabe" / n).write_bytes(b"%PDF")
+    # gleiches Dokument im alten Namensschema, älter als das neue
+    (lauf / "ausgabe" / "muster-timo-portfolio.pdf").write_bytes(b"%PDF alt")
+    import os
+    os.utime(lauf / "ausgabe" / "muster-timo-portfolio.pdf", (1, 1))
     kopiert = einsammeln(lauf.parent)
-    pruefe(len(kopiert) == 5, f"einsammeln: {len(kopiert)} statt 5")
+    pruefe(len(kopiert) == 6, f"einsammeln: {len(kopiert)} statt 6")
+    pruefe((lauf.parent / "New Monday - Timo Muster - Portfolio.pdf").read_bytes() == b"%PDF",
+           "beim doppelten Portfolio hat das ältere gewonnen")
     pruefe((lauf.parent / "New Monday - T. M. - CV.pdf").exists(), "anonymer CV im Kandidatenordner")
 
 # vergleich
