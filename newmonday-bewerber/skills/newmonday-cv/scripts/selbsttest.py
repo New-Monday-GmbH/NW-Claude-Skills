@@ -373,6 +373,49 @@ def pruefe_gleicher_titel(tmp):
     return []
 
 
+def pruefe_gleiche_stationstitel(tmp):
+    """Zwei Stationen mit gleichem Titel bei verschiedenen Firmen — landet jede
+    im Figma-Plan auf ihrer Seite?
+
+    Mit dem Titel allein als Marke fand die Suche fuer die zweite Station den
+    Titel der ersten, und die Station rutschte eine Seite nach vorn (Lauf
+    3036133, 12.11.2026: zweimal "Senior UI/UX Designer").
+    """
+    from pypdf import PdfReader
+    daten = json.loads((WURZEL / "beispiel" / "cv.json").read_text(encoding="utf-8"))
+    # Die dritte Station traegt den Titel der zweiten; deren Aufgaben fuellen
+    # die Seite, so dass die dritte auf der naechsten beginnt.
+    stationen = daten["stationen"]
+    stationen[2]["titel"] = stationen[1]["titel"]
+    stationen[1]["aufgaben"] = stationen[1]["aufgaben"] * 4
+    pdf, lauf, stufen = _rendern(tmp, daten, "gleiche-stationstitel")
+    if not pdf.exists():
+        return [f"Gleiche Stationstitel: PDF nicht gerendert — {lauf.stderr.strip()[:200]}"]
+    ordner = Path(tmp) / "gleiche-stationstitel-plan"
+    plan_lauf = subprocess.run(
+        [sys.executable, str(WURZEL / "scripts" / "figma_plan.py"),
+         str(Path(tmp) / "gleiche-stationstitel.json"), str(pdf), str(ordner),
+         "--stufen", str(stufen)],
+        capture_output=True, text=True, cwd=str(WURZEL))
+    if plan_lauf.returncode != 0:
+        return [f"Gleiche Stationstitel: figma_plan.py fehlgeschlagen — "
+                f"{plan_lauf.stderr.strip()[:200]}"]
+    plan = json.loads((ordner / "figma_plan.json").read_text(encoding="utf-8"))
+    seiten = [" ".join((s.extract_text() or "").split()) for s in PdfReader(str(pdf)).pages]
+    if [stationen[2]["firma"] in s for s in seiten].index(True) <= \
+            [stationen[1]["firma"] in s for s in seiten].index(True):
+        return ["Gleiche Stationstitel: Testdaten greifen nicht mehr — beide Stationen "
+                "beginnen auf derselben Seite"]
+    fehler = []
+    for frame in plan["frames"]:
+        for b in frame["bloecke"]:
+            if b["art"] == "station" and b.get("firma") \
+                    and b["firma"]["text"] not in seiten[frame["nr"] - 1]:
+                fehler.append(f"Gleiche Stationstitel: Station bei „{b['firma']['text']}“ "
+                              f"steht im Plan auf Seite {frame['nr']}, im PDF nicht dort")
+    return fehler
+
+
 def pruefe_verweise(tmp):
     """Stehen die Verweise unter der Erfahrungszeile — benannt und anklickbar?
 
@@ -712,6 +755,16 @@ def pruefe_skillset(tmp):
     zeilen, _ = sprachen_mit_vorgabe(["Deutsch, Italienisch – Muttersprache", "Englisch"])
     if zeilen != ["Deutsch, Italienisch – Muttersprache", "Englisch – Business Niveau"]:
         fehler.append(f"Skillset: zusammengefasste Sprachzeile falsch behandelt — {zeilen}")
+
+    # Trenner und Klammer zugleich: Die Klammer gehoert zum Niveau. Vorher galt
+    # "(C2)" als Niveau, "Englisch – Muttersprachen-Niveau" als Sprache, und die
+    # Vorgabe ergaenzte Englisch ein zweites Mal (Lauf 3036133, 12.11.2026).
+    zeilen, hinweise = sprachen_mit_vorgabe(["Englisch – Muttersprachen-Niveau (C2)"])
+    if sum(z.startswith("Englisch") for z in zeilen) != 1:
+        fehler.append(f"Skillset: Englisch mit Niveau steht nicht genau einmal — {zeilen}")
+    if not any("Muttersprachen-Niveau (C2)" in h for h in hinweise):
+        fehler.append(f"Skillset: abweichendes Niveau „Muttersprachen-Niveau (C2)“ nicht gemeldet "
+                      f"— {hinweise}")
 
     # Eine leere Gruppe faellt weg und wird gemeldet.
     spalten, hinweise = skillset_gruppen({"skillset": {"faehigkeiten": ["X"], "tools": ["T"]}})
@@ -2215,6 +2268,7 @@ def main():
         fehler += pruefe_geschlecht(tmp)
         fehler += pruefe_freelance(tmp)
         fehler += pruefe_gleicher_titel(tmp)
+        fehler += pruefe_gleiche_stationstitel(tmp)
         fehler += pruefe_verweise(tmp)
         fehler += pruefe_stationsumbruch(tmp)
         fehler += pruefe_projektlogos(tmp)
@@ -2244,6 +2298,7 @@ def main():
     print(f"  LinkedIn:  Fotoauswahl geprueft (ohne Netz)")
     print(f"  Website:   Bilderfilter geprueft (ohne Netz)")
     print(f"  Ueberlauf: erkannt, auch wenn Rolle = Stationstitel")
+    print(f"  Stationen: gleicher Titel bei zwei Firmen landet im Figma-Plan auf der richtigen Seite")
     print(f"  Verweise:  benannt unter der Erfahrungszeile und anklickbar")
     print(f"  Umbruch:   keine Station mit einem einzelnen Stichpunkt am Seitenende")
     print(f"  Projekte:  mehrere Logos nebeneinander, gleich gross, auf der Mitte")

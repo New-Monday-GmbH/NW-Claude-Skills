@@ -388,16 +388,22 @@ def _sprache_zerlegen(eintrag):
     """(Sprachteil, Niveau) aus einem Sprach-Eintrag, so wie er in der cv.json steht.
 
     Angenommen werden "Deutsch – Muttersprache", "Englisch (fließend)",
-    "Französisch: B2", {"sprache": "Französisch", "niveau": "B2"} und "Deutsch".
+    "Französisch: B2", "Englisch – Muttersprachen-Niveau (C2)",
+    {"sprache": "Französisch", "niveau": "B2"} und "Deutsch".
     """
     if isinstance(eintrag, dict):
         return (" ".join(str(eintrag.get("sprache") or "").split()),
                 " ".join(str(eintrag.get("niveau") or "").split()))
     text = " ".join(str(eintrag or "").split())
+    teile = re.split(r"\s+[–—-]\s+|:\s*", text, maxsplit=1)
+    # Ein Trenner vor der ersten Klammer schlaegt die Klammer: in "Englisch –
+    # Muttersprachen-Niveau (C2)" gehoert "(C2)" zum Niveau. Sonst galt der Rest
+    # als Sprachname, und die Vorgabe ergaenzte Englisch ein zweites Mal.
+    if len(teile) > 1 and "(" not in teile[0]:
+        return teile[0].strip(), teile[1].strip()
     klammer = re.match(r"^(.*?)\s*\((.*)\)\s*$", text)
     if klammer:
         return klammer.group(1).strip(), klammer.group(2).strip()
-    teile = re.split(r"\s+[–—-]\s+|:\s*", text, maxsplit=1)
     return teile[0].strip(), (teile[1].strip() if len(teile) > 1 else "")
 
 
