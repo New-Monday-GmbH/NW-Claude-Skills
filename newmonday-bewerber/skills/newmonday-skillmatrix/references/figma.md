@@ -167,8 +167,8 @@ Was die Komponenten tragen (`grenzen` in `master-bibliothek.json`):
 | | lang | A4 |
 |---|---|---|
 | Kategorien | 8 | 5 je Seite |
-| Karten / Kompetenzen je Kategorie | 9 | 6 |
-| Tools | 9 | 6 |
+| Karten / Kompetenzen je Kategorie | 9 | 12 |
+| Tools | 9 | 12 |
 | Zertifikatskacheln | 12 | 12 |
 | Tags der Qualifikationskarte | 10 | 10 |
 | Schwerpunkte | 3 | 4 |
@@ -177,6 +177,14 @@ Liegt eine Fassung darüber, meldet `figma_plan.py` das, und `--skript`
 verweigert diese Fassung: Sie kommt roh. Die Regeln des Skills (fünf
 Kategorien, sechs Skills, höchstens 924 Zertifikatssektion) liegen ohnehin
 darunter – ein Überlauf heißt meist, dass die JSON nicht stimmt.
+
+A4 trägt seit 2026-11-13 je Kategorie zwölf Plätze (`Skillmatrix A4/Kategorie`,
+Reihen 1–6 zu je zwei, Booleans `Kompetenz 2–12`; 5–12 stehen in der Vorgabe
+aus). Die Tools-Sektion ist dieselbe Kategorie (`Einträge`), also bis zu zwölf
+Tools in einem Block auf einer Seite – wie im A4-PDF, wo der Tools-Block nicht
+umbricht. In Kandidaten-Files, die älter sind, ziehen verschachtelte
+`Einträge` das Update nicht von selbst; dort heißt die Bewertungs-Ebene teils
+`A4/Bewertung` (das Bauskript findet beide Namen).
 
 ## Lücken der Bibliothek (Stand 2026-10-08)
 

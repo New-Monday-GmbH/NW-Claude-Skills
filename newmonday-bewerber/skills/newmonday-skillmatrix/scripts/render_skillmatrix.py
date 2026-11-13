@@ -204,11 +204,11 @@ def pruefe(daten):
             hinweise.append(hinweis)
 
     tools = daten.get("tools") or []
-    hoechstens = design_system.laden()["komponenten"]["tools"]["anzahl"]
+    hoechstens = design_system.fassung(design_system.laden(), "a4")["komponenten"]["tools"]["anzahl"]
     if len(tools) > hoechstens:
         hinweise.append(
-            f"{len(tools)} Tools gesetzt — die Sektion traegt hoechstens {hoechstens} "
-            "(zwei Reihen). Die schwaechsten weglassen.")
+            f"{len(tools)} Tools gesetzt — die A4-Sektion traegt hoechstens {hoechstens} "
+            "(sechs Reihen). Die schwaechsten weglassen.")
     gruppen = [(k.get("kategorie"), k.get("skills") or []) for k in daten.get("kompetenzen") or []]
     for kategorie, _ in gruppen:
         if re.match(r"\s*tools\b", str(kategorie or ""), re.I):

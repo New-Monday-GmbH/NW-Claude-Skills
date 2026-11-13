@@ -25,8 +25,8 @@ Skript (`DEUTSCH`, `DURCHKOPPLUNG`, `GRENZFAELLE`), nicht im Pool.
   und hoechstens **fuenf Kategorien**, ueblich sind drei bis vier.
 - **`Tools` ist eine eigene Sektion**, keine Kategorie. Sie bekommt eine eigene
   Ueberschrift mit Tools-Icon wie „Kernkompetenzen" und steht **danach**; ein
-  Kategorielabel innerhalb der Sektion entfaellt. Sie traegt hoechstens sechs
-  Tools, die der Eingang nennt, und zaehlt nicht gegen die 24. Nennt der
+  Kategorielabel innerhalb der Sektion entfaellt. Sie traegt hoechstens zwoelf
+  Tools (A4), die der Eingang nennt, und zaehlt nicht gegen die 24. Nennt der
   Eingang keine, fragt der Skill in der Freigabe, ob rollentypische Tools
   ergaenzt werden sollen. Ein Tool steht nur dort und nicht noch einmal
   als Skill in den Kernkompetenzen. `Coding Skills` ist dagegen eine
