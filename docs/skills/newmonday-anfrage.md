@@ -30,7 +30,7 @@ Original-Files, Projekt für Anfrage-Files, Ablageort).
 
 - `~/Desktop/Bewerberunterlagen/Ausschreibungen/<Job ID> <Stelle>/<Vorname Nachname>/` mit
   `New Monday - Vorname Nachname - CV.pdf`, `New Monday - V. N. - CV.pdf`,
-  `… - Skillmatrix.pdf`, `… - Skillmatrix A4.pdf`, `… - Portfolio.pdf`;
+  `… - Skillmatrix A4.pdf`, `… - Portfolio.pdf` (lange Skillmatrix und anonymer CV nur auf Anfrage);
   Arbeitsdateien in `_arbeit/`
 - ein Figma-File „<Job ID> <Stelle>“ im Anfragen-Projekt, eine Seite je
   Kandidat

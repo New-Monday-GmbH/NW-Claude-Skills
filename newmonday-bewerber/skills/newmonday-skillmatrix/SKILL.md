@@ -1,17 +1,25 @@
 ---
 name: newmonday-skillmatrix
-description: Erstellt aus Lebenslauf, Portfolio und LinkedIn-Export eine Skill Matrix im New-Monday-Layout, immer in zwei Fassungen als PDF – eine lange, weblayoutartige Seite (1444 breit) und eine kompakte A4-Fassung im Format des Lebenslaufs – mit Hero (Name, Rolle, Verfügbarkeit, Foto), Zertifikaten und nach Kategorien gruppierten Kernkompetenzen mit 1–5-Punkte-Bewertung. Nutze diesen Skill immer, wenn eine Skill Matrix, Skillmatrix, Kompetenzmatrix, Kompetenzübersicht oder ein Skill-Profil erstellt, aufbereitet, vereinheitlicht oder "ins New Monday Layout gebracht" werden soll – auch wenn nur "Skill Matrix für <Name>" mit ein paar PDFs geschickt wird und das Wort "New Monday" gar nicht fällt. Gilt auch, wenn die Skill Matrix zusätzlich in ein Figma-File, als Figma-Frame oder als bearbeitbare Datei für Designer abgelegt werden soll. Für Lebensläufe ist newmonday-cv zuständig, für Portfolios newmonday-portfolio; die Skillmatrix ist das dritte Dokument im Set.
+description: Erstellt aus Lebenslauf, Portfolio und LinkedIn-Export eine Skill Matrix im New-Monday-Layout als kompakte A4-Fassung (PDF) im Format des Lebenslaufs – seit 13.11.2026 nur noch diese; die lange, weblayoutartige Seite (1444 breit) nur noch, wenn sie ausdrücklich verlangt wird – mit Hero (Name, Rolle, Verfügbarkeit, Foto), Zertifikaten und nach Kategorien gruppierten Kernkompetenzen mit 1–5-Punkte-Bewertung. Nutze diesen Skill immer, wenn eine Skill Matrix, Skillmatrix, Kompetenzmatrix, Kompetenzübersicht oder ein Skill-Profil erstellt, aufbereitet, vereinheitlicht oder "ins New Monday Layout gebracht" werden soll – auch wenn nur "Skill Matrix für <Name>" mit ein paar PDFs geschickt wird und das Wort "New Monday" gar nicht fällt. Gilt auch, wenn die Skill Matrix zusätzlich in ein Figma-File, als Figma-Frame oder als bearbeitbare Datei für Designer abgelegt werden soll. Für Lebensläufe ist newmonday-cv zuständig, für Portfolios newmonday-portfolio; die Skillmatrix ist das dritte Dokument im Set.
 ---
 
 # New Monday Skillmatrix
 
 Aus Lebenslauf, LinkedIn-Export und Portfolio wird eine Skill Matrix im
-New-Monday-Layout mit Hero, Zertifikaten und bewerteten Kernkompetenzen – in
-**zwei Fassungen, immer beide**, aus derselben `skillmatrix.json`:
+New-Monday-Layout mit Hero, Zertifikaten und bewerteten Kernkompetenzen.
+
+> **Seit 13.11.2026 nur noch die A4-Fassung (kompakt).** Gerendert, in Figma
+> abgelegt und übergeben wird nur sie. Die lange Fassung entsteht nur noch,
+> wenn der Nutzer oder der Kunde sie ausdrücklich verlangt (`--mit-lang`
+> beim Rendern, `--skript lang` in Figma). Ihre Master-Komponenten
+> (`Skillmatrix lang/…`) liegen im Master auf der Seite „Archive“. Wo unten
+> noch von beiden Fassungen die Rede ist, gilt das nur für diesen Ausnahmefall.
+
+Beide Fassungen kommen aus derselben `skillmatrix.json`:
 
 | Fassung | Format | Wofür |
 |---|---|---|
-| **lang** | eine einzige Seite, 1444pt breit, so hoch wie der Inhalt | die Webseiten-Ansicht aus dem Figma-Master, Karten mit Schatten |
+| **lang** (nur auf Anfrage) | eine einzige Seite, 1444pt breit, so hoch wie der Inhalt | die Webseiten-Ansicht aus dem Figma-Master, Karten mit Schatten |
 | **A4** | 595 × 842pt, mehrseitig, Rand, Kopf und Fuß wie im Lebenslauf | zum Drucken und Anhängen; Zeilen statt Karten, 10pt Fließtext |
 
 Beide haben denselben Inhalt – dieselbe Auswahl, Reihenfolge, Bündelung der
@@ -70,8 +78,8 @@ LinkedIn- und Website-Foto), Ausgabe gehört ins Arbeitsverzeichnis des
 Nutzers bzw. nach `/mnt/user-data/outputs/`, nie in den Skill-Ordner.
 
 **Die A4-Fassung braucht WeasyPrint** (laufende Kopfzeile, gemessener Fuß);
-auf dem Ausweichweg über Chrome entsteht nur die lange, und das Renderskript
-sagt das. **Kundendokumente entstehen immer mit WeasyPrint** – nur dort sind
+auf dem Ausweichweg über Chrome entsteht gar keine (die lange nur mit
+`--mit-lang`), und das Renderskript sagt das. **Kundendokumente entstehen immer mit WeasyPrint** – nur dort sind
 die PDFs barrierefrei (PDF/UA-1) und klein. Was der Ausweichweg erzeugt, ist
 Vorschau: das Skript warnt („WARNUNG: … NICHT barrierefrei“), und so geht es
 nicht raus. Fehlt WeasyPrint, die Installation anstoßen statt auszuliefern.
@@ -96,7 +104,7 @@ Skills vor; im Einzellauf gilt er nicht.
 | Schritt 0 | aus `auftrag.json` |
 |---|---|
 | Sprache | `sprache` |
-| Figma | Die Frames (lang und A4) entstehen, wenn `figma.aktiv` true ist – eine eigene Frage danach gibt es nicht. `figma.link` trägt die `node-id` der Kandidatenseite, also gilt „Zielseite“ mit `node-id` (`references/figma.md`). |
+| Figma | Die A4-Seiten entstehen, wenn `figma.aktiv` true ist – eine eigene Frage danach gibt es nicht. `figma.link` trägt die `node-id` der Kandidatenseite, also gilt „Zielseite“ mit `node-id` (`references/figma.md`). |
 | Material | `material` – Zertifikate aus dem Ordner `material.zertifikate`; je Datei ein Eintrag, Titel, Aussteller und Datum vom Zertifikat abgelesen, neueste zuerst |
 | Verfügbarkeit | wandert in die Fragen der Phase *vorbereiten* |
 | Anfrage | `anfrage.zeile` aus `auftrag.json`, wörtlich als `anfrage` in die `skillmatrix.json` (Schritt 3); fehlt `anfrage` oder ist es `null`, gilt die Reihenfolge ohne Anfrage |
@@ -184,10 +192,9 @@ die Namen so wählen, dass sie auch als Listeneintrag im Lebenslauf stehen
 können, und eine Änderung an der Liste nach der Übergabe als Grund nennen, den
 Lebenslauf neu zu bauen. `pruefe_lauf.py` vergleicht beide Listen.
 
-Schritt 4 rendert beide Fassungen nach `<laufordner>/ausgabe/` – zwei PDFs. Schritt
-4a läuft, wenn `figma.aktiv` true ist, und legt beide ab: den langen Frame und
-rechts daneben die A4-Seiten. Die Rückgabe nennt beide PDFs und als node-id den
-langen Frame und die A4-Seiten. Die Übergabe aus Schritt 5 geht
+Schritt 4 rendert die A4-Fassung nach `<laufordner>/ausgabe/`. Schritt
+4a läuft, wenn `figma.aktiv` true ist, und legt die A4-Seiten ab. Die Rückgabe
+nennt das A4-PDF und als node-id die A4-Seiten. Die Übergabe aus Schritt 5 geht
 nach `uebergabe.md`: Hero-Beschreibung und die **endgültige** Matrix-Tabelle
 unter „Zur Freigabe“ – nach einer Änderung ist das die einzige Stelle, an der der
 Nutzer sie sieht –, Abweichungen unter „Quellen weichen ab“, der Rest unter
@@ -322,8 +329,8 @@ Arbeitsverzeichnis ist das des Nutzers; relative Pfade wie
    > sie dort ab, sonst auf einer neuen Seite. Ich brauche **Bearbeitungs**rechte
    > auf der Datei – Leserechte reichen nicht.
 
-   Die Frames entstehen erst nach dem Rendern, siehe Schritt 4a – der lange und
-   daneben die A4-Seiten. Drei Regeln dazu:
+   Die Frames entstehen erst nach dem Rendern, siehe Schritt 4a – die
+   A4-Seiten. Drei Regeln dazu:
 
    - **Kommt „Ja" ohne Link**, wird er einmal im Fließtext nachgefragt – nicht
      über eine dritte `AskUserQuestion`-Nachricht.
@@ -841,19 +848,22 @@ Dazu:
   nachziehen. Die Vorlagenreihenfolge nur übernehmen, wenn sie zum Profil
   passt.
 
-### 4. Rendern — beide Fassungen in einem Aufruf
+### 4. Rendern — die A4-Fassung
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/render_skillmatrix.py skillmatrix.json ausgabe/
 ```
 
+Das rendert nur die A4-Fassung. Die lange kommt nur mit `--mit-lang` dazu –
+und nur, wenn sie ausdrücklich verlangt wurde.
+
 **Die Dateinamen setzt das Skript**, nicht der Aufruf: es baut sie aus
-`person.name` zusammen und legt beide Dateien im
+`person.name` zusammen und legt die Dateien im
 angegebenen Ordner ab.
 
 ```
-New Monday - Vorname Nachname - Skillmatrix.pdf      (lang)
 New Monday - Vorname Nachname - Skillmatrix A4.pdf   (A4)
+New Monday - Vorname Nachname - Skillmatrix.pdf      (lang, nur mit --mit-lang)
 ```
 
 Steht im Aufruf trotzdem ein Dateiname, gilt davon nur der Ordner — das
@@ -904,7 +914,7 @@ Fehlende Schriftdateien fängt das Skript schon vor dem Rendern ab; dann
 entsteht gar kein PDF. Ein sauberer Lauf endet mit „Design System
 eingehalten" und „Barrierefrei (PDF/UA-1 …); lang … KB, A4 … KB".
 
-**Beide Ergebnisse ansehen, bevor sie rausgehen** – immer, nicht nur bei
+**Das Ergebnis ansehen, bevor es rausgeht** (mit `--mit-lang` beide) – immer, nicht nur bei
 Warnungen:
 
 ```bash
@@ -931,10 +941,10 @@ dem Haar?
 Entfällt, wenn in Schritt 0 „Nein" kam oder kein Link vorliegt. **Die PDFs sind
 an dieser Stelle fertig** und gehen so oder so raus.
 
-Auch in Figma entstehen **beide Fassungen**: der lange Frame und **rechts
-daneben die A4-Seiten** – je PDF-Seite eine („Skillmatrix A4 — Vorname
-Nachname — Seite n“), 100 Abstand zum langen Frame und untereinander, oben
-bündig mit ihm. Die Seitenaufteilung kommt aus dem A4-PDF, wie beim
+In Figma entstehen **nur die A4-Seiten** – je PDF-Seite eine („Skillmatrix A4 —
+Vorname Nachname — Seite n“), 100 Abstand untereinander. Den langen Frame
+nur, wenn die lange Fassung ausdrücklich verlangt wurde (dann die A4-Seiten
+rechts daneben, oben bündig). Die Seitenaufteilung kommt aus dem A4-PDF, wie beim
 Lebenslauf.
 
 **Beide entstehen aus Instanzen der Master-Bibliothek** („Portfolio - CV
@@ -948,15 +958,15 @@ Properties, Mengen und bekannte Lücken in `references/figma.md`.
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py skillmatrix.json arbeit/ \
-        --pdf "ausgabe/New Monday - … - Skillmatrix.pdf" \
         --pdf-a4 "ausgabe/New Monday - … - Skillmatrix A4.pdf"
 python3 ${CLAUDE_SKILL_DIR}/scripts/figma_plan.py --skript vorflug arbeit/ --seite <ID>
 ```
 
 Danach in dieser Reihenfolge, je ein Aufruf: **Vorflug** (Seiten, Schriften,
 ein Import per Key) → **ein `upload_assets`** für alle Bilder, Hashes per
-`figma_assets.py --bilder` → **lang** und **A4** (`--skript lang|a4 … --bilder
-arbeit/bilder.json` gibt den fertigen `use_figma`-Code aus) → ein
+`figma_assets.py --bilder` → **A4** (`--skript a4 … --bilder
+arbeit/bilder.json` gibt den fertigen `use_figma`-Code aus; `--skript lang` nur
+auf ausdrückliche Anfrage) → ein
 `get_screenshot` je Frame. Figma begrenzt die Aufrufe je Sitz – nichts
 zwischendurch nachsehen, was die Rückgabe schon sagt.
 
@@ -1003,7 +1013,7 @@ Vier Dinge stehen fest:
 
 ### 5. Übergeben
 
-Beide PDFs ausgeben und in wenigen Zeilen berichten:
+Das A4-PDF ausgeben und in wenigen Zeilen berichten:
 
 - Die generierte Hero-Beschreibung im Wortlaut (falls seit der Freigabe
   geändert), mit Bitte um finalen Blick – ebenso Satz und Tags der Karte
@@ -1026,9 +1036,8 @@ Beide PDFs ausgeben und in wenigen Zeilen berichten:
   den Hinweisen, samt Sammelkachel) – und bei einer Anfrage die gewählte
   Reihenfolge der Kategorien samt Anfrage, sonst dass eine KI-Kategorie nach
   vorn gerückt ist, falls das Skript das gemeldet hat.
-- **Beide PDFs** mit ihrem Dateinamen; bei der A4-Fassung die Seitenzahl.
-- **Die Figma-Frames**, falls gewünscht: der Link auf den langen Frame und auf
-  die A4-Seiten (`…?node-id=…`) und auf welcher Seite der Datei sie liegen –
+- **Das A4-PDF** mit Dateinamen und Seitenzahl (die lange nur, wenn verlangt).
+- **Die Figma-Frames**, falls gewünscht: der Link auf die A4-Seiten (`…?node-id=…`) und auf welcher Seite der Datei sie liegen –
   und ob sie aus der Bibliothek kommen oder roh gebaut wurden (mit Grund), dazu
   die Lücken der Bibliothek, die gegriffen haben (`references/figma.md`). Ist
   einer nicht zustande gekommen, steht hier stattdessen der Grund in einem Satz. Weicht
@@ -1046,10 +1055,9 @@ Fehlt nichts, steht hier nichts.
 
 ## Was fest steht und nicht zur Disposition steht
 
-- **Zwei Fassungen, immer beide**, aus derselben `skillmatrix.json`: die lange
-  (1444 breit, eine Seite) und die A4-Fassung (595 × 842, mehrseitig) – als PDF
-  und, wenn gewünscht, als Figma-Frames. Keine Fassung allein, kein Inhalt, der
-  nur in einer steht.
+- **Nur die A4-Fassung** (595 × 842, mehrseitig) – als PDF und, wenn gewünscht,
+  als Figma-Seiten. Die lange (1444 breit, eine Seite) nur auf ausdrückliche
+  Anfrage; dann aus derselben `skillmatrix.json`, mit demselben Inhalt.
 - **A4: Rand, Kopf und Fuß wie im Lebenslauf.** Logo auf jeder Seite, das Badge
   oben rechts auf Seite 1, der Fuß unten auf der letzten Seite; Fließtext 10pt;
   Kernkompetenzen und Tools als Zeilen ohne Karten in zwei Spalten, die

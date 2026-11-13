@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Rendert skillmatrix.json in beiden Fassungen zu zwei PDFs.
+"""Rendert skillmatrix.json zur A4-Fassung (mit --mit-lang auch zur langen).
 
     python3 scripts/render_skillmatrix.py daten/skillmatrix.json ausgabe/
+    python3 scripts/render_skillmatrix.py daten/skillmatrix.json ausgabe/ --mit-lang
 
-Es entstehen immer beide Fassungen, aus derselben JSON:
+Seit 2026-11-13 entsteht standardmaessig nur die A4-Fassung; die lange nur,
+wenn sie ausdruecklich verlangt wird (--mit-lang). Beide aus derselben JSON:
 
   - lang: "New Monday - Vorname Nachname - Skillmatrix.pdf" - eine
     einzige lange Seite, so breit wie der Figma-Frame der Vorlage (1444pt), so
@@ -1039,7 +1041,9 @@ def main():
     # --pfad-genau nimmt den Zielpfad wie angegeben — nur fuer Tests, die eine
     # bekannte Datei wieder aufmachen. Im normalen Lauf gilt der Namensaufbau.
     genau = "--pfad-genau" in sys.argv[1:]
-    args = [a for a in sys.argv[1:] if a != "--pfad-genau"]
+    # Seit 2026-11-13 nur noch A4; die lange Fassung nur auf ausdrueckliche Anfrage.
+    mit_lang = "--mit-lang" in sys.argv[1:]
+    args = [a for a in sys.argv[1:] if a not in ("--pfad-genau", "--mit-lang")]
     if len(args) < 2:
         raise SystemExit(__doc__)
     quelle = Path(args[0])
@@ -1066,51 +1070,53 @@ def main():
     ziel.parent.mkdir(parents=True, exist_ok=True)
     breite = design["komponenten"]["seite"]["breite"]
 
-    try:
-        engine, hoehe, schatten, layout_hinweise, zert_hoehe = rendern_weasyprint(
-            daten, design, ziel, zplan)
-        hinweise += layout_hinweise
-        print(f"Seitenformat: {breite} x {hoehe}pt, {schatten} Kartenschatten")
-        if zplan and zert_hoehe is not None:
-            hinweise += zert_hoehe_pruefen(zplan, zert_hoehe)
-    except ImportError:
-        # Ausweichweg: Hoehe am Bild messen (letzte nicht weisse Pixelzeile).
-        # Die 2pt Reserve decken den Messfehler der Rasterung — lieber eine
-        # haarduenne weisse Kante als ein abgeschnittener Footer.
-        engine = rendern_ausweich(html_bauen(daten, VORRAT_HOEHE, design, zplan=zplan), ziel)
-        hoehe = inhaltshoehe_messen(ziel)
-        if hoehe is None:
-            hinweise.append(
-                f"Inhaltshoehe nicht messbar (weder PyMuPDF noch pdftoppm+Pillow) — "
-                f"die Seite bleibt auf Vorratshoehe {VORRAT_HOEHE}pt und traegt unten "
-                "viel Weissraum. pruefe_umgebung.py zeigt, was fehlt.")
-        else:
-            hoehe = round(hoehe + 2)
-            engine = rendern_ausweich(html_bauen(daten, hoehe, design, zplan=zplan), ziel)
-            print(f"Seitenformat: {breite} x {hoehe}pt")
-        print("WARNUNG: Ausweichweg ohne WeasyPrint — dieses PDF ist NICHT barrierefrei "
-              "(kein PDF/UA, keine Tags, Bilder ungebremst) und geht so nicht an Kunden. "
-              "WeasyPrint installieren (pruefe_umgebung.py) und neu rendern.", file=sys.stderr)
-        hinweise.append("WARNUNG: nicht barrierefrei (Ausweichweg ohne WeasyPrint) — nur zur Vorschau, "
-                        "Kundendokumente entstehen mit WeasyPrint.")
-        if zplan:
-            hinweise.append(
-                f"Zertifikatssektion auf dem Ausweichweg nicht vermessen — geplant "
-                f"{zplan['hoehe']:g}pt (Grenze {zplan['grenze']}). In der Vorschau pruefen.")
-
-    seiten = seitenzahl(ziel)
-    if seiten > 1:
-        hinweise.append(
-            f"Das PDF hat {seiten} Seiten statt einer — der Inhalt ist hoeher als "
-            "die gesetzte Seitenhoehe. Das darf nicht passieren, bitte melden.")
-
-    print(f"{ziel} geschrieben (Engine: {engine})")
-
-    fehler, design_hinweise = design_system.pruefe_pdf(ziel, design)
-    hinweise += design_hinweise
     sprache = daten.get("sprache", "de")
-    if engine == "WeasyPrint":
-        fehler += design_system.pruefe_barrierefrei(ziel, "lang", sprache)
+    engine, fehler = "WeasyPrint", []
+    if mit_lang:
+        try:
+            engine, hoehe, schatten, layout_hinweise, zert_hoehe = rendern_weasyprint(
+                daten, design, ziel, zplan)
+            hinweise += layout_hinweise
+            print(f"Seitenformat: {breite} x {hoehe}pt, {schatten} Kartenschatten")
+            if zplan and zert_hoehe is not None:
+                hinweise += zert_hoehe_pruefen(zplan, zert_hoehe)
+        except ImportError:
+            # Ausweichweg: Hoehe am Bild messen (letzte nicht weisse Pixelzeile).
+            # Die 2pt Reserve decken den Messfehler der Rasterung — lieber eine
+            # haarduenne weisse Kante als ein abgeschnittener Footer.
+            engine = rendern_ausweich(html_bauen(daten, VORRAT_HOEHE, design, zplan=zplan), ziel)
+            hoehe = inhaltshoehe_messen(ziel)
+            if hoehe is None:
+                hinweise.append(
+                    f"Inhaltshoehe nicht messbar (weder PyMuPDF noch pdftoppm+Pillow) — "
+                    f"die Seite bleibt auf Vorratshoehe {VORRAT_HOEHE}pt und traegt unten "
+                    "viel Weissraum. pruefe_umgebung.py zeigt, was fehlt.")
+            else:
+                hoehe = round(hoehe + 2)
+                engine = rendern_ausweich(html_bauen(daten, hoehe, design, zplan=zplan), ziel)
+                print(f"Seitenformat: {breite} x {hoehe}pt")
+            print("WARNUNG: Ausweichweg ohne WeasyPrint — dieses PDF ist NICHT barrierefrei "
+                  "(kein PDF/UA, keine Tags, Bilder ungebremst) und geht so nicht an Kunden. "
+                  "WeasyPrint installieren (pruefe_umgebung.py) und neu rendern.", file=sys.stderr)
+            hinweise.append("WARNUNG: nicht barrierefrei (Ausweichweg ohne WeasyPrint) — nur zur Vorschau, "
+                            "Kundendokumente entstehen mit WeasyPrint.")
+            if zplan:
+                hinweise.append(
+                    f"Zertifikatssektion auf dem Ausweichweg nicht vermessen — geplant "
+                    f"{zplan['hoehe']:g}pt (Grenze {zplan['grenze']}). In der Vorschau pruefen.")
+
+        seiten = seitenzahl(ziel)
+        if seiten > 1:
+            hinweise.append(
+                f"Das PDF hat {seiten} Seiten statt einer — der Inhalt ist hoeher als "
+                "die gesetzte Seitenhoehe. Das darf nicht passieren, bitte melden.")
+
+        print(f"{ziel} geschrieben (Engine: {engine})")
+
+        fehler, design_hinweise = design_system.pruefe_pdf(ziel, design)
+        hinweise += design_hinweise
+        if engine == "WeasyPrint":
+            fehler += design_system.pruefe_barrierefrei(ziel, "lang", sprache)
 
     # Die A4-Fassung aus denselben Daten: dieselbe Reihenfolge der Kategorien,
     # dieselben Zertifikatskacheln und Buendel.

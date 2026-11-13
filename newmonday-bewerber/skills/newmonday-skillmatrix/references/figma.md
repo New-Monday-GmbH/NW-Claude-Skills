@@ -3,7 +3,10 @@
 Beide Fassungen entstehen in Figma aus **Instanzen der veröffentlichten
 Master-Bibliothek** „Portfolio - CV Master“ (fileKey `oezbaw261xDwxthPuX3ZpS`):
 der lange Frame aus Kopfzeile, Hero, Rumpf und Fuß, die A4-Fassung als je eine
-Instanz `Skillmatrix A4/Seite` pro PDF-Seite. Befüllt wird nur über
+Instanz `Skillmatrix A4/Seite` pro PDF-Seite. **Seit 13.11.2026 wird nur noch
+die A4-Fassung gebaut**; die langen Komponenten liegen im Master archiviert auf
+der Seite „Archive“ (Section `4001:11602`) und kommen nur noch auf
+ausdrückliche Anfrage zum Einsatz. Befüllt wird nur über
 Component-Properties, exponierte verschachtelte Instanzen und Bild-Overrides.
 Ändert jemand im Master eine Komponente, kommt die Änderung per
 Bibliotheks-Update in jede Kandidatendatei – deshalb wird **nie eine Instanz
@@ -193,9 +196,9 @@ In der Übergabe nennen, wenn sie greifen; behoben werden sie im Master:
 ## Den Katalog neu auslesen
 
 Wenn sich im Master Komponenten, Keys oder Property-Namen ändern (Abbruch
-„hat keine Eigenschaft“ oder `fehler` „nicht gefunden“). Je Komponentenseite
-ein lesender Aufruf im Master (`Components - Skillmatrix` `0:1`,
-`Components – Skillmatrix kompakt` `4359:3572`), Rückgabe kompakt halten –
+„hat keine Eigenschaft“ oder `fehler` „nicht gefunden“). Ein lesender Aufruf auf der
+Komponentenseite im Master (`Components – Skillmatrix kompakt` `4359:3572`; die
+archivierten langen Komponenten liegen auf `Archive` `4276:3886`), Rückgabe kompakt halten –
 `use_figma` gibt höchstens 20 KB zurück:
 
 ```js
@@ -227,7 +230,7 @@ Daraus `komponenten` in `master-bibliothek.json` nachziehen (Kurzformen:
 Ändert sich der Aufbau (neue Slots, andere Namen exponierter Instanzen), ziehen
 `scripts/figma_bibliothek.py` und `grenzen` mit. Danach einmal beide Fassungen
 in einer Testdatei bauen und gegen die Testbefüllungen im Master
-(`4328:2839`, `4381:8605`) halten.
+(lang `4328:2839` auf Archive, A4 `4381:8605`) halten.
 
 ## Wenn es schiefgeht
 

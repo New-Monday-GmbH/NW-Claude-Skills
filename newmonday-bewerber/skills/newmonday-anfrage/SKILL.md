@@ -1,6 +1,6 @@
 ---
 name: newmonday-anfrage
-description: Passt die bestehenden New-Monday-Unterlagen der passendsten Kandidaten auf eine konkrete Ausschreibung an – Lebenslauf (voll und anonym), Skill Matrix (lang und A4) und Portfolio als PDF und in einem neuen Figma-File je Anfrage, in das die Frames aus dem Original-File kopiert und dort angepasst statt neu gebaut werden. Liest die Ausschreibung aus dem Chat und das neueste Matching-Artifact aus Claude Chat, lässt die Top 3 bestätigen, liest den Bestand jedes Kandidaten aus seinem Original-Figma-File, schmückt Bestehendes realistisch aus, ergänzt erwartbare Methoden, fragt Technik nach, entfernt nichts und erfindet keine Projekte. Nutze diesen Skill immer, wenn eine Ausschreibung, Stellenbeschreibung, Projektanfrage oder Job ID kommt und dazu Unterlagen für Kandidaten entstehen oder angepasst werden sollen – „mach die Unterlagen zu dieser Ausschreibung“, „pass die Mappe auf die Stelle an“, „Unterlagen für Job ID …“, „das selbe für diese Stellenbeschreibung“ – auch wenn nur eine Ausschreibung eingefügt wird. Für eine allgemeine Mappe ohne Ausschreibung ist newmonday-bewerbermappe zuständig, für das Matching selbst newmonday-matching.
+description: Passt die bestehenden New-Monday-Unterlagen der passendsten Kandidaten auf eine konkrete Ausschreibung an – Lebenslauf (voll; anonym nur auf Anfrage), Skill Matrix (nur A4 kompakt) und Portfolio als PDF und in einem neuen Figma-File je Anfrage, in das die Frames aus dem Original-File kopiert und dort angepasst statt neu gebaut werden. Liest die Ausschreibung aus dem Chat und das neueste Matching-Artifact aus Claude Chat, lässt die Top 3 bestätigen, liest den Bestand jedes Kandidaten aus seinem Original-Figma-File, schmückt Bestehendes realistisch aus, ergänzt erwartbare Methoden, fragt Technik nach, entfernt nichts und erfindet keine Projekte. Nutze diesen Skill immer, wenn eine Ausschreibung, Stellenbeschreibung, Projektanfrage oder Job ID kommt und dazu Unterlagen für Kandidaten entstehen oder angepasst werden sollen – „mach die Unterlagen zu dieser Ausschreibung“, „pass die Mappe auf die Stelle an“, „Unterlagen für Job ID …“, „das selbe für diese Stellenbeschreibung“ – auch wenn nur eine Ausschreibung eingefügt wird. Für eine allgemeine Mappe ohne Ausschreibung ist newmonday-bewerbermappe zuständig, für das Matching selbst newmonday-matching.
 ---
 
 # New Monday Anfrage
@@ -150,8 +150,9 @@ Je gewähltem Kandidat, nacheinander:
    kopiert der Nutzer. In einer Nachricht nennt der Skill je Kandidat die
    Bestands-Frames aus Phase 2, Punkt 3, mit Name und Link aufs
    Original-File (`figma.com/design/<key>?node-id=<id>`):
-   - Lebenslauf voll und anonym, alle Seiten,
-   - Skill Matrix lang und A4,
+   - Lebenslauf voll, alle Seiten (den anonymen nur, wenn Nutzer oder
+     Vermittler ihn verlangen),
+   - Skill Matrix A4 (die lange entfällt seit 13.11.2026),
    - den Portfolio-Sammelrahmen.
 
    Darunter steht die Bitte: auswählen, Cmd+C, auf der Seite „Vorname
@@ -207,7 +208,7 @@ Je Kandidat:
 
 1. **Nichts entfernt:**
    `python3 ${CLAUDE_SKILL_DIR}/scripts/vergleich.py eingang/bestand/<datei>.json <skill>/<datei>.json`
-   für cv, cv-anonym, skillmatrix, portfolio. Freigegebene Kürzungen als
+   für cv, skillmatrix, portfolio (cv-anonym nur, wenn gebaut). Freigegebene Kürzungen als
    `--ausnahmen` (eine alte Fassung je Zeile). Meldet es etwas, den Bauen-
    Subagenten einmal mit `Änderung des Nutzers: Wieder aufnehmen: <Liste>`
    nachfassen.
@@ -216,8 +217,9 @@ Je Kandidat:
    weiß es nicht, verneint).
 3. **PDFs einsammeln:**
    `python3 ${CLAUDE_SKILL_DIR}/scripts/ablage.py einsammeln "<ablage>/<Anfrage>/<Kandidat>"`
-   → `New Monday - Vorname Nachname - CV.pdf`, `New Monday - V. N. - CV.pdf`,
-   `… - Skillmatrix.pdf`, `… - Skillmatrix A4.pdf`, `… - Portfolio.pdf`.
+   → `New Monday - Vorname Nachname - CV.pdf`, `… - Skillmatrix A4.pdf`,
+   `… - Portfolio.pdf` (anonymer CV `New Monday - V. N. - CV.pdf` und lange
+   `… - Skillmatrix.pdf` nur, wenn ausdrücklich verlangt).
 
 Dann **eine** Gesamtübergabe wie newmonday-bewerbermappe Phase 6, je
 Kandidat ein Abschnitt, dazu: Link aufs Anfrage-File, Ordner der PDFs,
