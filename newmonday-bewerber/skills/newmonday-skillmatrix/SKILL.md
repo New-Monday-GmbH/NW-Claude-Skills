@@ -782,8 +782,8 @@ Dazu:
 - **`person.foto`**: der Zuschnitt der langen Fotokarte (`foto-<name>.png`). Den
   A4-Zuschnitt (`foto-<name>-a4.png`) findet das Renderskript daneben;
   `person.foto_a4` nur, wenn er anders heißt oder woanders liegt (Schritt 1a).
-- **`tools`**: die Tools-Sektion nach den Kernkompetenzen, höchstens sechs
-  Einträge, gleicher Aufbau wie ein Skill. Fehlt der Schlüssel oder ist die
+- **`tools`**: die Tools-Sektion nach den Kernkompetenzen, höchstens zwölf
+  Einträge (A4, ein Block auf einer Seite; die lange Fassung trägt sechs), gleicher Aufbau wie ein Skill. Fehlt der Schlüssel oder ist die
   Liste leer, entfällt die Sektion (PDF und Figma).
 - **`zertifikate`**: je Zertifikat ein Eintrag, **neueste zuerst** – auch
   Kurse einer Reihe einzeln, gebündelt wird nur vom Skript und nur bei

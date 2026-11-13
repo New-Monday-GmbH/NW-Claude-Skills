@@ -1,5 +1,5 @@
 {
- "_hinweis": "Komponenten der veroeffentlichten Master-Bibliothek, aus denen figma_plan.py die Figma-Fassungen baut (references/figma.md). Ausgelesen per use_figma am 2026-10-08, A4 gegengeprueft 2026-11-13 (unveraendert). Property-Namen samt #-Suffix sind fest - aendert sich der Master, diese Datei neu auslesen (Rezept in references/figma.md, 'Den Katalog neu auslesen').",
+ "_hinweis": "Komponenten der veroeffentlichten Master-Bibliothek, aus denen figma_plan.py die Figma-Fassungen baut (references/figma.md). Ausgelesen per use_figma am 2026-10-08, A4 gegengeprueft 2026-11-13; 'Skillmatrix A4/Kategorie' am 2026-11-13 auf 12 Kompetenzen erweitert (Reihen 4-6) und neu ausgelesen. Property-Namen samt #-Suffix sind fest - aendert sich der Master, diese Datei neu auslesen (Rezept in references/figma.md, 'Den Katalog neu auslesen').",
  "datei": {
   "name": "Portfolio - CV Master",
   "fileKey": "oezbaw261xDwxthPuX3ZpS",
@@ -54,8 +54,8 @@
   },
   "a4": {
    "kategorien_je_seite": 5,
-   "kompetenzen_je_kategorie": 6,
-   "tools": 6,
+   "kompetenzen_je_kategorie": 12,
+   "tools": 12,
    "kacheln": 12,
    "qualifikations_tags": 10,
    "schwerpunkte": 4
@@ -1037,6 +1037,30 @@
     "Kompetenz 6#4378:11": {
      "typ": "BOOLEAN",
      "vorgabe": false
+    },
+    "Kompetenz 7#4517:0": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kompetenz 8#4517:1": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kompetenz 9#4517:2": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kompetenz 10#4517:3": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kompetenz 11#4517:4": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
+    },
+    "Kompetenz 12#4517:5": {
+     "typ": "BOOLEAN",
+     "vorgabe": false
     }
    },
    "exponiert": [
@@ -1047,8 +1071,15 @@
     "Kompetenz 4",
     "Kompetenz 5",
     "Kompetenz 6",
+    "Kompetenz 7",
+    "Kompetenz 8",
+    "Kompetenz 9",
+    "Kompetenz 10",
+    "Kompetenz 11",
+    "Kompetenz 12",
     "Label"
-   ]
+   ],
+   "_aufbau": "Zeilen: Reihe 1-6 zu je zwei Kompetenzen; Reihe n und ihre Kompetenzen haengen am Boolean der ersten (Reihe 4 -> Kompetenz 7). Kompetenz 1 ohne Boolean."
   },
   "Skillmatrix A4/Zertifikate": {
    "id": "4378:7236",

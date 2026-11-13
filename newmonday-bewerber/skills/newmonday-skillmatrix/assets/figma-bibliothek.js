@@ -37,7 +37,8 @@ async function schriften(k) {
 // darunter, eine gemerkte Referenz waere danach tot.
 function aufloesen(wurzel, pfad) {
   let n = wurzel;
-  for (const s of pfad) { n = finde(n, s, true); if (!n) return null; }
+  // Neuere Instanzen heissen teils nach der Komponente ("A4/Bewertung" statt "Bewertung").
+  for (const s of pfad) { n = finde(n, s, true) || finde(n, "A4/" + s, true); if (!n) return null; }
   return n;
 }
 
