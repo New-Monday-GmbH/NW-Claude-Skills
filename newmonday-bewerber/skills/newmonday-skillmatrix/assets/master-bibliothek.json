@@ -1,12 +1,13 @@
 {
- "_hinweis": "Komponenten der veroeffentlichten Master-Bibliothek, aus denen figma_plan.py die Figma-Fassungen baut (references/figma.md). Ausgelesen per use_figma am 2026-10-08. Property-Namen samt #-Suffix sind fest - aendert sich der Master, diese Datei neu auslesen (Rezept in references/figma.md, 'Den Katalog neu auslesen').",
+ "_hinweis": "Komponenten der veroeffentlichten Master-Bibliothek, aus denen figma_plan.py die Figma-Fassungen baut (references/figma.md). Ausgelesen per use_figma am 2026-10-08, A4 gegengeprueft 2026-11-13 (unveraendert). Property-Namen samt #-Suffix sind fest - aendert sich der Master, diese Datei neu auslesen (Rezept in references/figma.md, 'Den Katalog neu auslesen').",
  "datei": {
   "name": "Portfolio - CV Master",
   "fileKey": "oezbaw261xDwxthPuX3ZpS",
   "seiten": {
    "lang": {
-    "id": "0:1",
-    "name": "Components - Skillmatrix"
+    "id": "4276:3886",
+    "name": "Archive",
+    "_hinweis": "Seit 2026-11-13 archiviert (Section 4001:11602); nur noch fuer --mit-lang. Der Attribut-Pool liegt weiter auf 0:1 'Skillmatrix – Attribut-Pool'."
    },
    "a4": {
     "id": "4359:3572",

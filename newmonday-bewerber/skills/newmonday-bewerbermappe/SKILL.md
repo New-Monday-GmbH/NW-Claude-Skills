@@ -501,9 +501,9 @@ Skill-Repos vorher festhalten und danach vergleichen wie in Phase 3. Nach jedem:
 2. Status in `auftrag.json` setzen und die gemeldeten PDFs in `ausgabe/`
    nachsehen.
 3. Eine Statuszeile: „Lebenslauf fertig – 2 PDFs, Figma auf der Seite.“ Die
-   Skill Matrix liefert ebenfalls zwei PDFs, die lange und die A4-Fassung, und
-   in Figma den langen Frame mit den A4-Seiten rechts daneben: „Skill Matrix
-   fertig – 2 PDFs (lang, A4), Figma auf der Seite.“
+   Skill Matrix liefert seit 13.11.2026 nur die A4-Fassung (die lange nur auf
+   ausdrückliche Anfrage), in Figma die A4-Seiten: „Skill Matrix fertig –
+   A4-PDF, Figma auf der Seite.“
 
 Scheitert einer, geht es mit dem nächsten weiter; nachgefragt wird nicht.
 
@@ -515,7 +515,7 @@ für Abschnitt zusammen, Punkt 6 kommt aus `status` in `auftrag.json`. Alles in
 einer Nachricht:
 
 1. **Fertig: Vorname Nachname** – die Dateien aus `ausgabe/` (von der Skill
-   Matrix beide Fassungen, lang und A4) und der Link auf die Figma-Seite. Ist Figma bei einem Dokument gescheitert, steht hier der Grund –
+   Matrix die A4-Fassung) und der Link auf die Figma-Seite. Ist Figma bei einem Dokument gescheitert, steht hier der Grund –
    die PDFs sind trotzdem da. Darunter eine Zeile zur Anfrage: „Ausgerichtet
    auf: <anfrage.zeile> – Matching bestanden“, bei `matching.trotzdem` statt
    dessen ganz oben „Ohne bestandenes Matching gebaut: <Gründe>“, ohne Anfrage

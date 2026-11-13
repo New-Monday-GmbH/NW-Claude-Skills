@@ -5,7 +5,7 @@ Die Skillmatrix entsteht in **zwei Fassungen, immer beide**, aus derselben
 (595 × 842, mehrseitig). Die lange folgt dem New-Monday-Design-System der
 Figma-Masterdatei `Portfolio - CV Master` – heute die Komponenten
 `Skillmatrix lang/…` auf „Components - Skillmatrix“ (`0:1`), befüllt zu sehen
-in `4328:2839` auf der Seite **Skillmatrix**; die A4-Fassung ist im Abschnitt „Die A4-Fassung“ unten hergeleitet.
+in `4328:2839` (seit 13.11.2026 auf der Seite **Archive**); die A4-Fassung ist im Abschnitt „Die A4-Fassung“ unten hergeleitet.
 Alle Werte stehen **einmal**, in `assets/tokens.json`, unter den Namen der
 Figma-Library – die der A4-Fassung im Block `a4`, der Farben, Abstände und
 Schriften von oben mitbenutzt (`design_system.fassung(ds, "a4")`). Von dort
