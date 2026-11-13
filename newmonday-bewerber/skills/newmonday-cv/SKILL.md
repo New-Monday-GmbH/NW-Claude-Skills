@@ -716,10 +716,15 @@ steht die UX-Rolle vorn, bei einem Entwicklerlebenslauf die Entwicklerrolle. Fü
 alles andere trägt der Nutzer über "Other" seinen eigenen Titel bzw. Monat ein –
 etwa `Senior Frontend Developer` oder `Januar 2027`.
 
-**Dieselbe Antwort wählt das Layout.** Software Development Specialist – oder
-ein eigener Entwicklertitel über "Other" – heißt `"layout": "entwickler"` in der
-`cv.json` (Schritt 2, „Das Entwickler-Layout“). Für UX-Profile bleibt es beim
-bisherigen Layout; das Feld fehlt dann oder steht auf `"ux"`.
+**Dieselbe Antwort wählt das Layout: Alles, was keine UX-Rolle ist, bekommt das
+Entwickler-Layout.** Software Development Specialist und jeder eigene Titel über
+"Other", der keine UX-Rolle ist – Entwickler, aber ebenso Business Analyst, Data
+Analyst, Data Engineer, Projektmanager, Consultant und andere technische oder
+fachliche Profile –, heißt `"layout": "entwickler"` in der `cv.json` (Schritt 2,
+„Das Entwickler-Layout“). Nur UX-Profile (UX/UI Design, User Research, Service-
+und Produktdesign) behalten das bisherige Layout; das Feld fehlt dann oder steht
+auf `"ux"`. Im Zweifel – die Rolle ist weder klar UX noch klar etwas anderes –
+gilt das Entwickler-Layout.
 
 **Bis die Antworten da sind, wird nicht gebaut.** Titel und Zeitraum der ersten
 Station lassen sich nicht nachträglich einsetzen, ohne Erfahrungsjahre und
@@ -959,8 +964,9 @@ und nicht als einzelner Bullet in `aufgaben`. Beides zusammen geht auch.
 #### Das Entwickler-Layout (technische Profile)
 
 Für Entwicklerprofile gibt es ein eigenes Layout (freigegeben am 03.11.2026),
-**nicht für UX-Profile**. Es gilt, wenn die NM-Rolle aus Schritt 0 die
-Entwicklerrolle ist; dann steht in der `cv.json` `"layout": "entwickler"`.
+**nicht für UX-Profile**. Es gilt für jede NM-Rolle aus Schritt 0, die keine
+UX-Rolle ist – die Entwicklerrolle ebenso wie Business-, Data- oder andere
+technische und fachliche Rollen; dann steht in der `cv.json` `"layout": "entwickler"`.
 Vollständiges Beispiel: `beispiel/cv-entwickler.json`.
 
 Der Aufbau steht fest:
@@ -1133,7 +1139,8 @@ Die Bausteine werden **wörtlich übernommen**, nicht auf die Person zugeschnitt
 nicht mit Technologien aus ihrem Lebenslauf angereichert und nicht umformuliert.
 Sie beschreiben die Rolle bei New Monday, nicht den Menschen. Trägt der Nutzer
 über "Other" einen eigenen Titel ein, wird der Satz genommen, der inhaltlich
-näher liegt.
+näher liegt – bei jeder Rolle, die keine UX-Rolle ist, also der des
+Entwicklerprofils, passend zum Layout.
 
 Dazu gehört:
 

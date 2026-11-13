@@ -69,6 +69,8 @@ import zertifikate  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
 KATALOG = ROOT / "references" / "attribute-katalog.md"
+# Rollenkataloge fuer Rollen, die keine UX-Rolle sind (SKILL.md, Schritt 2a) - gleiches Format.
+ROLLEN = ROOT / "references" / "rollen"
 
 # Jedes PDF ist barrierefrei (PDF/UA-1: getaggt, Sprache, Titel) und klein:
 # Bilder nur in der Aufloesung, die sie im Layout brauchen. Gilt fuer beide
@@ -319,6 +321,18 @@ VERWANDT_ATTRIBUT = {
 }
 
 
+def katalog_fuer(kompetenzen):
+    """Der Katalog der Matrix: der Rollenkatalog, der die meisten ihrer Kategorien
+    fuehrt, sonst der UX-Katalog."""
+    namen = {str(k.get("kategorie") or "") for k in kompetenzen}
+    beste, treffer = KATALOG, 0
+    for pfad in sorted(ROLLEN.glob("*.md")) if ROLLEN.is_dir() else []:
+        n = len(namen & set(katalog_laden(pfad)[1]))
+        if n > treffer:
+            beste, treffer = pfad, n
+    return beste
+
+
 def katalog_pruefen(daten):
     """Kategorien und Namen gegen den Katalog (SKILL.md, Schritt 2a). Ein
     Katalog-Attribut steht in seiner Katalog-Kategorie, wenn die in der Matrix
@@ -327,15 +341,16 @@ def katalog_pruefen(daten):
     Hoechstens fuenf Kategorien, sechs Skills je Kategorie, 24 insgesamt."""
     if not KATALOG.exists():
         return [f"Katalog nicht gefunden: {KATALOG} — Kategorien und Namen ungeprueft."]
-    attribute, kategorien = katalog_laden()
+    kompetenzen = daten.get("kompetenzen") or []
+    pfad = katalog_fuer(kompetenzen)
+    attribute, kategorien = katalog_laden(pfad)
     sprache = daten.get("sprache", "de")
-    hinweise = []
-    unbekannt = ({k for k in VERWANDT} | {v for vs in list(VERWANDT.values())
+    hinweise = [] if pfad == KATALOG else [f"Rollenkatalog: {pfad.name}."]
+    unbekannt = set() if pfad != KATALOG else ({k for k in VERWANDT} | {v for vs in list(VERWANDT.values())
                                           + list(VERWANDT_ATTRIBUT.values()) for v in vs}) - set(kategorien)
     if unbekannt:
         hinweise.append("VERWANDT in render_skillmatrix.py nennt Kategorien, die der Katalog nicht "
                         "mehr fuehrt: " + ", ".join(sorted(unbekannt)) + " — nachziehen.")
-    kompetenzen = daten.get("kompetenzen") or []
     je_kategorie = 2 * design_system.laden()["komponenten"]["skillraster"]["spalten"]
     in_matrix = {str(k.get("kategorie") or ""): len(k.get("skills") or []) for k in kompetenzen}
     if len(kompetenzen) > MAX_KATEGORIEN:
@@ -366,9 +381,9 @@ def katalog_pruefen(daten):
         kategorie = str(k.get("kategorie") or "")
         skills = k.get("skills") or []
         if kategorie not in kategorien:
-            hinweise.append(f"Kategorie „{kategorie}“ steht nicht im Katalog — Kategorien werden "
-                            "nicht erfunden (SKILL.md, Schritt 2a): "
-                            + ", ".join(kategorien) + ".")
+            hinweise.append(f"Kategorie „{kategorie}“ steht nicht im Katalog {pfad.name} — Kategorien "
+                            "kommen aus dem Katalog der Rolle; fuer eine neue Rolle einen Rollenkatalog "
+                            "anlegen (SKILL.md, Schritt 2a): " + ", ".join(kategorien) + ".")
         if len(skills) > je_kategorie:
             hinweise.append(f"Kategorie „{kategorie}“ hat {len(skills)} Skills — hoechstens "
                             f"{je_kategorie} (zwei Reihen).")
