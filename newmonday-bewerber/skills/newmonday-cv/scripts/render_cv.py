@@ -146,7 +146,17 @@ SPRACH_VORGABE = {
     "en": ((("deutsch", "german"), "German", "Native speaker"),
            (("englisch", "english"), "English", "Business level")),
 }
-SPRACH_TRENNER = " – "
+SPRACH_TRENNER = " – "  # nur noch zum Einlesen alter Eintraege
+
+
+def sprache_anzeige(teil, niveau):
+    """Sprache (Niveau) – Vorgabe vom 15.11.2026. Eine Klammer im Niveau wird
+    zum Komma, damit keine Klammer in der Klammer steht:
+    "Muttersprachen-Niveau (C2)" -> "Englisch (Muttersprachen-Niveau, C2)"."""
+    if not niveau:
+        return teil
+    n = re.sub(r"\s*\(([^()]*)\)\s*$", r", \1", " ".join(str(niveau).split())).strip(" ,")
+    return f"{teil} ({n})"
 
 # Die Verweise im Profilkopf werden benannt, nicht als Adresse gesetzt: "zum
 # LinkedIn Profil" statt "linkedin.com/in/timo-muster". In einem Dokument, das
@@ -459,9 +469,7 @@ def sprachen_mit_vorgabe(eintraege, sprache="de"):
 
     def anzeige(r):
         eintrag, teil, niveau = r
-        if isinstance(eintrag, dict):
-            return f"{teil}{SPRACH_TRENNER}{niveau}" if niveau else teil
-        return " ".join(str(eintrag).split())
+        return sprache_anzeige(teil, niveau)
 
     kopf, hinweise = [], []
     for namen, name, niveau in SPRACH_VORGABE.get(sprache, SPRACH_VORGABE["de"]):
@@ -474,12 +482,12 @@ def sprachen_mit_vorgabe(eintraege, sprache="de"):
             continue
         alt = einzeln[0][2] if einzeln else None
         if alt is None:
-            hinweise.append(f"Sprachen: „{name}{SPRACH_TRENNER}{niveau}“ ergänzt — "
+            hinweise.append(f"Sprachen: „{sprache_anzeige(name, niveau)}“ ergänzt — "
                             "Vorgabe, im Material nicht genannt.")
         elif alt.lower() != niveau.lower():
             hinweise.append(f"Sprachen: {name} steht als „{niveau}“ (Vorgabe) — im "
                             f"Material stand {f'„{alt}“' if alt else 'kein Niveau'}.")
-        kopf.append(f"{name}{SPRACH_TRENNER}{niveau}")
+        kopf.append(sprache_anzeige(name, niveau))
         rest = [r for r in rest if r not in einzeln]
     return kopf + [anzeige(r) for r in rest], hinweise
 
