@@ -53,25 +53,30 @@
 {% if skillset %}
 <div class="section">
   <h2>{{ t.skillset }}</h2>
-  {# Float statt Flex: reicht Seite 1 nicht, muessen die Spalten auf die
-     naechste Seite umbrechen koennen. Ein Flex-Container springt als Ganzes. #}
-  <div class="cols cols--fliessend">
-    <div class="stack">
-      {% for g in skillset.links %}
-      <div class="skillgroup">
-        <h3>{{ g.titel }}</h3>
-        <ul class="tight">{% for e in g.eintraege %}<li>{{ e }}</li>{% endfor %}</ul>
+  {# Themenzeilen (B2, 15.11.2026): je Gruppe eine Zeile, links das Label (h3),
+     rechts der Wert als Fliesstext. Ein Eintrag bricht nicht in sich um
+     (nowrap), zwischen zwei Eintraegen schon - nach dem Mittelpunkt. Die
+     Faehigkeiten stehen in Themen (h4), wenn render_cv.py welche liefert.
+     Lesereihenfolge im getaggten PDF: Label, dann Wert. #}
+  {% macro fliess(eintraege) %}{% for e in eintraege %}<span class="skill__e">{{ e }}</span>{% if not loop.last %}&#160;&#160;·&#160; {% endif %}{% endfor %}{% endmacro %}
+  <div class="skills">
+    {% for z in skillset %}
+    <div class="skill">
+      <h3 class="skill__label">{{ z.titel }}</h3>
+      <div class="skill__wert">
+        {% if z.themen %}
+        {% for th in z.themen %}
+        <div class="skill__thema">
+          <h4>{{ th.titel }}</h4>
+          <p>{{ fliess(th.eintraege) }}</p>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>{{ fliess(z.eintraege) }}</p>
+        {% endif %}
       </div>
-      {% endfor %}
     </div>
-    <div class="stack">
-      {% for g in skillset.rechts %}
-      <div class="skillgroup">
-        <h3>{{ g.titel }}</h3>
-        <ul class="tight">{% for e in g.eintraege %}<li>{{ e }}</li>{% endfor %}</ul>
-      </div>
-      {% endfor %}
-    </div>
+    {% endfor %}
   </div>
 </div>
 {% endif %}

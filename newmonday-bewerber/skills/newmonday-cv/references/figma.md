@@ -69,7 +69,7 @@ Scheitert das Anlegen, hält es die PDFs nicht auf — es gilt, was unter
 
 Jede Seite des Lebenslaufs ist eine Instanz von `CV/Seite` aus dem Master; in
 ihren Slot „Inhalt“ kommen Instanzen von `CV/Profilkopf`, `CV/Bildung`,
-`CV/Zertifikate`, `CV/Skillset`, `CV/Kurzprofil`, `CV/Station`, `CV/Projekt`,
+`CV/Zertifikate`, `CV/Skillset Themen`, `CV/Kurzprofil`, `CV/Station`, `CV/Projekt`,
 `CV/Aufgabenliste`, `A4/Abschnittstitel`, `A4/Trennlinie` — dazwischen
 `CV/Abstand` mit dem Token-Namen als Variante. Befüllt wird nur über
 Component-Properties, exponierte verschachtelte Instanzen (Einträge, Tags,
@@ -200,9 +200,10 @@ auseinanderlaufen können sie nur über die Daten.
 
 ## Mengengrenzen
 
-Die Komponenten haben feste Plätze: 12 Einträge je Skillset-Gruppe, 12
-Punkte je Aufgabenliste, 16 Zertifikate, 6 Bildungseinträge, 4 Verweise, 6
-Logos je Station und je Projekt. `figma_plan.py` prüft das vorher:
+Die Komponenten haben feste Plätze: 5 Themen im Skillset (der ganze
+Wortschatz), 12 Punkte je Aufgabenliste, 16 Zertifikate, 6 Bildungseinträge, 4
+Verweise, 6 Logos je Station und je Projekt. Die Skillset-Einträge selbst sind
+Fließtext und haben keine Grenze mehr. `figma_plan.py` prüft das vorher:
 
 - **Aufgaben und Zertifikate** werden verteilt — eine zweite Aufgabenliste
   direkt darunter, eine zweite `CV/Zertifikate` ohne Titel nach
@@ -210,6 +211,32 @@ Logos je Station und je Projekt. `figma_plan.py` prüft das vorher:
 - **Alles andere wird gemeldet**, und es entsteht kein `figma_bau.js`.
   Abgeschnitten wird nichts: Dann gilt der rohe Weg, und die Meldung gehört in
   die Übergabe — mit dem Vorschlag, im Master einen Platz mehr anzulegen.
+
+## Das Skillset: `CV/Skillset Themen` (seit 15.11.2026)
+
+Variante B2 – Themenzeilen. Eine Komponente ohne exponierte Instanzen, befüllt
+nur über Properties (Namen samt `#`-Suffix in `master-bibliothek.json`,
+`skillset_themen`):
+
+| Property | Typ | Was |
+|---|---|---|
+| `Fähigkeiten/Tools/Branchen/Sprachen anzeigen` | Boolean | Zeile ein/aus (leere Gruppe → aus) |
+| `Label Fähigkeiten/Tools/Branchen/Sprachen` | Text | Label in der Dokumentsprache („Skills“, „Industries“, …) |
+| `Themen anzeigen` / `Fließtext anzeigen` | Boolean | Fähigkeiten in Themen **oder** als ein Fließtext (höchstens vier) |
+| `Fähigkeiten` | Text | der Fließtext, wenn es keine Themen gibt |
+| `Thema n anzeigen`, `Thema n Titel`, `Thema n Einträge` (n = 1–5) | Boolean, Text, Text | je Thema, in der Reihenfolge des Wortschatzes; der Titel im Wortlaut, Versalien macht die Komponente |
+| `Tools`, `Branchen`, `Sprachen` | Text | die Werte als Fließtext |
+
+Alle Werte kommen fertig aus dem Plan (`render_cv.fliesstext`): geschützte
+Leerzeichen, geschützter Bindestrich, Wortverbinder nach „/“ und „–“, so dass
+Figma genau wie das PDF nur zwischen zwei Einträgen umbricht. Nichts davon von
+Hand nachtippen – ein normales Leerzeichen bricht dort, wo das PDF es nicht tut.
+
+**Rückfall `CV/Skillset`** (2 × 2 Listen aus `CV/Skillset-Gruppe`, 12 Einträge je
+Gruppe): bleibt im Master, weil Kandidatendateien von vor dem 15.11.2026 es
+nutzen. `figma_plan.py` baut es nicht mehr. Wer eine solche Datei anpasst,
+tauscht die Instanz gegen `CV/Skillset Themen` und befüllt sie nach dieser
+Tabelle.
 
 ## Was in der Datei passiert
 
@@ -488,7 +515,7 @@ sagt die Art:
 | `rubrik` | Eine Zeile Überschrift aus `text` im Stil des Blocks |
 | `bildung` | Zwei Spalten `spaltenbreite`, `spaltenabstand` auseinander, Umbruch nach zwei Einträgen mit `reihenabstand` dazwischen; je Eintrag `abschluss` und `zeilen` (Einrichtung, Zeitraum) – Studieninhalte gibt es nicht mehr |
 | `zertifikate` | Titel „Zertifikate“ (`titel`, `abstand_unten`), darunter je Eintrag in `eintraege` ein Tag, nebeneinander mit Umbruch, siehe „Die Zertifikats-Tags“ |
-| `skillset` | Zwei Spalten aus `spalten`, je Gruppe `titel` (`abstand_unten`) und `eintraege` im Stil `liste`, `gruppenabstand` zwischen den Gruppen |
+| `skillset` | Je Eintrag in `zeilen` eine horizontale Zeile (`zeile_innen` oben und unten, ab der zweiten `linie` oben): Label `titel` im Stil `label` (fest `label.breite`), `label.abstand`, dann der Wert im Stil `wert` – entweder `text` (Fließtext) oder je Thema in `themen` der Titel im Stil `thema` (Versalien), `thema_eintraege` darunter dessen `text`, `themenabstand` zwischen den Themen |
 | `profil` | Ein Absatz über die volle Inhaltsbreite |
 | `trennlinie` | Eine Linie über die volle Breite, `staerke` pt, Farbe `farbe` (Hex) |
 | `station` | Horizontal: `rail` (fest `rail.breite`, Logos **rechtsbündig**, `rail.oben` als `paddingTop`, `rail.abstand` zwischen gestapelten Logos), `spaltenabstand`, dann in `koerperbreite` untereinander `titel`, `firma`, `zeitraum`, `absaetze` — jedes mit seinem `abstand_oben` |
@@ -514,7 +541,7 @@ lässt sich zwar setzen und auch wieder auslesen, bleibt aber wirkungslos. Ob ei
 Liste vorliegt, sagt `getRangeListOptions(0, n.characters.length)`; einen
 `listOptions`-Getter am Knoten gibt es nicht.
 
-**Die Skillset-Listen nicht nach der Designvorlage nachbauen.** Dort stehen sie auf
+**Die Skillset-Listen** (nur noch Rückfall `CV/Skillset` und Entwickler-Layout) **nicht nach der Designvorlage nachbauen.** Dort stehen sie auf
 25 % Zeilenhöhe plus 10pt Listenabstand; umbricht ein Eintrag, laufen seine Zeilen
 3pt auseinander ineinander. Der Plan setzt 13pt Zeilenhöhe und `listSpacing` 0 —
 dasselbe Bild, ohne die Falle. Warum die Abstände zu Titel und nächster Gruppe
