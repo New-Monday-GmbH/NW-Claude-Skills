@@ -1236,8 +1236,12 @@ Zum Modell:
     Sprachen oder andere Niveaus nennt (Vorgabe vom 29.09.2026, gleich wie im
     Portfolio). In `sprachen` gehören die weiteren Sprachen mit ihrem Niveau
     ("Französisch – Grundkenntnisse" oder `{"sprache", "niveau"}`). Steht dort
-    Deutsch oder Englisch mit anderem Niveau, ersetzt die Vorgabe es und
-    `render_cv.py` meldet das.
+    Deutsch oder Englisch mit anderem Niveau, gilt: **ein höheres Niveau aus dem
+    Material bleibt** (Vorgabe vom 15.11.2026, z. B. „Englisch
+    (Muttersprachen-Niveau, C2)“), ein gleiches oder niedrigeres ersetzt die
+    Vorgabe („fließend“, „C1“, „B2“ → „Business Niveau“). `render_cv.py`
+    meldet beides. Rangfolge: A1/A2/Grundkenntnisse < B1 < B2/gut <
+    C1/Business/fließend/verhandlungssicher < C2/Muttersprache.
   - **Schreibweise immer „Sprache (Niveau)“** (Vorgabe vom 15.11.2026):
     „Deutsch (Muttersprache)“, „Französisch (B2)“, englisch „German (Native
     speaker)“. Das Renderskript setzt das selbst, egal wie die `cv.json` es

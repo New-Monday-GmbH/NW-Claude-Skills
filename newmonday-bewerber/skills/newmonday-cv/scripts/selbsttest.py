@@ -787,6 +787,16 @@ def pruefe_skillset(tmp):
     if zeilen[2:] != ["Französisch (B2)", "Spanisch (Grundkenntnisse, A2)"]:
         fehler.append(f"Skillset: Sprachen nicht als Sprache (Niveau) — {zeilen}")
 
+    # Ein hoeheres Niveau aus dem Material schlaegt die Vorgabe, ein gleiches
+    # oder niedrigeres nicht (Vorgabe vom 15.11.2026).
+    zeilen, hinweise = sprachen_mit_vorgabe(["Englisch – Muttersprachen-Niveau (C2)"])
+    if "Englisch (Muttersprachen-Niveau, C2)" not in zeilen or not any("höher als die Vorgabe" in h for h in hinweise):
+        fehler.append(f"Skillset: höheres Englisch-Niveau nicht übernommen — {zeilen}")
+    for niedriger in ("Englisch (fließend)", "Englisch: B2", "Englisch – C1"):
+        zeilen, _ = sprachen_mit_vorgabe([niedriger])
+        if "Englisch (Business Niveau)" not in zeilen:
+            fehler.append(f"Skillset: „{niedriger}“ schlägt die Vorgabe, ist aber nicht höher — {zeilen}")
+
     # Eine leere Gruppe faellt weg und wird gemeldet.
     zeilen, hinweise = skillset_zeilen({"skillset": {"faehigkeiten": ["X"], "tools": ["T"]}})
     if [z["titel"] for z in zeilen] != ["Fähigkeiten", "Tools", "Sprachen"] or \

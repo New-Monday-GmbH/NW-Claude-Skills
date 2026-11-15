@@ -149,6 +149,26 @@ SPRACH_VORGABE = {
 SPRACH_TRENNER = " – "  # nur noch zum Einlesen alter Eintraege
 
 
+# Rangfolge der Sprachniveaus (Vorgabe vom 15.11.2026: ein im Material belegtes
+# hoeheres Niveau schlaegt die Vorgabe, ein gleiches oder niedrigeres nicht).
+NIVEAU_RANG = (
+    (5, ("mutterspr", "native", "c2", "zweisprachig", "bilingual")),
+    (4, ("c1", "business", "verhandlungssicher", "fließend", "fliessend", "fluent",
+         "sehr gut", "professional", "proficient")),
+    (3, ("b2", "gut", "good", "upper intermediate")),
+    (2, ("b1", "intermediate", "konversation", "conversational")),
+    (1, ("a1", "a2", "grund", "basic", "elementary", "beginner")),
+)
+
+
+def niveau_rang(niveau):
+    """Rang 1-5 eines Sprachniveaus, None wenn unbekannt. Der hoechste Treffer
+    zaehlt ("Muttersprachen-Niveau (C2)" -> 5)."""
+    n = " ".join(str(niveau or "").lower().split())
+    treffer = [rang for rang, woerter in NIVEAU_RANG if any(w in n for w in woerter)]
+    return max(treffer) if treffer else None
+
+
 def sprache_anzeige(teil, niveau):
     """Sprache (Niveau) – Vorgabe vom 15.11.2026. Eine Klammer im Niveau wird
     zum Komma, damit keine Klammer in der Klammer steht:
@@ -484,6 +504,12 @@ def sprachen_mit_vorgabe(eintraege, sprache="de"):
         if alt is None:
             hinweise.append(f"Sprachen: „{sprache_anzeige(name, niveau)}“ ergänzt — "
                             "Vorgabe, im Material nicht genannt.")
+        elif alt and (niveau_rang(alt) or 0) > (niveau_rang(niveau) or 0):
+            hinweise.append(f"Sprachen: {name} bleibt „{alt}“ — höher als die Vorgabe "
+                            f"„{niveau}“, im Material belegt.")
+            kopf.append(sprache_anzeige(name, alt))
+            rest = [r for r in rest if r not in einzeln]
+            continue
         elif alt.lower() != niveau.lower():
             hinweise.append(f"Sprachen: {name} steht als „{niveau}“ (Vorgabe) — im "
                             f"Material stand {f'„{alt}“' if alt else 'kein Niveau'}.")
