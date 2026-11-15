@@ -74,16 +74,16 @@ Skript (`DEUTSCH`, `DURCHKOPPLUNG`, `GRENZFAELLE`), nicht im Pool.
 
 1. **UX Strategy & Product Discovery** (9)
 2. **User Research & Insights** (13)
-3. **Interaction & Visual Design** (11)
-4. **UI Design & Visual Systems** (8)
-5. **Design Systems & Scaling** (8)
+3. **Interaction & Visual Design** (13)
+4. **UI Design & Visual Systems** (10)
+5. **Design Systems & Scaling** (10)
 6. **Usability Testing & Evaluation** (10)
 7. **Accessibility & Inclusive Design** (3)
-8. **Agile Product Delivery** (7)
+8. **Agile Product Delivery** (8)
 9. **Stakeholder Management & Facilitation** (8)
-10. **Development Collaboration** (7)
-11. **AI & Emerging Tech** (11)
-12. **Tools** (11)
+10. **Development Collaboration** (8)
+11. **AI & Emerging Tech** (17)
+12. **Tools** (22)
 13. **Coding Skills** (10)
 
 Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens fuenf — die, die das Profil belegt — und dazu optional `Tools`. Gibt es eine Anfrage (Ausschreibung, Projektbeschreibung, Kundenwunsch), steht die Kategorie zuerst, die fuer sie am wichtigsten ist, danach absteigend nach Bedeutung fuer die Anfrage; ohne Anfrage eine KI-Kategorie zuerst, danach die staerkste (SKILL.md, Schritt 2a).
@@ -137,6 +137,8 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 | UX Writing |  | Klare und hilfreiche Interfacetexte verfassen. |
 | Emotional Design |  | Emotionale Ansprache der Zielgruppe. |
 | Ideation |  | Erste Ansätze zur Erstellung oder Überarbeitung von Anwendungen. |
+| Concept Development | Konzeption | Ideen zu validierten und tragfähigen Konzepten ausarbeiten. |
+| Platform Guidelines | Plattform-Guidelines | Gestaltung nach den Plattform-Guidelines für Web, Mobile und Desktop. |
 
 ## UI Design & Visual Systems
 
@@ -150,6 +152,8 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 | UI & Pattern Libraries |  | Aufbau wiederverwendbarer Designkomponenten. |
 | Figma Component Systems | Figma-Komponentensysteme | Pflege von Komponenten, Varianten und Variablen. |
 | UI Quality Assurance | UI-Qualitätssicherung | Prüfung und Verbesserung der visuellen Qualität. |
+| Brand Design | Brand-Design | Markenauftritte und Corporate-Design-Richtlinien gestalten und sichern. |
+| Dashboard Design | Dashboard-Design | Dashboards und Datenvisualisierungen für komplexe technische Daten gestalten. |
 
 ## Design Systems & Scaling
 
@@ -163,6 +167,8 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 | Documentation | Dokumentation | Erstellung klarer Designrichtlinien. |
 | Cross Platform Consistency | Plattformübergreifende Konsistenz | Einheitliche Erlebnisse über Plattformen hinweg sicherstellen. |
 | UX/UI Scaling | UX/UI-Skalierung | Ausweitung des Designs auf große Ökosysteme. |
+| Design System Testing | Design-System-Testing | Validierung von Komponenten hinsichtlich Konsistenz, manuell und automatisiert. |
+| AI for Design Systems |  | KI-gestützte Prozesse und Werkzeuge in der Design-System-Arbeit. |
 
 ## Usability Testing & Evaluation
 
@@ -198,6 +204,7 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 | Sprint Support | Sprint-Begleitung | Begleitung der Entwicklungszyklen. |
 | MVP Delivery | *Grenzfall, bleibt englisch (dt. „MVP-Entwicklung“)* | Launch früher Produktversionen. |
 | Iterative Improvement | Iterative Verbesserung | Laufende Optimierung von Produkten. |
+| Scrum |  | Mitarbeit in Scrum-Teams über den gesamten Sprint-Zyklus. |
 
 ## Stakeholder Management & Facilitation
 
@@ -223,6 +230,7 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 | Design QA | Design-QA | Sicherstellung der korrekten Umsetzung. |
 | Feasibility Assessment | Machbarkeitsprüfung | Einschätzung der technischen Machbarkeit. |
 | Design to Code |  | Überführung von Designs in produktiven Code. |
+| CMS Integration | CMS-Integration | Inhalte und Komponenten in CMS-basierte Websites einbinden. |
 
 ## AI & Emerging Tech
 
@@ -239,6 +247,12 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 | Ethical AI Design | Ethical-AI-Design | Umgang mit Bias, Fairness und Vertrauen. |
 | AI Prototyping |  | Schnellere Konzeptentwicklung mit KI. |
 | AI Integration |  | Einbindung von KI in Produkte. |
+| Vibe Coding |  | KI-gestützte Entwicklung, iteratives Prototyping. |
+| Skills Setup |  | Einsatz von KI entlang des gesamten UX-, Design- und Entwicklungsprozesses. |
+| Subagent Setup |  | Konzeption und Konfiguration spezialisierter KI-Subagenten für definierte Aufgaben. |
+| Guardrails |  | Definition von Regeln und Sicherheitsmechanismen für zuverlässige KI-Systeme. |
+| AI UI Design | AI-UI-Design | Anwendung von KI zum Erstellen, Iterieren und Prototyping von UI-Design. |
+| AI Workflows & Agents |  | Design- und Entwicklungs-Workflows mit KI-Agenten aufbauen. |
 
 ## Tools
 
@@ -255,6 +269,17 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 | Hotjar |  | Heatmaps und Nutzeraufzeichnungen auswerten. |
 | Git |  | Versionierung und Zusammenarbeit im Repository. |
 | UXPin |  | Interaktive Prototypen mit echten Frontendkomponenten bauen. |
+| Jira |  | Tickets und Sprints im agilen Team planen. |
+| Confluence |  | Konzepte, Designs und Projekte dokumentieren. |
+| Linear |  | Tickets im agilen Team planen und verfolgen. |
+| Webflow |  | Websites visuell aufbauen und per CMS pflegen. |
+| Framer |  | Interaktive Websites und Prototypen gestalten. |
+| Sketch |  | Interface-Design und Prototyping. |
+| Miro |  | Online-Whiteboard für die gemeinsame Arbeit im Team. |
+| Maze |  | Usability-Tests mit interaktiven Prototypen planen und auswerten. |
+| FlutterFlow |  | Oberflächen für Flutter-Apps im Low-Code-Builder gestalten. |
+| Affinity Designer |  | Vektorgrafiken, Illustrationen und Layouts für Print und Web. |
+| Microsoft Office |  | Präsentationen und Auswertungen erstellen. |
 
 ## Coding Skills
 

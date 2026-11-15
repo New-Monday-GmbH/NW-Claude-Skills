@@ -72,6 +72,9 @@ DEUTSCH = {
     "UX Specifications": "UX-Spezifikationen",
     "Frontend Understanding": "Frontend-Verständnis",
     "Feasibility Assessment": "Machbarkeitsprüfung",
+    # Pool-Erweiterung 2026-11-15 aus den fuenf erweiterten Skill-Matrix-Kopien
+    "Concept Development": "Konzeption",
+    "Platform Guidelines": "Plattform-Guidelines",
 }
 
 # Durchkopplung (SKILL.md, Schritt 0; Entscheidung des Nutzers 2026-10-06):
@@ -100,6 +103,12 @@ DURCHKOPPLUNG = {
     "AI Powered UX": "AI-Powered UX",
     "Prompt Design": "Prompt-Design",
     "Ethical AI Design": "Ethical-AI-Design",
+    # Pool-Erweiterung 2026-11-15
+    "AI UI Design": "AI-UI-Design",
+    "Brand Design": "Brand-Design",
+    "Dashboard Design": "Dashboard-Design",
+    "Design System Testing": "Design-System-Testing",
+    "CMS Integration": "CMS-Integration",
 }
 
 # Grenzfaelle: Der englische Name bleibt, die deutsche Alternative steht als
