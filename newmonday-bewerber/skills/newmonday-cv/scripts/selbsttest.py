@@ -358,8 +358,10 @@ def pruefe_gleicher_titel(tmp):
     daten = json.loads((WURZEL / "beispiel" / "cv.json").read_text(encoding="utf-8"))
     rolle = daten["stationen"][0]["titel"]
     daten["person"]["rolle"] = rolle
-    # So viel Skillset, dass es sicher nicht auf Seite 1 passt.
-    daten["skillset"]["faehigkeiten"] = [f"Eintrag {i}" for i in range(36)]
+    # So viel Skillset, dass es sicher nicht auf Seite 1 passt - als
+    # Fliesstext stehen sechs kurze Eintraege in einer Zeile.
+    daten["skillset"]["faehigkeiten"] = [f"Eintrag {i}" for i in range(300)]
+    daten["skillset"].pop("faehigkeiten_themen", None)
     quelle = Path(tmp) / "gleicher-titel.json"
     quelle.write_text(json.dumps(daten, ensure_ascii=False), encoding="utf-8")
     ziel = Path(tmp) / "gleicher-titel.pdf"
@@ -650,36 +652,42 @@ def pruefe_projektlogos(tmp):
     return fehler
 
 
-# Die Sollwerte stehen hier und nicht aus render_cv.py gelesen: die vier Gruppen
-# in ihrer Anordnung (Vorgabe vom 29.09.2026) und die Sprachvorgabe.
-SKILLSET_SOLL = {"de": [["Fähigkeiten", "Branchen"], ["Tools", "Sprachen"]],
-                 "en": [["Skills", "Industries"], ["Tools", "Languages"]]}
+# Die Sollwerte stehen hier und nicht aus render_cv.py gelesen: die vier Zeilen
+# in ihrer Reihenfolge (B2, 15.11.2026), die Sprachvorgabe und der
+# Themen-Wortschatz.
+SKILLSET_SOLL = {"de": ["Fähigkeiten", "Tools", "Branchen", "Sprachen"],
+                 "en": ["Skills", "Tools", "Industries", "Languages"]}
 SPRACHEN_SOLL = {"de": ["Deutsch – Muttersprache", "Englisch – Business Niveau"],
                  "en": ["German – Native speaker", "English – Business level"]}
+THEMEN_SOLL = {"de": ["Strategie & Research", "Konzeption & Gestaltung", "Design Systems & Qualität",
+                      "Zusammenarbeit & Arbeitsweise", "KI & Technologie"],
+               "en": ["Strategy & Research", "Concept & Design", "Design Systems & Quality",
+                      "Collaboration & Ways of Working", "AI & Technology"]}
 
 
 def pruefe_skillset(tmp):
-    """Hat das Skillset immer dieselben vier Gruppen, 2 x 2, mit der Sprachvorgabe?
+    """Steht das Skillset als Themenzeilen (B2), mit der Sprachvorgabe?
 
-    Vorgabe vom 29.09.2026: In jedem Lebenslauf stehen Faehigkeiten, Branchen,
-    Tools und Sprachen — links Faehigkeiten und Branchen, rechts Tools und
-    Sprachen. Deutsch – Muttersprache und Englisch – Business Niveau stehen
-    immer drin, auch wenn das Material sie nicht nennt oder ein anderes Niveau
-    angibt; weitere Sprachen bleiben mit ihrem Niveau. Vorher trug jeder
-    Lebenslauf andere Gruppen. Geprueft wird am gerenderten PDF (Titel, Lage,
-    Sprachzeilen) und an der Aufbereitung (alte cv.json, Englisch, Luecken).
+    Vorgabe vom 29.09.2026: In jedem Lebenslauf stehen Faehigkeiten, Tools,
+    Branchen und Sprachen; Deutsch – Muttersprache und Englisch – Business
+    Niveau immer, weitere Sprachen mit ihrem Niveau. Seit dem 15.11.2026 als
+    Themenzeilen: untereinander, Label links (80pt), Wert rechts als
+    Fliesstext, die Faehigkeiten in Themen aus festem Wortschatz. Geprueft wird
+    am gerenderten PDF (Labels, Lage, Themen, Text) und an der Aufbereitung
+    (alte cv.json, Englisch, Luecken, Themenregeln).
     """
     sys.path.insert(0, str(WURZEL / "scripts"))
     import tokens
-    from render_cv import skillset_gruppen, sprachen_mit_vorgabe
+    from render_cv import skillset_zeilen, sprachen_mit_vorgabe, fliesstext, SKILL_TRENNER
     t = tokens.laden()
     fehler = []
 
     # Das Material nennt Englisch mit anderem Niveau, Deutsch gar nicht, dazu
-    # Franzoesisch — und Figma steht doppelt.
+    # Franzoesisch — und Figma steht doppelt. Die Themen in falscher Reihenfolge.
     daten = json.loads((WURZEL / "beispiel" / "cv.json").read_text(encoding="utf-8"))
     daten["skillset"]["sprachen"] = ["Englisch (C1)", "Französisch – Grundkenntnisse"]
     daten["skillset"]["tools"] = list(daten["skillset"]["tools"]) + ["Figma"]
+    daten["skillset"]["faehigkeiten_themen"].reverse()
     quelle = Path(tmp) / "skillset.json"
     quelle.write_text(json.dumps(daten, ensure_ascii=False), encoding="utf-8")
     ziel = Path(tmp) / "skillset.pdf"
@@ -695,38 +703,46 @@ def pruefe_skillset(tmp):
     rubrik = next((l for l in seite1 if l["text"] == "Skillset"), None)
     if rubrik is None:
         return ["Skillset: Rubrik steht nicht auf Seite 1"]
-    stil = tokens.stil("gruppe")
-    titel = {l["text"]: l for l in seite1 if l["y"] > rubrik["y"]
-             and _schriftname(l["schrift"]) == _schriftname(tokens.postscript("gruppe"))
-             and round(l["groesse"], 1) == stil["groesse"]}
-    soll = SKILLSET_SOLL["de"]
-    erwartet = [n for spalte in soll for n in spalte]
-    if sorted(titel) != sorted(erwartet):
-        return [f"Skillset: Gruppen {sorted(titel)} statt {sorted(erwartet)}"]
-    links = t["seite"]["rand_links"]
-    rechts = links + t["abgeleitet"]["halbe_spalte"] + t["raster"]["spaltenabstand"]
-    for x, spalte in ((links, soll[0]), (rechts, soll[1])):
-        oben, unten = titel[spalte[0]], titel[spalte[1]]
-        if abs(oben["x"] - x) > 0.3 or abs(unten["x"] - x) > 0.3:
-            fehler.append(f"Skillset: {spalte[0]}/{spalte[1]} stehen nicht in der Spalte bei "
-                          f"x = {x:.0f}pt")
-        if not unten["y"] > oben["y"]:
-            fehler.append(f"Skillset: {spalte[1]} steht nicht unter {spalte[0]}")
-    if abs(titel[soll[0][0]]["y"] - titel[soll[1][0]]["y"]) > 0.3:
-        fehler.append(f"Skillset: {soll[0][0]} und {soll[1][0]} stehen nicht auf einer Hoehe")
 
-    sprachzeilen = [l["text"] for l in sorted(seite1, key=lambda l: l["y"])
-                    if l["y"] > titel[soll[1][1]]["y"] and l["x"] > rechts
-                    and l["text"] not in ("•", "")]
-    erwartet = SPRACHEN_SOLL["de"] + ["Französisch – Grundkenntnisse"]
-    if sprachzeilen[:3] != erwartet:
-        fehler.append(f"Skillset: Sprachen {sprachzeilen[:3]} statt {erwartet}")
-    tools = [l for l in seite1 if l["text"] == "Figma" and l["x"] > rechts]
-    if len(tools) != 1:
-        fehler.append(f"Skillset: 'Figma' steht {len(tools)}-mal unter Tools statt einmal")
+    def im_stil(name):
+        st = tokens.stil(name)
+        return [l for l in sorted(seite1, key=lambda l: l["y"]) if l["y"] > rubrik["y"]
+                and _schriftname(l["schrift"]) == _schriftname(tokens.postscript(name))
+                and round(l["groesse"], 1) == st["groesse"]]
+    labels = im_stil("skill_label")
+    if [l["text"] for l in labels] != SKILLSET_SOLL["de"]:
+        return [f"Skillset: Labels {[l['text'] for l in labels]} statt {SKILLSET_SOLL['de']}"]
+    links = t["seite"]["rand_links"]
+    wert_x = links + t["raster"]["skill_label_breite"] + t["raster"]["skill_label_abstand"]
+    for l in labels:
+        if abs(l["x"] - links) > 0.3:
+            fehler.append(f"Skillset: Label {l['text']} steht bei x = {l['x']:.1f}pt statt {links}")
+    themen = im_stil("skill_thema")
+    if [l["text"] for l in themen] != [THEMEN_SOLL["de"][0].upper(), THEMEN_SOLL["de"][1].upper()]:
+        fehler.append(f"Skillset: Themen {[l['text'] for l in themen]} — erwartet die ersten "
+                      "beiden aus dem Wortschatz, in Versalien und fester Reihenfolge")
+    werte = im_stil("skill_wert")
+    # Je Zeile mehrere Laeufe (ein Eintrag, ein Punkt, ...): gemessen wird der Zeilenanfang.
+    anfaenge = {}
+    for l in werte + themen:
+        anfaenge[l["y"]] = min(anfaenge.get(l["y"], l["x"]), l["x"])
+    if not werte or any(abs(x - wert_x) > 0.3 for x in anfaenge.values()):
+        fehler.append(f"Skillset: Werte stehen nicht bei x = {wert_x}pt — {sorted(set(anfaenge.values()))}")
+    if themen and not (labels[0]["y"] - 14 < themen[0]["y"] < labels[1]["y"]):
+        fehler.append("Skillset: Themen stehen nicht in der Zeile Fähigkeiten")
+
+    text = " ".join(" ".join(l["text"] for l in seite1 if l["y"] > labels[-1]["y"] - 5).split())
+    erwartet = " · ".join(SPRACHEN_SOLL["de"] + ["Französisch – Grundkenntnisse"])
+    if erwartet not in text:
+        fehler.append(f"Skillset: Sprachen „{text[:120]}“ statt „{erwartet}“")
+    tools = " ".join(l["text"] for l in werte if labels[1]["y"] - 5 < l["y"] < labels[2]["y"] - 5)
+    if tools.split(" · ").count("Figma") != 1:
+        fehler.append(f"Skillset: 'Figma' steht nicht genau einmal unter Tools — {tools}")
     for meldung in ("Englisch steht als", "Deutsch – Muttersprache“ ergänzt", "stand doppelt"):
         if meldung not in lauf.stderr:
             fehler.append(f"Skillset: Hinweis fehlt in der Ausgabe — '{meldung} …'")
+    if "ohne Thema" in lauf.stderr:
+        fehler.append("Skillset: das Beispiel meldet Fähigkeiten ohne Thema")
 
     # Aeltere cv.json mit freien Gruppen: Eindeutiges wird zugeordnet, der Rest
     # faellt raus und wird gemeldet — nichts verschwindet still.
@@ -736,20 +752,20 @@ def pruefe_skillset(tmp):
                   {"titel": "Branchenerfahrung", "eintraege": ["B"]}],
         "rechts": [{"titel": "Tools", "eintraege": ["T"]},
                    {"titel": "Kunden und Partner", "eintraege": ["K"]}]}}
-    spalten, hinweise = skillset_gruppen(alt)
-    if [[g["titel"] for g in s] for s in (spalten["links"], spalten["rechts"])] != soll:
-        fehler.append("Skillset: alte cv.json landet nicht in den vier festen Gruppen")
+    zeilen, hinweise = skillset_zeilen(alt)
+    if [z["titel"] for z in zeilen] != SKILLSET_SOLL["de"]:
+        fehler.append("Skillset: alte cv.json landet nicht in den vier festen Zeilen")
     for gruppe in ("Zertifizierungen", "Kunden und Partner"):
         if not any(gruppe in h for h in hinweise):
             fehler.append(f"Skillset: aus der alten cv.json fiel „{gruppe}“ still weg")
 
     # Englischer Lebenslauf: englische Titel, englische Sprachvorgabe.
-    spalten, _ = skillset_gruppen({"sprache": "en", "skillset": {
+    zeilen, _ = skillset_zeilen({"sprache": "en", "skillset": {
         "faehigkeiten": ["UX"], "branchen": ["Energy"], "tools": ["Figma"]}})
-    if [[g["titel"] for g in s] for s in (spalten["links"], spalten["rechts"])] != SKILLSET_SOLL["en"]:
-        fehler.append("Skillset: englische Gruppentitel stimmen nicht")
-    if spalten["rechts"][-1]["eintraege"] != SPRACHEN_SOLL["en"]:
-        fehler.append(f"Skillset: englische Sprachvorgabe fehlt — {spalten['rechts'][-1]['eintraege']}")
+    if [z["titel"] for z in zeilen] != SKILLSET_SOLL["en"]:
+        fehler.append("Skillset: englische Zeilentitel stimmen nicht")
+    if zeilen[-1]["eintraege"] != SPRACHEN_SOLL["en"]:
+        fehler.append(f"Skillset: englische Sprachvorgabe fehlt — {zeilen[-1]['eintraege']}")
 
     # Eine zusammengefasste Zeile traegt die Sprache schon und bleibt, wie sie ist.
     zeilen, _ = sprachen_mit_vorgabe(["Deutsch, Italienisch – Muttersprache", "Englisch"])
@@ -767,10 +783,53 @@ def pruefe_skillset(tmp):
                       f"— {hinweise}")
 
     # Eine leere Gruppe faellt weg und wird gemeldet.
-    spalten, hinweise = skillset_gruppen({"skillset": {"faehigkeiten": ["X"], "tools": ["T"]}})
-    if [g["titel"] for g in spalten["links"]] != ["Fähigkeiten"] or \
+    zeilen, hinweise = skillset_zeilen({"skillset": {"faehigkeiten": ["X"], "tools": ["T"]}})
+    if [z["titel"] for z in zeilen] != ["Fähigkeiten", "Tools", "Sprachen"] or \
             not any("Branchen ist leer" in h for h in hinweise):
         fehler.append("Skillset: leere Gruppe Branchen nicht gemeldet")
+
+    # Themenregeln: hoechstens vier Faehigkeiten -> keine Themen; fehlen die
+    # Themen bei mehr, wird gemeldet; Reihenfolge aus dem Wortschatz; was nicht
+    # aufgeht (fremdes Thema, ohne Thema, KI mit einem Eintrag), wird gemeldet,
+    # aber nichts faellt weg.
+    def themen(faehigkeiten, roh, sprache="de"):
+        z, h = skillset_zeilen({"sprache": sprache, "skillset": {
+            "faehigkeiten": faehigkeiten, "faehigkeiten_themen": roh}})
+        return z[0]["themen"], h
+    vier = ["A", "B", "C", "D"]
+    th, _ = themen(vier, [{"thema": "Strategie & Research", "eintraege": vier}])
+    if th is not None:
+        fehler.append("Skillset: vier Fähigkeiten stehen in Themen statt als ein Fliesstext")
+    th, h = themen(vier + ["E"], [])
+    if th is not None or not any("faehigkeiten_themen fehlt" in x for x in h):
+        fehler.append("Skillset: fehlende Themen bei fünf Fähigkeiten nicht gemeldet")
+    fuenf = ["A", "B", "C", "D", "E", "F"]
+    th, h = themen(fuenf, [
+        {"thema": "KI & Technologie", "eintraege": ["F"]},
+        {"thema": "Zusammenarbeit & Arbeitsweise", "eintraege": ["D", "A"]},
+        {"thema": "Strategy & Research", "eintraege": ["B", "C", "A"]},
+        {"thema": "Sonstiges", "eintraege": ["X"]}])
+    if [x["titel"] for x in th or []] != [THEMEN_SOLL["de"][0], THEMEN_SOLL["de"][3], THEMEN_SOLL["de"][4]]:
+        fehler.append(f"Skillset: Themenreihenfolge {[x['titel'] for x in th or []]} nicht aus dem Wortschatz")
+    else:
+        if th[1]["eintraege"] != ["D", "A"] or "E" not in th[-1]["eintraege"]:
+            fehler.append(f"Skillset: Themen-Einträge falsch verteilt — {th}")
+        if sum(len(x["eintraege"]) for x in th) != 6:
+            fehler.append(f"Skillset: Fähigkeiten verdoppelt oder verloren — {th}")
+    for meldung in ("„Sonstiges“ steht nicht im Wortschatz", "in zwei Themen", "ohne Thema — E",
+                    "hat nur einen Eintrag"):
+        if not any(meldung in x for x in h):
+            fehler.append(f"Skillset: Themen-Hinweis fehlt — '{meldung}'")
+    th, _ = themen(fuenf, [{"thema": "Strategie & Research", "eintraege": fuenf}], "en")
+    if [x["titel"] for x in th] != [THEMEN_SOLL["en"][0]]:
+        fehler.append(f"Skillset: englischer Thementitel falsch — {th}")
+
+    # Der Figma-Fliesstext: kein Eintrag kann in sich umbrechen, der Punkt
+    # steht nie am Zeilenanfang.
+    ft = fliesstext(["Figma / FigJam", "E-Commerce", "Deutsch – Muttersprache"])
+    if ft != ("Figma\u00a0/\u2060\u00a0FigJam" + SKILL_TRENNER + "E\u2011Commerce" + SKILL_TRENNER
+              + "Deutsch\u00a0\u2013\u2060\u00a0Muttersprache") or not SKILL_TRENNER.startswith("\u00a0"):
+        fehler.append(f"Skillset: Figma-Fliesstext falsch geschützt — {ft!r}")
     return fehler
 
 
@@ -1343,7 +1402,8 @@ def pruefe_silhouette(tmp):
 # geschrieben wirft loadFontAsync, und damit faellt jeder Textknoten des Frames
 # aus. Der Massstab steht deshalb hier und wird nicht aus dem Bauplan gelesen:
 # ein Test, der seine Sollwerte vom Pruefling bezieht, prueft nichts.
-FIGMA_SCHNITTE = {("Inter", "Regular"), ("Inter", "Bold"), ("Rethink Sans", "SemiBold")}
+FIGMA_SCHNITTE = {("Inter", "Regular"), ("Inter", "Semi Bold"), ("Inter", "Bold"),
+                  ("Rethink Sans", "SemiBold")}
 
 
 # Der Figma-Frame wird nicht hier gebaut — das braucht eine angemeldete
@@ -1402,12 +1462,20 @@ def pruefe_figma_plan(pdf, stufen, tmp):
                     fehler.append(f"Logodatei fehlt: {logo['datei']}")
                     continue
                 fehler += _logo_unverzerrt(logo, plan)
-            # Das Skillset im Plan hat dieselben vier Gruppen 2 x 2 wie das PDF.
+            # Das Skillset im Plan hat dieselben vier Zeilen wie das PDF, und
+            # kein Eintrag kann in Figma in sich umbrechen.
             if b["art"] == "skillset":
-                titel = [[g["titel"]["text"] for g in spalte] for spalte in b["spalten"]]
+                titel = [z["titel"] for z in b["zeilen"]]
                 if titel != SKILLSET_SOLL["de"]:
-                    fehler.append(f"Frame {frame['nr']}: Skillset-Gruppen {titel} statt "
+                    fehler.append(f"Frame {frame['nr']}: Skillset-Zeilen {titel} statt "
                                   f"{SKILLSET_SOLL['de']}")
+                texte = [z["text"] for z in b["zeilen"] if z["text"]]
+                texte += [t["text"] for z in b["zeilen"] for t in z["themen"]]
+                from render_cv import SKILL_TRENNER
+                for e in (e for t in texte for e in t.split(SKILL_TRENNER)):
+                    if " " in e or "-" in e:
+                        fehler.append(f"Frame {frame['nr']}: Skillset-Eintrag „{e}“ kann in "
+                                      "Figma umbrechen (Leerzeichen oder Bindestrich)")
             # Projektlogos stehen nebeneinander wie im PDF. Fehlt die Angabe,
             # baut der Frame sie untereinander, und er laeuft dem PDF davon.
             if b["art"] == "projekt" and (b.get("logos") or {}).get("richtung") != "nebeneinander":
@@ -1496,17 +1564,38 @@ def pruefe_bibliothek(tmp):
     if kopf["variante"] != "anonym" or kopf.get("bilder") or kopf.get("kinder"):
         fehler.append("Bibliothek: anonymer Profilkopf mit Foto, Verweisen oder falscher Variante")
 
-    # Mengengrenze: 13 Eintraege in einer Skillset-Gruppe passen nicht.
+    # Skillset (B2): jede gesetzte Property gibt es in CV/Skillset Themen, die
+    # Themen stehen in der Reihenfolge des Plans, der Fliesstext ist aus.
+    sk = next((e for f in bau["frames"] for e in f["inhalt"] if e["k"] == "skillset_themen"), None)
+    if sk is None:
+        fehler.append("Bibliothek: kein CV/Skillset Themen im Bauskript")
+    else:
+        namen = {v.split("#")[0] for v in komp["skillset_themen"]["properties"].values()}
+        fremd = sorted(set(sk["p"]) - namen)
+        if fremd:
+            fehler.append(f"Bibliothek: Skillset setzt unbekannte Properties {fremd}")
+        if (sk["p"].get("Themen anzeigen"), sk["p"].get("Fließtext anzeigen")) != (True, False) \
+                or sk["p"].get("Thema 1 Titel") != "Strategie & Research" \
+                or sk["p"].get("Thema 3 anzeigen") is not False:
+            fehler.append(f"Bibliothek: Skillset-Themen falsch gesetzt — {sk['p']}")
+    # Ohne Themen (hoechstens vier Faehigkeiten): Fliesstext an, Themen aus.
+    flach = u.skillset({"zeilen": [{"schluessel": "faehigkeiten", "titel": "Skills", "text": "A",
+                                    "themen": []}]})[0]["p"]
+    if (flach["Themen anzeigen"], flach["Fließtext anzeigen"], flach["Fähigkeiten"],
+            flach["Tools anzeigen"]) != (False, True, "A", False):
+        fehler.append(f"Bibliothek: Skillset ohne Themen falsch gesetzt — {flach}")
+
+    # Mengengrenze: sechs Themen passen nicht (der Wortschatz hat fuenf).
     voll = json.loads(json.dumps(plan))
     for f in voll["frames"]:
         for b in f["bloecke"]:
             if b["art"] == "skillset":
-                b["spalten"][0][0]["eintraege"] = [f"Faehigkeit {n}" for n in range(13)]
+                b["zeilen"][0]["themen"] = [{"titel": f"Thema {n}", "text": "X"} for n in range(6)]
     ordner = Path(tmp) / "bib-grenze"
     ordner.mkdir(exist_ok=True)
     _, _, ueberlauf = fb.skripte(voll, ordner)
     if not ueberlauf or (ordner / "figma_bau.js").exists():
-        fehler.append("Bibliothek: 13 Eintraege in einer Skillset-Gruppe nicht gemeldet")
+        fehler.append("Bibliothek: sechs Skillset-Themen nicht gemeldet")
     # Aufgaben ueber der Grenze werden verteilt, nicht abgeschnitten.
     lang = u.aufgaben({"eintraege": [f"Aufgabe {n}" for n in range(14)]})
     texte = [k["p"]["Text"] for e in lang for k in e["kinder"].values()]
@@ -1748,16 +1837,20 @@ def pruefe_design(pdf, stufen):
     # die Probe eine zweite Titelzeile mit.
     person, station = daten["person"], daten["stationen"][2]
     projekt = daten["stationen"][0]["projekte"][0]
-    from render_cv import skillset_gruppen
-    spalten = skillset_gruppen(daten)[0]
-    gruppe = spalten["links"][0]
+    from render_cv import skillset_zeilen
+    skill = skillset_zeilen(daten)[0][0]
+    thema = skill["themen"][0]
     kontakt_label = "ANSPRECHPARTNER"
     proben = [
         # (von, bis zur naechsten Zeile darunter, Soll von Schriftlinie zu Schriftlinie)
         (person["name"], person["rolle"], unter("name") + a["name_rolle"] + gl("rolle")),
         (person["rolle"], person["erfahrung"], tokens.stil("rolle")["zeile"] + a["rolle_erfahrung"]),
         ("Bildung", daten["bildung"][0]["abschluss"], unter("rubrik") + d["rubrik_inhalt"] + gl("abschluss")),
-        (gruppe["titel"], gruppe["eintraege"][0], unter("gruppe") + d["gruppe_liste"] + gl("liste")),
+        # Skillset (B2): Rubrik -> erstes Label, Thementitel -> seine Eintraege.
+        ("Skillset", skill["titel"], unter("rubrik") + d["rubrik_inhalt"] + r["skill_zeile_innen"]
+         + gl("skill_label")),
+        (thema["titel"].upper(), thema["eintraege"][0], unter("skill_thema")
+         + r["skill_thema_eintraege"] + gl("skill_wert")),
         ("Kurzprofil", person["kurzprofil"][:20], unter("rubrik") + s["profil_rubrik"] + gl("profil")),
         (station["titel"], station["firma"], unter("titel") + a["titel_firma"] + gl("firma")),
         (station["firma"], station["zeitraum"], unter("firma") + a["firma_zeitraum"] + gl("zeitraum")),
@@ -1776,12 +1869,6 @@ def pruefe_design(pdf, stufen):
             ("Zertifikate", zert[0]["titel"], unter("gruppe") + d["gruppe_liste"]
              + r["zert_tag_linie"] + r["zert_tag_innen_y"] + gl("zert_tag")),
         ]
-    # Der Listentakt im Skillset: Eintrag unter Eintrag, gemessen ab dem
-    # Gruppentitel — nicht ab dem ersten Treffer, der kann in der Bildung stehen.
-    titel_zeile = zeile(gruppe["titel"])
-    erster = zeile(gruppe["eintraege"][0], nach=titel_zeile) if titel_zeile else None
-    if erster:
-        proben.append((erster, gruppe["eintraege"][1], tokens.stil("liste")["zeile"]))
     for von, nach, soll in proben:
         erste = von if isinstance(von, dict) else zeile(von)
         von = erste["text"] if isinstance(von, dict) else von
@@ -1795,18 +1882,18 @@ def pruefe_design(pdf, stufen):
                           f"statt {soll:.1f}pt")
 
     # Lagen, die an keiner anderen Zeile haengen: der Name unter dem Kopflogo,
-    # das Kurzprofil oben auf seiner Seite, die rechte Skillset-Spalte und der
+    # das Kurzprofil oben auf seiner Seite, die Wertspalte des Skillsets und der
     # Footer an der rechten Kante des Satzspiegels.
     seite_t = t["seite"]
     kopf = seite_t["rand_oben"] + r["kopflogo_hoehe"] + a["kopf_intro"]
-    rechts = spalten["rechts"][0]["titel"]
     lagen = [
         (person["name"], "y", kopf + gl("name")),
         # Das erste Tag: Text hinter Rand und Innenabstand.
         *([(zert[0]["titel"], "x", seite_t["rand_links"] + r["zert_tag_linie"]
             + r["zert_tag_innen_x"])] if zert else []),
         ("Kurzprofil", "y", seite_t["rand_oben"] + gl("rubrik")),
-        (rechts, "x", seite_t["rand_links"] + ab["halbe_spalte"] + r["spaltenabstand"]),
+        (thema["titel"].upper(), "x", seite_t["rand_links"] + r["skill_label_breite"]
+         + r["skill_label_abstand"]),
         (station["titel"], "x", seite_t["rand_links"] + ab["einzug"]),
         (kontakt_label, "x", seite_t["rand_links"] + r["fuss_breite"] - r["fuss_block"]),
     ]
@@ -2307,7 +2394,7 @@ def main():
     print(f"  Bibliothek: Bauskript nur aus Master-Komponenten, Grenzen gemeldet, --roh als Rueckfall")
     print(f"  Anonym:    kein Name in Text, Titel, Dateiname und Frames, Silhouette da")
     print(f"  Platzhalter: Bild aus dem Design, eingesetzt in den Fotoplatz, SVG und PNG")
-    print(f"  Skillset:  immer Faehigkeiten, Branchen, Tools, Sprachen - 2 x 2, Sprachvorgabe")
+    print(f"  Skillset:  Themenzeilen Faehigkeiten, Tools, Branchen, Sprachen - Themen aus festem Wortschatz, Fliesstext, Sprachvorgabe")
     print(f"  Kanten:    Monatsnamen und Firmen bleiben heil, firma/rolle/Zertifikate werden mitgezogen")
     print(f"  Zertifikate: Tags unter Bildung, nur der Titel, umbrechend, PDF und Plan")
     print(f"  Bildung:   keine Studieninhalte, alte cv.json mit themen bricht nicht")

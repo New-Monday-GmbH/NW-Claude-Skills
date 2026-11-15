@@ -42,7 +42,8 @@ werden 14pt — drei Zeilen Bildung sind in Figma 42pt hoch, nicht 40,5. Ebenso
 fester Wert setzen WeasyPrint und Chrome sie gleich; ein Faktor wie 1.35 hinge an
 der Engine.
 
-**Die Skillset-Listen laufen im 13pt-Takt.** In Figma stehen sie auf 25 %
+**Die Skillset-Listen liefen im 13pt-Takt** (bis 15.11.2026, heute nur noch im
+Rückfall `CV/Skillset` und im Entwickler-Layout). In Figma stehen sie auf 25 %
 Zeilenhöhe (gerundet 3pt) plus 10pt Listenabstand. Nachgebaut liefen umbrochene
 Einträge ineinander, weil deren Zeilen nur 3pt auseinander stünden. Im Skill hat
 jede Zeile 13pt und die Punkte keinen Abstand — für einzeilige Einträge ist das
@@ -70,13 +71,36 @@ was ein Kunde zuerst sehen soll. Die Stationen beginnen danach auf einer neuen
 Seite (`.stationen--neue-seite`). Ein Skillset gibt es immer – mindestens die
 Sprachen stehen darin –, der Umbruch entfällt also nie.
 
-Das Skillset hat in jedem Lebenslauf **dieselben vier Gruppen, 2 × 2**: links
-Fähigkeiten und Branchen, rechts Tools und Sprachen (Vorgabe vom 2026-09-29;
-`SKILLSET_SPALTEN` in `render_cv.py`, von dort lesen auch Figma-Plan und
-Selbsttest). Die Titel kommen aus dem Skript, nicht aus der `cv.json`. Die
-Figma-Vorlage zeigt noch zwei weitere Gruppen („Gestaltung", „AI-gestütztes
-Arbeiten") und Sprachen ohne Niveau – beides bewusst nicht übernommen, siehe
-„Bewusste Abweichungen".
+Das Skillset hat in jedem Lebenslauf **dieselben vier Gruppen** (Vorgabe vom
+2026-09-29), seit dem 2026-11-15 als **Themenzeilen (Variante B2)**:
+untereinander Fähigkeiten, Tools, Branchen, Sprachen (`SKILLSET_GRUPPEN` und
+`skillset_zeilen()` in `render_cv.py`, von dort lesen auch Figma-Plan und
+Selbsttest). Die Titel kommen aus dem Skript, nicht aus der `cv.json`.
+
+| Teil | Wert | Token |
+|---|---|---|
+| Label links | Inter Bold 10/14, fest 80pt breit | `skill_label`, `skill_label_breite` |
+| Abstand Label → Wert | 14pt | `skill_label_abstand` |
+| Wert | Inter Regular 9/13, #111111, Fließtext | `skill_wert` |
+| Zeile | 5pt Innenabstand oben und unten; ab der zweiten eine Linie oben, 0,75pt #E0E0E0 | `skill_zeile_innen`, `skill_zeilenlinie`, Farbe `zeilenlinie` |
+| Thementitel | Inter Semi Bold 7/9, Versalien, Laufweite 6 %, Markenfarbe; 1pt darüber den Einträgen | `skill_thema`, `skill_thema_eintraege` |
+| Zwischen zwei Themen | 5pt | `skill_themen` |
+
+**Werte als Fließtext.** Einträge mit Mittelpunkt getrennt; ein Eintrag bricht
+nie in sich um, nur zwischen zwei Einträgen, und der Punkt steht nie am
+Zeilenanfang. Im PDF trägt jeder Eintrag `white-space: nowrap`, im Text des
+PDFs stehen normale Leerzeichen (`pdftotext` und Suche bleiben sauber). In
+Figma tun es die Zeichen selbst (`render_cv.fliesstext`): Leerzeichen → U+00A0,
+Bindestrich → U+2011, nach „/“ und „–“ ein U+2060, Trenner
+`U+00A0 U+00A0 · ␣ ␣`.
+
+**Fähigkeiten in Themen** aus festem Wortschatz (`THEMEN` in `render_cv.py`),
+Reihenfolge fix: Strategie & Research · Konzeption & Gestaltung · Design
+Systems & Qualität · Zusammenarbeit & Arbeitsweise · KI & Technologie. Leere
+Themen entfallen; bei höchstens vier Fähigkeiten gibt es keine Themen, nur einen
+Fließtext. Zugeordnet wird im Skill (`skillset.faehigkeiten_themen`, SKILL.md
+Schritt 2), das Skript setzt und meldet nur. Die alte Grenze von 12 Einträgen je
+Gruppe ist mit dem Fließtext entfallen.
 
 Das Kurzprofil steht deshalb **nicht** im Profilkopf, sondern oben auf Seite 2, als
 eigene Rubrik (`.section--profil`): Überschrift wie Bildung und Skillset, Text
@@ -125,7 +149,8 @@ Der Profilkopf belegt rund 200pt, für Bildung und Skillset bleiben etwa 550pt.
 Die Verweise kosten keinen Platz: Die Infospalte ist mit ihnen 107pt hoch, die
 Fotospalte 113pt. `render_cv.py` setzt Bildung und Skillset in zwei Stufen enger
 (`.deckblatt--kompakt`, `.deckblatt--eng`), bevor jemand Einträge streicht —
-angefasst werden nur Abstände, nie Schriftgrößen.
+angefasst werden nur Abstände, nie Schriftgrößen. Die Themenzeilen selbst
+stehen in allen Stufen gleich; enger werden die Abstände um Rubriken und Linie.
 
 ### Bildung: Abschlüsse und Zertifikate
 
@@ -233,7 +258,7 @@ Was das Template dafür liefert, ohne dass sich ein Punkt verschiebt:
 - **Sprache**: `<html lang="{{ sprache }}">` – `de` oder `en` aus der `cv.json`,
   wird zu `/Lang`. Der Titel heißt „<Name> — Lebenslauf“ bzw. „— CV“.
 - **Überschriften**: Name `h1.name`; UX-Layout: Rubriken `h2`, Zertifikate und
-  Skillset-Gruppen `h3`, Stationstitel `h2.station__title`, Kunde
+  Skillset-Labels `h3` (Lesereihenfolge Label → Wert), Thementitel `h4`, Stationstitel `h2.station__title`, Kunde
   `h3.project__client`. Entwickler-Layout: Rubriken `h2`, IT-Gruppen `h3`, und
   weil die Stationen unter der Rubrik „Berufserfahrung“ stehen, eine Ebene
   tiefer: `h3.station__title`, `h4.project__client`. Keine Ebene wird
@@ -288,7 +313,7 @@ Entschieden am 2026-09-28. Wer abgleicht, zieht diese Punkte **nicht** nach.
 | Rolle „Business Developer" unter Manuel Klein | „CCO" | Vorgabe in `render_cv.py` (`KONTAKT_VORGABE`) |
 | Logos von Hand platziert (links, teils breiter als 88pt, Stapelabstand 6 oder 16pt) | gleiche Fläche, rechtsbündig, max. 88pt, Stapelabstand 10pt | siehe „Logos" unten |
 | Aufgaben rücken unter hohe Logos (Row-Auto-Layout) | Aufgaben 24pt unter dem Kopftext, das Logo darf daneben weiterlaufen | Figma ist hier uneinheitlich (Bayer mit 13pt statt 24pt ausgeglichen) |
-| Skillset mit sechs Gruppen (u. a. „Gestaltung", „AI-gestütztes Arbeiten", „Branchenerfahrung"), Sprachen ohne Niveau | immer genau vier: Fähigkeiten, Branchen, Tools, Sprachen, 2 × 2; Deutsch – Muttersprache, Englisch – Business Niveau | Vorgabe vom 2026-09-29: jeder Lebenslauf gleich aufgebaut |
+| Skillset mit sechs Gruppen (u. a. „Gestaltung", „AI-gestütztes Arbeiten", „Branchenerfahrung"), Sprachen ohne Niveau | immer genau vier: Fähigkeiten, Tools, Branchen, Sprachen, als Themenzeilen (B2, seit 2026-11-15); Deutsch – Muttersprache, Englisch – Business Niveau | Vorgabe vom 2026-09-29: jeder Lebenslauf gleich aufgebaut |
 | Porträt-Platzhalter in der Vorlage nicht vorgesehen | Platzhalterbild „user-pict-placeholder" (80 × 110) in den 79 × 106pt-Fotoplatz eingesetzt | Vorgabe vom 2026-09-29; siehe „Raster" |
 | Education mit Studieninhalten als Liste („sub-p“) unter jedem Abschluss | keine Studieninhalte; Abschluss, Einrichtung, Zeitraum | Vorgabe vom 2026-10-03 |
 | Keine Zertifikate | eigener Block „Zertifikate“ unter den Abschlüssen, je Zertifikat ein Tag mit dem Titel – mit 4pt Radius, der einzigen Rundung im Dokument | Vorgabe vom 2026-10-03; siehe „Bildung: Abschlüsse und Zertifikate“ |
@@ -304,8 +329,8 @@ die Stile des Stationskopfs: Kunde wie ein Titel, Zeitraum wie ein Zeitraum.
 ```
 
 Im Intro abweichend: Fotospalte 78pt, Abstand 40pt, Infospalte 308pt. Foto
-79 × 106pt, Graustufen, oben 7pt eingerückt. Bildung und Skillset zweispaltig,
-je 202pt mit 24pt Abstand. Zertifikats-Tags über die volle Inhaltsbreite
+79 × 106pt, Graustufen, oben 7pt eingerückt. Bildung zweispaltig, je 202pt mit
+24pt Abstand; das Skillset in Zeilen, Label 80pt, 14pt Abstand, Wert 334pt. Zertifikats-Tags über die volle Inhaltsbreite
 (428pt), 6pt auseinander, Reihen 6pt auseinander.
 
 Die anonyme Fassung setzt an dieselbe Stelle das **Platzhalterbild aus dem

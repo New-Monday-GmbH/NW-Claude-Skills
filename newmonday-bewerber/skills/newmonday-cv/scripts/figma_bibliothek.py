@@ -21,7 +21,7 @@ Woher die Komponenten kommen: assets/master-bibliothek.json. Wie gesetzt wird:
 scripts/figma_bau.js. Die Zahlen bleiben in tokens.json; hier wird nur
 gegengeprueft, dass Plan und Bibliothek dieselben Abstaende meinen.
 
-Mengengrenzen der Komponenten (Eintraege je Skillset-Gruppe, Logos je
+Mengengrenzen der Komponenten (Themen im Skillset, Logos je
 Station, ...) werden geprueft. Aufgabenlisten und Zertifikate werden auf
 mehrere Instanzen verteilt; alles andere, was nicht hineinpasst, wird
 gemeldet, und dann entsteht kein Bauskript - der rohe Weg bleibt (Rueckfall),
@@ -218,22 +218,32 @@ class Uebersetzer:
         return aus
 
     def skillset(self, b):
-        g = self.grenze("skillset_gruppe", "eintraege")
-        da = {}
-        for spalte in b["spalten"]:
-            for gruppe in spalte:
-                da[gruppe["schluessel"]] = gruppe
-        p = {f"{GRUPPEN_NAMEN[s]} anzeigen": s in da for s in GRUPPEN_NAMEN}
-        kinder = {}
-        for s, gruppe in da.items():
-            eintraege = gruppe["eintraege"]
-            if len(eintraege) > g:
-                self.melden("Einträge", len(eintraege), g, f"Skillset-Gruppe {gruppe['titel']['text']}")
-            q = {f"Eintrag {n}": len(eintraege) >= n for n in range(2, g + 1)}
-            sub = {"Titel": {"p": {"Titel": gruppe["titel"]["text"]}}}
-            sub.update({f"Eintrag {n}": {"p": {"Text": t}} for n, t in enumerate(eintraege[:g], 1)})
-            kinder[GRUPPEN_NAMEN[s]] = {"p": q, "kinder": sub}
-        return [{"k": "skillset", "name": "Skillset", "p": p, "kinder": kinder}]
+        """CV/Skillset Themen (B2): Zeilen ein/aus, Labels, Werte als Text,
+        die Faehigkeiten als Fliesstext oder in bis zu fuenf Themen."""
+        g = self.grenze("skillset_themen", "themen")
+        da = {z["schluessel"]: z for z in b["zeilen"]}
+        p = {}
+        for s, name in GRUPPEN_NAMEN.items():
+            p[f"{name} anzeigen"] = s in da
+            if s in da:
+                p[f"Label {name}"] = da[s]["titel"]
+        f = da.get("faehigkeiten")
+        themen = (f or {}).get("themen") or []
+        if len(themen) > g:
+            self.melden("Themen", len(themen), g, "Skillset")
+        p["Themen anzeigen"] = bool(themen)
+        p["Fließtext anzeigen"] = bool(f) and not themen
+        if f and not themen:
+            p["Fähigkeiten"] = f["text"]
+        for n in range(1, g + 1):
+            p[f"Thema {n} anzeigen"] = len(themen) >= n
+            if len(themen) >= n:
+                p[f"Thema {n} Titel"] = themen[n - 1]["titel"]
+                p[f"Thema {n} Einträge"] = themen[n - 1]["text"]
+        for s in ("tools", "branchen", "sprachen"):
+            if s in da:
+                p[GRUPPEN_NAMEN[s]] = da[s]["text"]
+        return [{"k": "skillset_themen", "name": "Skillset", "p": p}]
 
     def profil(self, b):
         return [{"k": "kurzprofil", "name": "Kurzprofil", "p": {"Text": b["text"]}}]

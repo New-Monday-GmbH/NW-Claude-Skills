@@ -176,12 +176,6 @@ ul.tasks { padding-left: {{ pt(r.listeneinzug) }}; {{ css("aufgabe") }} list-sty
 .section h3 { {{ css("gruppe") }} margin-bottom: {{ pt(dn.gruppe_liste) }}; }
 
 .cols { display: flex; gap: {{ pt(r.spaltenabstand) }}; }
-/* Skillset als Float-Spalten: ein Flex-Container laesst sich nicht ueber
-   Seiten auftrennen und springt als Ganzes weiter. */
-.cols--fliessend { display: block; }
-.cols--fliessend::after { content: ""; display: table; clear: both; }
-.cols--fliessend > * { float: left; width: {{ pt(ab.halbe_spalte) }}; }
-.cols--fliessend > * + * { margin-left: {{ pt(r.spaltenabstand) }}; }
 .cols > * { flex: 1 0 0; min-width: 0; }
 /* Bildung kann mehr als zwei Eintraege haben: zweispaltig umbrechen statt
    immer schmaler werden. Floats statt Flex: mit negativer Laufweite rechnet
@@ -193,7 +187,24 @@ ul.tasks { padding-left: {{ pt(r.listeneinzug) }}; {{ css("aufgabe") }} list-sty
 .cols--wrap > *:nth-child(2n) { margin-left: {{ pt(r.spaltenabstand) }}; }
 .cols--wrap > *:nth-child(2n+1) { clear: left; }
 .cols--wrap > *:nth-child(n+3) { margin-top: {{ pt(dn.bildung_reihen) }}; }
-.stack > * + * { margin-top: {{ pt(dn.gruppen) }}; }
+
+/* Skillset als Themenzeilen (B2, gewaehlt am 15.11.2026; Figma: CV/Skillset
+   Themen). Je Zeile links das Label in fester Breite, rechts der Wert als
+   Fliesstext; ab der zweiten Zeile eine helle Linie oben. Die Zeilen sind
+   Flex-Reihen, der Block als Ganzes bleibt zwischen ihnen umbrechbar. */
+.skill {
+  display: flex; align-items: flex-start; gap: {{ pt(r.skill_label_abstand) }};
+  padding: {{ pt(r.skill_zeile_innen) }} 0;
+}
+.skill + .skill { border-top: {{ pt(r.skill_zeilenlinie) }} solid {{ f.zeilenlinie }}; }
+.section .skill__label { {{ css("skill_label") }} flex: none; width: {{ pt(r.skill_label_breite) }}; margin: 0; }
+.skill__wert { flex: 1 0 0; min-width: 0; {{ css("skill_wert") }} }
+.skill__wert p { margin: 0; }
+.skill__thema + .skill__thema { margin-top: {{ pt(r.skill_themen) }}; }
+.skill__thema h4 { {{ css("skill_thema") }} margin: 0 0 {{ pt(r.skill_thema_eintraege) }}; break-after: avoid; }
+/* shortcut: ein einzelner Eintrag, breiter als die Wertspalte (~70 Zeichen),
+   ragt hinaus - bisher keiner; dann im Eintrag kuerzen. */
+.skill__e { white-space: nowrap; }
 
 .edu__degree { {{ css("abschluss") }} }
 .edu__line { {{ css("bildung") }} }
@@ -226,7 +237,7 @@ ul.tasks { padding-left: {{ pt(r.listeneinzug) }}; {{ css("aufgabe") }} list-sty
   border-radius: {{ pt(r.zert_tag_radius) }};
 }
 
-/* Kompakte Listen (Bildung, Skillset): 13pt-Takt ohne Zwischenraum. Figma
+/* Kompakte Listen (Entwickler-Layout): 13pt-Takt ohne Zwischenraum. Figma
    erreicht denselben Takt ueber 25 % Zeilenhoehe plus 10pt Listenabstand;
    nachgebaut liefen hier umbrochene Eintraege ineinander. Die Abstaende zu
    Gruppentitel und naechster Gruppe sind deshalb auf die Schriftlinie
@@ -243,7 +254,6 @@ ul.tight { padding-left: {{ pt(r.listeneinzug) }}; list-style: disc; {{ css("lis
 .deckblatt--{{ stufe }} .section { margin-top: {{ pt(w.nach_linie) }}; }
 .deckblatt--{{ stufe }} .section h2 { margin-bottom: {{ pt(w.rubrik_inhalt) }}; }
 .deckblatt--{{ stufe }} .section h3 { margin-bottom: {{ pt(w.gruppe_liste) }}; }
-.deckblatt--{{ stufe }} .stack > * + * { margin-top: {{ pt(w.gruppen) }}; }
 .deckblatt--{{ stufe }} .cols--wrap > *:nth-child(n+3) { margin-top: {{ pt(w.bildung_reihen) }}; }
 .deckblatt--{{ stufe }} .divider { margin-top: {{ pt(w.vor_linie) }}; }
 .deckblatt--{{ stufe }} .zert { margin-top: {{ pt(w.zert_abstand) }}; }

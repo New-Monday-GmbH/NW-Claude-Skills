@@ -807,7 +807,8 @@ Aus dem Text eine `cv.json` bauen. Vollständiges Beispiel: `beispiel/cv.json`.
   "bildung": [{ "abschluss", "institution", "zeitraum" }],
   "zertifikate": [{ "titel", "aussteller", "datum" }],
   "skillset": {
-    "faehigkeiten": [], "branchen": [], "tools": [], "sprachen": []
+    "faehigkeiten": [], "branchen": [], "tools": [], "sprachen": [],
+    "faehigkeiten_themen": [{ "thema": "<aus dem Wortschatz>", "eintraege": [] }]
   }
 }
 ```
@@ -1199,9 +1200,12 @@ Zum Modell:
   `branchen`, `tools`, `sprachen` (Vorgabe vom 29.09.2026 – vorher trug jeder
   Lebenslauf andere Gruppen, und genau das kam als Rückmeldung zurück). In der
   `cv.json` stehen nur die Einträge. Titel und Anordnung setzt `render_cv.py`,
-  immer 2 × 2: links Fähigkeiten und Branchen, rechts Tools und Sprachen; im
-  englischen Lebenslauf "Skills", "Industries", "Tools", "Languages". Keine
-  weiteren Gruppen, keine eigenen Titel.
+  seit dem 15.11.2026 als **Themenzeilen (Variante B2)**: untereinander
+  Fähigkeiten, Tools, Branchen, Sprachen, links das Label, rechts die Einträge
+  als Fließtext mit Mittelpunkt; im englischen Lebenslauf "Skills", "Tools",
+  "Industries", "Languages". Keine weiteren Gruppen, keine eigenen Titel. Eine
+  Höchstzahl an Einträgen gibt es nicht mehr (früher 12 je Gruppe) – Platz auf
+  Seite 1 ist die Grenze.
 
   - **Einsortieren, was passt.** Der Eingang benennt seine Gruppen frei.
     Schwerpunkte, Kernkompetenzen, Methoden, Arbeitsweise, Soft Skills →
@@ -1236,32 +1240,50 @@ Zum Modell:
   - **Keine Gruppe fehlt still.** Findet sich auch durch Ableiten nichts, fehlt
     die Gruppe im Dokument, und das Renderskript meldet es – das gehört in die
     Übergabe.
+  - **Fähigkeiten stehen in Themen.** `skillset.faehigkeiten` bleibt die flache
+    Liste (die Quelle); dazu schreibst du `skillset.faehigkeiten_themen` – jede
+    Fähigkeit in **genau einem** Thema, im Wortlaut der Liste. Das Thema kommt
+    aus diesem festen Wortschatz, nie ein eigenes, und gesetzt wird immer in
+    dieser Reihenfolge (die Reihenfolge in der `cv.json` zählt nicht):
+
+    | # | Deutsch | Englisch | gehört hinein |
+    |---|---|---|---|
+    | 1 | Strategie & Research | Strategy & Research | Strategie, Analyse, Research, Testing, Requirements, Workshops und Reviews |
+    | 2 | Konzeption & Gestaltung | Concept & Design | IA, Flows, Konzeption, Prototyping, UI, Interaction, Plattform-Guidelines, Barrierefreiheit |
+    | 3 | Design Systems & Qualität | Design Systems & Quality | Design Systems, Tokens, Komponenten, QA, Governance, Dokumentation |
+    | 4 | Zusammenarbeit & Arbeitsweise | Collaboration & Ways of Working | Zusammenarbeit mit Entwicklung und Fachbereich, Scrum/agile Methoden, Stakeholder, Moderation |
+    | 5 | KI & Technologie | AI & Technology | KI-Werkzeuge und -Arbeitsweisen, Technik – **nur ab zwei Einträgen**, sonst ins inhaltlich nächste Thema (ein einzelnes „KI-Tools im Design-Workflow“ → Zusammenarbeit & Arbeitsweise) |
+
+    Leere Themen entfallen. **Bei höchstens vier Fähigkeiten gibt es keine
+    Themen**, nur einen Fließtext – `faehigkeiten_themen` dann weglassen. Im
+    englischen Lebenslauf die englischen Themennamen; das Skript nimmt beide
+    Schreibweisen und setzt die der Dokumentsprache. `render_cv.py` meldet ein
+    Thema außerhalb des Wortschatzes, eine Fähigkeit ohne oder mit zwei Themen
+    und KI & Technologie mit nur einem Eintrag. Weggelassen wird dabei nichts –
+    eine Fähigkeit ohne Thema steht vorerst unter dem letzten Thema; die Meldung
+    gehört behoben, nicht in die Übergabe.
 
   **Bildung (Abschlüsse und Zertifikate) und Skillset stehen auf Seite 1**,
   direkt unter dem Profilkopf, und müssen dort zusammen Platz finden – die
   Stationen beginnen danach auf Seite 2. Kopfzeile und Profilkopf nehmen
   zusammen rund 200pt, es bleiben also etwa 550pt statt einer ganzen Seite; die
   Verweise unter der Erfahrungszeile kosten nichts, die Fotospalte ist ohnehin
-  höher. Als Richtwert trägt **die längere Skillset-Spalte bei zwei Abschlüssen
-  ohne Zertifikate etwa 27 Zeilen**, Gruppentitel mitgezählt – mit den beiden
-  engeren Stufen des Renderskripts bis etwa 31. **Zertifikate gehen davon ab**:
-  drei Skillset-Zeilen für den Blocktitel, dazu zwei je Reihe Tags. Wie viele
-  Tags in eine Reihe passen, hängt an der Länge der Titel – kurze stehen zu
-  dritt oder viert, ein langer allein (gemessen am 03.10.2026):
-
-  | Zertifikate | normal | engste Stufe |
-  |---|---|---|
-  | keine | 27 | 31 |
-  | 4 Tags in 2 Reihen | 20 | 24 |
-  | 8 Tags in 4 Reihen | 16 | 20 |
+  höher. Als Richtwert (gemessen am 15.11.2026, Daniel Fallack: zwei
+  Abschlüsse, sechs Zertifikate in zwei Reihen) trägt das **Skillset in Stufe
+  normal etwa 15 Zeilen Fließtext plus vier Thementitel** und hat dann noch
+  rund 25pt Luft. Eine Fließtextzeile fasst bei 334pt Wertbreite etwa 65
+  Zeichen. Jede weitere Reihe Zertifikats-Tags kostet zwei Zeilen; ohne
+  Zertifikate sind es etwa fünf Zeilen mehr. Wie viele Tags in eine Reihe
+  passen, hängt an der Länge der Titel – kurze stehen zu dritt oder viert, ein
+  langer allein.
 
   Das Kurzprofil zählt hier nicht mit – es steht auf Seite 2 und nimmt Seite 1
   keinen Platz weg.
 
   Bringt der Eingang mehr mit – Senior-Profile haben oft 40 Kompetenzen und mehr
   –, ist die Reihenfolge: erst das Renderskript enger setzen lassen (das macht
-  es von selbst, in zwei Stufen), **und erst dann kürzen** – in der längsten
-  Gruppe der längeren Spalte, durch Weglassen der schwächsten Einträge.
+  es von selbst, in zwei Stufen), **und erst dann kürzen** – in der Zeile mit
+  den meisten Einträgen, durch Weglassen der schwächsten Einträge.
   Zertifikate werden nicht ohne Rückfrage gestrichen. Gruppen
   verschieben oder zusammenlegen geht nicht mehr, die vier stehen fest. **Der
   Wortlaut der übernommenen Einträge bleibt unverändert**, gekürzt wird durch
@@ -1621,8 +1643,8 @@ den Skill `figma-use` laden** — ohne ihn sind die Fallstricke des Plugin-API n
 zu umgehen.
 
 **Rückfall auf den rohen Weg.** Erreicht der Vorflug die Bibliothek nicht, oder
-meldet `figma_plan.py`, dass etwas nicht in eine Komponente passt (12 Einträge je
-Skillset-Gruppe, 6 Logos je Station, 16 Zertifikate, …), entsteht kein
+meldet `figma_plan.py`, dass etwas nicht in eine Komponente passt (6 Logos je
+Station, 16 Zertifikate, …), entsteht kein
 `figma_bau.js`. Dann werden rohe Frames nach dem zweiten Teil von
 `references/figma.md` gebaut (`figma_plan.py … --roh`), und in die Übergabe gehört
 ein Satz, warum.
@@ -1686,8 +1708,9 @@ Zeilen berichten:
 - **Das Skillset**: was abgeleitet wurde (Branchen, Tools, Fähigkeiten, die der
   Eingang nicht nannte) mit Beleg aus Stationen oder Projekten und der Bitte um
   Freigabe; was aus dem Skillset gefallen ist, weil es in keine der vier Gruppen
-  passt, mit allen Einträgen; und was `render_cv.py` zu Sprachen gemeldet hat
-  (ergänzt oder Niveau ersetzt).
+  passt, mit allen Einträgen; was `render_cv.py` zu Sprachen gemeldet hat
+  (ergänzt oder Niveau ersetzt); und die Themenzuordnung der Fähigkeiten in
+  einer Zeile je Thema, damit sie mit freigegeben wird.
 - Wo Lebenslauf und LinkedIn auseinandergehen – mit beiden Werten, damit
   Tippfehler auffallen. Ins Dokument kam der Lebenslauf.
 - Was das Skript an Zeiträumen bemängelt hat
@@ -1787,9 +1810,10 @@ Regeln dazu:
 - **Erste Station ist New Monday** – außer bei Kandidaten aus dem
   Bewerberpool, die keine bekommen – und **nur sie läuft auf "Heute"**. Siehe
   Schritt 2.
-- **Das Skillset hat im UX-Layout immer dieselben vier Gruppen**, 2 × 2: links Fähigkeiten und
-  Branchen, rechts Tools und Sprachen. Deutsch – Muttersprache und Englisch –
-  Business Niveau stehen immer drin. Siehe Schritt 2.
+- **Das Skillset hat im UX-Layout immer dieselben vier Gruppen**, als Themenzeilen
+  (B2): Fähigkeiten, Tools, Branchen, Sprachen untereinander, die Fähigkeiten
+  ab fünf in Themen aus dem festen Wortschatz. Deutsch – Muttersprache und
+  Englisch – Business Niveau stehen immer drin. Siehe Schritt 2.
 - **Ansprechpartner im Footer**: immer Manuel Klein, CCO, und die Adresse
   New Monday GmbH, **Stresemannstr. 23**, 10963 Berlin – genau so geschrieben,
   gleich in allen drei Dokumenten (Vorgabe vom 03.10.2026). Steht als Vorgabe

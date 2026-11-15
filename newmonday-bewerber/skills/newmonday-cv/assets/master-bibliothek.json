@@ -5,7 +5,7 @@
     "figma_name": "Portfolio - CV Master",
     "seiten": {"komponenten_cv": "4359:3573", "komponenten_a4": "4359:3572", "vorlagen_und_tests": "4158:3773"},
     "testbefuellung": {"vollstaendig": "4382:9462", "anonym": "4383:10922"},
-    "stand": "2026-10-08"
+    "stand": "2026-11-15"
   },
 
   "verdichtung": {
@@ -95,11 +95,18 @@
       "properties": {"Text": "Text#4368:1", "Art": "Art"},
       "_hinweis": "Im CV immer Art=Zertifikat (in CV/Zertifikate schon so gesetzt)."
     },
+    "skillset_themen": {
+      "name": "CV/Skillset Themen", "typ": "COMPONENT", "key": "034a9ce038aa3153ddff8b6a7d89f06f105bb06e", "knoten": "4525:2873",
+      "properties": {"Fähigkeiten anzeigen": "Fähigkeiten anzeigen#4525:0", "Tools anzeigen": "Tools anzeigen#4525:1", "Branchen anzeigen": "Branchen anzeigen#4525:2", "Sprachen anzeigen": "Sprachen anzeigen#4525:3", "Label Fähigkeiten": "Label Fähigkeiten#4525:4", "Label Tools": "Label Tools#4525:5", "Label Branchen": "Label Branchen#4525:6", "Label Sprachen": "Label Sprachen#4525:7", "Themen anzeigen": "Themen anzeigen#4525:8", "Fließtext anzeigen": "Fließtext anzeigen#4525:9", "Fähigkeiten": "Fähigkeiten#4525:10", "Thema 1 anzeigen": "Thema 1 anzeigen#4525:11", "Thema 1 Titel": "Thema 1 Titel#4525:12", "Thema 1 Einträge": "Thema 1 Einträge#4525:13", "Thema 2 anzeigen": "Thema 2 anzeigen#4525:14", "Thema 2 Titel": "Thema 2 Titel#4525:15", "Thema 2 Einträge": "Thema 2 Einträge#4525:16", "Thema 3 anzeigen": "Thema 3 anzeigen#4525:17", "Thema 3 Titel": "Thema 3 Titel#4525:18", "Thema 3 Einträge": "Thema 3 Einträge#4525:19", "Thema 4 anzeigen": "Thema 4 anzeigen#4525:20", "Thema 4 Titel": "Thema 4 Titel#4525:21", "Thema 4 Einträge": "Thema 4 Einträge#4525:22", "Thema 5 anzeigen": "Thema 5 anzeigen#4525:23", "Thema 5 Titel": "Thema 5 Titel#4525:24", "Thema 5 Einträge": "Thema 5 Einträge#4525:25", "Tools": "Tools#4525:26", "Branchen": "Branchen#4525:27", "Sprachen": "Sprachen#4525:28"},
+      "grenzen": {"themen": 5},
+      "_hinweis": "Seit 15.11.2026 das Skillset des Lebenslaufs (Variante B2 - Themenzeilen, 428 breit, hug). Vier Zeilen Fähigkeiten/Tools/Branchen/Sprachen, je Boolean ein/aus, Label als Text-Property (de/en). Werte als Fliesstext (render_cv.fliesstext: geschützte Leerzeichen und Bindestriche, Trenner NBSP NBSP · SPACE SPACE). Fähigkeiten entweder in Themen (Themen anzeigen = true, Thema n anzeigen/Titel/Einträge, Titel im Wortschatz-Wortlaut - Versalien macht die Komponente) oder als ein Fliesstext (Themen anzeigen = false, Fließtext anzeigen = true, Text in Fähigkeiten). Keine exponierten Instanzen, keine Mengengrenze bei den Einträgen."
+    },
     "skillset": {
       "name": "CV/Skillset", "typ": "COMPONENT", "key": "2dbbea896b6f695537b6758b69e4050426397b8b",
       "properties": {"Fähigkeiten anzeigen": "Fähigkeiten anzeigen#4381:4", "Branchen anzeigen": "Branchen anzeigen#4381:5", "Tools anzeigen": "Tools anzeigen#4381:6", "Sprachen anzeigen": "Sprachen anzeigen#4381:7"},
       "exponiert": {"Fähigkeiten": "skillset_gruppe", "Branchen": "skillset_gruppe", "Tools": "skillset_gruppe", "Sprachen": "skillset_gruppe"},
-      "gruppen": {"faehigkeiten": "Fähigkeiten", "branchen": "Branchen", "tools": "Tools", "sprachen": "Sprachen"}
+      "gruppen": {"faehigkeiten": "Fähigkeiten", "branchen": "Branchen", "tools": "Tools", "sprachen": "Sprachen"},
+      "_hinweis": "Rückfall: das alte Skillset (2 x 2 Listen, 12 Einträge je Gruppe) bis 15.11.2026. figma_plan.py baut es nicht mehr; es bleibt im Master, weil ältere Kandidatendateien es nutzen."
     },
     "skillset_gruppe": {
       "name": "CV/Skillset-Gruppe", "typ": "COMPONENT", "key": "9aeecebfb5ee31023b02e6c0fd60ad33a479424c",

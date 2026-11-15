@@ -85,13 +85,45 @@ MONATSNAMEN = {
            "August", "September", "October", "November", "December"),
 }
 
-# Das Skillset hat in jedem Lebenslauf dieselben vier Gruppen in derselben
-# Anordnung, 2 x 2: links Faehigkeiten und Branchen, rechts Tools und Sprachen
-# (Vorgabe vom 29.09.2026 — vorher trug jeder Lebenslauf andere Gruppen). Die
-# Titel kommen aus BESCHRIFTUNG, nicht aus der cv.json; dort stehen nur die
-# Eintraege unter den vier festen Schluesseln.
-SKILLSET_SPALTEN = (("faehigkeiten", "branchen"), ("tools", "sprachen"))
-SKILLSET_GRUPPEN = tuple(k for spalte in SKILLSET_SPALTEN for k in spalte)
+# Das Skillset hat in jedem Lebenslauf dieselben vier Gruppen (Vorgabe vom
+# 29.09.2026), seit dem 15.11.2026 als Themenzeilen (Variante B2): untereinander
+# Faehigkeiten, Tools, Branchen, Sprachen, links das Label, rechts der Wert als
+# Fliesstext. Die Titel kommen aus BESCHRIFTUNG, nicht aus der cv.json; dort
+# stehen nur die Eintraege unter den vier festen Schluesseln.
+SKILLSET_GRUPPEN = ("faehigkeiten", "tools", "branchen", "sprachen")
+
+# Die Faehigkeiten stehen in Themen, immer aus diesem Wortschatz und in dieser
+# Reihenfolge (de, en). Leere Themen fallen weg. Bei hoechstens THEMEN_AB - 1
+# Faehigkeiten gibt es keine Themen, nur einen Fliesstext. "KI & Technologie"
+# erst ab KI_MINDESTENS Eintraegen - sonst gehoert der Eintrag ins inhaltlich
+# naechste Thema (SKILL.md, Schritt 2; zuordnen tut der Skill, nicht das Skript).
+THEMEN = (
+    ("Strategie & Research", "Strategy & Research"),
+    ("Konzeption & Gestaltung", "Concept & Design"),
+    ("Design Systems & Qualität", "Design Systems & Quality"),
+    ("Zusammenarbeit & Arbeitsweise", "Collaboration & Ways of Working"),
+    ("KI & Technologie", "AI & Technology"),
+)
+THEMEN_AB = 5
+KI_THEMA, KI_MINDESTENS = 4, 2
+
+# Der Wert einer Zeile ist Fliesstext: Eintraege mit Mittelpunkt getrennt, in
+# sich nie umbrochen. Im PDF macht das white-space: nowrap je Eintrag; in Figma
+# (Text-Property) muessen es die Zeichen selbst tun - geschuetzte Leerzeichen,
+# geschuetzter Bindestrich, Wortverbinder nach / und –. Das geschuetzte
+# Leerzeichen vor dem Punkt haelt ihn vom Zeilenanfang fern.
+SKILL_TRENNER = "\u00a0\u00a0\u00b7  "
+
+
+def unbrechbar(eintrag):
+    """Ein Skillset-Eintrag, der in Figma nicht in sich umbricht."""
+    return (eintrag.replace(" ", "\u00a0").replace("-", "\u2011")
+            .replace("/", "/\u2060").replace("\u2013", "\u2013\u2060"))
+
+
+def fliesstext(eintraege):
+    """Eintraege als ein Figma-Fliesstext: 'A\u00a0B  ·  C'."""
+    return SKILL_TRENNER.join(unbrechbar(e) for e in eintraege)
 
 # Aeltere cv.json-Dateien fuehren frei benannte Gruppen unter links/rechts. Nur
 # eindeutige Titel werden einer festen Gruppe zugeordnet; alles andere faellt
@@ -452,12 +484,68 @@ def sprachen_mit_vorgabe(eintraege, sprache="de"):
     return kopf + [anzeige(r) for r in rest], hinweise
 
 
-def skillset_gruppen(daten):
-    """Das Skillset als zwei Spalten mit den vier festen Gruppen.
+def themen_zuordnen(faehigkeiten, roh_themen, sprache, hinweise):
+    """Die Faehigkeiten in Themen aus THEMEN, in deren fester Reihenfolge.
 
-    Gibt ({"links": [...], "rechts": [...]}, Hinweise) zurueck; jede Gruppe als
-    {"schluessel", "titel", "eintraege"}. Template, Figma-Plan und Selbsttest
-    lesen alle von hier — die Anordnung steht nur in SKILLSET_SPALTEN.
+    Gibt [{"titel", "eintraege"}] zurueck oder None (keine Themen: hoechstens
+    vier Faehigkeiten, oder skillset.faehigkeiten_themen fehlt). Zugeordnet hat
+    der Skill; hier wird nur gesetzt und gemeldet, was nicht aufgeht: ein Thema
+    ausserhalb des Wortschatzes, eine Faehigkeit ohne oder mit zwei Themen, KI &
+    Technologie mit nur einem Eintrag. Weggelassen wird nichts - eine Faehigkeit
+    ohne Thema steht unter dem letzten Thema, bis sie zugeordnet ist.
+    """
+    if len(faehigkeiten) < THEMEN_AB:
+        return None
+    if not roh_themen:
+        hinweise.append("Skillset: skillset.faehigkeiten_themen fehlt — die "
+                        f"{len(faehigkeiten)} Fähigkeiten stehen ohne Themen. Zuordnen "
+                        "nach SKILL.md, Schritt 2 (Themen-Wortschatz).")
+        return None
+    en = sprache == "en"
+    nummer = {name.lower(): i for i, paar in enumerate(THEMEN) for name in paar}
+    themen = [[] for _ in THEMEN]
+    vergeben = set()
+    quelle = {e.lower() for e in faehigkeiten}
+    for t in roh_themen:
+        name = " ".join(str((t or {}).get("thema") or "").split())
+        i = nummer.get(name.lower())
+        if i is None:
+            hinweise.append(f"Skillset: Thema „{name}“ steht nicht im Wortschatz "
+                            f"({', '.join(p[en] for p in THEMEN)}) — seine Einträge "
+                            "gelten als ohne Thema.")
+            continue
+        for e in (t or {}).get("eintraege") or []:
+            text = " ".join(str(e).split())
+            if not text:
+                continue
+            if text.lower() in vergeben:
+                hinweise.append(f"Skillset: „{text}“ steht in zwei Themen — nur im "
+                                "ersten gesetzt.")
+                continue
+            if text.lower() not in quelle:
+                hinweise.append(f"Skillset: „{text}“ steht in faehigkeiten_themen, aber "
+                                "nicht in skillset.faehigkeiten — trotzdem gesetzt.")
+            vergeben.add(text.lower())
+            themen[i].append(text)
+    if 0 < len(themen[KI_THEMA]) < KI_MINDESTENS:
+        hinweise.append(f"Skillset: „{THEMEN[KI_THEMA][en]}“ hat nur einen Eintrag — "
+                        "gehört ins inhaltlich nächste Thema (SKILL.md, Schritt 2).")
+    rest = [e for e in faehigkeiten if e.lower() not in vergeben]
+    if rest:
+        letztes = max((i for i, t in enumerate(themen) if t), default=0)
+        themen[letztes] += rest
+        hinweise.append(f"Skillset: {len(rest)} Fähigkeit(en) ohne Thema — "
+                        f"{', '.join(rest)}. Stehen vorerst unter „{THEMEN[letztes][en]}“; "
+                        "in faehigkeiten_themen zuordnen (SKILL.md, Schritt 2).")
+    return [{"titel": THEMEN[i][en], "eintraege": t} for i, t in enumerate(themen) if t]
+
+
+def skillset_zeilen(daten):
+    """Das Skillset als Themenzeilen (B2): Faehigkeiten, Tools, Branchen, Sprachen.
+
+    Gibt ([Zeile, ...], Hinweise) zurueck; jede Zeile als {"schluessel",
+    "titel", "eintraege", "themen"} - themen nur bei den Faehigkeiten, sonst
+    None. Template, Figma-Plan und Selbsttest lesen alle von hier.
 
     Eine leere Gruppe faellt weg und wird gemeldet: Faehigkeiten, Branchen und
     Tools leitet der Skill aus den Stationen ab, wenn das Material nichts sagt
@@ -485,9 +573,13 @@ def skillset_gruppen(daten):
         for k, wert in roh.items():
             if k in gruppen:
                 gruppen[k] = list(wert or [])
-            else:
+            elif k != "faehigkeiten_themen":
                 hinweise.append(f"Skillset: „{k}“ ist keine der vier Gruppen "
                                 f"({', '.join(SKILLSET_GRUPPEN)}) und steht nicht im Dokument.")
+    roh_themen = roh.get("faehigkeiten_themen") or []
+    if not gruppen["faehigkeiten"] and roh_themen:
+        # Nur Themen, keine flache Liste: dann sind die Themen die Quelle.
+        gruppen["faehigkeiten"] = [e for t in roh_themen for e in (t or {}).get("eintraege") or []]
 
     for k in ("faehigkeiten", "branchen", "tools"):
         gesehen, eindeutig = set(), []
@@ -504,19 +596,18 @@ def skillset_gruppen(daten):
         gruppen[k] = eindeutig
     gruppen["sprachen"], sprach_hinweise = sprachen_mit_vorgabe(gruppen["sprachen"], sprache)
     hinweise += sprach_hinweise
+    themen = themen_zuordnen(gruppen["faehigkeiten"], roh_themen, sprache, hinweise)
 
-    spalten = {}
-    for seite, schluessel in zip(("links", "rechts"), SKILLSET_SPALTEN):
-        spalten[seite] = []
-        for k in schluessel:
-            if gruppen[k]:
-                spalten[seite].append({"schluessel": k, "titel": labels[k],
-                                       "eintraege": gruppen[k]})
-            else:
-                hinweise.append(f"Skillset: {labels[k]} ist leer und fehlt im Dokument — "
-                                "aus Stationen und Projekten ableiten und in der Übergabe "
-                                "zur Freigabe nennen (SKILL.md, Schritt 2).")
-    return spalten, hinweise
+    zeilen = []
+    for k in SKILLSET_GRUPPEN:
+        if gruppen[k]:
+            zeilen.append({"schluessel": k, "titel": labels[k], "eintraege": gruppen[k],
+                           "themen": themen if k == "faehigkeiten" else None})
+        else:
+            hinweise.append(f"Skillset: {labels[k]} ist leer und fehlt im Dokument — "
+                            "aus Stationen und Projekten ableiten und in der Übergabe "
+                            "zur Freigabe nennen (SKILL.md, Schritt 2).")
+    return zeilen, hinweise
 
 
 # Woran ein Bildungseintrag als Zertifikat zu erkennen ist. Nur fuer einen
@@ -978,11 +1069,11 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
             print(f"Warnung: Foto nicht gefunden: {p}", file=sys.stderr)
         daten["person"]["foto"] = p.as_uri()
 
-    # Das Skillset geht als die zwei festen Spalten ins Template, nicht so, wie
+    # Das Skillset geht als die festen Themenzeilen ins Template, nicht so, wie
     # es in der cv.json steht. Ueber eine Kopie: html_bauen laeuft je Dokument
     # mehrmals, und die Rohdaten muessen fuer den naechsten Durchgang bleiben.
     kontext = dict(daten)
-    kontext["skillset"] = skillset_gruppen(daten)[0]
+    kontext["skillset"] = skillset_zeilen(daten)[0]
     # <html lang> wird zur Dokumentsprache im PDF, der <title> zum PDF-Titel.
     # Jedes Bild braucht einen Alternativtext (PDF/UA); welcher, entscheidet
     # das Feld "anonym", das anonymisieren.py setzt - nicht der Dateiname.
@@ -1080,24 +1171,18 @@ def rendern(html, ziel):
 def spalten_pruefen(daten):
     """Laeuft Seite 1 ueber: wo sich Hoehe gewinnen laesst.
 
-    Die vier Gruppen und ihre Anordnung stehen fest, verschieben geht nicht
-    mehr. Der Block ist so hoch wie seine laengere Spalte — gekuerzt wird also
-    in der laengsten Gruppe der laengeren Spalte, durch Weglassen der
-    schwaechsten Eintraege, nie durch Umformulieren.
+    Die vier Zeilen und ihre Reihenfolge stehen fest. Gekuerzt wird in der
+    Zeile mit den meisten Eintraegen, durch Weglassen der schwaechsten, nie
+    durch Umformulieren.
     """
-    spalten = skillset_gruppen(daten)[0]
-
-    def zeilen(spalte):                       # Ueberschrift plus Eintraege
-        return sum(1 + len(g["eintraege"]) for g in spalte)
-    seite = max(spalten, key=lambda s: zeilen(spalten[s]))
-    if not spalten[seite]:
+    zeilen = skillset_zeilen(daten)[0]
+    if not zeilen:
         return []
-    laengste = max(spalten[seite], key=lambda g: len(g["eintraege"]))
+    laengste = max(zeilen, key=lambda z: len(z["eintraege"]))
     return [
-        f"Die {'linke' if seite == 'links' else 'rechte'} Skillset-Spalte ist die "
-        f"laengere ({zeilen(spalten[seite])} Zeilen). Dort zuerst in "
-        f"{laengste['titel']} ({len(laengste['eintraege'])} Eintraege) die schwaechsten "
-        "Eintraege weglassen — Gruppen und Anordnung stehen fest."
+        f"Im Skillset hat {laengste['titel']} die meisten Einträge "
+        f"({len(laengste['eintraege'])}). Dort zuerst die schwächsten weglassen — "
+        "Zeilen, Themen und Reihenfolge stehen fest."
     ]
 
 
@@ -1166,7 +1251,7 @@ def text_tiefe(ziel, seite=-1):
 
 
 def _schlussmarken(daten):
-    """Texte, die ganz am Ende des Deckblatts stehen — je Skillset-Spalte einer.
+    """Texte, die ganz am Ende des Deckblatts stehen — der letzte Skillset-Eintrag.
 
     Nicht am Anfang der Stationen messen: deren erster Titel ist oft derselbe
     Text wie die Rolle im Profilkopf ("Softwareentwickler") und wird dann schon
@@ -1187,12 +1272,9 @@ def _schlussmarken(daten):
         elif ew["it_kompetenzen"]:
             marken.append(ew["it_kompetenzen"][-1]["titel"])
         return [" ".join(str(m).split()) for m in marken if m]
-    spalten = skillset_gruppen(daten)[0]
-    for spalte in (spalten["links"], spalten["rechts"]):
-        if spalte:
-            letzte = spalte[-1]
-            eintraege = letzte.get("eintraege") or []
-            marken.append(eintraege[-1] if eintraege else letzte.get("titel"))
+    zeilen = skillset_zeilen(daten)[0]
+    if zeilen:
+        marken.append(zeilen[-1]["eintraege"][-1])
     if not marken:
         # Ohne Skillset ist das Letzte im Block ein Zertifikats-Tag oder, ohne
         # die, der letzte Abschluss. Studieninhalte gibt es nicht mehr.
@@ -1314,7 +1396,7 @@ def main():
     # leere Gruppen, altes Format) — gehoert in die Uebergabe. Im
     # Entwickler-Layout statt der vier Gruppen die IT-Kompetenzen.
     hinweise += (entwickler_aufbereiten(daten)[1] if layout == "entwickler"
-                 else skillset_gruppen(daten)[1])
+                 else skillset_zeilen(daten)[1])
     # Dasselbe fuer Bildung und Zertifikate: ignorierte Studieninhalte und
     # Darstellungsschluessel aus aelteren cv.json, Zertifikate im alten
     # Bildungsplatz, fehlende Aussteller und Daten, die Reihenfolge.

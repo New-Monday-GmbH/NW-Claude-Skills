@@ -42,9 +42,12 @@ Nur in diesen Fällen, und dann nur das betroffene Dokument:
   weniger Seiten als der Bestand, und Kürzen ist nicht freigegeben. Vorher
   versuchen, die Ergänzung als angehängten Satz zu fassen statt als neue Zeile.
 - **Die Komponente ist zu klein.** Ein Inhalt hat mehr Einträge, als die
-  Komponente Plätze hat, zum Beispiel mehr als 12 Fähigkeiten im CV-Skillset
+  Komponente Plätze hat, zum Beispiel mehr als 6 Logos an einer CV-Station
   oder mehr als 6 Stichpunkte in einer Lösungsfolie. Auch hier zuerst
-  Zusammenfassen oder Anhängen prüfen.
+  Zusammenfassen oder Anhängen prüfen. (Das CV-Skillset hat seit 15.11.2026
+  keine Grenze mehr: `CV/Skillset Themen` nimmt Fließtext. Trägt die Kopie noch
+  das alte `CV/Skillset`, wird nur diese Instanz gegen `CV/Skillset Themen`
+  getauscht, siehe `newmonday-cv/references/figma.md`.)
 - **Die Kopie fehlt oder ist unvollständig**, und der Nutzer hat in Phase 3
   „Ohne Figma weiter“ nicht gewählt.
 

@@ -47,8 +47,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import tokens  # noqa: E402  — erst nach sys.path.insert moeglich
 from render_cv import (  # noqa: E402
     BESCHRIFTUNG, KONTAKT_VORGABE, VERWEISTEXT, bildung_aufbereiten, dateiname,
-    logo_groessen, logo_masse, logoliste, ohne_arbeitsdateien, seitenverhaeltnis, skillset_gruppen, stationslogo,
-    zeitraeume_setzen, zertifikate_aufbereiten,
+    logo_groessen, logo_masse, logoliste, ohne_arbeitsdateien, seitenverhaeltnis, skillset_zeilen, stationslogo,
+    zeitraeume_setzen, zertifikate_aufbereiten, fliesstext,
 )
 from logo_lib import suche as logo_datei  # noqa: E402
 
@@ -214,30 +214,31 @@ def bloecke_bauen(daten, deckblatt, stationen):
         bloecke.append(block("trennlinie", abstand_oben=d["vor_linie"], token="vor_linie",
                              farbe=farben["text"], staerke=r["linie"]))
 
-    # Das Skillset gibt es immer, mit den vier festen Gruppen 2 x 2 — dieselbe
-    # Aufbereitung wie im PDF (render_cv.skillset_gruppen), nicht die Rohdaten.
-    skillset = skillset_gruppen(daten)[0]
-    if skillset["links"] or skillset["rechts"]:
+    # Das Skillset gibt es immer, als Themenzeilen (B2) — dieselbe Aufbereitung
+    # wie im PDF (render_cv.skillset_zeilen), nicht die Rohdaten. Die Werte
+    # stehen als Fliesstext mit den Schutzzeichen, die in Figma das Umbrechen
+    # innerhalb eines Eintrags verhindern (render_cv.fliesstext).
+    zeilen = skillset_zeilen(daten)[0]
+    if zeilen:
         bloecke.append(block(
             "rubrik", abstand_oben=a["intro_inhalt"] if erste_rubrik else d["nach_linie"],
             token="intro_inhalt" if erste_rubrik else "nach_linie",
             marke=labels["skillset"], text=labels["skillset"], **typo("rubrik")))
-
-        def gruppen(spalte):
-            return [{
-                "schluessel": g["schluessel"],
-                "titel": dict(text=norm(g["titel"]), abstand_unten=d["gruppe_liste"],
-                              **typo("gruppe")),
-                "eintraege": [norm(e) for e in g["eintraege"]],
-            } for g in spalte]
-
-        erste = (skillset["links"] or skillset["rechts"])[0]
         bloecke.append(block(
-            "skillset", abstand_oben=d["rubrik_inhalt"], token="rubrik_inhalt", marke=erste["titel"],
-            spaltenbreite=ab["halbe_spalte"], spaltenabstand=r["spaltenabstand"],
-            gruppenabstand=d["gruppen"],
-            liste=dict(einzug=r["listeneinzug"], abstand=0, **typo("liste")),
-            spalten=[gruppen(skillset["links"]), gruppen(skillset["rechts"])]))
+            "skillset", abstand_oben=d["rubrik_inhalt"], token="rubrik_inhalt",
+            marke=zeilen[0]["titel"],
+            label=dict(breite=r["skill_label_breite"], abstand=r["skill_label_abstand"],
+                       **typo("skill_label")),
+            wert=typo("skill_wert"), thema=typo("skill_thema"),
+            zeile_innen=r["skill_zeile_innen"],
+            linie={"staerke": r["skill_zeilenlinie"], "farbe": farben["zeilenlinie"]},
+            thema_eintraege=r["skill_thema_eintraege"], themenabstand=r["skill_themen"],
+            zeilen=[{
+                "schluessel": z["schluessel"], "titel": z["titel"],
+                "text": None if z["themen"] else fliesstext(z["eintraege"]),
+                "themen": [{"titel": t["titel"], "text": fliesstext(t["eintraege"])}
+                           for t in z["themen"] or []],
+            } for z in zeilen]))
 
     # --- Ab hier die Stationen, im PDF auf einer neuen Seite ---
     naechster_abstand, naechster_token = 0, None

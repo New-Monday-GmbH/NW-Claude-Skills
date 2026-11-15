@@ -120,6 +120,10 @@
       "Barrierefreiheit",
       "Requirements Engineering"
     ],
+    "faehigkeiten_themen": [
+      {"thema": "Strategie & Research", "eintraege": ["User Research", "Usability-Testing", "Requirements Engineering"]},
+      {"thema": "Konzeption & Gestaltung", "eintraege": ["UI-Design", "Barrierefreiheit"]}
+    ],
     "branchen": [
       "Public Sector",
       "Datenverarbeitung",
