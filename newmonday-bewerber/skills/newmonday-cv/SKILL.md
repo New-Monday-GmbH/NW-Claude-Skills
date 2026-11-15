@@ -1231,12 +1231,18 @@ Zum Modell:
     "Werbung und Kampagnen", nicht "Energie"; ein Onlineshop-Checkout ist
     "E-Commerce", nicht "Banking". **Abgeleitetes steht in der Übergabe zur Freigabe**, mit Beleg
     – es ist dieselbe Art Behauptung wie ein generiertes Kurzprofil.
-  - **Sprachen setzt das Renderskript.** Deutsch – Muttersprache und Englisch –
-    Business Niveau stehen in jedem Lebenslauf, auch wenn der Eingang keine
+  - **Sprachen setzt das Renderskript.** Deutsch (Muttersprache) und Englisch
+    (Business Niveau) stehen in jedem Lebenslauf, auch wenn der Eingang keine
     Sprachen oder andere Niveaus nennt (Vorgabe vom 29.09.2026, gleich wie im
     Portfolio). In `sprachen` gehören die weiteren Sprachen mit ihrem Niveau
-    ("Französisch – Grundkenntnisse"). Steht dort Deutsch oder Englisch mit
-    anderem Niveau, ersetzt die Vorgabe es und `render_cv.py` meldet das.
+    ("Französisch – Grundkenntnisse" oder `{"sprache", "niveau"}`). Steht dort
+    Deutsch oder Englisch mit anderem Niveau, ersetzt die Vorgabe es und
+    `render_cv.py` meldet das.
+  - **Schreibweise immer „Sprache (Niveau)“** (Vorgabe vom 15.11.2026):
+    „Deutsch (Muttersprache)“, „Französisch (B2)“, englisch „German (Native
+    speaker)“. Das Renderskript setzt das selbst, egal wie die `cv.json` es
+    schreibt (mit Halbgeviertstrich, Doppelpunkt oder Klammer). Eine Klammer im
+    Niveau wird zum Komma: „Englisch (Muttersprachen-Niveau, C2)“.
   - **Keine Gruppe fehlt still.** Findet sich auch durch Ableiten nichts, fehlt
     die Gruppe im Dokument, und das Renderskript meldet es – das gehört in die
     Übergabe.
@@ -1812,8 +1818,9 @@ Regeln dazu:
   Schritt 2.
 - **Das Skillset hat im UX-Layout immer dieselben vier Gruppen**, als Themenzeilen
   (B2): Fähigkeiten, Tools, Branchen, Sprachen untereinander, die Fähigkeiten
-  ab fünf in Themen aus dem festen Wortschatz. Deutsch – Muttersprache und
-  Englisch – Business Niveau stehen immer drin. Siehe Schritt 2.
+  ab fünf in Themen aus dem festen Wortschatz. Deutsch (Muttersprache) und
+  Englisch (Business Niveau) stehen immer drin, jede Sprache als „Sprache
+  (Niveau)“. Siehe Schritt 2.
 - **Ansprechpartner im Footer**: immer Manuel Klein, CCO, und die Adresse
   New Monday GmbH, **Stresemannstr. 23**, 10963 Berlin – genau so geschrieben,
   gleich in allen drei Dokumenten (Vorgabe vom 03.10.2026). Steht als Vorgabe

@@ -657,8 +657,8 @@ def pruefe_projektlogos(tmp):
 # Themen-Wortschatz.
 SKILLSET_SOLL = {"de": ["Fähigkeiten", "Tools", "Branchen", "Sprachen"],
                  "en": ["Skills", "Tools", "Industries", "Languages"]}
-SPRACHEN_SOLL = {"de": ["Deutsch – Muttersprache", "Englisch – Business Niveau"],
-                 "en": ["German – Native speaker", "English – Business level"]}
+SPRACHEN_SOLL = {"de": ["Deutsch (Muttersprache)", "Englisch (Business Niveau)"],
+                 "en": ["German (Native speaker)", "English (Business level)"]}
 THEMEN_SOLL = {"de": ["Strategie & Research", "Konzeption & Gestaltung", "Design Systems & Qualität",
                       "Zusammenarbeit & Arbeitsweise", "KI & Technologie"],
                "en": ["Strategy & Research", "Concept & Design", "Design Systems & Quality",
@@ -669,8 +669,8 @@ def pruefe_skillset(tmp):
     """Steht das Skillset als Themenzeilen (B2), mit der Sprachvorgabe?
 
     Vorgabe vom 29.09.2026: In jedem Lebenslauf stehen Faehigkeiten, Tools,
-    Branchen und Sprachen; Deutsch – Muttersprache und Englisch – Business
-    Niveau immer, weitere Sprachen mit ihrem Niveau. Seit dem 15.11.2026 als
+    Branchen und Sprachen; Deutsch (Muttersprache) und Englisch (Business
+    Niveau) immer (Schreibweise Sprache (Niveau) seit 15.11.2026), weitere Sprachen mit ihrem Niveau. Seit dem 15.11.2026 als
     Themenzeilen: untereinander, Label links (80pt), Wert rechts als
     Fliesstext, die Faehigkeiten in Themen aus festem Wortschatz. Geprueft wird
     am gerenderten PDF (Labels, Lage, Themen, Text) und an der Aufbereitung
@@ -732,13 +732,13 @@ def pruefe_skillset(tmp):
         fehler.append("Skillset: Themen stehen nicht in der Zeile Fähigkeiten")
 
     text = " ".join(" ".join(l["text"] for l in seite1 if l["y"] > labels[-1]["y"] - 5).split())
-    erwartet = " · ".join(SPRACHEN_SOLL["de"] + ["Französisch – Grundkenntnisse"])
+    erwartet = " · ".join(SPRACHEN_SOLL["de"] + ["Französisch (Grundkenntnisse)"])
     if erwartet not in text:
         fehler.append(f"Skillset: Sprachen „{text[:120]}“ statt „{erwartet}“")
     tools = " ".join(l["text"] for l in werte if labels[1]["y"] - 5 < l["y"] < labels[2]["y"] - 5)
     if tools.split(" · ").count("Figma") != 1:
         fehler.append(f"Skillset: 'Figma' steht nicht genau einmal unter Tools — {tools}")
-    for meldung in ("Englisch steht als", "Deutsch – Muttersprache“ ergänzt", "stand doppelt"):
+    for meldung in ("Englisch steht als", "Deutsch (Muttersprache)“ ergänzt", "stand doppelt"):
         if meldung not in lauf.stderr:
             fehler.append(f"Skillset: Hinweis fehlt in der Ausgabe — '{meldung} …'")
     if "ohne Thema" in lauf.stderr:
@@ -767,9 +767,9 @@ def pruefe_skillset(tmp):
     if zeilen[-1]["eintraege"] != SPRACHEN_SOLL["en"]:
         fehler.append(f"Skillset: englische Sprachvorgabe fehlt — {zeilen[-1]['eintraege']}")
 
-    # Eine zusammengefasste Zeile traegt die Sprache schon und bleibt, wie sie ist.
+    # Eine zusammengefasste Zeile traegt die Sprache schon; gesetzt als Sprache (Niveau).
     zeilen, _ = sprachen_mit_vorgabe(["Deutsch, Italienisch – Muttersprache", "Englisch"])
-    if zeilen != ["Deutsch, Italienisch – Muttersprache", "Englisch – Business Niveau"]:
+    if zeilen != ["Deutsch, Italienisch (Muttersprache)", "Englisch (Business Niveau)"]:
         fehler.append(f"Skillset: zusammengefasste Sprachzeile falsch behandelt — {zeilen}")
 
     # Trenner und Klammer zugleich: Die Klammer gehoert zum Niveau. Vorher galt
@@ -781,6 +781,11 @@ def pruefe_skillset(tmp):
     if not any("Muttersprachen-Niveau (C2)" in h for h in hinweise):
         fehler.append(f"Skillset: abweichendes Niveau „Muttersprachen-Niveau (C2)“ nicht gemeldet "
                       f"— {hinweise}")
+
+    # Sprache (Niveau), eine Klammer im Niveau wird zum Komma (15.11.2026).
+    zeilen, _ = sprachen_mit_vorgabe(["Französisch: B2", {"sprache": "Spanisch", "niveau": "Grundkenntnisse (A2)"}])
+    if zeilen[2:] != ["Französisch (B2)", "Spanisch (Grundkenntnisse, A2)"]:
+        fehler.append(f"Skillset: Sprachen nicht als Sprache (Niveau) — {zeilen}")
 
     # Eine leere Gruppe faellt weg und wird gemeldet.
     zeilen, hinweise = skillset_zeilen({"skillset": {"faehigkeiten": ["X"], "tools": ["T"]}})
