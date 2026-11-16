@@ -151,10 +151,29 @@ Läuft unbeaufsichtigt: **keine Klickboxen, nichts in Figma, keine Plattform.**
      Beschreibung und Kategorie wörtlich) und nur in Kategorien, die die
      Matrix schon hat (höchstens 5 Kategorien, 24 Kompetenzen). Passt ein
      Attribut in keine vorhandene Kategorie, bleibt es draußen und steht in
-     der Übergabe. Tools als Tool-Karte (Kompetenz n einblenden). Bewertung
-     nach Beleg: bejaht ohne Projekt 3, mit Projekt 3–4.
+     der Übergabe. Die Sektion **Tools** ist nur für Software (Figma, Jira,
+     Claude …) – Technik wie HTML/CSS oder JavaScript gehört in ihre
+     Pool-Kategorie (Coding Skills); fehlt die und sind die Kategorien voll,
+     das passende Attribut einer vorhandenen Kategorie nehmen (HTML/CSS →
+     „Frontend-Verständnis“ unter Development Collaboration), nie eine
+     Tool-Karte. Bewertung nach Beleg: bejaht ohne Projekt 3, mit Projekt 3–4.
    - **Portfolio:** in die Arbeitsweise-Folien (meist 6–10) als angehängter
-     Satz; das Schlüsselwort in Semi Bold derselben Schrift.
+     Satz; das Schlüsselwort in Semi Bold derselben Schrift. Stehen hinter den
+     Arbeitsweisen noch **Zusatz-Schwerpunktfolien** (Komponente „Schwerpunkt“,
+     etwa Barrierefreiheit, Handover & QA, Edge Cases), ihren Inhalt vollständig
+     in die Prozess-Folien einarbeiten (Verstehen / Kreieren / Validieren, als
+     eigener Absatz), sie aus der Kopie nehmen und Seitenzahlen und
+     Folien-Namen neu zählen. Was beim Kürzen herausfällt, muss in CV oder
+     Matrix stehen.
+   - **Logos:** Jede Station im Lebenslauf trägt das Kundenlogo **mit
+     Schriftzug** (nicht nur die Bildmarke), und jeder Kunde aus dem
+     Lebenslauf steht auf der **Kundenwand** (Portfolio Folie 3) – einfarbig
+     wie die anderen dort (meist dunkel, aus dem Farblogo als Silhouette
+     erzeugen), gleich groß wirkend (ähnliche Fläche), im Raster. Logos aus
+     `~/.newmonday/logos/`, hochladen mit `upload_assets` und den imageHash
+     setzen. Größe in diesen Komponenten über Innenabstände: CV-Logo-Rahmen
+     „Logo n“ = paddingLeft × paddingTop; Kundenwand-Platz „Logo n“ =
+     Innenabstände um die Fläche (FILL) im 1607 × 640 großen Platz.
    - Danach jede geänderte Seite ansehen (Screenshot): nichts abgeschnitten,
      keine Seite länger als vorher.
    - Steht ein Begriff schon da und die Lückenprüfung hat ihn nicht erkannt
