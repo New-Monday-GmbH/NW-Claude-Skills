@@ -144,8 +144,19 @@ Läuft unbeaufsichtigt: **keine Klickboxen, nichts in Figma, keine Plattform.**
      „Stakeholder-Management und Moderation von Workshops“), nie als neuer
      Stichpunkt – so bleiben die Umbrüche. Bejaht mit Projekt: an diesem
      Projekt. Ohne Projekt und abgeleitet: an dem Projekt, dessen belegte
-     Tätigkeit es am ehesten einschließt. Skillset und Tools über die freien
-     Plätze der Komponente (Eigenschaft „Eintrag n“ einblenden, Text setzen).
+     Tätigkeit es am ehesten einschließt.
+     **Erst den Stand der Kopie auf den aktuellen Standard bringen**, wenn sie
+     älter ist: Steht auf Seite 1 noch das alte Skillset (Listen Fähigkeiten /
+     Branchen / Tools / Sprachen), es durch die Komponente „CV/Skillset
+     Themen“ (B2, Key in `<skills>/newmonday-cv/assets/master-bibliothek.json`) ersetzen – im Seiten-Slot
+     direkt an seiner Stelle einfügen (`findIndex` nach ID, `insertChild`),
+     Einträge wörtlich übernehmen und auf die Themen verteilen, geschützte
+     Leerzeichen und Trenner wie in den anderen CVs, Sprachen als
+     „Sprache (Niveau)“; das alte Skillset löschen. Unter **Tools** nur
+     Software – Technik wie HTML/CSS gehört zu den Fähigkeiten (Thema „KI &
+     Technologie“). Jede Station (Arbeitgeber wie Projekt) trägt eine
+     **Einleitung** wie die anderen (Eigenschaft „Beschreibung anzeigen“,
+     ein bis zwei Sätze in der Ich-Form, nur aus Belegtem der Station).
    - **Skill Matrix:** nur Attribute aus dem Pool
      (`<skills>/newmonday-skillmatrix/references/attribute-katalog.md`, Name,
      Beschreibung und Kategorie wörtlich) und nur in Kategorien, die die
