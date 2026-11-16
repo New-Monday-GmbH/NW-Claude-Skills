@@ -84,6 +84,11 @@ with tempfile.TemporaryDirectory() as t:
     lauf(env, "auswerten", "--stichtag", "2026-11-16")
     anna = {l["begriff"]: (l["tun"], l["projekt"]) for l in json.loads(lauf(env, "luecken", "--kandidat", "Anna Test"))}
     assert anna["Confluence"] == ("bejaht – einspeisen", "P1"), anna
+    # auch eine bejahte Methode gilt als bejaht, nicht mehr als „selbst ergänzen“
+    lauf(env, "antwort", "--kandidat", "Anna Test", "--begriff", "Scrum", "--antwort", "ja_projekt", "--projekt", "P2")
+    lauf(env, "auswerten", "--stichtag", "2026-11-16")
+    anna = {l["begriff"]: l["tun"] for l in json.loads(lauf(env, "luecken", "--kandidat", "Anna Test"))}
+    assert anna["Scrum"] == "bejaht – einspeisen", anna
 
     with zipfile.ZipFile(ziel / "marktbild.xlsx") as z:
         assert z.testzip() is None
