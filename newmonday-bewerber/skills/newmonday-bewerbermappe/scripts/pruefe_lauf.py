@@ -38,7 +38,7 @@ UEBERSPRINGEN = {"fehler", "ausgelassen"}  # Phase so: deren Datei nur mit Warnu
 UEBERGABE = ["## Dateien", "## Zur Freigabe", "## Quellen weichen ab",
              "## Hinweise", "## Ohne Rückfrage entschieden", "## Fehlt noch"]
 EMPFOHLEN = "(Empfohlen)"
-ANFRAGE_QUELLEN = {"matching", "ausschreibung"}  # woher die Anforderungstabelle stammt
+ANFRAGE_QUELLEN = {"matching", "ausschreibung", "marktbild"}  # woher die Anforderungstabelle stammt
 MATCHING = {"bestanden", "nicht_bestanden", "fehlt"}
 ANFRAGE_ARTEN = {"muss", "kann", "domaene"}  # anfrage_luecken[].art
 ID = re.compile(r"^[a-z][a-z0-9_]*$")
@@ -146,6 +146,11 @@ def pruefe_anfrage(a, m) -> tuple[list[str], list[str]]:
     for k in ("rolle", "senioritaet", "domaene", "datei"):
         if a.get(k) is not None and not _text(a.get(k)):
             f.append(f"anfrage.{k}: muss ein Text oder null sein")
+    if quelle == "marktbild":
+        # Marktbild statt Anfrage (newmonday-marktbild): kein Kunde, also keine Matching-Prüfung
+        if m is not None:
+            f.append("matching: beim Marktbild gibt es keine Matching-Prüfung – null lassen")
+        return f, w
     if m is None:
         f.append("matching: fehlt – bei einer Anfrage steht hier das Ergebnis der "
                  "Matching-Prüfung aus Phase 2")

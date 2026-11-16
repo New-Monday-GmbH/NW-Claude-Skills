@@ -1,0 +1,16 @@
+{
+  "ausschreibungen": "~/Desktop/Bewerberunterlagen/Ausschreibungen",
+  "originale": "~/Desktop/Bewerberunterlagen/Originale",
+  "markt": "~/Desktop/Bewerberunterlagen/Markt",
+  "sharepoint": {
+    "drive_id": "<Graph-driveId der Dokumentbibliothek>",
+    "ordner_id": "<Item-ID des Marktbild-Ordners>",
+    "daten_id": "<Item-ID des Unterordners Daten>"
+  },
+  "plattformen": {
+    "crm": "<Adresse der Kandidatenliste>",
+    "freelancermap": "<Adresse der Profilanlagen>",
+    "hays": "<Adresse Profildaten pflegen>",
+    "gulp": "<Adresse der Profilverwaltung>"
+  }
+}
