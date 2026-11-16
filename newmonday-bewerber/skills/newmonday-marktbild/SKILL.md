@@ -58,6 +58,8 @@ siehe `references/plattformen.md`).
   kandidaten.json        Name → ordner (unter originale/), rollenfamilien, figma_file
   anforderungen/<Anfrage-Ordner>.json   je Ausschreibung einmal zerlegt
   antworten/<Name>.json  Technik-Antworten des Nutzers – nie doppelt fragen
+  vorgaben.json          vom Nutzer gesetzte Anforderungen: [{"begriff", "rollenfamilien"?}] –
+                         gelten immer als gefragt (ohne rollenfamilien in jeder Familie)
   stand-<datum>/         marktbild.xlsx, bericht.md, marktbild.json, luecken.json
 ```
 
@@ -183,7 +185,7 @@ Läuft unbeaufsichtigt: **keine Klickboxen, nichts in Figma, keine Plattform.**
      Schriftzug** (nicht nur die Bildmarke), und jeder Kunde aus dem
      Lebenslauf steht auf der **Kundenwand** (Portfolio Folie 3) – einfarbig
      wie die anderen dort (meist dunkel, aus dem Farblogo als Silhouette
-     erzeugen), gleich groß wirkend (ähnliche Fläche), im Raster. Logos aus
+     erzeugen), gleich groß wirkend (ähnliche Fläche), angeordnet nach der Hausregel des Renderers (`logoraster` in render_portfolio.py): bis 5 Logos eine lockere Reihe, ab 6 bis zu 7 je Zeile von Kante zu Kante, Fläche je Logo 100² pt, Höhe ≤ 80, Breite ≤ 350 – so stimmen Figma und PDF überein. Logos aus
      `~/.newmonday/logos/`, hochladen mit `upload_assets` und den imageHash
      setzen. Größe in diesen Komponenten über Innenabstände: CV-Logo-Rahmen
      „Logo n“ = paddingLeft × paddingTop; Kundenwand-Platz „Logo n“ =

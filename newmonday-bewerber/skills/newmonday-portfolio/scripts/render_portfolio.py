@@ -49,7 +49,7 @@ from screens import baue_screens  # noqa: E402
 AGENTUR = {
     "teammitglieder": "26",
     "gegruendet": "2018",
-    "zufriedenheit": "100%",
+    "zufriedenheit": "100\u00a0%",
     "badge": ["Best 2026", "Nominated", "UX Design Agency"],
 }
 # Das Cover traegt immer nur "Portfolio" (Rueckmeldung Oktober 2026): Die Rolle
@@ -62,7 +62,7 @@ ANSPRECHPARTNER = {
     "titel_de": ["Chief Commercial Officer (CCO)", "Business Development"],
     "titel_en": ["Chief Commercial Officer (CCO)", "Business Development"],
     "mail": "manuel.klein@newmonday.co",
-    "telefon": "+49 (0) 155 11480130",
+    "telefon": "+49 (0) 155 1148 0130",
     "foto": "kontakt/ansprechpartner.jpg",
 }
 FIRMA = {
@@ -89,7 +89,7 @@ TEXTE = {
         "agentur_h": "Ich bin Teil der\nNew Monday Agentur.",
         # Bewerberpool (noch nicht angestellt): keine Anstellung behaupten.
         "agentur_h_pool": "Vorgestellt von der\nNew Monday Agentur.",
-        "agentur_sub": "Seit 2018 verlängern 100% unserer Kunden ihre Projekte mit uns.",
+        "agentur_sub": "Seit 2018 verlängern 100\u00a0% unserer Kunden ihre Projekte mit uns.",
         "team": "Teammitglieder", "gegruendet": "Gegründet",
         "zufriedenheit": "Kundenzufriedenheit",
         "top": "Top-Kenntnisse", "koennen": "Kenntnisse",
