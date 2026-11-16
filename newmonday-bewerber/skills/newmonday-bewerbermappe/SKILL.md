@@ -1,6 +1,6 @@
 ---
 name: newmonday-bewerbermappe
-description: Baut in einem Lauf alle drei New-Monday-Dokumente eines Kandidaten – Lebenslauf (vollständig und anonym), Skill Matrix und Portfolio –, jeweils als PDF und als Frames auf einer gemeinsamen Figma-Seite. Führt newmonday-cv, newmonday-skillmatrix und newmonday-portfolio nacheinander aus, stellt jede gemeinsame Frage nur einmal (Sprache, Figma, Material, Anfrage), prüft vorab, was an Unterlagen fehlt und ob ein bestandenes Profilmatching vorliegt, richtet alle drei Dokumente auf die Anforderungstabelle aus dem Matching aus (Muss, Kann, K.o., Domäne – als Gewichtung, nie als Beleg) und bündelt alle Entscheidungen in einer Sitzung, bevor gebaut wird. Nutze diesen Skill immer, wenn alle drei Dokumente für denselben Kandidaten entstehen sollen – "die ganze Mappe", "das komplette Set", "alle Unterlagen für <Name>", "CV, Portfolio und Skillmatrix", "Bewerbermappe", "mach alles fertig für <Name>" –, und wenn ein laufender Gesamtlauf fortgesetzt oder um nachgelieferte Logos, Screens oder Fotos ergänzt werden soll. Für genau ein Dokument sind newmonday-cv, newmonday-skillmatrix und newmonday-portfolio zuständig; sollen bestehende Unterlagen auf eine Ausschreibung angepasst werden, newmonday-anfrage.
+description: Baut in einem Lauf alle drei New-Monday-Dokumente eines Kandidaten – Lebenslauf (vollständig und anonym), Skill Matrix und Portfolio –, jeweils als PDF und als Frames auf einer gemeinsamen Figma-Seite. Führt newmonday-cv, newmonday-skillmatrix und newmonday-portfolio nacheinander aus, stellt jede gemeinsame Frage nur einmal (Sprache, Figma, Material, Anfrage), prüft vorab, was an Unterlagen fehlt und ob ein bestandenes Profilmatching vorliegt, richtet alle drei Dokumente auf die Anforderungstabelle aus dem Matching aus (Muss, Kann, K.o., Domäne – als Gewichtung, nie als Beleg) oder bei neuen Kolleg:innen auf das Marktbild aus newmonday-marktbild und bündelt alle Entscheidungen in einer Sitzung, bevor gebaut wird. Nutze diesen Skill immer, wenn alle drei Dokumente für denselben Kandidaten entstehen sollen – "die ganze Mappe", "das komplette Set", "alle Unterlagen für <Name>", "CV, Portfolio und Skillmatrix", "Bewerbermappe", "mach alles fertig für <Name>" –, und wenn ein laufender Gesamtlauf fortgesetzt oder um nachgelieferte Logos, Screens oder Fotos ergänzt werden soll. Für genau ein Dokument sind newmonday-cv, newmonday-skillmatrix und newmonday-portfolio zuständig; sollen bestehende Unterlagen auf eine Ausschreibung angepasst werden, newmonday-anfrage.
 ---
 
 # New Monday Bewerbermappe
@@ -66,6 +66,16 @@ alle drei Skills. Dafür gilt, ohne Ausnahme:
 Ohne Anfrage entsteht eine allgemeine Mappe wie bisher – ohne Matching-Prüfung,
 und die Übergabe sagt, dass sie auf keine Anfrage ausgerichtet ist.
 
+**Marktbild statt Anfrage** – für neue Kolleg:innen der Normalfall. Das
+Marktbild aus `newmonday-marktbild` (was in den letzten Ausschreibungen je
+Rollenfamilie gefragt war) ist dann die Anfrage: `anfrage.quelle =
+"marktbild"`, `matching: null` – kein Kunde, keine Matching-Prüfung. Alles oben
+gilt weiter, mit einer Erweiterung wie in newmonday-anfrage, Regel 3:
+**Methoden und Arbeitsweisen**, die das Marktbild führt und die bei Rolle,
+Seniorität und Stationen sehr wahrscheinlich sind, ergänzt der Lauf selbst –
+als „abgeleitet“ unter „Zur Freigabe“. **Tools, Technik, Normen und Domänen**
+nur, wenn der Nutzer sie in Phase 4 bejaht. Domänen werden nicht vorgezogen.
+
 ## Voraussetzungen
 
 - Die drei Skills liegen neben diesem Skill. Bei der Installation als Plugin
@@ -109,8 +119,12 @@ Frage:    Entsteht die Mappe für eine bestimmte Anfrage?
 Header:   Anfrage
 Optionen: Ja – ich schicke die Matching-Auswertung (Empfohlen)
         | Ja – ich schicke nur die Ausschreibung
-        | Nein, allgemeine Mappe
+        | Nein – allgemeine Mappe mit Marktbild
+        | Nein – ohne jede Ausrichtung
 ```
+
+„Mit Marktbild“ gibt es nur, wenn `~/.newmonday/marktbild.json` existiert;
+sonst entfällt die Option.
 
 Die Sprachfrage wird gestellt, auch wenn der Eingang eindeutig einsprachig
 aussieht – ein englischer Lebenslauf kann für einen deutschen Kunden gedacht
@@ -162,6 +176,17 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
    einzige Inhaltsarbeit dieses Skills; der Name gibt Laufordner und
    Figma-Seite ihren Namen.
 2a. **Anfrage und Matching** – nur, wenn Phase 1 eine Anfrage ergeben hat.
+   - **Marktbild** (Phase 1: „mit Marktbild“) statt der beiden Punkte
+     darunter: Rollenfamilie(n) per Klickbox (`multiSelect`, Werte aus
+     `<skills>/newmonday-marktbild/references/rollenfamilien.md`, die aus
+     Lebenslauf und Rolle wahrscheinlichste vorausgewählt). Ist der neueste
+     Stand unter `<markt>/stand-*` älter als 7 Tage, erst
+     `python3 <skills>/newmonday-marktbild/scripts/marktbild.py auswerten`.
+     Aus `marktbild.json` des Stands die gefragten Begriffe dieser Familien:
+     `anfrage` wie in newmonday-marktbild, „Einspeisen“, Schritt 7 (Muss =
+     mindestens eine Muss-Nennung, Kann = Rest, `zeile` „Marktbild
+     <TT.MM.JJJJ> (<Familie>): Muss …; Kann …“), `matching: null`. Keine
+     Matching-Klickbox.
    - **Die Anforderungstabelle.** Aus einer Matching-Auswertung den Abschnitt
      „Die Anforderung“ und die K.-o.-Zeile übernehmen, wörtlich, als `anfrage`
      mit `quelle: matching`. Gibt es nur eine Ausschreibung, sie nach Schritt 1
@@ -466,6 +491,14 @@ Eine Sitzung, in dieser Reihenfolge:
    Übersprungen werden Skills ohne Fragen und Skills, deren `vorbereiten` nicht
    auf `fertig` steht.
 
+   **Marktbild-Technik.** Bei `anfrage.quelle = "marktbild"` kommen dazu die
+   Technik-Fragen: jeder gefragte Begriff der Art tool, technik, norm oder
+   domaene (`<markt>/begriffe.json`), den die `anfrage_luecken` als nicht
+   belegt melden – und jede gefragte Methode, die für diese Person nicht sehr
+   wahrscheinlich ist. Frage und Optionen wie in newmonday-marktbild,
+   „Einspeisen“, Schritt 3. Antworten nach `entscheidungen` und zusätzlich mit
+   `marktbild.py antwort` ablegen, damit der Freitagslauf sie kennt.
+
    **Bewerberpool.** Hat der Nutzer schon gesagt, dass die Person noch nicht
    bei New Monday angestellt ist („liegt im Pool“, „noch nicht eingestellt“),
    wird `nm_start` des Lebenslaufs nicht gefragt, sondern direkt mit „Noch
@@ -507,6 +540,16 @@ Skill-Repos vorher festhalten und danach vergleichen wie in Phase 3. Nach jedem:
 
 Scheitert einer, geht es mit dem nächsten weiter; nachgefragt wird nicht.
 
+Bei `anfrage.quelle = "marktbild"` endet jeder Bauen-Auftrag mit diesem Block
+(wörtlich):
+
+```
+Marktbild (geht den Regeln des Skills vor, nur für diese Punkte):
+- Methoden und Arbeitsweisen aus anfrage.muss/kann, die bei Rolle, Seniorität und Stationen sehr wahrscheinlich sind, ergänzen wie belegte Skills (Bewertung nach Seniorität) und an passenden Projekten als angehängten Satz/Stichpunkt (keine Zahlen, Normstufen, Ergebnisse). Jede Stelle in uebergabe.md unter „Zur Freigabe“ mit „abgeleitet: <Begründung>“.
+- Technologien, Tools, Normen/Standards, Frameworks, Programmiersprachen, Zertifikate und Domänen nie ableiten – nur, was in auftrag.json → entscheidungen bejaht ist (mit Projekt, wenn genannt).
+- Keine Projekte, Kunden, Zahlen oder Zertifikate erfinden. Skill Matrix: nur Attribute aus dem Figma-Pool, drei Top-Fähigkeiten, keine Projektnamen in Klammern.
+```
+
 ### Phase 6 — Gesamtübergabe
 
 Die drei `uebergabe.md` ganz lesen. Sie haben dieselben sechs Abschnitte
@@ -519,7 +562,9 @@ einer Nachricht:
    die PDFs sind trotzdem da. Darunter eine Zeile zur Anfrage: „Ausgerichtet
    auf: <anfrage.zeile> – Matching bestanden“, bei `matching.trotzdem` statt
    dessen ganz oben „Ohne bestandenes Matching gebaut: <Gründe>“, ohne Anfrage
-   „Allgemeine Mappe, auf keine Anfrage ausgerichtet“. Die Anfrage-Lücken
+   „Allgemeine Mappe, auf keine Anfrage ausgerichtet“, mit Marktbild
+   „Ausgerichtet auf: <anfrage.zeile> – abgeleitete Ergänzungen unter Zur
+   Freigabe“. Die Anfrage-Lücken
    aller drei Dokumente stehen einmal je Kriterium unter Punkt 4.
 2. **Zur Freigabe** – je Dokument, was dort steht, im Wortlaut: Kurzprofil,
    abgeleitete Skillset-Einträge mit Beleg und die Prüf-Meldungen von
@@ -701,9 +746,12 @@ dieser.
   des Lebenslaufs).
 - **Eine Anfrage** für alle drei Dokumente, einmal eingeholt – sie gewichtet,
   sie belegt nichts. Ein Kundenlogo ist keine Domänenerfahrung.
-- **Vor dem Bauen die Matching-Prüfung**, wenn es eine Anfrage gibt: ohne
-  bestandenes Matching nur auf ausdrückliches „Trotzdem bauen“. Nichts ins CRM,
-  nichts nach JOIN, keine Mail.
+- **Vor dem Bauen die Matching-Prüfung**, wenn es eine Anfrage gibt (nicht
+  beim Marktbild): ohne bestandenes Matching nur auf ausdrückliches „Trotzdem
+  bauen“. Nichts ins CRM, nichts nach JOIN, keine Mail.
+- **Nach einem Lauf mit Marktbild** die Person in `<markt>/kandidaten.json`
+  eintragen (newmonday-marktbild, „Neue Kandidaten“), sobald ihre PDFs unter
+  Originale liegen – dann kennt sie der Freitagslauf.
 - **Eine Quelle bei Widersprüchen** für alle drei Dokumente – die, die der Nutzer
   als die aktuellere wählt; gefragt wird nur, wenn sich die Unterlagen
   widersprechen.

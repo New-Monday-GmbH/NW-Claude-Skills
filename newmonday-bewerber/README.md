@@ -1,12 +1,13 @@
 # newmonday-bewerber
 
-Fünf Claude-Code-Skills der New Monday GmbH rund um Bewerber-Unterlagen:
+Sechs Claude-Code-Skills der New Monday GmbH rund um Bewerber-Unterlagen:
 
 - `skills/newmonday-cv` — Lebenslauf im New-Monday-Layout als PDF und Figma-Frames, vollständig und anonymisiert
 - `skills/newmonday-skillmatrix` — Skill Matrix im New-Monday-Layout als PDF
 - `skills/newmonday-portfolio` — Portfolio im New-Monday-Layout als PDF
 - `skills/newmonday-bewerbermappe` — alle drei in einem Lauf: gemeinsame Fragen einmal, Lückencheck und Matching-Prüfung vorab, alle drei Dokumente auf die Anfrage aus dem Profilmatching ausgerichtet (Gewichtung, nie Beleg), Entscheidungen gebündelt (braucht die drei anderen daneben)
 - `skills/newmonday-anfrage` — bestehende Unterlagen der passendsten Kandidaten auf eine Ausschreibung anpassen: Matching-Artifact aus Claude Chat, Bestand aus dem Original-Figma, neues Figma-File je Anfrage (Original-Frames kopiert und angepasst, nicht neu gebaut), PDFs unter `~/Desktop/Bewerberunterlagen/`; nichts erfinden, nichts entfernen (braucht die vier anderen daneben und `~/.newmonday/anfrage.json`)
+- `skills/newmonday-marktbild` — lernt aus den Anfrage-Läufen, was der Markt je Rollenfamilie sucht (Excel + Bericht in SharePoint, freitags automatisch), zeigt Lücken je Kandidat, speist sie in eine Kopie der Original-Frames ein und macht die Kopie nach Freigabe zum Original – neue PDFs auf allen Plattformen (braucht newmonday-anfrage daneben und `~/.newmonday/marktbild.json`; Kundendaten nie ins Repo)
 
 ## Installation
 
@@ -42,6 +43,10 @@ Managed Settings – siehe [Haupt-README](../README.md#auto-update-einschalten-e
 `newmonday-cv` braucht WeasyPrint und ein paar Systembibliotheken. Was fehlt,
 prüft der Skill beim ersten Lauf (`scripts/pruefe_umgebung.py`) und nennt die
 Befehle dafür.
+
+`newmonday-marktbild` braucht `pdftotext` (Poppler, `brew install poppler`) und
+zum Verkleinern für GULP einmalig
+`python3 -m venv ~/.newmonday/venv && ~/.newmonday/venv/bin/pip install pikepdf pillow`.
 
 ## Für die Pfleger
 

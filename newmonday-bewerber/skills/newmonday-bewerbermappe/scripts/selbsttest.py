@@ -388,6 +388,10 @@ FAELLE = [
     ("trotzdem ist Text", pl.pruefe_auftrag,
      geaendert(AUFTRAG, matching(trotzdem="ja")),
      "matching.trotzdem: muss true oder false sein", None),
+    ("Marktbild ohne Matching", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, lambda d: (d["anfrage"].update(quelle="marktbild"), d.update(matching=None))), None, None),
+    ("Marktbild mit Matching", pl.pruefe_auftrag,
+     geaendert(AUFTRAG, anfrage(quelle="marktbild")), "keine Matching-Prüfung", None),
     ("bestanden aus einer Ausschreibung", pl.pruefe_auftrag,
      geaendert(AUFTRAG, anfrage(quelle="ausschreibung")), None, "nur aus einer Ausschreibung"),
     # anfrage_luecken in fragen.json
