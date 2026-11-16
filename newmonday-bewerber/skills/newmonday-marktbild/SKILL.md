@@ -138,7 +138,10 @@ Läuft unbeaufsichtigt: **keine Klickboxen, nichts in Figma, keine Plattform.**
 6. **Einarbeiten – direkt in den Kopien**, mit den vorhandenen Komponenten,
    ohne JSON-Umweg (die PDFs entstehen erst beim Freigeben aus dem geprüften
    Figma-Stand). Erst alle Texte der Kopien lesen (Antwort < 20 KB,
-   Nicht-ASCII maskieren), dann je Dokument in einem Aufruf ändern:
+   Nicht-ASCII maskieren), dann je Dokument in einem Aufruf ändern.
+   Bei jedem ergänzten Fließtext prüfen, ob die letzte Zeile nur ein Wort
+   hat – dann die letzten zwei Wörter mit U+00A0 verbinden, wenn dadurch
+   keine Zeile oder Seite überläuft (wie `kein_einzelwort()` in den Skripten):
    - **Lebenslauf:** Ergänzungen als **angehängter Halbsatz an einen
      passenden bestehenden Stichpunkt** („Stakeholder-Management“ →
      „Stakeholder-Management und Moderation von Workshops“), nie als neuer

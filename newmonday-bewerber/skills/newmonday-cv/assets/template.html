@@ -89,7 +89,7 @@
 {% if person.kurzprofil %}
 <div class="section section--profil">
   <h2>{{ t.kurzprofil }}</h2>
-  <p class="profile">{{ person.kurzprofil }}</p>
+  <p class="profile">{{ person.kurzprofil|kein_einzelwort }}</p>
   <div class="divider"></div>
 </div>
 {% endif %}
@@ -110,13 +110,13 @@
       <h2 class="station__title">{{ s.titel }}</h2>
       {% if s.firma %}<div class="station__firma">{{ s.firma }}</div>{% endif %}
       {% if s.zeitraum %}<div class="station__zeitraum">{{ s.zeitraum }}</div>{% endif %}
-      {% if s.zusammenfassung %}<p class="station__summary">{{ s.zusammenfassung }}</p>{% endif %}
-      {% if s.beschreibung %}<p class="station__text">{{ s.beschreibung }}</p>{% endif %}
+      {% if s.zusammenfassung %}<p class="station__summary">{{ s.zusammenfassung|kein_einzelwort }}</p>{% endif %}
+      {% if s.beschreibung %}<p class="station__text">{{ s.beschreibung|kein_einzelwort }}</p>{% endif %}
     </div>
   </div>
   <div class="station__body">
     {% if s.aufgaben %}
-    <ul class="tasks">{% for a in s.aufgaben %}<li>{{ a }}</li>{% endfor %}</ul>
+    <ul class="tasks">{% for a in s.aufgaben %}<li>{{ a|kein_einzelwort }}</li>{% endfor %}</ul>
     {% endif %}
 
     {% for p in s.projekte %}
@@ -130,9 +130,9 @@
       </div>{% endif %}
       <h3 class="project__client">{{ p.kunde }}</h3>
       {% if p.zeitraum %}<div class="project__date">{{ p.zeitraum }}</div>{% endif %}
-      {% if p.beschreibung %}<p class="project__text">{{ p.beschreibung }}</p>{% endif %}
+      {% if p.beschreibung %}<p class="project__text">{{ p.beschreibung|kein_einzelwort }}</p>{% endif %}
       {% if p.aufgaben %}
-      <ul class="tasks">{% for a in p.aufgaben %}<li>{{ a }}</li>{% endfor %}</ul>
+      <ul class="tasks">{% for a in p.aufgaben %}<li>{{ a|kein_einzelwort }}</li>{% endfor %}</ul>
       {% endif %}
     </div>
     {% endfor %}

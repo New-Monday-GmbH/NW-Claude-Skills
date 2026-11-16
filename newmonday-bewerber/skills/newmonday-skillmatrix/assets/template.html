@@ -29,7 +29,7 @@
     </div>
     <h1 class="hero__name t-hero-name">{{ person.name }}</h1>
     <div class="hero__rolle t-hero-rolle">{{ person.rolle }}</div>
-    <p class="hero__beschreibung t-hero-beschreibung">{{ person.beschreibung }}</p>
+    <p class="hero__beschreibung t-hero-beschreibung">{{ person.beschreibung|kein_einzelwort }}</p>
     {% if person.schwerpunkte %}
     <ul class="hero__schwerpunkte">
       {% for s in person.schwerpunkte %}<li class="schwerpunkt t-schwerpunkt">{{ s }}</li>{% endfor %}
@@ -77,7 +77,7 @@
     <div class="qualikarte">
       <h3 class="t-quali-titel">{{ t.qualifikationen }}</h3>
       <div class="qualikarte__block">
-        {% if z.karte.text %}<p class="t-quali-text">{{ z.karte.text }}</p>{% endif %}
+        {% if z.karte.text %}<p class="t-quali-text">{{ z.karte.text|kein_einzelwort }}</p>{% endif %}
         {% if z.karte.tags %}
         <ul class="qualikarte__tags{% if z.karte.text %} qualikarte__tags--nach-text{% endif %}">
           {% for tag in z.karte.tags %}<li class="qualitag t-quali-tag">{{ tag }}</li>{% endfor %}
@@ -128,7 +128,7 @@
                 {% for i in range(punkte_anzahl) %}<i class="punkt{% if i < s.punkte %} punkt--voll{% endif %}"></i>{% endfor %}<span class="vorgelesen t-karte-beschreibung">{{ t.bewertung.format(n=s.punkte, m=punkte_anzahl) }}</span>
               </div>
             </div>
-            <p class="skillkarte__beschreibung t-karte-beschreibung">{{ s.beschreibung }}</p>
+            <p class="skillkarte__beschreibung t-karte-beschreibung">{{ s.beschreibung|kein_einzelwort }}</p>
           </li>
           {% endfor %}
         </ul>

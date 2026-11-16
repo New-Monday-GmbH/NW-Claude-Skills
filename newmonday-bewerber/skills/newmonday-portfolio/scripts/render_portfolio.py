@@ -231,15 +231,45 @@ def e(text) -> str:
     return html.escape(str(text or ""))
 
 
+# Kein Wort allein in der letzten Zeile eines Fliesstexts (UX-Writing-Regel):
+# kein_einzelwort() verbindet die letzten zwei Woerter mit einem geschuetzten
+# Leerzeichen (U+00A0), dann wandert das vorletzte Wort mit. Hoechstens so viele
+# Zeichen darf das Paar samt Leerzeichen haben - laenger, und die vorletzte
+# Zeile wird sichtbar kurz oder das Paar passt in der Spalte nicht mehr in eine
+# Zeile und laeuft ueber.
+EINZELWORT_PAAR_MAX = 20
+_ENDPAAR = re.compile(r"(\S+) (\S+)(\s*)$")
+
+
+def kein_einzelwort(text):
+    """Verbindet je Absatz (Zeile) die letzten zwei Woerter mit U+00A0 - nur
+    bei mindestens vier Woertern, einem Paar bis EINZELWORT_PAAR_MAX Zeichen,
+    ohne Zahl/Einheit am Ende, ohne schon geschuetzte Zeichen (U+00A0, U+2011,
+    U+2060) und nicht in Listen mit Mittelpunkt. Nur fuer Fliesstext - Titel,
+    Labels und Tags bleiben, wie sie sind. **fett** bleibt heil."""
+    if not isinstance(text, str):
+        return text
+    return "\n".join(_paar_binden(z) for z in text.split("\n"))
+
+
+def _paar_binden(zeile):
+    m = _ENDPAAR.search(zeile)
+    if (not m or len(zeile.split()) < 4 or "·" in zeile
+            or len(f"{m[1]} {m[2]}".replace("*", "")) > EINZELWORT_PAAR_MAX
+            or re.search(r"[\d‑⁠]", m[1] + m[2])):
+        return zeile
+    return f"{zeile[:m.start()]}{m[1]} {m[2]}{m[3]}"
+
+
 def absaetze(text: str, klasse: str = "fliess", stil: str = "",
              ts: str = "subheadline-2-regular") -> str:
-    """Leerzeilen im Quelltext werden zu Absaetzen, **fett** zu <b>. `ts` ist
-    der Textstil aus tokens.json - ohne ihn stuende der Text in keiner Schrift
-    des Design Systems."""
+    """Leerzeilen im Quelltext werden zu Absaetzen, **fett** zu <b>, je Absatz
+    ohne Einzelwort am Ende (kein_einzelwort). `ts` ist der Textstil aus
+    tokens.json - ohne ihn stuende der Text in keiner Schrift des Design Systems."""
     if not text:
         return ""
     teile = [t.strip() for t in re.split(r"\n\s*\n", text.strip()) if t.strip()]
-    body = "".join(f"<p>{fett(t)}</p>" for t in teile)
+    body = "".join(f"<p>{fett(kein_einzelwort(t.replace(chr(10), ' ')))}</p>" for t in teile)
     attr = f' style="{stil}"' if stil else ""
     return f'<div class="{klasse} t-{ts}"{attr}>{body}</div>'
 
@@ -1116,7 +1146,7 @@ def seite_prozess(d, t, basis, nr):
         f'<div class="prozess-spalte" style="left:{193 + i * PROZESS_TAKT}pt;">'
         f'<div class="balken"{DEKO}></div>'
         f'<h3 class="t-h4">{e(titel).replace(chr(10), "<br>")}</h3>'
-        f'<p class="t-body-1-regular">{fett(kurztext)}</p></div>'
+        f'<p class="t-body-1-regular">{fett(kein_einzelwort(kurztext))}</p></div>'
         for i, (titel, kurztext) in enumerate(eintraege))
     return f'''<section class="seite seite--prozess">
   <div class="streifen streifen--start"{DEKO}></div>
@@ -1412,7 +1442,7 @@ def seite_schwerpunkt(sp: dict, t, basis, nr) -> str:
         nummer = f"{i}&nbsp; " if sp.get("nummeriert") else ""
         html_karten.append(
             f'<div class="pkarte"><h3 class="t-schwerpunkt-titel">{nummer}{e(ktitel)}</h3>'
-            + (f'<p class="t-schwerpunkt-text">{fett(ktext)}</p>' if ktext else "") + "</div>")
+            + (f'<p class="t-schwerpunkt-text">{fett(kein_einzelwort(ktext))}</p>' if ktext else "") + "</div>")
     stapel += 32 * max(0, len(karten) - 1)
     if stapel > SCHWERPUNKT_STAPEL_MAX:
         merke(f"Schwerpunkt „{titel.replace(chr(10), ' ')}“: die Karten sind zusammen "
@@ -1767,7 +1797,7 @@ def seiten_projekt(pr, t, basis, nr, cache: Path):
         was = f'{pr.get("kunde", "")} – {t["loesung"]}'
         bild = screenflaeche(lo.get("screens"), farbe, "panel", basis, cache, k, was,
                              nda=pr.get("nda"))
-        punkte = "".join(f"<li>{fett(x)}</li>" for x in lo.get("punkte", []))
+        punkte = "".join(f"<li>{fett(kein_einzelwort(x))}</li>" for x in lo.get("punkte", []))
         out.append((f'''<section class="seite seite--loesung">
   <div class="streifen streifen--weiter"{DEKO}></div>
   <div class="inhalt">

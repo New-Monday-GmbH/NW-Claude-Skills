@@ -647,6 +647,42 @@ def pruefe_cli() -> list[str]:
     return probleme
 
 
+# Kein Einzelwort am Ende: Lebenslauf, Skill Matrix und Portfolio fuehren je eine
+# eigene Kopie von kein_einzelwort() - alle drei muessen gleich arbeiten.
+EINZELWORT_FAELLE = [
+    ("Ich gestalte digitale Produkte gern.", "Ich gestalte digitale Produkte\u00a0gern."),
+    ("Drei Wörter hier", "Drei Wörter hier"),                                  # unter vier Woertern
+    ("Wir steigern die Kundenzufriedenheit nachhaltig",                         # Paar laenger als 20
+     "Wir steigern die Kundenzufriedenheit nachhaltig"),
+    ("Erster Absatz mit vier Wörtern\nZweiter Absatz hat auch vier",
+     "Erster Absatz mit vier\u00a0Wörtern\nZweiter Absatz hat auch\u00a0vier"),
+    ("Arbeit mit Figma und\u00a0FigJam", "Arbeit mit Figma und\u00a0FigJam"),  # schon geschuetzt
+    ("Aufbau im modernen E\u2011Commerce", "Aufbau im modernen E\u2011Commerce"),
+    ("Der Umsatz stieg um 30 %", "Der Umsatz stieg um 30 %"),                 # Zahl/Einheit am Ende
+    ("Arbeit im Team **ganz fett**", "Arbeit im Team **ganz\u00a0fett**"),    # Fettdruck bleibt heil
+    ("Figma  ·  Sketch  ·  Miro  ·  Jira", "Figma  ·  Sketch  ·  Miro  ·  Jira"),
+]
+
+
+def pruefe_einzelwort() -> list[str]:
+    probleme = []
+    for skill, modul in (("newmonday-cv", "render_cv"), ("newmonday-skillmatrix", "render_skillmatrix"),
+                         ("newmonday-portfolio", "render_portfolio")):
+        ordner = HIER.parent.parent / skill / "scripts"
+        lauf = subprocess.run(
+            [sys.executable, "-c", f"import json, sys; sys.path.insert(0, {str(ordner)!r}); "
+             f"from {modul} import kein_einzelwort as k; "
+             "print(json.dumps([k(t) for t in json.load(sys.stdin)]))"],
+            input=json.dumps([ein for ein, _ in EINZELWORT_FAELLE]), capture_output=True, text=True)
+        if lauf.returncode:
+            probleme.append(f"Einzelwort {skill}: {lauf.stderr.strip()[-300:]}")
+            continue
+        for (ein, soll), ist in zip(EINZELWORT_FAELLE, json.loads(lauf.stdout)):
+            if ist != soll:
+                probleme.append(f"Einzelwort {skill}: {ein!r} -> {ist!r} statt {soll!r}")
+    return probleme
+
+
 def main() -> int:
     probleme = [p for p in (pruefe_fall(*fall) for fall in FAELLE) if p]
     probleme += pruefe_uebergaben()
@@ -655,6 +691,7 @@ def main() -> int:
     probleme += pruefe_laufordner()
     probleme += pruefe_robustheit()
     probleme += pruefe_cli()
+    probleme += pruefe_einzelwort()
     if BEISPIEL.exists():
         f, _ = pl.pruefe_ordner(BEISPIEL, dateien=False)
         probleme += [f"beispiel/lauf: {x}" for x in f]
@@ -665,7 +702,7 @@ def main() -> int:
     if probleme:
         return 1
     print(f"Selbsttest bestanden ({len(FAELLE)} Fälle, {len(ORDNER)} Laufordner-Fälle, "
-          "Übergabe, Robustheit, Befehl, Beispiel)")
+          "Übergabe, Robustheit, Befehl, Einzelwort in allen drei Skills, Beispiel)")
     return 0
 
 

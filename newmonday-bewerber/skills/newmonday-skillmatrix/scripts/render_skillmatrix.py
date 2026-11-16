@@ -88,6 +88,36 @@ KONTAKT_VORGABE = {
     "firma": "New Monday GmbH", "strasse": "Stresemannstr. 23", "ort": "10963 Berlin",
 }
 
+
+# Kein Wort allein in der letzten Zeile eines Fliesstexts (UX-Writing-Regel):
+# kein_einzelwort() verbindet die letzten zwei Woerter mit einem geschuetzten
+# Leerzeichen (U+00A0), dann wandert das vorletzte Wort mit. Hoechstens so viele
+# Zeichen darf das Paar samt Leerzeichen haben - laenger, und die vorletzte
+# Zeile wird sichtbar kurz oder das Paar passt in der Spalte nicht mehr in eine
+# Zeile und laeuft ueber.
+EINZELWORT_PAAR_MAX = 20
+_ENDPAAR = re.compile(r"(\S+) (\S+)(\s*)$")
+
+
+def kein_einzelwort(text):
+    """Verbindet je Absatz (Zeile) die letzten zwei Woerter mit U+00A0 - nur
+    bei mindestens vier Woertern, einem Paar bis EINZELWORT_PAAR_MAX Zeichen,
+    ohne Zahl/Einheit am Ende, ohne schon geschuetzte Zeichen (U+00A0, U+2011,
+    U+2060) und nicht in Listen mit Mittelpunkt. Nur fuer Fliesstext - Titel,
+    Labels und Tags bleiben, wie sie sind. **fett** bleibt heil."""
+    if not isinstance(text, str):
+        return text
+    return "\n".join(_paar_binden(z) for z in text.split("\n"))
+
+
+def _paar_binden(zeile):
+    m = _ENDPAAR.search(zeile)
+    if (not m or len(zeile.split()) < 4 or "·" in zeile
+            or len(f"{m[1]} {m[2]}".replace("*", "")) > EINZELWORT_PAAR_MAX
+            or re.search(r"[\d‑⁠]", m[1] + m[2])):
+        return zeile
+    return f"{zeile[:m.start()]}{m[1]} {m[2]}{m[3]}"
+
 BESCHRIFTUNG = {
     "de": {
         "verfuegbar": "Verfügbar ab",
@@ -602,6 +632,7 @@ def html_bauen(daten, hoehe, design, schatten=None, zplan=None):
         loader=FileSystemLoader(str(ASSETS)),
         autoescape=select_autoescape(["html"]),
     )
+    env.filters["kein_einzelwort"] = kein_einzelwort
     labels = beschriftung(daten)
 
     daten = dict(daten)
@@ -939,6 +970,7 @@ def html_bauen_a4(daten, ds_a4, za4, fussluft):
     from jinja2 import Environment, FileSystemLoader, select_autoescape
     env = Environment(loader=FileSystemLoader(str(ASSETS)),
                       autoescape=select_autoescape(["html"]))
+    env.filters["kein_einzelwort"] = kein_einzelwort
     daten = dict(daten)
     person = dict(daten.get("person") or {})
     person["foto"] = _foto_auf_karte(foto_a4(daten)[0], ds_a4["komponenten"]["fotokarte"], ds_a4)

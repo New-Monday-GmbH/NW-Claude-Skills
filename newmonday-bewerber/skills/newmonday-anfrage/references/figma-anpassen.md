@@ -28,6 +28,7 @@ newmonday-skillmatrix und newmonday-portfolio.
 |---|---|
 | Text in einer Instanz | `instance.setProperties({"Text#…": neu})`, Property-Name aus `componentProperties`. Steht dort ein Override von Hand (`T`-Zeile in figma_lesen), gilt der Textknoten. |
 | Text in einem rohen Frame | Textknoten: erst die Schriften laden (`getStyledTextSegments(['fontName'])`), dann `characters`. Bei angehängten Sätzen nur einfügen, nicht ersetzen. |
+| Ergänzter Fließtext (beide Fälle oben) | Prüfen, ob die letzte Zeile nur ein Wort hat – dann die letzten zwei Wörter mit U+00A0 verbinden, wenn dadurch keine Zeile oder Seite überläuft (wie `kein_einzelwort()` in den Renderskripten; nicht in Titeln, Labels, Tags). |
 | Zusätzlicher Eintrag, Stichpunkt, Tool | Ausgeblendeten Platz der Komponente einblenden (`Eintrag n=true`, `… anzeigen=true`), dann den Text setzen. |
 | Bewertung (Skill Matrix) | Variante `Bewertung` der Instanz umstellen, in der langen Fassung und in A4. |
 | Reihenfolge (Projekte, Kategorien, Folien) | Kinder im Auto-Layout bzw. Sammelrahmen mit `insertChild` umstellen. Danach Seitenzahl-Properties der Folien lückenlos neu setzen. |

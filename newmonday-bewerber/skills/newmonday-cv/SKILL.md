@@ -857,6 +857,18 @@ englischen Lebenslauf. Die Liste ist ein Netz für die häufigsten Fälle, nicht
 die Regel: Was nicht darauf steht, wird trotzdem gekoppelt. Gemeldetes in der
 `cv.json` korrigieren und neu rendern.
 
+#### Kein Einzelwort in der letzten Zeile
+
+Im Fließtext (Kurzprofil, Einleitungen, Projekttexte, Stichpunkte) steht in der
+letzten Zeile nie ein Wort allein (UX-Writing-Regel). `render_cv.py` und der
+Figma-Plan verbinden dafür die letzten zwei Wörter mit einem geschützten
+Leerzeichen (U+00A0, `kein_einzelwort()`) – nur bei mindestens vier Wörtern,
+einem Paar bis 20 Zeichen und ohne Zahl am Ende; Titel, Labels, Tags und das
+Skillset bleiben, wie sie sind. In die `cv.json` nichts davon schreiben.
+Wird ein Text von Hand in Figma ergänzt, prüfen, ob die letzte Zeile nur ein
+Wort hat – dann die letzten zwei Wörter mit U+00A0 verbinden, wenn dadurch
+keine Zeile und keine Seite überläuft.
+
 #### Berufsbezeichnungen in der Form der Person
 
 **Alles, was die Person selbst bezeichnet, steht einheitlich in ihrer Form** –

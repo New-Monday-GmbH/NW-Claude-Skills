@@ -848,6 +848,45 @@ def pruefe_skillset(tmp):
     return fehler
 
 
+# Kein Einzelwort am Ende (kein_einzelwort): Eingabe -> Soll. Dieselben Faelle
+# stehen im Portfolio-Selbsttest; der Mappen-Selbsttest prueft alle drei Kopien.
+EINZELWORT_FAELLE = [
+    ("Ich gestalte digitale Produkte gern.", "Ich gestalte digitale Produkte\u00a0gern."),
+    ("Drei Wörter hier", "Drei Wörter hier"),                                  # unter vier Woertern
+    ("Wir steigern die Kundenzufriedenheit nachhaltig",                         # Paar laenger als 20
+     "Wir steigern die Kundenzufriedenheit nachhaltig"),
+    ("Erster Absatz mit vier Wörtern\nZweiter Absatz hat auch vier",
+     "Erster Absatz mit vier\u00a0Wörtern\nZweiter Absatz hat auch\u00a0vier"),
+    ("Arbeit mit Figma und\u00a0FigJam", "Arbeit mit Figma und\u00a0FigJam"),  # schon geschuetzt
+    ("Aufbau im modernen E\u2011Commerce", "Aufbau im modernen E\u2011Commerce"),
+    ("Der Umsatz stieg um 30 %", "Der Umsatz stieg um 30 %"),                 # Zahl/Einheit am Ende
+    ("Arbeit im Team **ganz fett**", "Arbeit im Team **ganz\u00a0fett**"),    # Fettdruck bleibt heil
+    ("Figma  ·  Sketch  ·  Miro  ·  Jira", "Figma  ·  Sketch  ·  Miro  ·  Jira"),
+]
+
+
+def pruefe_kein_einzelwort():
+    """Fliesstext ohne Einzelwort in der letzten Zeile - im PDF und im Figma-Plan gleich."""
+    sys.path.insert(0, str(WURZEL / "scripts"))
+    import figma_plan
+    from render_cv import html_bauen, kein_einzelwort
+    fehler = [f"Einzelwort: {ein!r} -> {kein_einzelwort(ein)!r} statt {soll!r}"
+              for ein, soll in EINZELWORT_FAELLE if kein_einzelwort(ein) != soll]
+    fehler += [f"Einzelwort: zweimal angewandt ändert {ein!r}"
+               for ein, _ in EINZELWORT_FAELLE if kein_einzelwort(kein_einzelwort(ein)) != kein_einzelwort(ein)]
+    daten = json.loads((WURZEL / "beispiel" / "cv.json").read_text(encoding="utf-8"))
+    daten["person"].pop("foto", None)
+    daten["person"]["kurzprofil"] = "Ich gestalte digitale Produkte gern."
+    daten["stationen"][0]["aufgaben"] = ["Konzept und Umsetzung im Team erarbeitet"]
+    html = html_bauen(copy.deepcopy(daten))
+    bloecke = figma_plan.bloecke_bauen(copy.deepcopy(daten), "normal", "normal")
+    plan = json.dumps(bloecke, ensure_ascii=False)
+    for paar in ("Produkte\u00a0gern.", "Team\u00a0erarbeitet"):
+        if paar not in html or paar not in plan:
+            fehler.append(f"Einzelwort: {paar!r} fehlt im PDF-HTML oder im Figma-Plan")
+    return fehler
+
+
 def _rendern(tmp, daten, name, *schalter):
     """Eine abgewandelte cv.json rendern. Gibt (PDF, Lauf, stufen.json) zurueck."""
     quelle = Path(tmp) / f"{name}.json"
@@ -2387,6 +2426,7 @@ def main():
         fehler += pruefe_add_logo(tmp)
         fehler += pruefe_zwei_ordner(tmp)
         fehler += pruefe_entwickler(tmp)
+        fehler += pruefe_kein_einzelwort()
 
     fehler += pruefe_svg_verhaeltnisse()
     fehler += pruefe_linkedin_auswahl()
@@ -2422,6 +2462,7 @@ def main():
     print(f"  Groesse:   jedes Beispiel-PDF unter {PDF_BUDGET // 1024} KB (Bilder auf 300 dpi)")
     print(f"  Geschlecht: Mischung gemeldet, anonym neutral (Designer:in), feminin = maskulin, en unveraendert")
     print(f"  Adresse:   {ADRESSE} im Footer")
+    print(f"  Einzelwort: letzte zwei Woerter im Fliesstext verbunden, PDF und Plan gleich")
 
     if fehler:
         print("\nProbleme:")

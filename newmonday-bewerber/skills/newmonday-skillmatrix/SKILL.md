@@ -62,6 +62,13 @@ Hero-Beschreibung und die Karte „Erworbene Qualifikationen“ (nach den Regeln
 Schritt 2c) sowie Beschreibungen für Attribute, die nicht im Katalog stehen
 (nach `references/attribute-katalog.md`).
 
+**Kein Einzelwort in der letzten Zeile.** In Hero-Beschreibung, Qualifikationskarte
+und Kompetenzbeschreibungen verbinden Render- und Figma-Skripte die letzten zwei
+Wörter mit U+00A0 (`kein_einzelwort()`, nur ab vier Wörtern, Paar bis 20 Zeichen,
+ohne Zahl am Ende). Wird ein Text von Hand in Figma ergänzt, prüfen, ob die letzte Zeile nur ein
+Wort hat – dann die letzten zwei Wörter mit U+00A0 verbinden, wenn dadurch
+keine Zeile und keine Seite überläuft.
+
 ## Umgebung
 
 Beim ersten Lauf auf einem unbekannten System zuerst:
