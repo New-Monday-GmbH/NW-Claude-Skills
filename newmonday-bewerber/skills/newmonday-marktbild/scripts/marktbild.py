@@ -60,11 +60,14 @@ def anforderungen(markt: Path) -> list[dict]:
             for p in sorted((markt / "anforderungen").glob("*.json"))]
 
 
-def pruefe_daten(anf: list[dict], begriffe: dict) -> list[str]:
+def pruefe_daten(anf: list[dict], begriffe: dict, vorgaben=()) -> list[str]:
     fehler = []
     for b, info in begriffe.items():
         if info.get("art") not in ARTEN:
             fehler.append(f"begriffe.json: „{b}“ hat unbekannte art {info.get('art')!r}")
+    for v in vorgaben:
+        if v.get("begriff") not in begriffe:
+            fehler.append(f"vorgaben.json: „{v.get('begriff')}“ fehlt in begriffe.json")
     for a in anf:
         for feld in ("anfrage", "datum", "rollenfamilie", "anforderungen"):
             if feld not in a:
@@ -83,8 +86,10 @@ def pruefe_daten(anf: list[dict], begriffe: dict) -> list[str]:
 
 # ---------- Auswerten ----------
 
-def marktbild(anf: list[dict], begriffe: dict, stichtag: dt.date) -> dict:
-    """{rollenfamilie: {begriff: zeile}} für Ausschreibungen im Fenster."""
+def marktbild(anf: list[dict], begriffe: dict, stichtag: dt.date, vorgaben=()) -> dict:
+    """{rollenfamilie: {begriff: zeile}} für Ausschreibungen im Fenster.
+    vorgaben: [{"begriff", "rollenfamilien"?}] – vom Nutzer gesetzt, gelten
+    immer als gefragt (ohne rollenfamilien: in jeder Familie des Marktbilds)."""
     ab = stichtag - dt.timedelta(days=FENSTER_TAGE)
     bild: dict = {}
     for a in anf:
@@ -107,6 +112,13 @@ def marktbild(anf: list[dict], begriffe: dict, stichtag: dt.date) -> dict:
     for familie in bild.values():
         for z in familie.values():
             z["gefragt"] = len(z["quellen"]) >= MINDESTENS
+            z["vorgabe"] = False
+    for v in vorgaben:
+        for f in v.get("rollenfamilien") or list(bild):
+            z = bild.setdefault(f, {}).setdefault(v["begriff"], {
+                "begriff": v["begriff"], "art": begriffe[v["begriff"]]["art"],
+                "quellen": [], "muss": 0, "kann": 0, "punkte": 0, "ergaenzt": 0, "letzte": ""})
+            z["gefragt"] = z["vorgabe"] = True
     return bild
 
 
@@ -258,7 +270,7 @@ def bericht(stichtag, bild, luecken_, aend, hinweise, quellen) -> str:
             z += [f"Noch nichts in {MINDESTENS}+ Ausschreibungen.", ""]
             continue
         z += ["| Begriff | Art | Ausschreibungen | Muss | Kann | bei uns ergänzt |", "|---|---|---|---|---|---|"]
-        z += [f"| {x['begriff']} | {x['art']} | {len(x['quellen'])} | {x['muss']} | {x['kann']} | {x['ergaenzt']} |" for x in gefragt]
+        z += [f"| {x['begriff']}{' (Vorgabe)' if x.get('vorgabe') else ''} | {x['art']} | {len(x['quellen'])} | {x['muss']} | {x['kann']} | {x['ergaenzt']} |" for x in gefragt]
         z.append("")
     z += ["## Lücken je Kandidat", ""]
     for name, liste in luecken_.items():
@@ -279,10 +291,11 @@ def auswerten(k: dict, stichtag: dt.date) -> Path:
     begriffe = lies(markt / "begriffe.json", {})
     kandidaten = lies(markt / "kandidaten.json", {})
     anf = anforderungen(markt)
-    fehler = pruefe_daten(anf, begriffe)
+    vorgaben = lies(markt / "vorgaben.json", [])
+    fehler = pruefe_daten(anf, begriffe, vorgaben)
     if fehler:
         sys.exit("Daten unvollständig:\n" + "\n".join(fehler))
-    bild = marktbild(anf, begriffe, stichtag)
+    bild = marktbild(anf, begriffe, stichtag, vorgaben)
     luecken_, hinweise = luecken(bild, begriffe, kandidaten, k["originale"], markt)
     for ordner in sorted(p.name for p in k["originale"].iterdir() if p.is_dir()):
         if ordner not in {v["ordner"] for v in kandidaten.values()}:
@@ -299,7 +312,7 @@ def auswerten(k: dict, stichtag: dt.date) -> Path:
                for a in anf if ab <= dt.date.fromisoformat(a["datum"]) <= stichtag]
     kopf = ["Rollenfamilie", "Begriff", "Art", "Gefragt", "Ausschreibungen", "Muss", "Kann", "Punkte",
             "Bei uns ergänzt", "Letzte Nennung", "Quellen"]
-    zeilen = [kopf] + [[f, z["begriff"], z["art"], "ja" if z["gefragt"] else "nein", len(z["quellen"]), z["muss"],
+    zeilen = [kopf] + [[f, z["begriff"], z["art"], ("ja (Vorgabe)" if z.get("vorgabe") else "ja") if z["gefragt"] else "nein", len(z["quellen"]), z["muss"],
                         z["kann"], z["punkte"], z["ergaenzt"], z["letzte"], " · ".join(z["quellen"])]
                        for f in sorted(bild) for z in sorted(bild[f].values(), key=lambda z: (-z["punkte"], z["begriff"]))]
     lz = [["Kandidat", "Begriff", "Art", "Rollenfamilie", "Punkte", "Was tun", "Projekt (Nutzerangabe)"]]
@@ -341,7 +354,7 @@ def main(argv=None) -> None:
         for p in sorted(k["ausschreibungen"].iterdir()):
             if p.is_dir() and (p / "ausschreibung.md").exists() and p.name not in fertig:
                 print(f"OFFEN\t{p}")
-        for f in pruefe_daten(anforderungen(markt), lies(markt / "begriffe.json", {})):
+        for f in pruefe_daten(anforderungen(markt), lies(markt / "begriffe.json", {}), lies(markt / "vorgaben.json", [])):
             print(f"FEHLER\t{f}")
     elif args.cmd == "auswerten":
         auswerten(k, args.stichtag)

@@ -97,6 +97,16 @@ with tempfile.TemporaryDirectory() as t:
     text = (ziel / "bericht.md").read_text()
     assert "Originale/unbekannt" in text and "## UX/UI (2 Ausschreibungen)" in text, text
 
+    # Vorgabe des Nutzers: gilt ohne Ausschreibung als gefragt, in jeder Familie
+    schreib(markt / "begriffe.json", {**json.loads((markt / "begriffe.json").read_text()), "Responsive Design": {"art": "methode"}})
+    schreib(markt / "vorgaben.json", [{"begriff": "Responsive Design"}])
+    lauf(env, "auswerten", "--stichtag", "2026-11-16")
+    bild = json.loads((ziel / "marktbild.json").read_text())
+    assert bild["UX/UI"]["Responsive Design"]["gefragt"] and bild["UX/UI"]["Responsive Design"]["vorgabe"]
+    anna = {l["begriff"] for l in json.loads(lauf(env, "luecken", "--kandidat", "Anna Test"))}
+    assert "Responsive Design" in anna, anna
+    assert "Responsive Design (Vorgabe)" in (ziel / "bericht.md").read_text()
+
     # unbekannter Begriff wird gemeldet, nicht still gezählt
     schreib(markt / "anforderungen" / "A4 neu.json", {"anfrage": "A4 neu", "datum": "2026-11-10",
             "rollenfamilie": "UX/UI", "anforderungen": [{"begriff": "Kubernetes", "stufe": "muss"}]})
