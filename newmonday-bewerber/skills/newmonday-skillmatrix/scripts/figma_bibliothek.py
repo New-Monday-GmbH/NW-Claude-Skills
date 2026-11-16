@@ -20,6 +20,7 @@ import json
 from pathlib import Path
 
 import design_system
+from render_skillmatrix import kein_einzelwort  # Fliesstext wie im PDF
 
 KATALOG = design_system.ASSETS / "master-bibliothek.json"
 SKRIPT = design_system.ASSETS / "figma-bibliothek.js"
@@ -140,7 +141,7 @@ def plan_lang(daten, labels, zplan, kontakt, hinweise):
                                         f"{person.get('verfuegbar_ab', '')}".strip())),
         knoten("Name", b.props(T, Text=name)),
         knoten("Rolle", b.props(T, Text=str(person.get("rolle") or ""))),
-        knoten("Beschreibung", b.props(T, Text=str(person.get("beschreibung") or ""))),
+        knoten("Beschreibung", b.props(T, Text=kein_einzelwort(str(person.get("beschreibung") or "")))),
         (knoten("Schwerpunkte", b.slots(LANG + "Schwerpunkte", "Tag", len(sp)),
                 [knoten(f"Tag {i}", b.props(TAG, Text=s)) for i, s in enumerate(sp, 1)])
          if sp else aus("Schwerpunkte")),
@@ -178,7 +179,7 @@ def plan_lang(daten, labels, zplan, kontakt, hinweise):
             tags = tags[:G["qualifikations_tags"]]
             QK = LANG + "Qualifikationskarte"
             erkl = knoten("Erklärung", {**b.props(QK, Titel=labels["qualifikationen"],
-                                                  Beschreibung=karte.get("text") or ""),
+                                                  Beschreibung=kein_einzelwort(karte.get("text") or "")),
                                         **b.slots(QK, "Tag", len(tags))},
                           [knoten(f"Tag {i}", b.props(TAG, Text=t)) for i, t in enumerate(tags, 1)]
                           + [aus(f"Tag {i}") for i in range(len(tags) + 1, 4)])
@@ -192,7 +193,7 @@ def plan_lang(daten, labels, zplan, kontakt, hinweise):
         aus_ = []
         for j, s in enumerate(skills, 1):
             aus_.append(knoten(f"Karte {j}", b.props(KK, Titel=str(s.get("name") or ""),
-                                                      Beschreibung=str(s.get("beschreibung") or "")),
+                                                      Beschreibung=kein_einzelwort(str(s.get("beschreibung") or ""))),
                                [knoten("Bewertung", {"Bewertung": _bewertung(s, hinweise, wo)})]))
         return aus_ + [aus(f"Karte {j}") for j in range(len(skills) + 1, 4)]
 
@@ -275,7 +276,7 @@ def plan_a4(daten, labels, za4, kontakt, foto, bloecke, seiten, hinweise):
         kinder = []
         for j, s in enumerate(skills, 1):
             kinder.append(knoten(f"Kompetenz {j}", b.props(
-                KOMP, Titel=str(s.get("name") or ""), Beschreibung=str(s.get("beschreibung") or ""),
+                KOMP, Titel=str(s.get("name") or ""), Beschreibung=kein_einzelwort(str(s.get("beschreibung") or "")),
                 Trennlinie_oben_anzeigen=j > 2),
                 [knoten("Bewertung", {"Bewertung": _bewertung(s, hinweise, wo)})]))
         return kinder
@@ -303,7 +304,7 @@ def plan_a4(daten, labels, za4, kontakt, foto, bloecke, seiten, hinweise):
         if hat["hero"]:
             H = A4 + "Hero"
             kinder.append(knoten("Hero", {**b.props(H, Name=name, Rolle=str(person.get("rolle") or ""),
-                                                    Beschreibung=str(person.get("beschreibung") or ""),
+                                                    Beschreibung=kein_einzelwort(str(person.get("beschreibung") or "")),
                                                     Schwerpunkte_anzeigen=bool(sp)),
                                           **b.slots(H, "Schwerpunkt", len(sp))},
                                  [knoten(f"Schwerpunkt {i}", b.props(TAG, Text=s)) for i, s in enumerate(sp, 1)]
@@ -324,7 +325,7 @@ def plan_a4(daten, labels, za4, kontakt, foto, bloecke, seiten, hinweise):
                                   G["qualifikations_tags"], "A4")
                 tags = tags[:G["qualifikations_tags"]]
                 zk.append(knoten("Qualifikationskarte", {
-                    **b.props(QK, Titel=labels["qualifikationen"], Satz=karte.get("text") or "",
+                    **b.props(QK, Titel=labels["qualifikationen"], Satz=kein_einzelwort(karte.get("text") or ""),
                               Satz_anzeigen=bool(karte.get("text")), Tags_anzeigen=bool(tags)),
                     **b.slots(QK, "Tag", len(tags))},
                     [knoten(f"Tag {i}", b.props(TAG, Text=t)) for i, t in enumerate(tags, 1)]))

@@ -48,7 +48,7 @@ import tokens  # noqa: E402  — erst nach sys.path.insert moeglich
 from render_cv import (  # noqa: E402
     BESCHRIFTUNG, KONTAKT_VORGABE, VERWEISTEXT, bildung_aufbereiten, dateiname,
     logo_groessen, logo_masse, logoliste, ohne_arbeitsdateien, seitenverhaeltnis, skillset_zeilen, stationslogo,
-    zeitraeume_setzen, zertifikate_aufbereiten, fliesstext,
+    zeitraeume_setzen, zertifikate_aufbereiten, fliesstext, kein_einzelwort,
 )
 from logo_lib import suche as logo_datei  # noqa: E402
 
@@ -248,7 +248,7 @@ def bloecke_bauen(daten, deckblatt, stationen):
                              **typo("rubrik")))
         bloecke.append(block("profil", abstand_oben=s["profil_rubrik"], token="profil_rubrik",
                              marke=" ".join(norm(person["kurzprofil"]).split()[:8]),
-                             text=norm(person["kurzprofil"]), **typo("profil")))
+                             text=kein_einzelwort(norm(person["kurzprofil"])), **typo("profil")))
         bloecke.append(block("trennlinie", abstand_oben=s["profil_linie"], token="profil_linie",
                              farbe=farben["text"], staerke=r["linie"]))
         naechster_abstand = s["profil_stationen"]
@@ -276,7 +276,7 @@ def bloecke_bauen(daten, deckblatt, stationen):
                         **typo("firma")) if station.get("firma") else None),
             zeitraum=(dict(text=norm(station["zeitraum"]), abstand_oben=a["firma_zeitraum"],
                            **typo("zeitraum")) if station.get("zeitraum") else None),
-            absaetze=[dict(text=norm(station[f]), abstand_oben=a["zeitraum_text"],
+            absaetze=[dict(text=kein_einzelwort(norm(station[f])), abstand_oben=a["zeitraum_text"],
                            feld=f, **typo("fliesstext"))
                       for f in ("zusammenfassung", "beschreibung") if station.get(f)]))
         if station.get("aufgaben"):
@@ -304,7 +304,7 @@ def bloecke_bauen(daten, deckblatt, stationen):
                 kunde=dict(text=norm(projekt.get("kunde")), **typo("kunde")),
                 zeitraum=(dict(text=norm(projekt["zeitraum"]), abstand_oben=a["kunde_zeitraum"],
                                **typo("zeitraum")) if projekt.get("zeitraum") else None),
-                absaetze=[dict(text=norm(projekt["beschreibung"]), abstand_oben=a["projekt_text"],
+                absaetze=[dict(text=kein_einzelwort(norm(projekt["beschreibung"])), abstand_oben=a["projekt_text"],
                                feld="beschreibung", **typo("fliesstext"))]
                 if projekt.get("beschreibung") else []))
             if projekt.get("aufgaben"):
@@ -378,7 +378,7 @@ def aufgabenblock(aufgaben, abstand_oben, token=None):
     return block("aufgaben", abstand_oben=abstand_oben, token=token, einzug=T["abgeleitet"]["einzug"],
                  marke=aufgaben[0], breite=T["abgeleitet"]["inhaltsspalte"],
                  einzug_liste=T["raster"]["listeneinzug"], abstand=0,
-                 eintraege=[norm(a) for a in aufgaben], **typo("aufgabe"))
+                 eintraege=[kein_einzelwort(norm(a)) for a in aufgaben], **typo("aufgabe"))
 
 
 # --- Seiten zuordnen --------------------------------------------------------
@@ -401,7 +401,7 @@ def finde(marke, texte, ab):
     Gesucht wird ab der zuletzt belegten Seite: Ein Jobtitel wiederholt sich
     gern als Rolle im Profilkopf, und der steht immer auf Seite 1.
     """
-    kurz = marke[:60]
+    kurz = norm(marke)[:60]       # norm: ein U+00A0 in der Marke ist im Seitentext ein Leerzeichen
     for nummer in range(ab, len(texte) + 1):
         if kurz and kurz in texte[nummer - 1]:
             return nummer

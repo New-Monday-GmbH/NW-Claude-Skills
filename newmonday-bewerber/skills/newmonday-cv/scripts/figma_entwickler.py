@@ -33,7 +33,8 @@ import tokens  # noqa: E402
 from figma_plan import finde, norm, seitentexte  # noqa: E402
 from render_cv import (  # noqa: E402
     BESCHRIFTUNG, VERWEISTEXT, bildung_aufbereiten, entwickler_aufbereiten,
-    layout_von, logo_groessen, logo_masse, logoliste, seitenverhaeltnis, stationslogo, zeitraeume_setzen,
+    kein_einzelwort, layout_von, logo_groessen, logo_masse, logoliste, seitenverhaeltnis, stationslogo,
+    zeitraeume_setzen,
 )
 from logo_lib import suche as logo_datei  # noqa: E402
 
@@ -103,12 +104,13 @@ def hauptbloecke(daten, ew, labels, st_stufe="normal"):
     def aufgaben(liste, art="aufgabe"):
         for n, x in enumerate(liste):
             dazu(art, x["text"], en["kopf_aufgaben"] if n == 0 else en["aufgaben"],
-                 text=x["text"], technik=x.get("technik", ""))
+                 text=x["text"] if x.get("technik") else kein_einzelwort(x["text"]),
+                 technik=x.get("technik", ""))
 
     person = daten.get("person") or {}
     if person.get("kurzprofil"):
         rubrik(labels["kurzprofil"])
-        dazu("kurzprofil", person["kurzprofil"], dn["rubrik_inhalt"], text=norm(person["kurzprofil"]))
+        dazu("kurzprofil", person["kurzprofil"], dn["rubrik_inhalt"], text=kein_einzelwort(norm(person["kurzprofil"])))
     if daten.get("stationen"):
         rubrik(labels["berufserfahrung"])
         for n, s in enumerate(daten["stationen"]):
@@ -119,7 +121,7 @@ def hauptbloecke(daten, ew, labels, st_stufe="normal"):
                 zeilen.append({"text": norm(s["zeitraum"]), "stil": "zeitraum", "oben": a["firma_zeitraum"]})
             for feld in ("zusammenfassung", "beschreibung"):
                 if s.get(feld):
-                    zeilen.append({"text": norm(s[feld]), "stil": "fliesstext", "oben": a["zeitraum_text"]})
+                    zeilen.append({"text": kein_einzelwort(norm(s[feld])), "stil": "fliesstext", "oben": a["zeitraum_text"]})
             kopf(norm(s["titel"]), zeilen, dn["rubrik_inhalt"] if n == 0 else en["station"],
                  **({"logos": logos(s)} if logoliste(stationslogo(s)) else {}))
             aufgaben(s.get("aufgaben_ew") or [])
@@ -129,7 +131,7 @@ def hauptbloecke(daten, ew, labels, st_stufe="normal"):
                 z = ([{"text": norm(p["zeitraum"]), "stil": "zeitraum", "oben": a["kunde_zeitraum"]}]
                      if p.get("zeitraum") else [])
                 if p.get("beschreibung"):
-                    z.append({"text": norm(p["beschreibung"]), "stil": "fliesstext", "oben": a["projekt_text"]})
+                    z.append({"text": kein_einzelwort(norm(p["beschreibung"])), "stil": "fliesstext", "oben": a["projekt_text"]})
                 kopf(norm(p["kunde"]), z, en["projekt"])
                 aufgaben(p.get("aufgaben_ew") or [])
     if ew["eigene_projekte"]:

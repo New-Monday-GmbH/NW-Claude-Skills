@@ -125,6 +125,36 @@ def fliesstext(eintraege):
     """Eintraege als ein Figma-Fliesstext: 'A\u00a0B  ·  C'."""
     return SKILL_TRENNER.join(unbrechbar(e) for e in eintraege)
 
+
+# Kein Wort allein in der letzten Zeile eines Fliesstexts (UX-Writing-Regel):
+# kein_einzelwort() verbindet die letzten zwei Woerter mit einem geschuetzten
+# Leerzeichen (U+00A0), dann wandert das vorletzte Wort mit. Hoechstens so viele
+# Zeichen darf das Paar samt Leerzeichen haben - laenger, und die vorletzte
+# Zeile wird sichtbar kurz oder das Paar passt in der Spalte nicht mehr in eine
+# Zeile und laeuft ueber.
+EINZELWORT_PAAR_MAX = 20
+_ENDPAAR = re.compile(r"(\S+) (\S+)(\s*)$")
+
+
+def kein_einzelwort(text):
+    """Verbindet je Absatz (Zeile) die letzten zwei Woerter mit U+00A0 - nur
+    bei mindestens vier Woertern, einem Paar bis EINZELWORT_PAAR_MAX Zeichen,
+    ohne Zahl/Einheit am Ende, ohne schon geschuetzte Zeichen (U+00A0, U+2011,
+    U+2060) und nicht in Listen mit Mittelpunkt. Nur fuer Fliesstext - Titel,
+    Labels und Tags bleiben, wie sie sind. **fett** bleibt heil."""
+    if not isinstance(text, str):
+        return text
+    return "\n".join(_paar_binden(z) for z in text.split("\n"))
+
+
+def _paar_binden(zeile):
+    m = _ENDPAAR.search(zeile)
+    if (not m or len(zeile.split()) < 4 or "·" in zeile
+            or len(f"{m[1]} {m[2]}".replace("*", "")) > EINZELWORT_PAAR_MAX
+            or re.search(r"[\d‑⁠]", m[1] + m[2])):
+        return zeile
+    return f"{zeile[:m.start()]}{m[1]} {m[2]}{m[3]}"
+
 # Aeltere cv.json-Dateien fuehren frei benannte Gruppen unter links/rechts. Nur
 # eindeutige Titel werden einer festen Gruppe zugeordnet; alles andere faellt
 # aus dem Skillset und wird gemeldet — geraten wird nicht.
@@ -1064,6 +1094,9 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
     )
     # cv.css holt sich jeden Designwert ueber diese Namen aus tokens.json.
     env.globals.update(tokens.jinja_globals())
+    # Fliesstext ohne Einzelwort am Ende; leerraum() vorweg wie norm() im
+    # Figma-Plan, damit Frame und PDF dasselbe Paar binden.
+    env.filters["kein_einzelwort"] = lambda t: kein_einzelwort(leerraum(t)) if t else t
     sprache = daten.get("sprache", "de")
     labels = BESCHRIFTUNG.get(sprache, BESCHRIFTUNG["de"])
     # Angezeigt wird der benannte Verweis, nicht die Adresse — verlinkt bleibt

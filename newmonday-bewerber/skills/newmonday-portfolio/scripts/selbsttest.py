@@ -703,6 +703,38 @@ def kopfseite_pruefen(pdf: Path, d: dict) -> list[str]:
     return befunde
 
 
+# Kein Einzelwort am Ende (kein_einzelwort): Eingabe -> Soll. Dieselben Faelle
+# stehen im Lebenslauf-Selbsttest; der Mappen-Selbsttest prueft alle drei Kopien.
+EINZELWORT_FAELLE = [
+    ("Ich gestalte digitale Produkte gern.", "Ich gestalte digitale Produkte\u00a0gern."),
+    ("Drei Wörter hier", "Drei Wörter hier"),                                  # unter vier Woertern
+    ("Wir steigern die Kundenzufriedenheit nachhaltig",                         # Paar laenger als 20
+     "Wir steigern die Kundenzufriedenheit nachhaltig"),
+    ("Erster Absatz mit vier Wörtern\nZweiter Absatz hat auch vier",
+     "Erster Absatz mit vier\u00a0Wörtern\nZweiter Absatz hat auch\u00a0vier"),
+    ("Arbeit mit Figma und\u00a0FigJam", "Arbeit mit Figma und\u00a0FigJam"),  # schon geschuetzt
+    ("Aufbau im modernen E\u2011Commerce", "Aufbau im modernen E\u2011Commerce"),
+    ("Der Umsatz stieg um 30 %", "Der Umsatz stieg um 30 %"),                 # Zahl/Einheit am Ende
+    ("Arbeit im Team **ganz fett**", "Arbeit im Team **ganz\u00a0fett**"),    # Fettdruck bleibt heil
+    ("Figma  ·  Sketch  ·  Miro  ·  Jira", "Figma  ·  Sketch  ·  Miro  ·  Jira"),
+]
+
+
+def einzelwort_pruefen() -> list[str]:
+    """Fliesstext ohne Einzelwort in der letzten Zeile - im HTML und, ueber
+    laeufe(), genauso im Figma-Text; **fett** bleibt ein Fettbereich."""
+    import xml.etree.ElementTree as ET
+    befunde = [f"{ein!r} -> {rp.kein_einzelwort(ein)!r} statt {soll!r}"
+               for ein, soll in EINZELWORT_FAELLE if rp.kein_einzelwort(ein) != soll]
+    div = ET.fromstring(rp.absaetze("Ich gestalte **digitale Produkte** gern.\n\nZweiter Absatz\nmit vier Wörtern"))
+    texte = [fb.laeufe(p) for p in div]
+    if [t["s"] for t in texte] != ["Ich gestalte digitale Produkte\u00a0gern.", "Zweiter Absatz mit vier\u00a0Wörtern"]:
+        befunde.append(f"Absätze im Figma-Text: {texte}")
+    elif texte[0].get("f") != [[13, 30]]:
+        befunde.append(f"Fettbereich verschoben: {texte[0]}")
+    return befunde
+
+
 def durchkopplung_pruefen() -> list[str]:
     """Offene Schreibweisen werden gemeldet, nie geaendert - nur im Deutschen."""
     befunde = []
@@ -872,6 +904,7 @@ def main() -> None:
     fehler += [f"Schwerpunkte: {b}" for b in schwerpunkte_pruefen()]
     fehler += [f"Rollenzeile: {b}" for b in rollenzeile_pruefen()]
     fehler += [f"Durchkopplung: {b}" for b in durchkopplung_pruefen()]
+    fehler += [f"Einzelwort: {b}" for b in einzelwort_pruefen()]
     fehler += [f"Bibliotheksweg: {b}" for b in bibliothek_pruefen()]
 
     if fehler:
@@ -882,7 +915,7 @@ def main() -> None:
     print("Selbsttest bestanden: Tokens, Beispiel-PDF, Figma-Abgleich "
           f"({len(list(SOLL.glob('*.json')))} Vorlage(n)), Sprachen, Arbeitsjahre, "
           "Screen-Stil, Statement-Länge, Logo-Proportionen, Graustufen, Fläche, "
-          "Schwerpunkte, Rollenzeile, Kopfseite, Durchkopplung, Bibliotheksweg und "
+          "Schwerpunkte, Rollenzeile, Kopfseite, Durchkopplung, Einzelwort, Bibliotheksweg und "
           "Barrierefreiheit/Größe (PDF/UA-1) ohne Abweichung.")
 
 

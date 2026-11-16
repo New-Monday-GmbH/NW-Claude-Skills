@@ -71,7 +71,8 @@ import design_system  # noqa: E402  — nach sys.path.insert
 import figma_bibliothek  # noqa: E402
 import zertifikate  # noqa: E402
 from render_skillmatrix import (  # noqa: E402
-    KONTAKT_VORGABE, beschriftung, dateiname, foto_a4, kompetenzen_ordnen, seiten_lesen, zert_a4)
+    KONTAKT_VORGABE, beschriftung, dateiname, foto_a4, kein_einzelwort, kompetenzen_ordnen, seiten_lesen,
+    zert_a4)
 
 ASSETS = design_system.ASSETS
 DS = design_system.laden()
@@ -152,14 +153,18 @@ def _typo(s):
             "versalien": s["versalien"]}
 
 
-def text(name, inhalt, verwendung, breite="HUG", mehrzeilig=False, max_zeilen=None, ds=None):
+def text(name, inhalt, verwendung, breite="HUG", mehrzeilig=False, max_zeilen=None, ds=None,
+         fliess=False):
     """max_zeilen: nach so vielen Zeilen mit Auslassungszeichen kuerzen
     (textTruncation ENDING) — wie line-clamp im PDF. ds: die Fassung, deren
-    Textstile gelten (Vorgabe: die lange)."""
+    Textstile gelten (Vorgabe: die lange). fliess: Fliesstext, die letzten
+    zwei Woerter wie im PDF verbunden (kein_einzelwort)."""
     s = design_system.textstil(ds or DS, verwendung)
     inhalt = str(inhalt or "")
     if not mehrzeilig:
         inhalt = " ".join(inhalt.split())
+    if fliess:
+        inhalt = kein_einzelwort(inhalt)
     k = {"typ": "text", "name": name, "text": inhalt, "breite": breite,
          "stil": s["stilname"], "farbe": s["farbe"], "verwendung": verwendung,
          "typo": _typo(s)}
@@ -246,7 +251,7 @@ def hero(person, labels):
         unten_luft("Rolle", text("Rolle", person.get("rolle"), "hero-rolle", breite="FILL")),
     ], breite="FILL")
     beschreibung = unten_luft("Beschreibung", text(
-        "Beschreibung", person.get("beschreibung"), "hero-beschreibung", breite="FILL"))
+        "Beschreibung", person.get("beschreibung"), "hero-beschreibung", breite="FILL", fliess=True))
     textblock = rahmen("Titel und Text", "VERTICAL", [titel, beschreibung],
                        abstand=m(h["abstand-text"]), breite="FILL")
 
@@ -336,7 +341,7 @@ def qualikarte(karte, labels):
     q, qt, qg = KOMP["qualikarte"], KOMP["qualitag"], KOMP["qualitags"]
     block = []
     if karte["text"]:
-        block.append(text("Text", karte["text"], "quali-text", breite="FILL"))
+        block.append(text("Text", karte["text"], "quali-text", breite="FILL", fliess=True))
     if karte["tags"]:
         # Abstand oben als Padding der Reihe, wie in der Komponente; Zeilen
         # brechen mit demselben Abstand um.
@@ -387,7 +392,7 @@ def skillkarte(s):
         rahmen("Kopf", "HORIZONTAL", [text("Titel", s.get("name"), "karte-titel", breite="FILL"),
                                       reihe],
                abstand=m(sk["titel-abstand-min"]), breite="FILL"),
-        text("Beschreibung", s.get("beschreibung"), "karte-beschreibung", breite="FILL"),
+        text("Beschreibung", s.get("beschreibung"), "karte-beschreibung", breite="FILL", fliess=True),
     ], abstand=m(sk["abstand"]), padding=m(sk["padding"]), breite="FILL", hoehe="FILL",
         radius=m(sk["radius"]), fuellung=f(sk["hintergrund"]), kontur=kontur(sk["rahmen"]),
         schatten=schatten(sk["schatten"]), clip=True)
@@ -605,7 +610,7 @@ def a4_hero(person, foto):
         rahmen("Text", "VERTICAL", textspalte, abstand=m(h["abstand-schwerpunkte"]), breite="FILL"),
         fotokarte], abstand=m(h["spaltenabstand"]), breite="FILL")
     return rahmen("Hero", "VERTICAL", [
-        profil, t4("Beschreibung", person.get("beschreibung"), "hero-beschreibung", "FILL")],
+        profil, t4("Beschreibung", person.get("beschreibung"), "hero-beschreibung", "FILL", fliess=True)],
         abstand=m(h["abstand-beschreibung"]), breite="FILL")
 
 
@@ -651,7 +656,7 @@ def a4_qualikarte(karte, labels):
     q, qt, qg = K4["qualikarte"], K4["qualitag"], K4["qualitags"]
     block = []
     if karte["text"]:
-        block.append(t4("Satz", karte["text"], "quali-text", "FILL"))
+        block.append(t4("Satz", karte["text"], "quali-text", "FILL", fliess=True))
     if karte["tags"]:
         block.append(rahmen("Tags", "HORIZONTAL", [
             rahmen("Tag", "HORIZONTAL", [t4("Tag", tag, "quali-tag")],
@@ -705,7 +710,7 @@ def a4_zeilen(skills):
             eintraege.append(rahmen("Eintrag", "VERTICAL", [
                 rahmen("Kopf", "HORIZONTAL", [t4("Titel", s.get("name"), "eintrag-titel", "FILL"), reihe],
                        abstand=m(e["titel-abstand"]), breite="FILL"),
-                t4("Beschreibung", s.get("beschreibung"), "eintrag-beschreibung", "FILL"),
+                t4("Beschreibung", s.get("beschreibung"), "eintrag-beschreibung", "FILL", fliess=True),
             ], abstand=e["abstand"], padding=(e["padding-y"], 0, e["padding-y"], 0), breite=e["breite"],
                 hoehe="FILL", kontur=kontur(e["linie"], seiten=[1, 0, 0, 0]) if nr > 1 else None))
         zeilen.append(rahmen(f"Zeile {nr}", "HORIZONTAL", eintraege,

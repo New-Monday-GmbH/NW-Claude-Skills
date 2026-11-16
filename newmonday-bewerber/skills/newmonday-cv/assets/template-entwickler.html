@@ -49,7 +49,7 @@
     {% if person.kurzprofil %}
     <div class="ew-abschnitt">
       <h2>{{ t.kurzprofil }}</h2>
-      <p class="profile">{{ person.kurzprofil }}</p>
+      <p class="profile">{{ person.kurzprofil|kein_einzelwort }}</p>
     </div>
     {% endif %}
 
@@ -66,20 +66,20 @@
           <h3 class="station__title">{{ s.titel }}</h3>
           {% if s.firma %}<div class="station__firma">{{ s.firma }}</div>{% endif %}
           {% if s.zeitraum %}<div class="station__zeitraum">{{ s.zeitraum }}</div>{% endif %}
-          {% if s.zusammenfassung %}<p class="station__summary">{{ s.zusammenfassung }}</p>{% endif %}
-          {% if s.beschreibung %}<p class="station__text">{{ s.beschreibung }}</p>{% endif %}
+          {% if s.zusammenfassung %}<p class="station__summary">{{ s.zusammenfassung|kein_einzelwort }}</p>{% endif %}
+          {% if s.beschreibung %}<p class="station__text">{{ s.beschreibung|kein_einzelwort }}</p>{% endif %}
         </div>
         {% if s.aufgaben_ew %}
-        <ul class="tasks">{% for a in s.aufgaben_ew %}<li>{{ a.text }}{% if a.technik %} <span class="technik">{{ a.technik }}</span>{% endif %}</li>{% endfor %}</ul>
+        <ul class="tasks">{% for a in s.aufgaben_ew %}<li>{{ a.text if a.technik else a.text|kein_einzelwort }}{% if a.technik %} <span class="technik">{{ a.technik }}</span>{% endif %}</li>{% endfor %}</ul>
         {% endif %}
         {% if s.technik %}<p class="ew-technik technik">{{ s.technik }}</p>{% endif %}
         {% for p in s.projekte %}
         <div class="project">
           <h4 class="project__client">{{ p.kunde }}</h4>
           {% if p.zeitraum %}<div class="project__date">{{ p.zeitraum }}</div>{% endif %}
-          {% if p.beschreibung %}<p class="project__text">{{ p.beschreibung }}</p>{% endif %}
+          {% if p.beschreibung %}<p class="project__text">{{ p.beschreibung|kein_einzelwort }}</p>{% endif %}
           {% if p.aufgaben_ew %}
-          <ul class="tasks">{% for a in p.aufgaben_ew %}<li>{{ a.text }}{% if a.technik %} <span class="technik">{{ a.technik }}</span>{% endif %}</li>{% endfor %}</ul>
+          <ul class="tasks">{% for a in p.aufgaben_ew %}<li>{{ a.text if a.technik else a.text|kein_einzelwort }}{% if a.technik %} <span class="technik">{{ a.technik }}</span>{% endif %}</li>{% endfor %}</ul>
           {% endif %}
         </div>
         {% endfor %}
@@ -99,7 +99,7 @@
           {% if p.zeitraum %}<div class="station__zeitraum">{{ p.zeitraum }}</div>{% endif %}
         </div>
         {% if p.aufgaben_ew %}
-        <ul class="tasks">{% for a in p.aufgaben_ew %}<li>{{ a.text }}{% if a.technik %} <span class="technik">{{ a.technik }}</span>{% endif %}</li>{% endfor %}</ul>
+        <ul class="tasks">{% for a in p.aufgaben_ew %}<li>{{ a.text if a.technik else a.text|kein_einzelwort }}{% if a.technik %} <span class="technik">{{ a.technik }}</span>{% endif %}</li>{% endfor %}</ul>
         {% endif %}
         {% if p.link %}<p class="ew-link"><a class="intro__link" href="{{ p.link.url }}">{{ p.link.anzeige }}</a></p>{% endif %}
       </div>

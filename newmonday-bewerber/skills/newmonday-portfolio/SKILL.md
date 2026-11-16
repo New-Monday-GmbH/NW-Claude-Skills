@@ -62,6 +62,14 @@ Ein Portfolio ist Eigenwerbung. Bewertende Formulierungen des Kandidaten
 ("preisgekrönt", "führend") werden übernommen, wenn sie dort stehen – aber
 nicht von dir hinzugefügt.
 
+**Kein Einzelwort in der letzten Zeile.** In Fließtexten (Absätze, Prozess- und
+Kartentexte, Stichpunkte) verbindet `render_portfolio.py` die letzten zwei Wörter
+je Absatz mit U+00A0 (`kein_einzelwort()`, nur ab vier Wörtern, Paar bis 20
+Zeichen, ohne Zahl am Ende); der Figma-Weg liest denselben Text aus dem HTML.
+Wird ein Text von Hand in Figma ergänzt, prüfen, ob die letzte Zeile nur ein
+Wort hat – dann die letzten zwei Wörter mit U+00A0 verbinden, wenn dadurch
+keine Zeile und keine Seite überläuft.
+
 **Sieben Stellen sind davon ausgenommen, und nur diese sieben.** Sie stehen hier
 oben, damit niemand sie erst auf halber Strecke findet:
 

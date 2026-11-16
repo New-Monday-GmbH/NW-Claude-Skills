@@ -56,7 +56,7 @@
       {% if person.foto %}<img class="fotokarte__bild" src="{{ person.foto }}" alt="{{ t.foto.format(name=person.name) }}">{% endif %}
     </div>
   </div>
-  <p class="hero__beschreibung t-hero-beschreibung">{{ person.beschreibung }}</p>
+  <p class="hero__beschreibung t-hero-beschreibung">{{ person.beschreibung|kein_einzelwort }}</p>
 </section>
 
 {# Bild eingepasst (Seitenverhaeltnis der Datei), sonst Platzhalterfeld. #}
@@ -83,7 +83,7 @@
     <div class="qualikarte" data-block="zert-karte">
       <h3 class="t-quali-titel">{{ t.qualifikationen }}</h3>
       <div class="qualikarte__block">
-        {% if z.karte.text %}<p class="t-quali-text">{{ z.karte.text }}</p>{% endif %}
+        {% if z.karte.text %}<p class="t-quali-text">{{ z.karte.text|kein_einzelwort }}</p>{% endif %}
         {% if z.karte.tags %}
         <ul class="qualikarte__tags{% if z.karte.text %} qualikarte__tags--nach-text{% endif %}">
           {% for tag in z.karte.tags %}<li class="qualitag t-quali-tag">{{ tag }}</li>{% endfor %}
@@ -121,7 +121,7 @@
               {% for i in range(punkte_anzahl) %}<i class="punkt{% if i < s.punkte %} punkt--voll{% endif %}"></i>{% endfor %}<span class="vorgelesen t-eintrag-beschreibung">{{ t.bewertung.format(n=s.punkte, m=punkte_anzahl) }}</span>
             </div>
           </div>
-          <p class="eintrag__beschreibung t-eintrag-beschreibung">{{ s.beschreibung }}</p>
+          <p class="eintrag__beschreibung t-eintrag-beschreibung">{{ s.beschreibung|kein_einzelwort }}</p>
         </li>
         {% endfor %}
       </ul>
