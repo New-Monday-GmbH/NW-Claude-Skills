@@ -183,10 +183,11 @@ Alles in dieser Phase erledigt dieser Skill selbst, ohne Subagenten.
      Stand unter `<markt>/stand-*` älter als 7 Tage, erst
      `python3 <skills>/newmonday-marktbild/scripts/marktbild.py auswerten`.
      Aus `marktbild.json` des Stands die gefragten Begriffe dieser Familien:
-     `anfrage` wie in newmonday-marktbild, „Einspeisen“, Schritt 7 (Muss =
-     mindestens eine Muss-Nennung, Kann = Rest, `zeile` „Marktbild
-     <TT.MM.JJJJ> (<Familie>): Muss …; Kann …“), `matching: null`. Keine
-     Matching-Klickbox.
+     `anfrage` mit `quelle: "marktbild"`, `rolle` = die Familie(n),
+     `muss` = gefragte Begriffe mit mindestens einer Muss-Nennung, `kann` =
+     die übrigen gefragten (Art sprache, erfahrung, sonstiges weglassen),
+     `ko: []`, `domaene: null`, `zeile` „Marktbild <TT.MM.JJJJ> (<Familie>):
+     Muss …; Kann …“; `matching: null`. Keine Matching-Klickbox.
    - **Die Anforderungstabelle.** Aus einer Matching-Auswertung den Abschnitt
      „Die Anforderung“ und die K.-o.-Zeile übernehmen, wörtlich, als `anfrage`
      mit `quelle: matching`. Gibt es nur eine Ausschreibung, sie nach Schritt 1

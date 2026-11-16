@@ -151,10 +151,10 @@ def luecken(bild: dict, begriffe: dict, kandidaten: dict, originale: Path, markt
                 antwort = antworten.get(z["begriff"], {}).get("antwort")
                 if antwort == "nein":
                     continue
-                if z["art"] in SELBST:
-                    tun = "selbst ergänzen"
-                elif antwort in ("ja", "ja_projekt"):
+                if antwort in ("ja", "ja_projekt"):
                     tun = "bejaht – einspeisen"
+                elif z["art"] in SELBST:
+                    tun = "selbst ergänzen"
                 elif antwort == "weiss_nicht":
                     tun = "weiß nicht – Kandidat fragen"
                 else:

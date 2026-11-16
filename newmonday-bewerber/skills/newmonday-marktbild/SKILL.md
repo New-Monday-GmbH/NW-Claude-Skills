@@ -23,7 +23,7 @@ ersten Bau (dort Phase 1, „allgemeine Mappe mit Marktbild“).
 ## Regeln
 
 Es gelten die Regeln von newmonday-anfrage („Die Regeln, die über allem
-stehen“), weil Einspeisen ein Anfrage-Lauf mit dem Marktbild als Anfrage ist:
+stehen“) – Einspeisen ist eine Anfrage mit dem Marktbild als Ausschreibung:
 
 1. **Nichts erfinden** – keine Projekte, Kunden, Zahlen, Zertifikate.
 2. **Nichts entfernen** – ergänzen und umsortieren; `vergleich.py` prüft.
@@ -59,7 +59,6 @@ siehe `references/plattformen.md`).
   anforderungen/<Anfrage-Ordner>.json   je Ausschreibung einmal zerlegt
   antworten/<Name>.json  Technik-Antworten des Nutzers – nie doppelt fragen
   stand-<datum>/         marktbild.xlsx, bericht.md, marktbild.json, luecken.json
-  einspeisung/<datum>/<Name>/_arbeit/   Laufordner wie bei newmonday-anfrage
 ```
 
 Die lokale Ablage ist die Arbeitskopie, SharePoint der Lesestand fürs Team.
@@ -105,70 +104,91 @@ Läuft unbeaufsichtigt: **keine Klickboxen, nichts in Figma, keine Plattform.**
    sehr wahrscheinlich ist, eine Frage (bis zu vier je `AskUserQuestion`):
 
    ```
-   Frage:    Hat <Vorname> Erfahrung mit <Begriff>? (gefragt in <n> Ausschreibungen, <Rollenfamilie>)
+   Frage:    Hat <Vorname> <was die Ausschreibungen damit meinen, in Worten>? So fordern es <n> Ausschreibungen (<Rollenfamilie>): „<kurzer Wortlaut aus ausschreibung.md>“.
    Header:   <Begriff, max. 12 Zeichen>
    Optionen: Ja – mit Projekt (Projekt über „Other“) | Ja – ohne Projekt | Nein | Weiß ich nicht
    ```
 
+   **Nie den nackten Begriff fragen**, vor allem keine Domänen und
+   Sammelbegriffe: „Erfahrung mit Webanwendungen?“ ist zu ungenau – gemeint
+   war „Oberflächen für webbasierte Fachanwendungen (Software im Browser,
+   Portale, Admin-Oberflächen), nicht reine Websites“. Den Sinn aus dem
+   Wortlaut der Ausschreibungen nehmen (`anforderungen/` → Anfrage-Ordner →
+   `ausschreibung.md`).
+
    Jede Antwort sofort ablegen: `marktbild.py antwort --kandidat … --begriff …
-   --antwort ja_projekt|ja|nein|weiss_nicht [--projekt …]`. „Weiß ich nicht“
-   bleibt draußen und steht in der Übergabe als „beim Kandidaten erfragen“.
-   Bleibt danach für einen Kandidaten nichts einzuspeisen, endet sein Lauf hier.
+   --antwort ja_projekt|ja|nein|weiss_nicht [--projekt …]`. Nennt der Nutzer
+   über „Other“ Projekte, ist das `ja_projekt` mit diesen Projekten; wählt er
+   „Ja – mit Projekt“, ohne eins zu nennen, `ja_projekt` mit `--projekt
+   "(nicht genannt – realistisch platzieren)"`. „Weiß ich nicht“ bleibt
+   draußen und steht in der Übergabe als „beim Kandidaten erfragen“. Bleibt
+   danach für einen Kandidaten nichts einzuspeisen, endet sein Lauf hier.
 4. **Original-File** aus `kandidaten.json` → `figma_file`; fehlt es, finden
    wie newmonday-anfrage Phase 2, Punkt 2, und eintragen.
-5. **Kopie anlegen** (Figma, `figma:figma-use` laden): Auf der Seite mit den
-   aktuellen Original-Frames (CV, Skill Matrix A4, Portfolio – nicht die
-   Archiv-Seite, keine früheren Markt-Kopien) jeden dieser Frames
-   duplizieren, die Kopie mit Abstand rechts neben das Original legen und
-   „<Frame-Name> – Markt <TT.MM.JJJJ>“ nennen. Gibt es schon eine Markt-Kopie
-   ohne Freigabe, fragen: *Auf der vorhandenen Kopie weiter (Empfohlen)* |
-   *Neue Kopie*. Das Original bleibt unberührt.
-6. **Laufordner:**
-   `python3 <skills>/newmonday-anfrage/scripts/ablage.py anlegen --root <markt>/einspeisung --anfrage "<JJJJ-MM-TT>" --kandidat "<Name>"`
-7. **Bestand lesen** aus den Kopien nach
-   `<skills>/newmonday-anfrage/references/figma-lesen.md` (Subagent), dann
-   `auftrag.json` wie newmonday-anfrage Phase 2, Punkt 4 – mit dieser Anfrage:
-   - `quelle: "marktbild"`, `matching: null` (kein Kunde, keine
-     Matching-Prüfung),
-   - `rolle` = Rollenfamilie(n) des Kandidaten, `senioritaet` aus dem Bestand,
-   - `muss` = gefragte Begriffe mit mindestens einer Muss-Nennung, `kann` =
-     die übrigen gefragten, `ko: []`, `domaene: null`,
-   - `zeile` = „Marktbild <TT.MM.JJJJ> (<Rollenfamilie>): Muss …; Kann …“,
-   - `entscheidungen` = die Technik-Antworten aus `antworten/<Name>.json`
-     (bejaht, mit Projekt), damit die Skills nicht neu fragen.
-8. **Vorbereiten, Entscheiden, Bauen, Prüfen** wie newmonday-anfrage Phase
-   4–6, mit diesen Abweichungen:
-   - Technik ist schon beantwortet (Schritt 3) – nicht noch einmal fragen.
-   - Regel 4 von newmonday-anfrage (Domäne nach vorn) entfällt: Das Marktbild
-     hat keine Kundendomäne. Domänen kommen nur mit Ja hinein.
-   - Figma-Ziel sind die Markt-Kopien aus Schritt 5 im Original-File (dort
-     anpassen nach `figma-anpassen.md`; das Original-File ist hier Ziel, die
-     Original-Frames bleiben unberührt).
-   - PDFs: `ablage.py einsammeln "<markt>/einspeisung/<datum>/<Name>"`; sie
-     ersetzen noch nichts in `originale/`.
-   - Kein „Kurztext fürs Matching“.
-9. **Übergabe** wie newmonday-anfrage, dazu ganz oben: „Bitte die Kopie
-   prüfen – wenn sie passt, sag ‚freigeben <Name>‘.“ Spiegeln (antworten).
+5. **Kopie** (Figma, `figma:figma-use` laden). Oft hat der Nutzer sie schon
+   angelegt – je Dokument eine zweite Reihe unter den Original-Frames mit
+   fortlaufenden Seitennummern (CV „Seite 5–8“ unter „Seite 1–4“), beim
+   Portfolio eine zweite Section gleichen Namens daneben. Dann diese nehmen
+   und nicht umbenennen. Sonst: Auf der Seite mit den aktuellen
+   Original-Frames (nicht Archiv, keine früheren Kopien) jeden Frame
+   duplizieren, die Kopie mit Abstand rechts daneben legen und
+   „<Frame-Name> – Markt <TT.MM.JJJJ>“ nennen. Gibt es schon eine Kopie ohne
+   Freigabe, fragen: *Auf der vorhandenen Kopie weiter (Empfohlen)* |
+   *Neue Kopie*. Die Original-Frames bleiben unberührt.
+6. **Einarbeiten – direkt in den Kopien**, mit den vorhandenen Komponenten,
+   ohne JSON-Umweg (die PDFs entstehen erst beim Freigeben aus dem geprüften
+   Figma-Stand). Erst alle Texte der Kopien lesen (Antwort < 20 KB,
+   Nicht-ASCII maskieren), dann je Dokument in einem Aufruf ändern:
+   - **Lebenslauf:** Ergänzungen als **angehängter Halbsatz an einen
+     passenden bestehenden Stichpunkt** („Stakeholder-Management“ →
+     „Stakeholder-Management und Moderation von Workshops“), nie als neuer
+     Stichpunkt – so bleiben die Umbrüche. Bejaht mit Projekt: an diesem
+     Projekt. Ohne Projekt und abgeleitet: an dem Projekt, dessen belegte
+     Tätigkeit es am ehesten einschließt. Skillset und Tools über die freien
+     Plätze der Komponente (Eigenschaft „Eintrag n“ einblenden, Text setzen).
+   - **Skill Matrix:** nur Attribute aus dem Pool
+     (`<skills>/newmonday-skillmatrix/references/attribute-katalog.md`, Name,
+     Beschreibung und Kategorie wörtlich) und nur in Kategorien, die die
+     Matrix schon hat (höchstens 5 Kategorien, 24 Kompetenzen). Passt ein
+     Attribut in keine vorhandene Kategorie, bleibt es draußen und steht in
+     der Übergabe. Tools als Tool-Karte (Kompetenz n einblenden). Bewertung
+     nach Beleg: bejaht ohne Projekt 3, mit Projekt 3–4.
+   - **Portfolio:** in die Arbeitsweise-Folien (meist 6–10) als angehängter
+     Satz; das Schlüsselwort in Semi Bold derselben Schrift.
+   - Danach jede geänderte Seite ansehen (Screenshot): nichts abgeschnitten,
+     keine Seite länger als vorher.
+   - Steht ein Begriff schon da und die Lückenprüfung hat ihn nicht erkannt
+     (anderes Wort, etwa „Browser-Anwendungen“), das Wort als Synonym in
+     `begriffe.json` ergänzen.
+7. **Übergabe** – ganz oben: „Bitte die Kopie prüfen – wenn sie passt, sag
+   ‚freigeben <Name>‘.“ Darunter je Dokument jede Stelle mit altem und neuem
+   Wortlaut und Grund (bejaht / bejaht mit Projekt / abgeleitet: <Beleg>),
+   dann was draußen blieb und warum. Spiegeln (antworten, begriffe).
 
 ## Freigeben
 
-Nur auf ausdrückliches „freigeben“ des Nutzers für genannte Kandidaten.
-Vorher ein Blick, ob der Nutzer die Kopie von Hand geändert hat
-(Handpflege): Texte und Bewertungen der Kopie mit der Bau-JSON im Laufordner
-vergleichen; Abweichungen in die JSON übernehmen und die PDFs neu rendern,
-damit PDF und Figma übereinstimmen.
+Nur auf ausdrückliches „freigeben“ des Nutzers für genannte Kandidaten. Der
+Figma-Stand der Kopie ist dann die Wahrheit – einschließlich allem, was der
+Nutzer von Hand nachgepflegt hat.
 
 1. **Figma:** Seite „Archiv“ (eine vorhandene Seite, deren Name mit „Archiv“
    oder „Archive“ beginnt; sonst anlegen). Die bisherigen Original-Frames
-   dorthin verschieben und „<TT.MM.JJJJ> alt – <Name>“ nennen. Die
-   Markt-Kopien an deren Stelle rücken (gleiche x/y) und den Zusatz
-   „ – Markt <datum>“ entfernen. Nichts löschen.
-2. **PDFs:** die bisherigen PDFs in `<originale>/<ordner>/` nach
-   `~/.Trash/Originale-alt-<JJJJ-MM-TT>/<ordner>/` verschieben, die neuen
-   aus dem Einspeisungs-Ordner dorthin kopieren (Namen
-   „New Monday - <Name> - CV.pdf“, „… - Skillmatrix A4.pdf“,
-   „… - Portfolio.pdf“). Prüfen: `verapdf --flavour ua1` PASS, `pdffonts`
-   alle eingebettet mit Unicode.
+   dorthin verschieben und „<TT.MM.JJJJ> alt – <Name>“ nennen. Die Kopien an
+   deren Stelle rücken (gleiche x/y); ein Zusatz „ – Markt <datum>“ fällt
+   weg, fortlaufende Seitennummern der Kopie (Seite 5–8) werden wieder
+   Seite 1–4. Nichts löschen.
+2. **PDFs aus dem Figma-Stand** – ein Subagent, nie aus Figma exportieren:
+   alle freigegebenen Frames lesen (Texte, Sichtbarkeiten, Bewertungen,
+   Reihenfolge, Bild-Hashes, Fettdruck-Bereiche), die JSONs für
+   `newmonday-cv` (`render_cv.py`), `newmonday-skillmatrix`
+   (`render_skillmatrix.py`, nur A4) und `newmonday-portfolio` genau darauf
+   angleichen und rendern. Prüfen: `verapdf --flavour ua1` PASS, `pdffonts`
+   alle eingebettet mit Unicode, `pdftotext` in Lesereihenfolge, gleiche
+   Seitenzahl wie Figma, jede Seite als PNG gegen den Figma-Screenshot,
+   Größe möglichst klein. Dann die bisherigen PDFs in `<originale>/<ordner>/`
+   nach `~/.Trash/Originale-alt-<JJJJ-MM-TT>/<ordner>/` verschieben und die
+   neuen dorthin legen („New Monday - <Name> - CV.pdf“, „… - Skillmatrix
+   A4.pdf“, „… - Portfolio.pdf“).
 3. **Plattformen:** nach `references/plattformen.md` – CRM, freelancermap,
    Hays, GULP: neue hoch, alte dieses Kandidaten löschen. Nur über
    Claude in Chrome; ist der Nutzer nicht angemeldet, darum bitten.
