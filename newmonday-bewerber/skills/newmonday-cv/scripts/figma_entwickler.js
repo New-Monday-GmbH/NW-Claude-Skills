@@ -60,6 +60,10 @@ function punkt(p, a, art) {
 // Ebene, die das Foto neben dem Text haelt, wird in der Instanz ausgeblendet
 // (Override, nichts geloest) - im Auto-Layout faellt damit auch der Abstand weg.
 function ohneFoto(pk) {
+  // Master "CV/Profilkopf" fuehrt die Spalte als Ebene "Fotospalte"; ist "Foto anzeigen"
+  // aus, gibt es die Ebene "Foto" darin nicht mehr - deshalb zuerst direkt danach suchen.
+  const spalte = pk.findOne(n => n.name === "Fotospalte");
+  if (spalte) { spalte.visible = false; return; }
   const name = pk.findOne(n => n.type === "TEXT" && n.characters === P.profil.name);
   let a = pk.findOne(n => n.name === "Foto");
   const enthaelt = (x, n) => { for (; n; n = n.parent) if (n === x) return true; return false; };
