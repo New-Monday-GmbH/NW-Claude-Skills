@@ -201,7 +201,8 @@ def pruefe(daten):
             "Die Buttons stehen in einer Zeile; mehr als drei laufen ueber die "
             "Textspalte hinaus.")
     if not person.get("foto"):
-        hinweise.append("Kein Foto — die Fotokarte zeigt nur den Farbverlauf mit dem Namen.")
+        hinweise.append("Kein Foto — A4: die Fotokarte entfaellt, Name, Rolle und Schwerpunkte nehmen "
+                        "die volle Breite (lang: die Karte zeigt nur den Farbverlauf mit dem Namen).")
     elif not str(person["foto"]).startswith(("http:", "https:", "file:")):
         foto = Path(person["foto"]).expanduser()
         if not foto.is_absolute():

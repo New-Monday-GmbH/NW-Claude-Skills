@@ -2269,9 +2269,10 @@ def pruefe_entwickler(tmp):
     """Entwickler-Layout (freigegeben am 03.11.2026) am Beispiel cv-entwickler.json.
 
     Firmenlogo ueber dem Stationstitel, hoechstens vier Seiten (06.11.2026).
-    Seitenspalte nur auf Seite 1 (IT-Kompetenzen, Weiterbildung) rechts neben
-    der Hauptspalte, die Technologien je Aufgabe in der Markenfarbe, Ausbildung
-    und Sprachen hinter den Projekten, die anonyme Fassung ohne Repository-Link.
+    Seitenspalte nur auf Seite 1 (IT-Kompetenzen, Weiterbildung, seit
+    17.11.2026 Sprachen) rechts neben der Hauptspalte, die Technologien je
+    Aufgabe in der Markenfarbe, Ausbildung hinter den Projekten, ohne Foto der
+    Profilkopf an der Satzkante, die anonyme Fassung ohne Repository-Link.
     """
     import fitz
     import tokens
@@ -2289,12 +2290,16 @@ def pruefe_entwickler(tmp):
     with fitz.open(str(pdf)) as doc:
         texte = [s.get_text() for s in doc]
         woerter = {w[4]: w for w in doc[0].get_text("words")}
-        for wort in ("IT-Kompetenzen", "Weiterbildung"):
+        for wort in ("IT-Kompetenzen", "Weiterbildung", "Sprachen"):
             if wort not in woerter or abs(woerter[wort][0] - seite_x) > 1:
                 fehler.append(f"Entwickler: „{wort}“ steht nicht in der Seitenspalte "
                               f"(x {seite_x}) auf Seite 1")
         if "Kurzprofil" not in woerter or abs(woerter["Kurzprofil"][0] - rand) > 1:
             fehler.append("Entwickler: „Kurzprofil“ steht nicht links in der Hauptspalte")
+        # Das Beispiel hat kein Foto: der Name beginnt an der Satzkante.
+        vorname = daten["person"]["name"].split()[0]
+        if "foto" in daten["person"] or vorname not in woerter or abs(woerter[vorname][0] - rand) > 1:
+            fehler.append("Entwickler: ohne Foto steht der Profilkopf nicht an der Satzkante")
         # Firmenlogo ueber dem Stationstitel, nichts rueckt ein (06.11.2026).
         # SVG-Logos landen als Vektoren im PDF, nicht als Bild.
         titel = min((w for w in doc[0].get_text("words") if w[4] == "Software"),
@@ -2314,9 +2319,9 @@ def pruefe_entwickler(tmp):
         if any("Kundenportals" in t for t in farbig):
             fehler.append("Entwickler: Tätigkeitstext steht in der Markenfarbe statt nur die Klammer")
     ganz = " ".join(" ".join(texte).split())
-    reihe = [ganz.find(w) for w in ("Frontend-Entwickler", "Projekte", "Ausbildung", "Sprachen")]
+    reihe = [ganz.find(w) for w in ("Frontend-Entwickler", "Projekte", "Ausbildung")]
     if -1 in reihe or reihe != sorted(reihe):
-        fehler.append(f"Entwickler: Reihenfolge Stationen – Projekte – Ausbildung – Sprachen "
+        fehler.append(f"Entwickler: Reihenfolge Stationen – Projekte – Ausbildung "
                       f"stimmt nicht ({reihe})")
     if "AWS Certified Developer" not in " ".join(texte[0].split()):
         fehler.append("Entwickler: Weiterbildung steht nicht auf Seite 1")
@@ -2345,6 +2350,88 @@ def pruefe_entwickler(tmp):
     return fehler
 
 
+def pruefe_entwickler_teilprojekte(tmp):
+    """Technologie-Klammern an Beschreibungen in der Markenfarbe und Kundenblock
+    mit Teilprojekten (17.11.2026) - im PDF und im Figma-Plan."""
+    import fitz
+    import tokens
+    import figma_entwickler
+    from render_cv import technik_teilen
+    fehler = []
+    if technik_teilen("Portal. (Kotlin, Ktor)") != {"text": "Portal.", "technik": "(Kotlin, Ktor)"}:
+        fehler.append("Teilprojekte: technik_teilen trennt die Klammer einer Beschreibung nicht")
+    daten = json.loads((WURZEL / "beispiel" / "cv-entwickler.json").read_text(encoding="utf-8"))
+    daten["stationen"][1]["projekte"] = [{
+        "kunde": "Kunde Alpha", "logo": "adidas.svg",
+        "beschreibung": "Langjähriger Kunde aus dem Handel. (Kotlin, Ktor)",
+        "teilprojekte": [
+            {"titel": "Relaunch des Portals", "zeitraum": "2025",
+             "beschreibung": "Neue Oberfläche für das Portal. (Svelte, Vite)",
+             "aufgaben": ["Umbau der Navigation (Playwright)"]},
+            {"titel": "Start des Portals", "zeitraum": "2023", "beschreibung": "Erste Fassung.",
+             "aufgaben": ["Datenmodell (PostgreSQL)"]}]}]
+    daten["stationen"][2]["beschreibung"] = "Shopentwicklung im Team. (Nuxt, Pinia)"
+    pdf, lauf, stufen = _rendern(tmp, daten, "entwickler-teilprojekte")
+    if lauf.returncode != 0 or not pdf.exists():
+        return [f"Teilprojekte: Rendern fehlgeschlagen – {(lauf.stderr or lauf.stdout)[-300:]}"]
+    marke = int(tokens.laden()["farben"]["marke"].lstrip("#"), 16)
+    with fitz.open(str(pdf)) as doc:
+        farbig = " ".join(sp["text"] for s in doc for b in s.get_text("dict")["blocks"]
+                          for z in b.get("lines", []) for sp in z["spans"] if sp["color"] == marke)
+        ganz = " ".join(" ".join(s.get_text() for s in doc).split())
+    for wort in ("Kotlin", "Svelte", "Nuxt", "Playwright"):
+        if wort not in farbig:
+            fehler.append(f"Teilprojekte: Klammer mit {wort} steht nicht in der Markenfarbe")
+    if "Handel" in farbig or "Oberfläche" in farbig:
+        fehler.append("Teilprojekte: Beschreibungstext steht in der Markenfarbe statt nur die Klammer")
+    if "Kunde Alpha 2023 – 2025" not in ganz or "Relaunch des Portals · 2025" not in ganz:
+        fehler.append("Teilprojekte: Kundenblock ohne Spanne oder Teilprojekt ohne Titel und Jahr")
+    plan, hinweise = figma_entwickler.plan_bauen(
+        copy.deepcopy(daten), pdf, json.loads(stufen.read_text(encoding="utf-8")))
+    bloecke = [b for s in plan["seiten"] for b in s["haupt"]]
+    zeilen = [z for b in bloecke if b["art"] == "kopf" for z in b["zeilen"]]
+    if hinweise:
+        fehler.append(f"Teilprojekte-Figma: Marken nicht im PDF – {hinweise[:2]}")
+    if not any(z.get("technik") == "(Kotlin, Ktor)" and z["text"].endswith("(Kotlin, Ktor)") for z in zeilen) \
+            or not any(z.get("technik") == "(Nuxt, Pinia)" for z in zeilen):
+        fehler.append("Teilprojekte-Figma: Klammer an Projekt-/Stationsbeschreibung nicht zum Färben geplant")
+    if [b["text"] for b in bloecke if b["art"] == "teiltitel"] != ["Relaunch des Portals · 2025",
+                                                                   "Start des Portals · 2023"]:
+        fehler.append("Teilprojekte-Figma: Teilprojekt-Titel fehlen oder stehen falsch")
+    if not any(b["art"] == "absatz" and b["technik"] == "(Svelte, Vite)" for b in bloecke):
+        fehler.append("Teilprojekte-Figma: Einleitung eines Teilprojekts ohne Klammer zum Färben")
+    kunde = next((b for b in bloecke if b["art"] == "kopf" and b["titel"] == "Kunde Alpha"), {})
+    if len(kunde.get("logos") or []) != 1:
+        fehler.append("Teilprojekte-Figma: Kundenblock ohne Logo über dem Kunden")
+    if plan["stile"]["teilprojekt"]["groesse"] >= plan["stile"]["titel"]["groesse"]:
+        fehler.append("Teilprojekte: Teilprojekt-Titel nicht kleiner als der Kunde")
+    seite = [b for b in plan["seiten"][0]["seite"] if b["art"] == "liste"]
+    if not seite or "Deutsch" not in seite[-1]["text"] or "\n" not in seite[-1]["text"]:
+        fehler.append("Teilprojekte-Figma: Sprachen nicht als graue Liste in der Seitenspalte")
+    return fehler
+
+
+def pruefe_ohne_foto(tmp):
+    """UX-Layout ohne Foto: Profilkopf an der Satzkante, Seite 1 bricht nicht (17.11.2026)."""
+    import fitz
+    import tokens
+    daten = json.loads((WURZEL / "beispiel" / "cv.json").read_text(encoding="utf-8"))
+    daten["person"].pop("foto", None)
+    pdf, lauf, stufen = _rendern(tmp, daten, "ohne-foto")
+    if lauf.returncode != 0 or not pdf.exists():
+        return [f"Ohne Foto: Rendern fehlgeschlagen – {(lauf.stderr or lauf.stdout)[-300:]}"]
+    fehler = []
+    rand = tokens.laden()["seite"]["rand_links"]
+    vorname = daten["person"]["name"].split()[0]
+    with fitz.open(str(pdf)) as doc:
+        woerter = [w for w in doc[0].get_text("words") if w[4] == vorname]
+    if not woerter or abs(woerter[0][0] - rand) > 1:
+        fehler.append(f"Ohne Foto: Name steht nicht an der Satzkante (x {woerter and woerter[0][0]}, erwartet {rand})")
+    if "passen nicht" in lauf.stderr:
+        fehler.append("Ohne Foto: Bildung/Skillset passen nicht mehr auf Seite 1")
+    return fehler
+
+
 def T_LOGO_SPALTE():
     import tokens
     return tokens.laden()["entwickler"]["logo_breite"]
@@ -2365,8 +2452,11 @@ def _pruefe_entwickler_figma(daten, pdf, stufen):
     if not seiten[0]["seite"] or any(s["seite"] for s in seiten[1:]):
         fehler.append("Entwickler-Figma: Seitenspalte nicht genau auf Seite 1")
     texte = [[b.get("text") or b.get("titel") or b.get("abschluss") for b in s["haupt"]] for s in seiten]
-    if "Sprachen" not in texte[-1] or "Projekte" in texte[0]:
-        fehler.append("Entwickler-Figma: Projekte/Sprachen nicht auf den Seiten des PDFs")
+    if "Ausbildung" not in texte[-1] or "Projekte" in texte[0] or any("Sprachen" in t for t in texte):
+        fehler.append("Entwickler-Figma: Projekte/Ausbildung nicht auf den Seiten des PDFs "
+                      "oder Sprachen noch in der Hauptspalte")
+    if "Sprachen" not in [b.get("text") for b in seiten[0]["seite"]]:
+        fehler.append("Entwickler-Figma: Sprachen fehlen in der Seitenspalte auf Seite 1")
     if any(s["haupt"] and s["haupt"][0]["oben"] for s in seiten):
         fehler.append("Entwickler-Figma: erster Block einer Seite mit Abstand oben")
     koepfe = [b for s in seiten for b in s["haupt"] if b["art"] == "kopf" and "logos" in b]
@@ -2426,6 +2516,8 @@ def main():
         fehler += pruefe_add_logo(tmp)
         fehler += pruefe_zwei_ordner(tmp)
         fehler += pruefe_entwickler(tmp)
+        fehler += pruefe_entwickler_teilprojekte(tmp)
+        fehler += pruefe_ohne_foto(tmp)
         fehler += pruefe_kein_einzelwort()
 
     fehler += pruefe_svg_verhaeltnisse()
@@ -2457,7 +2549,8 @@ def main():
     print(f"  Durchkopplung: offene Schreibweisen gemeldet, Text unveraendert, nicht bei en")
     print(f"  Logos:     SVG-Verhaeltnisse richtig gelesen, im Plan unverzerrt, add_logo mit Kontrollbild")
     print(f"  Bibliothek: neue Logos ausserhalb des Skills, vor dem Grundstock gefunden, Uebernahme ins Repo")
-    print(f"  Entwickler: 2/3 Stationen, 1/3 IT-Kompetenzen und Weiterbildung, Logo ueber dem Titel, Technik in Markenfarbe, Ausbildung hinten, max. 4 Seiten")
+    print(f"  Entwickler: 2/3 Stationen, 1/3 IT-Kompetenzen, Weiterbildung und Sprachen, Logo ueber dem Titel, Technik in Markenfarbe auch an Beschreibungen, Kundenblock mit Teilprojekten, Ausbildung hinten, max. 4 Seiten")
+    print(f"  Ohne Foto: Profilkopf an der Satzkante, beide Layouts")
     print(f"  Barrierefrei: PDF/UA-1 getaggt, Sprache, Titel, Alternativtexte, H1 bis H4 ohne Sprung - beide Fassungen, beide Layouts, de und en")
     print(f"  Groesse:   jedes Beispiel-PDF unter {PDF_BUDGET // 1024} KB (Bilder auf 300 dpi)")
     print(f"  Geschlecht: Mischung gemeldet, anonym neutral (Designer:in), feminin = maskulin, en unveraendert")

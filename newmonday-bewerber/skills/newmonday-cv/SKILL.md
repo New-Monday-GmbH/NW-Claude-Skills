@@ -980,11 +980,18 @@ Der Aufbau steht fest:
 
 - **Seite 1:** Kopfzeile und Profilkopf wie im UX-Layout, darunter zwei
   Spalten im Verhältnis 2/3 zu 1/3. Links Kurzprofil und Berufserfahrung,
-  rechts **IT-Kompetenzen** und darunter **Weiterbildung** (die Zertifikate).
-  Die rechte Spalte gibt es nur auf Seite 1.
+  rechts **IT-Kompetenzen**, darunter **Weiterbildung** (die Zertifikate) und
+  darunter **Sprachen** im Format „Sprache (Niveau)“ (seit 17.11.2026 hier,
+  vorher ganz hinten in der Hauptspalte) – wie die IT-Listen grau, ohne
+  Aufzählungspunkte, eine Sprache je Zeile. Die rechte Spalte gibt es nur auf
+  Seite 1.
 - **Danach** läuft die Hauptspalte allein weiter: die übrigen Stationen, dann
-  **Projekte**, dann **Ausbildung** und **Sprachen** – Uni, Schule und Sprachen
-  stehen ganz hinten (Entscheidung des Nutzers vom 03.11.2026).
+  **Projekte**, dann **Ausbildung** – die Hochschule steht ganz hinten
+  (Entscheidung des Nutzers vom 03.11.2026), die Schule entfällt neben einem
+  Hochschulabschluss (17.11.2026, siehe Schritt 2, Ausbildung).
+- **Ohne Profilfoto** (`person.foto` leer) beginnen Name, Rolle, Erfahrung und
+  Verweise links an der Satzkante – keine leere Fotospalte (17.11.2026, gilt in
+  beiden Layouts; die anonyme Fassung hat immer die Silhouette).
 - **Firmenlogos über dem Stationstitel** (seit 06.11.2026, wie im UX-Layout
   gehören sie dazu): eine Zeile über Titel, Firma und Zeitraum, linksbündig –
   nichts rückt ein, Titel und Aufgaben stehen an derselben Kante wie ohne
@@ -996,7 +1003,30 @@ Der Aufbau steht fest:
 - **Höchstens vier Seiten** – Abschnitt unten.
 - **Technologien stehen in Klammern hinter der Tätigkeit**, in der
   Markenfarbe. So sieht ein Recruiter in derselben Zeile, was gemacht wurde und
-  womit.
+  womit. Seit 17.11.2026 **überall gleich**: dieselbe Klammer am Ende einer
+  Stations- oder Projektbeschreibung (Einleitung eines Kundenprojekts,
+  Teilprojekts oder eigenen Projekts) steht genauso in der Markenfarbe wie am
+  Ende eines Stichpunkts – nie farbige und graue Technologien auf einer Seite.
+- **Gleicher Kunde, ein Kundenblock** (17.11.2026): Stehen unter einer Station
+  mehrere Projekte beim selben Kunden – auch in verschiedenen Jahren –, fasst
+  du sie beim Vorbereiten zu **einem** Eintrag zusammen: `kunde` ist nur der
+  Kunde („GlobalGuest“), darunter `teilprojekte`, das jüngste zuerst, je mit
+  `titel`, `zeitraum` (Jahr), `beschreibung` (Einleitung samt
+  Technologie-Klammer) und `aufgaben`. Den Zeitraum des Blocks setzt
+  `render_cv.py` als Spanne der Teilprojekte („2020 – 2026“), wenn er fehlt.
+  Ein Mitkunde („Haxenhaus / GlobalGuest“, „GlobalGuest / Koelnmesse“) gehört
+  zum Hauptauftraggeber; er wandert in den Teilprojekt-Titel („Koelnmesse ·
+  Reservierungswidget neu entwickeln“). Der Wortlaut von Einleitung und
+  Stichpunkten bleibt unverändert; die Blöcke stehen nach ihrem jüngsten
+  Teilprojekt (oder nach Anfrage-Relevanz). Der Kunde steht im Stil des
+  Stationstitels, die Teilprojekt-Titel kleiner (Stil `teilprojekt`); trägt der
+  Block ein `logo`, das in der Logobibliothek liegt, steht es wie an der Station
+  über dem Kunden (sonst kein Logo, nichts nachladen). Der Block darf über
+  Seiten umbrechen: Nur Kundenkopf, erster Teilprojekt-Titel und dessen
+  Einleitung bleiben zusammen, ebenso jeder Titel mit seiner Einleitung –
+  Stichpunkte und weitere Teilprojekte dürfen auf die nächste Seite, damit keine
+  Lücke bleibt. Nur im Entwickler-Layout – im UX-Layout meldet `render_cv.py`
+  `teilprojekte` und setzt sie nicht.
 
 Zusätzlich zum Schema oben:
 
@@ -1005,7 +1035,10 @@ Zusätzlich zum Schema oben:
   "layout": "entwickler",
   "stationen": [{ "…": "…",
     "aufgaben": ["Aufbau eines Kundenportals für Verträge (Java, React, Spring Boot)"],
-    "technologien": [] }],
+    "technologien": [],
+    "projekte": [{ "kunde": "GlobalGuest", "zeitraum": "(optional, sonst Spanne)",
+      "teilprojekte": [{ "titel": "Koelnmesse · Reservierungswidget", "zeitraum": "2026",
+        "beschreibung": "Widget statt iFrame. (React, TypeScript)", "aufgaben": [] }] }] }],
   "projekte": [{ "titel", "beschreibung", "zeitraum", "aufgaben": [], "link", "link_text" }],
   "zertifikate": [{ "titel", "aussteller", "datum" oder "zeitraum" }],
   "skillset": { "it_kompetenzen": [{ "titel", "eintraege": [] }], "tools": [], "sprachen": [] }
@@ -1016,8 +1049,9 @@ Zusätzlich zum Schema oben:
   einer Tätigkeit Technologien, stehen sie wörtlich in Klammern am Ende des
   Stichpunkts. Nennt er keine, bleibt die Klammer weg – auch wenn eine
   Technologie naheläge. Es gilt die eine Regel von oben: übernehmen, nicht
-  umschreiben. `render_cv.py` färbt nur die letzte Klammer am Ende eines
-  Stichpunkts; der Wortlaut bleibt, wie er ist.
+  umschreiben. `render_cv.py` färbt die letzte Klammer am Ende eines
+  Stichpunkts und einer Beschreibung (Station, Kundenprojekt, Teilprojekt,
+  eigenes Projekt); der Wortlaut bleibt, wie er ist.
 - **`technologien` an einer Station** nur, wenn der Eingang Technologien zur
   Station als Ganzes nennt statt zu einzelnen Aufgaben. Sie stehen dann als
   eigene Zeile in Markenfarbe unter den Stichpunkten.
@@ -1035,11 +1069,12 @@ Zusätzlich zum Schema oben:
 - **`zertifikate`** stehen als Weiterbildung mit Titel, Aussteller und Zeit
   (`zeitraum` vor `datum`) – anders als im UX-Layout also mit Aussteller.
 - **Sprachen** kommen aus `skillset.sprachen`, mit denselben Vorgaben wie im
-  UX-Layout.
+  UX-Layout, und stehen in der rechten Spalte unter der Weiterbildung.
 
-Passt die Weiterbildung nicht mehr auf Seite 1, setzt `render_cv.py` die rechte
-Spalte in Stufen enger (normal, kompakt, eng) und meldet die Stufe; sie steht
-auch in `stufen.json`.
+Passen Weiterbildung und Sprachen nicht mehr auf Seite 1, setzt `render_cv.py`
+die rechte Spalte in Stufen enger (normal, kompakt, eng) und meldet die Stufe;
+sie steht auch in `stufen.json`. Reicht auch „eng“ nicht, meldet es, dass die
+Seitenspalte über Seite 1 hinausläuft – dann wird in den IT-Gruppen gekürzt.
 
 #### Höchstens vier Seiten
 
@@ -1208,6 +1243,15 @@ Zum Modell:
   keinen Abschluss, sondern nur Jahr und Haus (etwa "2008 // Media Design
   Hochschule"), zählt sie zum Schulweg: sie belegt eine Station, keinen Titel.
   Was wegfällt, wird in der Übergabe genannt.
+- **Abgebrochenes Studium fällt weg** (17.11.2026). Ein Studium mit sehr kurzer
+  Dauer (etwa bis 18 Monate), ohne Abschluss oder Note, auf das ein anderes
+  Studium folgt, ist sehr wahrscheinlich abgebrochen und kommt nicht in die
+  `cv.json` – etwa „Bachelor Technische Informatik 09/2007 – 08/2008“, danach
+  „Bachelor Allgemeine Informatik“. In der Übergabe unter „Hinweise“ nennen.
+  `render_cv.py` meldet solche Paare, streicht aber nichts.
+- **Im Entwickler-Layout entfällt die Schule** (Abitur, Gymnasium,
+  Gesamtschule usw.), wenn ein Hochschulabschluss da ist (17.11.2026). In der
+  Übergabe nennen; `render_cv.py` meldet eine stehengebliebene Schule.
 - **`skillset` hat in jedem Lebenslauf dieselben vier Gruppen**: `faehigkeiten`,
   `branchen`, `tools`, `sprachen` (Vorgabe vom 29.09.2026 – vorher trug jeder
   Lebenslauf andere Gruppen, und genau das kam als Rückmeldung zurück). In der
@@ -1690,7 +1734,13 @@ Es schreibt `figma_entwickler_bau.js` (der Bau, ein `use_figma`-Aufruf) und
 `figma_entwickler_bild.js` (Foto und Logos einsetzen, prüfen). Die Seiten sind Rahmen mit
 zwei Auto-Layout-Spalten aus denselben Bibliothekskomponenten – `CV/Seite` hat
 nur einen Slot von 428pt. Die Seitenaufteilung kommt auch hier aus dem PDF,
-Block für Block bis zur einzelnen Aufgabe. Einen Vorflug und einen rohen Weg gibt
+Block für Block bis zur einzelnen Aufgabe. Wie im PDF stehen IT-Kompetenzen,
+Weiterbildung und Sprachen (grau wie die IT-Listen, eine je Zeile) in der
+rechten Spalte auf Seite 1, Technologie-Klammern an Aufgaben und Beschreibungen
+in brand/primary, Kunde eines Kundenblocks wie der Stationstitel (mit Logo,
+falls vorhanden), Teilprojekt-Titel kleiner im Stil `teilprojekt`, und ohne Foto blendet der Bau die Fotospalte
+des Profilkopfs per Override aus, sodass der Text links beginnt (17.11.2026).
+Einen Vorflug und einen rohen Weg gibt
 es dafür nicht: Scheitert der Import, gehen die PDFs allein raus, mit einem Satz
 in der Übergabe. Ablauf in `references/figma.md` unter „Das Entwickler-Layout“.
 

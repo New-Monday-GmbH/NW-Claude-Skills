@@ -308,8 +308,10 @@ def plan_a4(daten, labels, za4, kontakt, foto, bloecke, seiten, hinweise):
                                                     Schwerpunkte_anzeigen=bool(sp)),
                                           **b.slots(H, "Schwerpunkt", len(sp))},
                                  [knoten(f"Schwerpunkt {i}", b.props(TAG, Text=s)) for i, s in enumerate(sp, 1)]
-                                 + [knoten("Fotokarte", b.props(A4 + "Fotokarte", Foto_anzeigen=bool(foto)),
-                                           bild=_bild("Foto", foto, "FILL"))]))
+                                 # Ohne Foto die Fotokarte ausblenden (Override, nicht loesen);
+                                 # die Textspalte (FILL) nimmt dann die volle Breite.
+                                 + [knoten("Fotokarte", b.props(A4 + "Fotokarte", Foto_anzeigen=True),
+                                           bild=_bild("Foto", foto, "FILL")) if foto else aus("Fotokarte")]))
         if hat["zert"]:
             Z, QK, ZK = A4 + "Zertifikate", A4 + "Qualifikationskarte", A4 + "Zertifikat-Kachel"
             reihen = sorted(int(x.rsplit("-", 1)[1]) for x in bl if x.startswith("zert-zeile-"))

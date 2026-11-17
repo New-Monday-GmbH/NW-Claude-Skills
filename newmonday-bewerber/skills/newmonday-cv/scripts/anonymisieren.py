@@ -219,6 +219,11 @@ def _knotentexte(knoten, pfad):
             yield aufgaben, nummer, f"{pfad}.aufgaben[{nummer}]"
 
 
+def _teilprojekte(projekt):
+    """Teilprojekte eines Kundenblocks (Entwickler-Layout, 17.11.2026)."""
+    return [t for t in projekt.get("teilprojekte") or [] if isinstance(t, dict)]
+
+
 def namensfelder(daten):
     """(Behaelter, Schluessel, Pfad, Wert) fuer jedes Feld mit einem Eigennamen.
 
@@ -239,6 +244,10 @@ def namensfelder(daten):
                 if isinstance(projekt.get(feld), str) and projekt[feld]:
                     pfad = f"stationen[{i}].projekte[{j}].{feld}"
                     yield projekt, feld, pfad, projekt[feld]
+            for k, teil in enumerate(_teilprojekte(projekt)):
+                if isinstance(teil.get("titel"), str) and teil["titel"]:
+                    pfad = f"stationen[{i}].projekte[{j}].teilprojekte[{k}].titel"
+                    yield teil, "titel", pfad, teil["titel"]
     for i, projekt in enumerate(daten.get("projekte") or []):
         if isinstance(projekt, dict) and isinstance(projekt.get("titel"), str) and projekt["titel"]:
             yield projekt, "titel", f"projekte[{i}].titel", projekt["titel"]
@@ -267,6 +276,8 @@ def textstellen(daten):
         yield from _knotentexte(station, f"stationen[{i}]")
         for j, projekt in enumerate(station.get("projekte") or []):
             yield from _knotentexte(projekt, f"stationen[{i}].projekte[{j}]")
+            for k, teil in enumerate(_teilprojekte(projekt)):
+                yield from _knotentexte(teil, f"stationen[{i}].projekte[{j}].teilprojekte[{k}]")
     # Eigene Projekte des Entwickler-Layouts (oberste Ebene "projekte").
     for i, projekt in enumerate(daten.get("projekte") or []):
         if isinstance(projekt, dict):
@@ -309,6 +320,7 @@ def zeitraumknoten(daten):
         yield station
         for projekt in station.get("projekte") or []:
             yield projekt
+            yield from _teilprojekte(projekt)
     for bildung in daten.get("bildung") or []:
         yield bildung
     for projekt in daten.get("projekte") or []:

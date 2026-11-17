@@ -6,10 +6,14 @@
   <img class="header__logo" src="logos/nm-logo.svg" alt="New Monday">
 </div>
 
+{# Ohne Foto keine leere Fotospalte: der Text beginnt an der Satzkante
+   (17.11.2026). Die anonyme Fassung hat immer die Silhouette. #}
 <div class="intro">
+  {% if person.foto %}
   <div class="intro__col">
-    {% if person.foto %}<img class="intro__photo" src="{{ person.foto }}" alt="{{ foto_alt }}">{% endif %}
+    <img class="intro__photo" src="{{ person.foto }}" alt="{{ foto_alt }}">
   </div>
+  {% endif %}
   <div class="intro__info">
     <h1 class="name">{{ person.name }}</h1>
     {% if person.rolle %}<div class="role">{{ person.rolle }}</div>{% endif %}

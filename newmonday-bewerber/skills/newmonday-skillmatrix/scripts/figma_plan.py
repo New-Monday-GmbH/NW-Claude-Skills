@@ -599,16 +599,15 @@ def a4_hero(person, foto):
             abstand=m(K4["schwerpunkte"]["abstand"]), breite="FILL",
             umbruch=m(K4["schwerpunkte"]["abstand"])))
         textspalte[-1]["umbruch_gap"] = True          # wie im A4-PDF (gap)
-    if not foto:
-        hinweise.append("A4: Kein Foto — die Fotokarte bleibt leer.")
     # Fotokarte ohne Verlauf: das Foto fuellt sie, die Kontur liegt obenauf.
+    # Ohne Foto entfaellt sie, die Textspalte fuellt die Breite (wie im PDF).
     fotokarte = rahmen("Fotokarte", None, [
         bild("Foto", foto, fk["bild-breite"], fk["bild-hoehe"], deckkraft=fk["bild-deckkraft"])],
         breite=fk["breite"], hoehe=fk["hoehe"], radius=m(fk["radius"]), clip=True,
-        fuellung=f(fk["hintergrund"]), kontur=kontur(fk["rahmen"]))
+        fuellung=f(fk["hintergrund"]), kontur=kontur(fk["rahmen"])) if foto else None
     profil = rahmen("Profil", "HORIZONTAL", [
-        rahmen("Text", "VERTICAL", textspalte, abstand=m(h["abstand-schwerpunkte"]), breite="FILL"),
-        fotokarte], abstand=m(h["spaltenabstand"]), breite="FILL")
+        rahmen("Text", "VERTICAL", textspalte, abstand=m(h["abstand-schwerpunkte"]), breite="FILL")]
+        + ([fotokarte] if fotokarte else []), abstand=m(h["spaltenabstand"]), breite="FILL")
     return rahmen("Hero", "VERTICAL", [
         profil, t4("Beschreibung", person.get("beschreibung"), "hero-beschreibung", "FILL", fliess=True)],
         abstand=m(h["abstand-beschreibung"]), breite="FILL")

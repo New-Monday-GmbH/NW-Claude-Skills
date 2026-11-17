@@ -38,7 +38,8 @@
 <main class="inhalt">
 
 <section class="hero" data-block="hero">
-  <div class="profil">
+  {# Ohne Foto entfaellt die Fotokarte; die Textspalte nimmt die volle Breite. #}
+  <div class="profil{% if not person.foto %} profil--ohne-foto{% endif %}">
     <div class="profil__text">
       <h1 class="profil__name t-hero-name">{{ person.name }}</h1>
       <div class="t-hero-rolle">{{ person.rolle }}</div>
@@ -52,9 +53,11 @@
       </ul>
       {% endif %}
     </div>
+    {% if person.foto %}
     <div class="fotokarte">
-      {% if person.foto %}<img class="fotokarte__bild" src="{{ person.foto }}" alt="{{ t.foto.format(name=person.name) }}">{% endif %}
+      <img class="fotokarte__bild" src="{{ person.foto }}" alt="{{ t.foto.format(name=person.name) }}">
     </div>
+    {% endif %}
   </div>
   <p class="hero__beschreibung t-hero-beschreibung">{{ person.beschreibung|kein_einzelwort }}</p>
 </section>

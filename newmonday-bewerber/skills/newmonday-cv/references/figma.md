@@ -271,7 +271,14 @@ einspaltig. Jede Seite ist ein Rahmen (595 × 842), darin ein Auto-Layout
 Stationsköpfe und die IT-Listen sind Textebenen mit den Farbvariablen der
 Bibliothek, keine lokalen Styles. Hat eine Station ein Logo, steht im
 Stationskopf über dem Titel eine Zeile „Logo“ (ein Rechteck je Logo,
-höchstens `logo_breite` breit), danach `logo_titel` Abstand.
+höchstens `logo_breite` breit), danach `logo_titel` Abstand. Seit 17.11.2026:
+Sprachen als graue Textebene im Stil `it_liste` (eine je Zeile) in der
+Seitenspalte unter der Weiterbildung, Technologie-Klammern an Beschreibungen wie
+an Aufgaben in brand/primary (`setRangeFills`), Kunde eines Kundenblocks als
+Stationskopf (Titelstil, Logo darüber, falls vorhanden), Teilprojekt-Titel als
+Textebene im kleineren Stil `teilprojekt` (Inter Semi Bold 9),
+und ohne Foto blendet der Bau die Fotoebene des Profilkopfs samt Spalte per
+Override aus (Warnung, wenn das nicht greift).
 
 1. **Plan und Skripte** (je Fassung, nach dem Rendern):
    `figma_entwickler.py cv.json "<pdf>" arbeit/ --stufen arbeit/stufen.json --seite <ID>`.

@@ -450,8 +450,16 @@ der Fotokasten im CV, **unter 100 dpi wird das Bild sichtbar weich** – das
 und taugt nur als Notlösung.
 Liegt im Lebenslauf oder Portfolio ein größeres Bild, das zu nehmen. Jedes
 automatisch gefundene Foto ansehen, bevor es ins Dokument geht (fremde
-Gesichter, siehe CV-Skill). Ohne Foto funktioniert das Layout – die Karte
-zeigt dann nur den Farbverlauf mit Name und Erfahrung – aber es wirkt leer.
+Gesichter, siehe CV-Skill). **Ohne Foto entfällt in der A4-Fassung die
+Fotokarte ganz** – kein Platzhalter, keine Silhouette, keine Initialen (wie im
+Lebenslauf, wo der Profilkopf dann nach links rückt): Name, Rolle und
+Schwerpunkte nehmen die volle Inhaltsbreite, die Schwerpunkte stehen in einer
+Reihe, die Beschreibung folgt darunter, der Hero wird niedriger. Im PDF setzt
+das Template dafür `profil--ohne-foto`; in Figma blendet der Bibliotheksweg
+die exponierte Instanz `Fotokarte` im `Hero` aus (Sichtbarkeits-Override,
+nichts wird gelöst) – die `Textspalte` ist im Master FILL und füllt dann die
+Breite; der rohe Plan lässt die Karte weg. Die lange Fassung (nur mit
+`--mit-lang`) zeigt ohne Foto weiter nur den Farbverlauf mit Name und Erfahrung.
 
 **Der Kopf steht ganz im Bild, mittig, mit Luft über dem Haar.** Den Ausschnitt
 setzt `scripts/kopf_ausschnitt.py`, das alle Foto-Wege aufrufen – **je Fotokarte

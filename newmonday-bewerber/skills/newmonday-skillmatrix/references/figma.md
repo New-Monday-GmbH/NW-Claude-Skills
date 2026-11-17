@@ -135,7 +135,7 @@ neu aufgelöst – `setProperties` erneuert die Knoten darunter).
 | lang | `Rumpf › Tools` | `Ueberschrift`; `Karten` wie eine Kategorie ohne Label |
 | lang | `Fuß` | Ansprechpartner, Funktion, E-Mail, Telefon |
 | A4 | `Seite` | die sechs Block-Booleans; `Kopfzeile` (`Badge anzeigen` nur Seite 1, `Verfügbarkeit`) |
-| A4 | `Hero` | Name, Rolle, Beschreibung, `Schwerpunkte anzeigen`, `Schwerpunkt 2–4`; `Fotokarte` (`Foto anzeigen`, Bild auf `Foto`) |
+| A4 | `Hero` | Name, Rolle, Beschreibung, `Schwerpunkte anzeigen`, `Schwerpunkt 2–4`; `Fotokarte` (`Foto anzeigen`, Bild auf `Foto`; ohne Foto ausgeblendet, die `Textspalte` (FILL) nimmt die volle Breite) |
 | A4 | `Zertifikate` bzw. `Zertifikate (Ende)` | `Überschrift anzeigen`, `Qualifikationskarte anzeigen`, `Kacheln anzeigen`, `Kachel 2–12`; Karte (Titel, Satz, `Tag 2–10`); `Kachel n` (`Art` Bild / Platzhalter / Bündel, Titel, Aussteller, Anzahl, Bild, Padding von `Bühne`) |
 | A4 | `Kernkompetenzen` | `Überschrift anzeigen` (nur auf der Seite mit dem Titel), `Kategorie 2–5`; `Kategorie n` (`Kompetenz 2–6`, `Label`, `Kompetenz n` mit Titel, Beschreibung, `Trennlinie oben anzeigen` ab der zweiten Zeile, `Bewertung`) |
 | A4 | `Tools` | `Einträge` wie eine Kategorie, Label-Text aus |
