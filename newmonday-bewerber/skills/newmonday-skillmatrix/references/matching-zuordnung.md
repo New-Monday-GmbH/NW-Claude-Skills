@@ -53,8 +53,10 @@ einer Zeile zusammengefasst.
 | **Mainframe und Legacy** | | | |
 | alle Werte | – | – | kein Gegenstück |
 | **Backend und Architektur** | | | |
-| REST-API · GraphQL · Schnittstellenentwicklung | Frontend Understanding | Development Collaboration | teilweise |
-| Spring / Spring Boot · Node.js · PHP · Kotlin · Rust · Microservices · Kafka / Message Queues · Softwarearchitektur · Domain Driven Design | – | – | kein Gegenstück |
+| REST-API · Schnittstellenentwicklung | REST APIs | Development Collaboration | gleich |
+| GraphQL | REST APIs | Development Collaboration | teilweise – andere API-Technik als REST |
+| PHP | PHP / Laravel | Coding Skills | gleich |
+| Spring / Spring Boot · Node.js · Kotlin · Rust · Microservices · Kafka / Message Queues · Softwarearchitektur · Domain Driven Design | – | – | kein Gegenstück |
 | **Frontend** | | | |
 | HTML / CSS | HTML / CSS | Coding Skills | gleich |
 | SCSS / Tailwind | Tailwind CSS | Coding Skills | teilweise – nur Tailwind |
@@ -64,7 +66,7 @@ einer Zeile zusammengefasst.
 | Storybook | UI & Pattern Libraries | UI Design & Visual Systems | teilweise |
 | Barrierefreie Frontend-Entwicklung | Accessible Design | Accessibility & Inclusive Design | teilweise – Entwicklung, nicht Gestaltung |
 | WebRTC | – | – | kein Gegenstück |
-| Jest / Testing Library · Cypress / Playwright | – | – | Vorsicht – Softwaretest, kein Usability-Testing |
+| Jest / Testing Library · Cypress / Playwright | Test Automation | Coding Skills | gleich – Softwaretest, nicht Usability-Testing (Usability Testing & Evaluation ist Vorsicht) |
 | **Cloud, DevOps, Infrastruktur** | | | |
 | GitLab / GitHub Actions | Git | Tools | teilweise |
 | Google Cloud · Docker · Terraform · CI/CD · Linux · Windows Server · Monitoring / Observability · Datenbankadministration | – | – | kein Gegenstück |

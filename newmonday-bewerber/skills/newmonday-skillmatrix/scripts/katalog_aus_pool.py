@@ -75,6 +75,8 @@ DEUTSCH = {
     # Pool-Erweiterung 2026-11-15 aus den fuenf erweiterten Skill-Matrix-Kopien
     "Concept Development": "Konzeption",
     "Platform Guidelines": "Plattform-Guidelines",
+    # Pool-Erweiterung 2026-11-17 (Anfrage Senior Frontend-Entwicklung)
+    "Test Automation": "Testautomatisierung",
 }
 
 # Durchkopplung (SKILL.md, Schritt 0; Entscheidung des Nutzers 2026-10-06):
@@ -109,6 +111,8 @@ DURCHKOPPLUNG = {
     "Dashboard Design": "Dashboard-Design",
     "Design System Testing": "Design-System-Testing",
     "CMS Integration": "CMS-Integration",
+    # Pool-Erweiterung 2026-11-17
+    "REST APIs": "REST-APIs",
 }
 
 # Grenzfaelle: Der englische Name bleibt, die deutsche Alternative steht als

@@ -81,10 +81,10 @@ Skript (`DEUTSCH`, `DURCHKOPPLUNG`, `GRENZFAELLE`), nicht im Pool.
 7. **Accessibility & Inclusive Design** (3)
 8. **Agile Product Delivery** (8)
 9. **Stakeholder Management & Facilitation** (8)
-10. **Development Collaboration** (8)
+10. **Development Collaboration** (9)
 11. **AI & Emerging Tech** (17)
 12. **Tools** (22)
-13. **Coding Skills** (10)
+13. **Coding Skills** (12)
 
 Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens fuenf — die, die das Profil belegt — und dazu optional `Tools`. Gibt es eine Anfrage (Ausschreibung, Projektbeschreibung, Kundenwunsch), steht die Kategorie zuerst, die fuer sie am wichtigsten ist, danach absteigend nach Bedeutung fuer die Anfrage; ohne Anfrage eine KI-Kategorie zuerst, danach die staerkste (SKILL.md, Schritt 2a).
 
@@ -231,6 +231,7 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 | Feasibility Assessment | Machbarkeitsprüfung | Einschätzung der technischen Machbarkeit. |
 | Design to Code |  | Überführung von Designs in produktiven Code. |
 | CMS Integration | CMS-Integration | Inhalte und Komponenten in CMS-basierte Websites einbinden. |
+| REST APIs | REST-APIs | Schnittstellen bereitstellen und Frontends an Backend-Systeme anbinden. |
 
 ## AI & Emerging Tech
 
@@ -295,6 +296,8 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 | Tailwind CSS |  | Utility First Styling für schnelle Umsetzung. |
 | SQL |  | Datenabfragen für Analysen und Prototypen schreiben. |
 | Python |  | Skripte für Datenaufbereitung und Automatisierung. |
+| PHP / Laravel |  | Serverseitige Webanwendungen mit PHP und Laravel entwickeln. |
+| Test Automation | Testautomatisierung | Automatisierte Tests für Webanwendungen schreiben und pflegen. |
 
 ---
 
