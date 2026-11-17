@@ -115,8 +115,8 @@ sich wie der Text der ersten Station.
 
 | Seite | Inhalt |
 |---|---|
-| 1 | Kopfzeile, Profilkopf, darunter links (2/3) Kurzprofil und Berufserfahrung, rechts (1/3) IT-Kompetenzen und Weiterbildung |
-| 2 ff. | Hauptspalte allein: übrige Stationen, Projekte, Ausbildung, Sprachen |
+| 1 | Kopfzeile, Profilkopf, darunter links (2/3) Kurzprofil und Berufserfahrung, rechts (1/3) IT-Kompetenzen, Weiterbildung und Sprachen (seit 17.11.2026, grau ohne Punkte wie die IT-Listen) |
+| 2 ff. | Hauptspalte allein: übrige Stationen (Kundenblöcke mit Teilprojekten, `h5.teilprojekt__titel` im kleineren Stil `teilprojekt`; umbrechen dürfen sie nach Titel und Einleitung), Projekte, Ausbildung |
 | letzte | Footer, am unteren Seitenrand |
 
 Die Seitenspalte ist ein Float rechts (`.ew-seite`, `entwickler.seite_breite`
@@ -126,8 +126,10 @@ Fußbreite − Seitenspalte − Spaltenabstand); WeasyPrint kann weder `calc()` 
 endet nach Seite 1, die Hauptspalte läuft danach über ihre eigene Breite weiter.
 Abstände unter `entwickler` (Aufgaben 4, Station 24, Projekt 16, Rubriken 24),
 die Seitenspalte in drei Stufen unter `verdichtung.entwickler`. Technologien in
-Klammern setzt `technik` (Markenfarbe), die IT-Listen `it_liste` (grau,
-kommagetrennt). Logos gibt es in diesem Layout nicht.
+Klammern setzt `technik` (Markenfarbe) – am Ende von Aufgaben und
+Beschreibungen gleich –, die IT-Listen `it_liste` (grau, kommagetrennt). Ohne
+Foto entfällt `.intro__col`, der Profilkopf beginnt an der Satzkante (beide
+Layouts). Logos gibt es in diesem Layout nicht.
 
 ### Die Verweise stehen unter der Erfahrungszeile
 
@@ -261,7 +263,7 @@ Was das Template dafür liefert, ohne dass sich ein Punkt verschiebt:
   Skillset-Labels `h3` (Lesereihenfolge Label → Wert), Thementitel `h4`, Stationstitel `h2.station__title`, Kunde
   `h3.project__client`. Entwickler-Layout: Rubriken `h2`, IT-Gruppen `h3`, und
   weil die Stationen unter der Rubrik „Berufserfahrung“ stehen, eine Ebene
-  tiefer: `h3.station__title`, `h4.project__client`. Keine Ebene wird
+  tiefer: `h3.station__title`, `h4.project__client`, `h5.teilprojekt__titel`. Keine Ebene wird
   übersprungen. Die Klassen bleiben; `* { margin: 0; padding: 0 }` und die
   Textstile über die Klassen heben die Vorgaben des Browsers für `h1`–`h4` auf.
   Im Entwickler-CSS gelten die Rubrikstile deshalb nur für `.ew-block > h2`,

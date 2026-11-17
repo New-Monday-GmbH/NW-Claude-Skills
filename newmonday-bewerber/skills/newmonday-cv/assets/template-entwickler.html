@@ -6,8 +6,8 @@
 {# Entwickler-Layout (layout: entwickler, freigegeben am 03.11.2026; Vorlage:
    Figma „Portfolio - CV Master“, Seite Archive, Sektion Tech-CV). Kopf,
    Profilkopf und Fuss wie im UX-Layout; darunter zwei Spalten: links (2/3)
-   Kurzprofil, Berufserfahrung (Logo ueber dem Stationstitel), Projekte, Ausbildung, Sprachen - rechts (1/3)
-   nur auf Seite 1 IT-Kompetenzen und Weiterbildung. Die Seitenspalte ist ein
+   Kurzprofil, Berufserfahrung (Logo ueber dem Stationstitel), Projekte, Ausbildung - rechts (1/3)
+   nur auf Seite 1 IT-Kompetenzen, Weiterbildung und Sprachen (seit 17.11.2026). Die Seitenspalte ist ein
    Float: Die Hauptspalte laeuft auf den Folgeseiten in derselben Breite
    weiter, rechts daneben bleibt frei. #}
 <style>
@@ -15,6 +15,12 @@
 </style>
 </head>
 <body>
+{# Text mit Technologie-Klammer am Ende: die Klammer in der Markenfarbe -
+   gleich an Aufgaben und Beschreibungen (17.11.2026). #}
+{% macro geteilt(x) %}{{ x.text if x.technik else x.text|kein_einzelwort }}{% if x.technik %} <span class="technik">{{ x.technik }}</span>{% endif %}{% endmacro %}
+{% macro aufgaben(liste) %}{% if liste %}
+<ul class="tasks">{% for a in liste %}<li>{{ geteilt(a) }}</li>{% endfor %}</ul>
+{% endif %}{% endmacro %}
 
 {% include "_kopf.html" %}
 
@@ -43,6 +49,13 @@
       {% endfor %}
     </div>
     {% endif %}
+    {% if sprachen %}
+    <div class="ew-block">
+      <h2>{{ t.sprachen }}</h2>
+      {# Wie die IT-Listen: grau, ohne Punkte, eine Sprache je Zeile. #}
+      <ul class="ew-liste ew-sprachen">{% for e in sprachen %}<li>{{ e }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
   </div>
 
   <div class="ew-haupt">
@@ -67,20 +80,32 @@
           {% if s.firma %}<div class="station__firma">{{ s.firma }}</div>{% endif %}
           {% if s.zeitraum %}<div class="station__zeitraum">{{ s.zeitraum }}</div>{% endif %}
           {% if s.zusammenfassung %}<p class="station__summary">{{ s.zusammenfassung|kein_einzelwort }}</p>{% endif %}
-          {% if s.beschreibung %}<p class="station__text">{{ s.beschreibung|kein_einzelwort }}</p>{% endif %}
+          {% if s.beschreibung %}<p class="station__text">{{ geteilt(s.beschreibung_ew) }}</p>{% endif %}
         </div>
-        {% if s.aufgaben_ew %}
-        <ul class="tasks">{% for a in s.aufgaben_ew %}<li>{{ a.text if a.technik else a.text|kein_einzelwort }}{% if a.technik %} <span class="technik">{{ a.technik }}</span>{% endif %}</li>{% endfor %}</ul>
-        {% endif %}
+        {{ aufgaben(s.aufgaben_ew) }}
         {% if s.technik %}<p class="ew-technik technik">{{ s.technik }}</p>{% endif %}
         {% for p in s.projekte %}
         <div class="project">
+          {# Kopf zusammenhalten: Kunde und Zeitraum nie allein am Seitenende. #}
+          <div class="project__kopf">
+          {% if p.teilprojekte_ew and p.logos %}<div class="ew-logo">{% for l in p.logos %}<img src="{{ l.src }}" alt="{{ l.alt }}"
+            style="width:{{ l.breite }}pt;height:{{ l.hoehe }}pt">{% endfor %}</div>{% endif %}
           <h4 class="project__client">{{ p.kunde }}</h4>
           {% if p.zeitraum %}<div class="project__date">{{ p.zeitraum }}</div>{% endif %}
-          {% if p.beschreibung %}<p class="project__text">{{ p.beschreibung|kein_einzelwort }}</p>{% endif %}
-          {% if p.aufgaben_ew %}
-          <ul class="tasks">{% for a in p.aufgaben_ew %}<li>{{ a.text if a.technik else a.text|kein_einzelwort }}{% if a.technik %} <span class="technik">{{ a.technik }}</span>{% endif %}</li>{% endfor %}</ul>
-          {% endif %}
+          {% if p.beschreibung %}<p class="project__text">{{ geteilt(p.beschreibung_ew) }}</p>{% endif %}
+          </div>
+          {{ aufgaben(p.aufgaben_ew) }}
+          {# Mehrere Projekte beim selben Kunden: ein Kundenblock, darunter die
+             Teilprojekte mit Titel und Jahr (17.11.2026). #}
+          {% for tp in p.teilprojekte_ew %}
+          <div class="teilprojekt">
+            <div class="teilprojekt__kopf">
+            <h5 class="teilprojekt__titel">{{ tp.kopf }}</h5>
+            {% if tp.beschreibung_ew.text %}<p class="project__text">{{ geteilt(tp.beschreibung_ew) }}</p>{% endif %}
+            </div>
+            {{ aufgaben(tp.aufgaben_ew) }}
+          </div>
+          {% endfor %}
         </div>
         {% endfor %}
       </div>
@@ -95,12 +120,10 @@
       <div class="station{% if p.aufgaben_ew %} station--bullets{% endif %}">
         <div class="station__kopf">
           <h3 class="station__title">{{ p.titel }}</h3>
-          {% if p.beschreibung %}<div class="station__firma">{{ p.beschreibung }}</div>{% endif %}
+          {% if p.beschreibung %}<div class="station__firma">{{ p.beschreibung_ew.text }}{% if p.beschreibung_ew.technik %} <span class="technik">{{ p.beschreibung_ew.technik }}</span>{% endif %}</div>{% endif %}
           {% if p.zeitraum %}<div class="station__zeitraum">{{ p.zeitraum }}</div>{% endif %}
         </div>
-        {% if p.aufgaben_ew %}
-        <ul class="tasks">{% for a in p.aufgaben_ew %}<li>{{ a.text if a.technik else a.text|kein_einzelwort }}{% if a.technik %} <span class="technik">{{ a.technik }}</span>{% endif %}</li>{% endfor %}</ul>
-        {% endif %}
+        {{ aufgaben(p.aufgaben_ew) }}
         {% if p.link %}<p class="ew-link"><a class="intro__link" href="{{ p.link.url }}">{{ p.link.anzeige }}</a></p>{% endif %}
       </div>
       {% endfor %}
@@ -120,12 +143,6 @@
     </div>
     {% endif %}
 
-    {% if sprachen %}
-    <div class="ew-abschnitt">
-      <h2>{{ t.sprachen }}</h2>
-      <ul class="tight">{% for e in sprachen %}<li>{{ e }}</li>{% endfor %}</ul>
-    </div>
-    {% endif %}
   </div>
 </div>
 

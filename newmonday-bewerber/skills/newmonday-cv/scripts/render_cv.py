@@ -385,7 +385,8 @@ def zeitraeume_setzen(daten):
     knoten = list(daten.get("bildung") or [])
     for s in daten.get("stationen") or []:
         knoten.append(s)
-        knoten += s.get("projekte") or []
+        for p in s.get("projekte") or []:
+            knoten += [p] + [t for t in (p.get("teilprojekte") or []) if isinstance(t, dict)]
     for k in knoten:
         if isinstance(k, dict) and k.get("zeitraum"):
             k["zeitraum"] = zeitraum_setzen(k["zeitraum"])
@@ -706,7 +707,49 @@ def bildung_aufbereiten(daten):
                             "(SKILL.md, Schritt 2). Im Dokument steht er weiter "
                             "als Abschluss.")
         eintraege.append(eintrag)
-    return eintraege, hinweise
+    return eintraege, hinweise + bildung_regeln(eintraege, layout_von(daten))
+
+
+# Ausbildungsregeln vom 17.11.2026 (SKILL.md, „Ausbildung“). Gemeldet, nicht
+# gestrichen: ob ein Studium abgebrochen ist, steht in keinem Feld.
+SCHULE = re.compile(r"abitur|gymnasium|gesamtschule|realschule|hauptschule|"
+                    r"hochschulreife|schulabschluss|high school|a-levels", re.IGNORECASE)
+STUDIUM = re.compile(r"studium|bachelor|master|diplom|magister|promotion|staatsexamen|"
+                     r"\b[bm]\.\s?(?:sc|a|eng)\b", re.IGNORECASE)
+
+
+def bildung_regeln(eintraege, layout):
+    """Hinweise auf ein vermutlich abgebrochenes Studium (hoechstens 18 Monate,
+    danach beginnt ein anderes) und - im Entwickler-Layout - auf die Schule
+    neben einem Hochschulabschluss."""
+    hinweise = []
+
+    def text(b):
+        return " ".join(str(b.get(k) or "") for k in ("abschluss", "institution"))
+
+    def name(b):
+        return leerraum(b.get("abschluss") or b.get("institution"))
+
+    studien = [b for b in eintraege if STUDIUM.search(text(b))]
+    for b in studien:
+        start, ende = spanne(b.get("zeitraum"))
+        if not (isinstance(start, tuple) and isinstance(ende, tuple)):
+            continue
+        monate = (ende[0] - start[0]) * 12 + ende[1] - start[1] + 1
+        danach = [c for c in studien if c is not b
+                  and isinstance(spanne(c.get("zeitraum"))[0], tuple)
+                  and spanne(c.get("zeitraum"))[0] >= ende]
+        if monate <= 18 and danach:
+            hinweise.append(f"Ausbildung „{name(b)}“ dauerte nur {monate} Monate, danach "
+                            f"„{name(danach[0])}“ – vermutlich abgebrochen: weglassen und in der "
+                            "Übergabe unter Hinweise nennen (SKILL.md, Ausbildung).")
+    if layout == "entwickler" and studien:
+        for b in eintraege:
+            if SCHULE.search(text(b)) and not STUDIUM.search(text(b)):
+                hinweise.append(f"Ausbildung „{name(b)}“ ist ein Schulabschluss – im "
+                                "Entwickler-Layout entfällt die Schule neben einem "
+                                "Hochschulabschluss: weglassen und in der Übergabe nennen.")
+    return hinweise
 
 
 def zert_datum(text):
@@ -818,6 +861,32 @@ def technik_teilen(text):
     return {"text": t, "technik": ""}
 
 
+def jahresspanne(zeitraeume):
+    """'2020', '2026', '2024' -> '2020 – 2026' - der Zeitraum eines Kundenblocks."""
+    jahre = sorted({int(j) for z in zeitraeume for j in re.findall(r"\b(?:19|20)\d{2}\b", z or "")})
+    if not jahre:
+        return ""
+    return str(jahre[0]) if jahre[0] == jahre[-1] else f"{jahre[0]}{BIS_STRICH}{jahre[-1]}"
+
+
+def teilprojekte_aufbereiten(p):
+    """Mehrere Projekte beim selben Kunden als ein Kundenblock (17.11.2026):
+    projekte[].teilprojekte mit titel, zeitraum, beschreibung, aufgaben. Ohne
+    eigenen Zeitraum traegt der Block die Spanne seiner Teilprojekte."""
+    teile = []
+    for t in p.get("teilprojekte") or []:
+        if not isinstance(t, dict):
+            continue
+        titel, zeit = leerraum(t.get("titel")), leerraum(t.get("zeitraum"))
+        teile.append({"kopf": " · ".join(x for x in (titel, zeit) if x),
+                      "beschreibung_ew": technik_teilen(t.get("beschreibung")),
+                      "aufgaben_ew": [technik_teilen(a) for a in t.get("aufgaben") or []],
+                      "zeitraum": zeit})
+    if teile and not leerraum(p.get("zeitraum")):
+        p["zeitraum"] = jahresspanne(t["zeitraum"] for t in teile)
+    return teile
+
+
 def entwickler_aufbereiten(daten):
     """Was das Entwickler-Layout zusaetzlich braucht, fertig fuer das Template.
 
@@ -826,8 +895,9 @@ def entwickler_aufbereiten(daten):
     fuehrt); Tools aus skillset.tools, die in keiner Gruppe stehen, kommen als
     eigene Gruppe dazu - Lebenslauf und Skill Matrix fuehren dieselben Tools.
     Die Weiterbildung kommt aus "zertifikate" (Titel, Aussteller, Zeitraum oder
-    Datum), eigene Projekte aus "projekte". Aufgaben werden fuer die Farbe in
-    Taetigkeit und Technologien geteilt (technik_teilen).
+    Datum), eigene Projekte aus "projekte". Aufgaben und Beschreibungen werden
+    fuer die Farbe in Text und Technologien geteilt (technik_teilen) - jede
+    Klammer am Ende steht gleich, egal wo (17.11.2026).
     """
     sprache = daten.get("sprache", "de")
     labels = BESCHRIFTUNG.get(sprache, BESCHRIFTUNG["de"])
@@ -866,10 +936,13 @@ def entwickler_aufbereiten(daten):
 
     for s in daten.get("stationen", []):
         s["aufgaben_ew"] = [technik_teilen(a) for a in s.get("aufgaben") or []]
+        s["beschreibung_ew"] = technik_teilen(s.get("beschreibung"))
         tech = [leerraum(x) for x in s.get("technologien") or [] if leerraum(x)]
         s["technik"] = f"({', '.join(tech)})" if tech else ""
         for p in s.get("projekte") or []:
             p["aufgaben_ew"] = [technik_teilen(a) for a in p.get("aufgaben") or []]
+            p["beschreibung_ew"] = technik_teilen(p.get("beschreibung"))
+            p["teilprojekte_ew"] = teilprojekte_aufbereiten(p)
 
     eigene = []
     for nummer, p in enumerate(daten.get("projekte") or []):
@@ -877,6 +950,7 @@ def entwickler_aufbereiten(daten):
             hinweise.append(f"projekte[{nummer}] ohne Titel – steht nicht im Dokument.")
             continue
         e = {"titel": leerraum(p["titel"]), "beschreibung": leerraum(p.get("beschreibung")),
+             "beschreibung_ew": technik_teilen(p.get("beschreibung")),
              "zeitraum": leerraum(p.get("zeitraum")),
              "aufgaben_ew": [technik_teilen(a) for a in p.get("aufgaben") or []]}
         if leerraum(p.get("link")):
@@ -1062,9 +1136,12 @@ def pruefe(daten):
 
     if layout_von(daten) == "entwickler":
         # Seit 06.11.2026 mit Firmenlogos im Stationskopf - Projektlogos
-        # setzt das Entwickler-Layout nicht.
+        # setzt das Entwickler-Layout nur an Kundenbloecken (17.11.2026).
         for s in daten.get("stationen", []):
             hinweise += fehlende(stationslogo(s), s.get("firma"))
+            for p in s.get("projekte") or []:
+                if p.get("teilprojekte"):
+                    hinweise += fehlende(p.get("logo"), p.get("kunde"))
         return hinweise
 
     im_rail, im_projekt = set(), set()
@@ -1120,8 +1197,12 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
                                 s.get("firma") or logo_alt(d))))
                       for d in logoliste(stationslogo(s))]
         for p in s["projekte"]:
+            # Kundenblock im Entwickler-Layout: Logo ueber dem Kunden wie an
+            # der Station (17.11.2026); sonst die kleinere Projektstufe.
+            block = max_breite and p.get("teilprojekte")
             p["logos"] = [dict(zip(("datei", "src", "breite", "hoehe", "alt"),
-                                   (d, logo_src(d), *logo_masse(d, projekt_groesse),
+                                   (d, logo_src(d), *(logo_masse(d, groesse, max_breite) if block
+                                                      else logo_masse(d, projekt_groesse)),
                                     p.get("kunde") or logo_alt(d))))
                           for d in logoliste(p.get("logo"))]
 
@@ -1330,10 +1411,13 @@ def _schlussmarken(daten):
     marken = []
     if layout_von(daten) == "entwickler":
         # Entwickler-Layout: Seite 1 muss die Seitenspalte tragen. Ihr Ende ist
-        # die letzte Weiterbildung (Zeitraum - eindeutiger als ein Toolname,
-        # der auch in einer Aufgabe stehen kann), sonst die letzte IT-Gruppe.
+        # die letzte Sprache (seit 17.11.2026 dort), sonst die letzte
+        # Weiterbildung (Zeitraum - eindeutiger als ein Toolname, der auch in
+        # einer Aufgabe stehen kann), sonst die letzte IT-Gruppe.
         ew = entwickler_aufbereiten(daten)[0]
-        if ew["weiterbildung"]:
+        if ew["sprachen"]:
+            marken.append(ew["sprachen"][-1])
+        elif ew["weiterbildung"]:
             w = ew["weiterbildung"][-1]
             marken.append(w["zeit"] or w["aussteller"] or w["titel"])
         elif ew["it_kompetenzen"]:
@@ -1464,6 +1548,10 @@ def main():
     # Entwickler-Layout statt der vier Gruppen die IT-Kompetenzen.
     hinweise += (entwickler_aufbereiten(daten)[1] if layout == "entwickler"
                  else skillset_zeilen(daten)[1])
+    if layout != "entwickler" and any(p.get("teilprojekte") for s in daten.get("stationen") or []
+                                      for p in s.get("projekte") or []):
+        hinweise.append("teilprojekte setzt nur das Entwickler-Layout – im UX-Layout fehlen "
+                        "sie im Dokument; dort je Teilprojekt ein eigenes Projekt anlegen.")
     # Dasselbe fuer Bildung und Zertifikate: ignorierte Studieninhalte und
     # Darstellungsschluessel aus aelteren cv.json, Zertifikate im alten
     # Bildungsplatz, fehlende Aussteller und Daten, die Reihenfolge.
@@ -1543,8 +1631,8 @@ def main():
     seiten = deckblatt_seiten(ziel, daten)
     if layout == "entwickler" and seiten > 1:
         hinweise.append(
-            f"IT-Kompetenzen und Weiterbildung passen nicht auf Seite 1, sie laufen "
-            f"über {seiten} Seiten. Kürzen durch Weglassen: zuerst die schwächsten "
+            f"IT-Kompetenzen, Weiterbildung und Sprachen passen nicht auf Seite 1, sie "
+            f"laufen über {seiten} Seiten. Kürzen durch Weglassen: zuerst die schwächsten "
             "Einträge der längsten IT-Gruppe, Gruppen zusammenlegen – nie umformulieren.")
     elif layout == "entwickler" and seiten < 0:
         hinweise.append("Die Seitenaufteilung ließ sich nicht prüfen – bitte im PDF "

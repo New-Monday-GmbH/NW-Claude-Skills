@@ -12,7 +12,7 @@ if (P.seite) { let n = await figma.getNodeByIdAsync(P.seite); while (n && n.type
 if (!seite) { seite = figma.createPage(); seite.name = P.seitenname; }
 await figma.setCurrentPageAsync(seite);
 
-for (const [f, s] of [["Inter", "Regular"], ["Inter", "Bold"], ["Rethink Sans", "SemiBold"]])
+for (const [f, s] of [["Inter", "Regular"], ["Inter", "Semi Bold"], ["Inter", "Bold"], ["Rethink Sans", "SemiBold"]])
   await figma.loadFontAsync({ family: f, style: s });
 const V = {};
 for (const [n, k] of Object.entries(P.variablen)) V[n] = await figma.variables.importVariableByKeyAsync(k);
@@ -46,14 +46,26 @@ function spalte(name, breite, gap = 0) {
 function abstand(p, h) { if (!h) return; const f = figma.createFrame(); f.name = "Abstand " + h; f.resize(1, h); f.fills = []; p.appendChild(f); }
 function voll(p, n) { p.appendChild(n); n.layoutSizingHorizontal = "FILL"; return n; }
 
+// Technologie-Klammer am Textende in brand/primary - an Aufgaben wie an
+// Beschreibungen (17.11.2026). b.text enthaelt die Klammer schon.
+function faerben(t, technik) {
+  if (t && technik) t.setRangeFills(t.characters.length - technik.length, t.characters.length, [farbe("marke")]);
+}
 function punkt(p, a, art) {
   const i = variante(K.listenpunkt, "Art=" + art).createInstance(); voll(p, i);
-  const ganz = a.technik ? a.text + " " + a.technik : a.text;
-  setz(i, { "Text": ganz });
-  if (a.technik) {
-    const t = i.findOne(n => n.type === "TEXT" && n.name === "Text");
-    t.setRangeFills(ganz.length - a.technik.length, ganz.length, [farbe("marke")]);
-  }
+  setz(i, { "Text": a.text });
+  faerben(i.findOne(n => n.type === "TEXT" && n.name === "Text"), a.technik);
+}
+// Ohne Foto beginnt der Text an der Satzkante wie im PDF (17.11.2026): die
+// Ebene, die das Foto neben dem Text haelt, wird in der Instanz ausgeblendet
+// (Override, nichts geloest) - im Auto-Layout faellt damit auch der Abstand weg.
+function ohneFoto(pk) {
+  const name = pk.findOne(n => n.type === "TEXT" && n.characters === P.profil.name);
+  let a = pk.findOne(n => n.name === "Foto");
+  const enthaelt = (x, n) => { for (; n; n = n.parent) if (n === x) return true; return false; };
+  while (a && a.parent && a.parent !== pk.parent && !enthaelt(a.parent, name)) a = a.parent;
+  if (a && name && a.parent && a.parent.layoutMode && a.parent.layoutMode !== "NONE") a.visible = false;
+  else warnungen.push("Profilkopf ohne Foto: Fotospalte nicht ausgeblendet – Text steht womöglich eingerückt");
 }
 function rubrik(p, titel) { const i = K.abschnittstitel.createInstance(); setz(i, { "Titel": titel, "Icon anzeigen": false }); p.appendChild(i); }
 let aktF = null, traeger = 0;
@@ -73,7 +85,7 @@ function kopf(p, b) {
     abstand(k, P.logo_titel);
   }
   voll(k, text(b.titel, P.stile.titel, P.haupt));
-  for (const z of b.zeilen) { abstand(k, z.oben); voll(k, text(z.text, P.stile[z.stil], P.haupt)); }
+  for (const z of b.zeilen) { abstand(k, z.oben); faerben(voll(k, text(z.text, P.stile[z.stil], P.haupt)), z.technik); }
 }
 function bildung(p, b) {
   const i = K.bildungseintrag.createInstance(); voll(p, i);
@@ -90,6 +102,9 @@ function block(p, b) {
   else if (b.art === "aufgabe") punkt(p, b, "Aufgabe");
   else if (b.art === "eintrag") punkt(p, { text: b.text, technik: "" }, "Eintrag");
   else if (b.art === "technik") voll(p, text(b.text, P.stile.technik, P.haupt));
+  else if (b.art === "absatz") faerben(voll(p, text(b.text, P.stile.fliesstext, P.haupt)), b.technik);
+  else if (b.art === "teiltitel") voll(p, text(b.text, P.stile.teilprojekt, P.haupt));
+  else if (b.art === "liste") voll(p, text(b.text, P.stile.it_liste, P.seite_breite));
   else if (b.art === "verweis") {
     const i = K.verweis.createInstance(); p.appendChild(i); setz(i, { "Label": b.text });
     const t = i.findOne(n => n.type === "TEXT" && n.name === "Label");
@@ -142,7 +157,7 @@ P.seiten.forEach((s, nr) => {
         const r = figma.createRectangle(); r.name = `_Bild FILL → ${ziel.id}`; r.resize(40, 40);
         seite.appendChild(r); r.x = F.x; r.y = F.y + P.seite_h + 40;
         bilder_fill.push({ nodeId: r.id, datei: P.profil.foto, ziel: ziel.id });
-      }
+      } else ohneFoto(pk);
     } else setz(pk, q);
     oben = P.intro_y + pk.height + P.intro_inhalt;
   }

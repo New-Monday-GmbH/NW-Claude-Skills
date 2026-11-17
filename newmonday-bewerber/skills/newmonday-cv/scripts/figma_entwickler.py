@@ -10,14 +10,17 @@ SVG-Logos werden dafuer nach arbeit/figma_bilder/ als PNG gerastert.
 Gebaut wird aus Instanzen der Master-Bibliothek, wie die freigegebene Vorlage
 (Figma „Portfolio - CV Master“, Seite Archive, Sektion Tech-CV, 03.11.2026):
 Kopfzeile, Profilkopf, Abschnittstitel, Listenpunkt, Gruppentitel,
-Bildungseintrag, Kurzprofil, Verweis und Fuss. Die Seiten selbst sind Rahmen
+Bildungseintrag, Kurzprofil, Verweis und Fuss. Teilprojekte eines Kundenblocks
+tragen einen kleineren Titel (Stil teilprojekt) unter dem Kunden im Stil des
+Stationstitels, Technologie-Klammern an Aufgaben und
+Beschreibungen stehen in brand/primary. Die Seiten selbst sind Rahmen
 mit zwei Spalten - CV/Seite hat nur einen 428pt breiten Slot.
 
 Die Seitenaufteilung wird nicht geschaetzt, sondern aus dem PDF gelesen: jeder
 Block der Hauptspalte (Rubrik, Stationskopf, jede einzelne Aufgabe, Eintrag)
 traegt eine Textmarke und kommt auf die Seite, auf der sie im PDF steht - so
 bricht eine Station in Figma an derselben Aufgabe um wie im PDF. Die
-Seitenspalte steht immer auf Seite 1. Masse und Abstaende kommen aus
+Seitenspalte (IT-Kompetenzen, Weiterbildung, Sprachen) steht immer auf Seite 1. Masse und Abstaende kommen aus
 tokens.json, die Stufe der Seitenspalte aus stufen.json.
 
 --seite   Zielseite in Figma (ohne: neue Seite „CV — Vorname Nachname“)
@@ -69,6 +72,15 @@ def marke_von(text, woerter=6):
     return " ".join(norm(text).split()[:woerter])
 
 
+def geteilt(x):
+    """Text samt Technologie-Klammer, wie im PDF: mit Klammer bleibt der Text
+    ungebunden (die Klammer folgt in derselben Zeile), technik ist der Teil,
+    den figma_entwickler.js in der Markenfarbe setzt (17.11.2026)."""
+    if x.get("technik"):
+        return {"text": x["text"] + " " + x["technik"], "technik": x["technik"]}
+    return {"text": kein_einzelwort(x["text"]), "technik": ""}
+
+
 def hauptbloecke(daten, ew, labels, st_stufe="normal"):
     """Die Bloecke der Hauptspalte in Lesereihenfolge, je mit Abstand und Marke.
     st_stufe: Notstufe der Stationen aus stufen.json, wie im PDF."""
@@ -96,16 +108,14 @@ def hauptbloecke(daten, ew, labels, st_stufe="normal"):
     groesse = logo_groessen(daten)[0]
     spalte = T["entwickler"]["logo_breite"]
 
-    def logos(s):
+    def logos(wert):
         return [{"datei": str(logo_datei(d) or ROOT / "assets" / "logos" / d),
                  "breite": b, "hoehe": h, "verhaeltnis": round(seitenverhaeltnis(d), 4)}
-                for d in logoliste(stationslogo(s)) for b, h in [logo_masse(d, groesse, spalte)]]
+                for d in logoliste(wert) for b, h in [logo_masse(d, groesse, spalte)]]
 
     def aufgaben(liste, art="aufgabe"):
         for n, x in enumerate(liste):
-            dazu(art, x["text"], en["kopf_aufgaben"] if n == 0 else en["aufgaben"],
-                 text=x["text"] if x.get("technik") else kein_einzelwort(x["text"]),
-                 technik=x.get("technik", ""))
+            dazu(art, x["text"], en["kopf_aufgaben"] if n == 0 else en["aufgaben"], **geteilt(x))
 
     person = daten.get("person") or {}
     if person.get("kurzprofil"):
@@ -119,11 +129,12 @@ def hauptbloecke(daten, ew, labels, st_stufe="normal"):
                 zeilen.append({"text": norm(s["firma"]), "stil": "firma", "oben": a["titel_firma"]})
             if s.get("zeitraum"):
                 zeilen.append({"text": norm(s["zeitraum"]), "stil": "zeitraum", "oben": a["firma_zeitraum"]})
-            for feld in ("zusammenfassung", "beschreibung"):
-                if s.get(feld):
-                    zeilen.append({"text": kein_einzelwort(norm(s[feld])), "stil": "fliesstext", "oben": a["zeitraum_text"]})
+            if s.get("zusammenfassung"):
+                zeilen.append({"text": kein_einzelwort(norm(s["zusammenfassung"])), "stil": "fliesstext", "oben": a["zeitraum_text"]})
+            if s.get("beschreibung"):
+                zeilen.append({**geteilt(s["beschreibung_ew"]), "stil": "fliesstext", "oben": a["zeitraum_text"]})
             kopf(norm(s["titel"]), zeilen, dn["rubrik_inhalt"] if n == 0 else en["station"],
-                 **({"logos": logos(s)} if logoliste(stationslogo(s)) else {}))
+                 **({"logos": logos(stationslogo(s))} if logoliste(stationslogo(s)) else {}))
             aufgaben(s.get("aufgaben_ew") or [])
             if s.get("technik"):
                 dazu("technik", s["technik"], en["aufgaben"], text=s["technik"])
@@ -131,13 +142,24 @@ def hauptbloecke(daten, ew, labels, st_stufe="normal"):
                 z = ([{"text": norm(p["zeitraum"]), "stil": "zeitraum", "oben": a["kunde_zeitraum"]}]
                      if p.get("zeitraum") else [])
                 if p.get("beschreibung"):
-                    z.append({"text": kein_einzelwort(norm(p["beschreibung"])), "stil": "fliesstext", "oben": a["projekt_text"]})
-                kopf(norm(p["kunde"]), z, en["projekt"])
+                    z.append({**geteilt(p["beschreibung_ew"]), "stil": "fliesstext", "oben": a["projekt_text"]})
+                # Kundenblock: Kunde im Stil des Stationstitels, Logo darueber
+                # wie an der Station (nur wenn vorhanden), darunter die
+                # Teilprojekte mit kleinerem Titel und Jahr - wie im PDF.
+                block = bool(p.get("teilprojekte_ew"))
+                kopf(norm(p["kunde"]), z, en["projekt"],
+                     **({"logos": logos(p.get("logo"))} if block and logoliste(p.get("logo")) else {}))
                 aufgaben(p.get("aufgaben_ew") or [])
+                for n, t in enumerate(p.get("teilprojekte_ew") or []):
+                    dazu("teiltitel", t["kopf"], a["projekt_text"] if n == 0 else en["projekt"], text=t["kopf"])
+                    if t["beschreibung_ew"]["text"]:
+                        dazu("absatz", t["beschreibung_ew"]["text"], a["projekt_text"], **geteilt(t["beschreibung_ew"]))
+                    aufgaben(t["aufgaben_ew"])
     if ew["eigene_projekte"]:
         rubrik(labels["projekte"])
         for n, p in enumerate(ew["eigene_projekte"]):
-            z = [{"text": p["beschreibung"], "stil": "firma", "oben": a["titel_firma"]}] if p["beschreibung"] else []
+            z = ([{"text": p["beschreibung"], "technik": p["beschreibung_ew"]["technik"], "stil": "firma",
+                   "oben": a["titel_firma"]}] if p["beschreibung"] else [])
             if p["zeitraum"]:
                 z.append({"text": p["zeitraum"], "stil": "zeitraum", "oben": a["firma_zeitraum"]})
             kopf(p["titel"], z, dn["rubrik_inhalt"] if n == 0 else en["station"])
@@ -152,15 +174,12 @@ def hauptbloecke(daten, ew, labels, st_stufe="normal"):
             dazu("bildung", e.get("abschluss"), dn["rubrik_inhalt"] if n == 0 else dn["gruppen"],
                  abschluss=norm(e.get("abschluss")), einrichtung=norm(e.get("institution")),
                  zeitraum=norm(e.get("zeitraum")))
-    if ew["sprachen"]:
-        rubrik(labels["sprachen"])
-        for n, s in enumerate(ew["sprachen"]):
-            dazu("eintrag", s, dn["rubrik_inhalt"] if n == 0 else 0, text=s)
     return b
 
 
 def seitenbloecke(ew, labels, stufe):
-    """Die Seitenspalte (nur Seite 1): IT-Kompetenzen, Weiterbildung."""
+    """Die Seitenspalte (nur Seite 1): IT-Kompetenzen, Weiterbildung, Sprachen
+    (seit 17.11.2026 hier statt hinten in der Hauptspalte)."""
     w = T["verdichtung"]["entwickler"][stufe]
     b, erster = [], True
     if ew["it_kompetenzen"]:
@@ -174,6 +193,11 @@ def seitenbloecke(ew, labels, stufe):
         for n, e in enumerate(ew["weiterbildung"]):
             b.append({"art": "bildung", "abschluss": e["titel"], "einrichtung": e["aussteller"],
                       "zeitraum": e["zeit"], "oben": w["rubrik_inhalt"] if n == 0 else w["gruppen"]})
+        erster = False
+    if ew["sprachen"]:
+        # Wie die IT-Listen (it_liste, grau), eine Sprache je Zeile, ohne Punkte.
+        b.append({"art": "rubrik", "text": labels["sprachen"], "oben": 0 if erster else w["abschnitte"]})
+        b.append({"art": "liste", "text": "\n".join(ew["sprachen"]), "oben": w["rubrik_inhalt"]})
     return b
 
 
@@ -245,7 +269,8 @@ def plan_bauen(daten, pdf, stufen, seite=None, unter=None):
         "seite": seite, "unter": unter, "fassung": "anonym" if anonym else "vollständig",
         "variablen": VARIABLEN, "farben": {k: farbe01(T["farben"][k]) for k in VARIABLEN},
         "komponenten": {n: [komp[n]["key"], komp[n]["typ"] == "COMPONENT_SET"] for n in KOMPONENTEN},
-        "stile": {n: stil(n) for n in ("titel", "firma", "zeitraum", "fliesstext", "technik", "it_liste")},
+        "stile": {n: stil(n) for n in ("titel", "firma", "zeitraum", "fliesstext", "technik", "it_liste",
+                                       "teilprojekt")},
         "seite_w": s["breite"], "seite_h": s["hoehe"], "rand_oben": s["rand_oben"],
         "rand_links": s["rand_links"], "rand_unten": s["rand_unten"],
         "intro_y": s["rand_oben"] + r["kopflogo_hoehe"] + T["abstand"]["kopf_intro"],

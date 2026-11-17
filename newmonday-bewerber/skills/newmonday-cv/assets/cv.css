@@ -302,6 +302,24 @@ ul.tight { padding-left: {{ pt(r.listeneinzug) }}; list-style: disc; {{ css("lis
    wie sein Text, nicht ueber die ganze Spalte unterstrichen. */
 .ew-link .intro__link { display: inline-block; }
 .ew .project { margin-top: {{ pt(en.projekt) }}; }
+/* Kundenblock mit Teilprojekten (17.11.2026): Titel und Jahr im Stil der
+   Gruppentitel, das erste Teilprojekt so nah am Zeitraum wie ein Projekttext. */
+.teilprojekt { margin-top: {{ pt(a.projekt_text) }}; }
+.teilprojekt + .teilprojekt { margin-top: {{ pt(en.projekt) }}; }
+.teilprojekt__titel { {{ css("teilprojekt") }} }
+/* Umbruch (17.11.2026): Kundenkopf bleibt beim ersten Teilprojekt-Titel samt
+   Einleitung, Titel und Einleitung bleiben beisammen - Stichpunkte und weitere
+   Teilprojekte duerfen auf die naechste Seite, damit keine Luecke entsteht. */
+.ew .project__kopf { break-inside: avoid; break-after: avoid; }
+.teilprojekt__kopf { break-inside: avoid; }
+/* Sonst haelt die Regel „erste zwei Stichpunkte zusammen“ (unten) ueber die
+   verschachtelten Bloecke hinweg den ganzen Kundenblock fest, und WeasyPrint
+   schiebt ihn samt Kopf auf die naechste Seite. */
+.teilprojekt ul.tasks li:first-child:not(:last-child) { break-after: auto; }
+/* Sprachen in der Seitenspalte wie die IT-Listen: ohne Punkte, je Zeile eine. */
+.ew-sprachen { list-style: none; }
+/* Klammer in der Einleitung eines eigenen Projekts: Farbe ja, Groesse der Zeile. */
+.station__firma .technik { font-size: inherit; line-height: inherit; }
 .ew-eintrag + .ew-eintrag { margin-top: {{ pt(dn.gruppen) }}; }
 /* Notstufen der Hauptspalte (verdichtung.entwickler_stationen): nur wenn der
    Footer sonst allein auf der letzten Seite stuende. */
@@ -309,7 +327,7 @@ ul.tight { padding-left: {{ pt(r.listeneinzug) }}; list-style: disc; {{ css("lis
 .ew-st--{{ stufe }} .station + .station { margin-top: {{ pt(w.station) }}; }
 .ew-st--{{ stufe }} .station > ul.tasks { margin-top: {{ pt(w.kopf_aufgaben) }}; }
 .ew-st--{{ stufe }} ul.tasks li + li, .ew-st--{{ stufe }} .ew-technik, .ew-st--{{ stufe }} .ew-link { margin-top: {{ pt(w.aufgaben) }}; }
-.ew-st--{{ stufe }} .project { margin-top: {{ pt(w.projekt) }}; }
+.ew-st--{{ stufe }} .project, .ew-st--{{ stufe }} .teilprojekt + .teilprojekt { margin-top: {{ pt(w.projekt) }}; }
 {% endfor %}
 
 /* Reicht Seite 1 fuer die Seitenspalte nicht, setzt render_cv.py sie enger -

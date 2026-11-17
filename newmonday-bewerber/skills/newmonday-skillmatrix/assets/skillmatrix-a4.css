@@ -59,10 +59,16 @@ ul { list-style: none; break-before: auto; }
 
 /* ---------- Hero ---------- */
 
-/* Zeile Profil: Textspalte (Name, Rolle, Schwerpunkte) und Fotokarte, darunter
-   die Beschreibung ueber die volle Breite. */
+/* Zeile Profil: Textspalte (Name, Rolle, Schwerpunkte) und Fotokarte (nur mit
+   Foto), darunter die Beschreibung ueber die volle Breite. */
 .profil { display: flex; align-items: flex-start; }
 .profil__text { flex: 1 1 auto; min-width: 0; margin-right: var(--hero-spaltenabstand); }
+/* Ohne Foto keine Fotokarte und kein Spaltenabstand: die Schwerpunkte stehen
+   in einer Reihe, der Hero wird niedriger. Als Block, nicht als Flex-Zeile -
+   sonst misst WeasyPrint die Schwerpunkte mit der Breite der Spalte neben der
+   Karte (zwei Reihen hoch) und laesst unter der einen Reihe eine Luecke. */
+.profil--ohne-foto { display: block; }
+.profil--ohne-foto .profil__text { margin-right: 0; }
 .profil__name { padding-bottom: var(--hero-name-unten); }
 
 /* Schwerpunkte brechen um, statt ueber die Spalte zu laufen. */
