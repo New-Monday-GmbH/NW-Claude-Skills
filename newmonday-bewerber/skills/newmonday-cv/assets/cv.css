@@ -111,7 +111,6 @@ body { {{ css("fliesstext") }} }
    bleibt sie bewusst (siehe layout.md). */
 .station__title { {{ css("titel") }} }
 .station__firma { {{ css("firma") }} margin-top: {{ pt(a.titel_firma) }}; }
-.station__zeitraum { {{ css("zeitraum") }} margin-top: {{ pt(a.firma_zeitraum) }}; }
 .station__summary, .station__text { {{ css("fliesstext") }} margin-top: {{ pt(a.zeitraum_text) }}; }
 .station__body > ul.tasks { margin-top: {{ pt(sn.kopf_aufgaben) }}; }
 
@@ -137,13 +136,14 @@ body { {{ css("fliesstext") }} }
 .project__logo { display: block; flex: none; }
 .project__logo img { display: block; max-width: {{ pt(r.logospalte) }}; }
 .project__client { {{ css("kunde") }} }
-.project__date { {{ css("zeitraum") }} margin-top: {{ pt(a.kunde_zeitraum) }}; }
+.project__date { {{ css("firma") }} margin-top: {{ pt(a.kunde_zeitraum) }}; }
 .project__text { {{ css("fliesstext") }} margin-top: {{ pt(a.projekt_text) }}; }
 .project ul.tasks { margin-top: {{ pt(a.projekt_text) }}; }
 
 /* Aufgaben-Bullets: gedecktes Grau, ohne Zwischenraum — jeder Punkt beginnt
    eine Zeilenhoehe unter dem vorigen, wie in Figma. */
 ul.tasks { padding-left: {{ pt(r.listeneinzug) }}; {{ css("aufgabe") }} list-style: disc; }
+.tasks__schlagwort { {{ css("schlagwort") }} }
 
 /* Notstufen, damit der Footer nicht allein auf einer sonst leeren Seite landet:
    greifen nur, wenn genau das droht, und holen die fehlenden Punkte aus den
