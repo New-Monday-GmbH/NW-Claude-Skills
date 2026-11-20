@@ -147,6 +147,26 @@ def kein_einzelwort(text):
     return "\n".join(_paar_binden(z) for z in text.split("\n"))
 
 
+# Aufgaben im Format „Schlagwort: Erklaerung“ (seit 20.11.2026): das
+# Schlagwort samt Doppelpunkt steht halbfett - im PDF und in
+# Figma gleich. Hoechstens vier Woerter vor dem Doppelpunkt, sonst ist es ein Satz.
+_SCHLAGWORT = re.compile(r"^([^:\n]{2,40}):\s")
+
+
+def schlagwort_laenge(text):
+    """Laenge von „Schlagwort:“ am Anfang einer Aufgabe, sonst 0."""
+    m = _SCHLAGWORT.match(text or "")
+    return len(m[1]) + 1 if m and len(m[1].split()) <= 4 else 0
+
+
+def aufgabe_html(text):
+    from markupsafe import Markup, escape
+    n = schlagwort_laenge(text)
+    if not n:
+        return text
+    return Markup(f'<strong class="tasks__schlagwort">{escape(text[:n])}</strong>{escape(text[n:])}')
+
+
 def _paar_binden(zeile):
     m = _ENDPAAR.search(zeile)
     if (not m or len(zeile.split()) < 4 or "·" in zeile
@@ -1174,6 +1194,7 @@ def html_bauen(daten, stufe="normal", fuss_abstand=0, stationen_kompakt=False):
     # Fliesstext ohne Einzelwort am Ende; leerraum() vorweg wie norm() im
     # Figma-Plan, damit Frame und PDF dasselbe Paar binden.
     env.filters["kein_einzelwort"] = lambda t: kein_einzelwort(leerraum(t)) if t else t
+    env.filters["aufgabe"] = lambda t: aufgabe_html(kein_einzelwort(leerraum(t))) if t else t
     sprache = daten.get("sprache", "de")
     labels = BESCHRIFTUNG.get(sprache, BESCHRIFTUNG["de"])
     # Angezeigt wird der benannte Verweis, nicht die Adresse — verlinkt bleibt

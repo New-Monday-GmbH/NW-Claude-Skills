@@ -48,7 +48,7 @@ import tokens  # noqa: E402  — erst nach sys.path.insert moeglich
 from render_cv import (  # noqa: E402
     BESCHRIFTUNG, KONTAKT_VORGABE, VERWEISTEXT, bildung_aufbereiten, dateiname,
     logo_groessen, logo_masse, logoliste, ohne_arbeitsdateien, seitenverhaeltnis, skillset_zeilen, stationslogo,
-    zeitraeume_setzen, zertifikate_aufbereiten, fliesstext, kein_einzelwort,
+    zeitraeume_setzen, zertifikate_aufbereiten, fliesstext, kein_einzelwort, schlagwort_laenge,
 )
 from logo_lib import suche as logo_datei  # noqa: E402
 
@@ -258,24 +258,25 @@ def bloecke_bauen(daten, deckblatt, stationen):
     for nr, station in enumerate(daten.get("stationen") or []):
         if nr:
             naechster_abstand, naechster_token = s["station"], "station"
-        # Der Kopf wie in Figma: Titel, Firma, Zeitraum als eigene Zeile. Die
+        # Der Kopf wie in Figma: Titel, darunter eine kleine Zeile „Zeitraum | Firma“
+        # (seit 20.11.2026, Datum zuerst; die Zeitraum-Ebene bleibt aus). Die
         # Schlagwortzeile steht zusaetzlich darunter (im Skill bewusst behalten).
+        kopfzeile = "  |  ".join(filter(None, [norm(station.get("zeitraum")), norm(station.get("firma"))]))
         bloecke.append(block(
             "station", abstand_oben=naechster_abstand, token=naechster_token,
             seitenanfang=(nr == 0 and not person.get("kurzprofil")),
             # Titel und Firma, wie sie im PDF aufeinander folgen: der Titel allein
             # wiederholt sich ("Senior UI/UX Designer" bei zwei Firmen), und die
             # Suche fand die fruehere Station - die Station landete eine Seite zu frueh.
-            marke=" ".join(filter(None, [norm(station.get("titel")), norm(station.get("firma"))])),
+            marke=norm(" ".join(filter(None, [station.get("titel"), kopfzeile]))),
             rail={"breite": r["logospalte"], "oben": r["logo_oben"], "abstand": r["logo_stapel"],
                   "logos": [logo_eintrag(f, st_groesse)
                             for f in logoliste(stationslogo(station))]},
             spaltenabstand=r["logoabstand"], koerperbreite=ab["inhaltsspalte"],
             titel=dict(text=norm(station.get("titel")), **typo("titel")),
-            firma=(dict(text=norm(station["firma"]), abstand_oben=a["titel_firma"],
-                        **typo("firma")) if station.get("firma") else None),
-            zeitraum=(dict(text=norm(station["zeitraum"]), abstand_oben=a["firma_zeitraum"],
-                           **typo("zeitraum")) if station.get("zeitraum") else None),
+            firma=(dict(text=kopfzeile, abstand_oben=a["titel_firma"],
+                        **typo("firma")) if kopfzeile else None),
+            zeitraum=None,
             absaetze=[dict(text=kein_einzelwort(norm(station[f])), abstand_oben=a["zeitraum_text"],
                            feld=f, **typo("fliesstext"))
                       for f in ("zusammenfassung", "beschreibung") if station.get(f)]))
@@ -303,7 +304,7 @@ def bloecke_bauen(daten, deckblatt, stationen):
                                       for f in logoliste(projekt.get("logo"))]),
                 kunde=dict(text=norm(projekt.get("kunde")), **typo("kunde")),
                 zeitraum=(dict(text=norm(projekt["zeitraum"]), abstand_oben=a["kunde_zeitraum"],
-                               **typo("zeitraum")) if projekt.get("zeitraum") else None),
+                               **typo("firma")) if projekt.get("zeitraum") else None),
                 absaetze=[dict(text=kein_einzelwort(norm(projekt["beschreibung"])), abstand_oben=a["projekt_text"],
                                feld="beschreibung", **typo("fliesstext"))]
                 if projekt.get("beschreibung") else []))

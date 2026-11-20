@@ -103,20 +103,19 @@
       {% for l in s.logos %}<img src="{{ l.src }}" alt="{{ l.alt }}"
         style="width:{{ l.breite }}pt;height:{{ l.hoehe }}pt">{% endfor %}
     </div>
-    {# Wie in Figma: Titel, Firma, darunter der Zeitraum als eigene Zeile. Die
-       Schlagwortzeile steht zusaetzlich darunter (in Figma nicht vorgesehen,
-       im Skill bewusst behalten). #}
+    {# Wie in Figma (seit 20.11.2026): Titel, darunter eine kleine Zeile
+       „Zeitraum | Firma“, Datum zuerst. Die Schlagwortzeile steht zusaetzlich
+       darunter (im Skill bewusst behalten). #}
     <div class="station__kopftext">
       <h2 class="station__title">{{ s.titel }}</h2>
-      {% if s.firma %}<div class="station__firma">{{ s.firma }}</div>{% endif %}
-      {% if s.zeitraum %}<div class="station__zeitraum">{{ s.zeitraum }}</div>{% endif %}
+      {% if s.firma or s.zeitraum %}<div class="station__firma">{{ s.zeitraum or "" }}{% if s.zeitraum and s.firma %} <span class="station__trenner">|</span> {% endif %}{{ s.firma or "" }}</div>{% endif %}
       {% if s.zusammenfassung %}<p class="station__summary">{{ s.zusammenfassung|kein_einzelwort }}</p>{% endif %}
       {% if s.beschreibung %}<p class="station__text">{{ s.beschreibung|kein_einzelwort }}</p>{% endif %}
     </div>
   </div>
   <div class="station__body">
     {% if s.aufgaben %}
-    <ul class="tasks">{% for a in s.aufgaben %}<li>{{ a|kein_einzelwort }}</li>{% endfor %}</ul>
+    <ul class="tasks">{% for a in s.aufgaben %}<li>{{ a|aufgabe }}</li>{% endfor %}</ul>
     {% endif %}
 
     {% for p in s.projekte %}
@@ -132,7 +131,7 @@
       {% if p.zeitraum %}<div class="project__date">{{ p.zeitraum }}</div>{% endif %}
       {% if p.beschreibung %}<p class="project__text">{{ p.beschreibung|kein_einzelwort }}</p>{% endif %}
       {% if p.aufgaben %}
-      <ul class="tasks">{% for a in p.aufgaben %}<li>{{ a|kein_einzelwort }}</li>{% endfor %}</ul>
+      <ul class="tasks">{% for a in p.aufgaben %}<li>{{ a|aufgabe }}</li>{% endfor %}</ul>
       {% endif %}
     </div>
     {% endfor %}

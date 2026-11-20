@@ -144,12 +144,18 @@ Läuft unbeaufsichtigt: **keine Klickboxen, nichts in Figma, keine Plattform.**
    Bei jedem ergänzten Fließtext prüfen, ob die letzte Zeile nur ein Wort
    hat – dann die letzten zwei Wörter mit U+00A0 verbinden, wenn dadurch
    keine Zeile oder Seite überläuft (wie `kein_einzelwort()` in den Skripten):
-   - **Lebenslauf:** Ergänzungen als **angehängter Halbsatz an einen
-     passenden bestehenden Stichpunkt** („Stakeholder-Management“ →
-     „Stakeholder-Management und Moderation von Workshops“), nie als neuer
-     Stichpunkt – so bleiben die Umbrüche. Bejaht mit Projekt: an diesem
-     Projekt. Ohne Projekt und abgeleitet: an dem Projekt, dessen belegte
-     Tätigkeit es am ehesten einschließt.
+   - **Lebenslauf:** Ergänzungen in einen **passenden Stichpunkt** der
+     Station, im Format „Schlagwort: Erklärung“ (newmonday-cv, „Stationen und
+     Stichpunkte im UX-Layout“). Ein neuer Stichpunkt ist erlaubt, wenn die
+     Seite ihn trägt. Bejaht mit Projekt: an diesem Projekt. Ohne Projekt und
+     abgeleitet: an dem Projekt, dessen belegte Tätigkeit es am ehesten
+     einschließt.
+     **Kopien im alten Format zuerst umstellen** (seit 20.11.2026): Die
+     Firma-Zeile wird zu „Zeitraum  |  Firma“ (Ebene „Zeitraum“ ausblenden),
+     das Projektdatum zu 8 pt / 10 px, jeder Stichpunkt zu „Schlagwort:
+     Erklärung“ mit dem Schlagwort in Inter Semi Bold, jede Einleitung zu
+     einem Satz. Läuft eine Seite über, werden die Stichpunkte gekürzt, nicht
+     Seiten angehängt.
      **Erst den Stand der Kopie auf den aktuellen Standard bringen**, wenn sie
      älter ist: Steht auf Seite 1 noch das alte Skillset (Listen Fähigkeiten /
      Branchen / Tools / Sprachen), es durch die Komponente „CV/Skillset

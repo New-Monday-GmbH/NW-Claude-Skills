@@ -33,6 +33,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import tokens  # noqa: E402
+from render_cv import schlagwort_laenge  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
@@ -277,7 +278,9 @@ class Uebersetzer:
         aus = []
         for teil in teile:
             p = {f"Punkt {n}": len(teil) >= n for n in range(2, g + 1)}
-            kinder = {f"Punkt {n}": {"p": {"Text": t}} for n, t in enumerate(teil, 1)}
+            # „Schlagwort:“ halbfett wie im PDF (render_cv.aufgabe_html)
+            kinder = {f"Punkt {n}": {"p": {"Text": t}, "fett": schlagwort_laenge(t)}
+                      for n, t in enumerate(teil, 1)}
             aus.append({"k": "aufgabenliste", "name": "Aufgaben", "p": p, "kinder": kinder})
         return aus
 
@@ -288,11 +291,14 @@ class Uebersetzer:
             self.melden("Logos", len(logos), g, f"Projekt {b['kunde']['text']}")
         p = {"Kunde": b["kunde"]["text"], "Logos anzeigen": bool(logos)}
         p.update({"Zeitraum": b["zeitraum"]["text"]} if b.get("zeitraum") else {"Zeitraum anzeigen": False})
+        # Projektdatum klein wie die Firmenzeile (seit 20.11.2026) - im Master steht es noch 10 pt.
+        stil = ({"Zeitraum": {"groesse": b["zeitraum"]["groesse"], "zeile": b["zeitraum"]["zeile"]}}
+                if b.get("zeitraum") else {})
         absaetze = b.get("absaetze") or []
         p.update({"Beschreibung": absaetze[0]["text"]} if absaetze else {"Beschreibung anzeigen": False})
         for n in range(1, g + 1):
             p[f"Logo {n}"] = len(logos) >= n
-        return [{"k": "projekt", "name": f"Projekt {b['kunde']['text']}", "p": p,
+        return [{"k": "projekt", "name": f"Projekt {b['kunde']['text']}", "p": p, "stil": stil,
                  "bilder": [self.logo_bild(l, f"Logo {n}") for n, l in enumerate(logos[:g], 1)]}]
 
     def fuss(self, b):

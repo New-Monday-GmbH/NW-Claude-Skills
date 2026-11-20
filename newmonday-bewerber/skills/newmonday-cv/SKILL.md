@@ -969,6 +969,21 @@ cv.json steht, und melden das.
 eine Station als Absatz statt als Aufgabenliste; dann gehört der Absatz dorthin
 und nicht als einzelner Bullet in `aufgaben`. Beides zusammen geht auch.
 
+**Stationen und Stichpunkte im UX-Layout (seit 20.11.2026):**
+
+- Unter dem Stationstitel steht eine kleine Zeile **„Zeitraum | Firma“**, das
+  Datum zuerst. Projekte tragen den Zeitraum ebenso klein unter dem Kunden.
+  Belegt der Lebenslauf das Produkt, heißt der Kunde „Kunde – Produkt“
+  („Musterbank – Kundenportal“).
+- **Stichpunkte** stehen als **„Schlagwort: Erklärung“** in `aufgaben`. Das
+  Schlagwort (höchstens vier Wörter vor dem Doppelpunkt) setzen PDF und Figma
+  halbfett, ohne Markup in der cv.json. Ziel ist eine Zeile je Stichpunkt
+  (etwa 50 Zeichen), die Erklärung nur aus Belegtem der Station.
+- **Einleitungen** (`beschreibung`, die Ich-Form-Sätze einer Station oder eines
+  Projekts) haben **einen knappen Satz**. Die Einzelheiten stehen in den
+  Stichpunkten, Fachbegriffe gehen dabei nicht verloren.
+- Das Entwickler-Layout bleibt vorerst wie es ist.
+
 #### Das Entwickler-Layout (technische Profile)
 
 Für Entwicklerprofile gibt es ein eigenes Layout (freigegeben am 03.11.2026),

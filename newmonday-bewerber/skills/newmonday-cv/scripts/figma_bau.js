@@ -29,6 +29,7 @@ function variante(set, wert) {
 
 async function schriftenLaden() {
   const gesehen = new Set();
+  await figma.loadFontAsync({ family: "Inter", style: "Semi Bold" }); // Schlagwoerter der Aufgaben
   for (const k of Object.values(geladen)) {
     for (const t of k.findAllWithCriteria({ types: ["TEXT"] })) {
       if (!t.characters.length) continue;
@@ -75,6 +76,18 @@ const traeger = [];
 const TRAEGER = /^_Bild (FIT|FILL) → (.+)$/;
 function befuellen(inst, e, pfad) {
   setze(inst, e.p);
+  // Textstil-Overrides, die der Master (noch) nicht traegt: Projektdatum 8 pt.
+  for (const [ebene, st] of Object.entries(e.stil || {})) {
+    const t = kind(inst, ebene, "TEXT");
+    if (!t) { warnungen.push(`${pfad}: Textebene ${ebene} fehlt`); continue; }
+    t.fontSize = st.groesse; t.lineHeight = { unit: "PIXELS", value: st.zeile };
+  }
+  // Aufgabe „Schlagwort: Erklaerung“ - Schlagwort samt Doppelpunkt halbfett.
+  if (e.fett) {
+    const t = kind(inst, "Text", "TEXT");
+    if (t) t.setRangeFontName(0, e.fett, { family: "Inter", style: "Semi Bold" });
+    else warnungen.push(`${pfad}: Textebene Text fuer das Schlagwort fehlt`);
+  }
   for (const [name, sub] of Object.entries(e.kinder || {})) {
     const k = kind(inst, name, "INSTANCE");
     if (!k) { warnungen.push(`${pfad}: exponierte Instanz „${name}“ fehlt`); continue; }

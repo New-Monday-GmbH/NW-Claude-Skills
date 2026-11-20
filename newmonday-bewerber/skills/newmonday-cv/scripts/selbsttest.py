@@ -412,7 +412,7 @@ def pruefe_gleiche_stationstitel(tmp):
     for frame in plan["frames"]:
         for b in frame["bloecke"]:
             if b["art"] == "station" and b.get("firma") \
-                    and b["firma"]["text"] not in seiten[frame["nr"] - 1]:
+                    and " ".join(b["firma"]["text"].split()) not in seiten[frame["nr"] - 1]:
                 fehler.append(f"Gleiche Stationstitel: Station bei „{b['firma']['text']}“ "
                               f"steht im Plan auf Seite {frame['nr']}, im PDF nicht dort")
     return fehler
@@ -1201,6 +1201,9 @@ def pruefe_zeitraeume(tmp):
         for b in frame["bloecke"]:
             if isinstance(b.get("zeitraum"), dict):
                 im_plan.add(b["zeitraum"]["text"])
+            # Station seit 20.11.2026: Zeitraum vorn in der Zeile „Zeitraum  |  Firma“.
+            if b.get("art") == "station" and isinstance(b.get("firma"), dict):
+                im_plan.add(b["firma"]["text"].split("  |  ")[0])
             for e in b.get("eintraege") or []:
                 if isinstance(e, dict):
                     im_plan.update(z["text"] for z in e.get("zeilen") or [])
@@ -1906,10 +1909,10 @@ def pruefe_design(pdf, stufen):
         (thema["titel"].upper(), thema["eintraege"][0], unter("skill_thema")
          + r["skill_thema_eintraege"] + gl("skill_wert")),
         ("Kurzprofil", person["kurzprofil"][:20], unter("rubrik") + s["profil_rubrik"] + gl("profil")),
-        (station["titel"], station["firma"], unter("titel") + a["titel_firma"] + gl("firma")),
-        (station["firma"], station["zeitraum"], unter("firma") + a["firma_zeitraum"] + gl("zeitraum")),
-        (station["zeitraum"], station["aufgaben"][0][:20], unter("zeitraum") + s["kopf_aufgaben"] + gl("aufgabe")),
-        (projekt["kunde"], projekt["zeitraum"], unter("kunde") + a["kunde_zeitraum"] + gl("zeitraum")),
+        # Stationskopf seit 20.11.2026: Titel, darunter „Zeitraum | Firma“ in einer Zeile.
+        (station["titel"], station["zeitraum"], unter("titel") + a["titel_firma"] + gl("firma")),
+        (station["zeitraum"], station["aufgaben"][0][:20], unter("firma") + s["kopf_aufgaben"] + gl("aufgabe")),
+        (projekt["kunde"], projekt["zeitraum"], unter("kunde") + a["kunde_zeitraum"] + gl("firma")),
         (kontakt_label, "Manuel Klein", unter("fuss_label") + a["fuss_label_wert"] + gl("fuss_name")),
     ]
     # Zertifikate: Abschluesse -> Titel -> erste Reihe Tags, von Schriftlinie
