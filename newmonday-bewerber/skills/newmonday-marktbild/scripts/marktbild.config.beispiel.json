@@ -11,6 +11,8 @@
     "crm": "<Adresse der Kandidatenliste>",
     "freelancermap": "<Adresse der Profilanlagen>",
     "hays": "<Adresse Profildaten pflegen>",
-    "gulp": "<Adresse der Profilverwaltung>"
+    "gulp": "<Adresse der Profilverwaltung>",
+    "etengo": "<Adresse der Mitarbeiterverwaltung>",
+    "solcom": "<Adresse des Projektportals>"
   }
 }
