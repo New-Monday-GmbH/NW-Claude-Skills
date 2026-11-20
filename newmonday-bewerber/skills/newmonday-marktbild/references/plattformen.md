@@ -17,7 +17,12 @@ hier (das Repo ist öffentlich).
 
 **CRM (EspoCRM, Entität Kandidat)** – Bearbeiten-Ansicht des Kandidaten, je
 Feld (New Monday CV / Portfolio / Skillset) die alte Datei mit × entfernen,
-neue in den Datei-Input, Speichern. Prüfen über die API des Datensatzes.
+neue in den Datei-Input, Speichern. Schneller über die API der eingeloggten
+Seite: die drei PDFs per `file_upload` in ein eingefügtes `<input type=file>`,
+je Datei `POST api/v1/Attachment` (`role: Attachment`, `relatedType`, `field`
+= cv/portfolio/skillmatrix, `file` als data-URL), dann `PUT` auf den Datensatz
+mit `cvIds`/`portfolioIds`/`skillmatrixIds` = [neue ID]. Prüfen über die API
+des Datensatzes.
 
 **freelancermap** (Profilanlagen) – ein Datei-Input, eine Datei je Vorgang,
 höchstens 20 Anhänge: erst die alten löschen (Knopf je Anhang-ID; die Refs
@@ -30,7 +35,10 @@ Profilpflege“. Hays benennt Dateien um.
 
 **GULP/Randstad** (Profilverwaltung → Person → Profil bearbeiten → Reiter
 Portfolio → Bearbeiten → PDF-Block bearbeiten) – höchstens 6 Dateien,
-**5 MB je Datei**: größere vorher verkleinern,
+**5 MB je Datei**, und eine Datei mit gleichem Namen lehnt GULP ab – also
+erst die alten im Block löschen, dann hochladen, dann Speichern. Die
+verkleinerte Fassung unter dem normalen Namen hochladen. Größere vorher
+verkleinern,
 
 ```
 ~/.newmonday/venv/bin/python -I <skill>/scripts/verkleinern.py <ein.pdf> <aus.pdf>
@@ -39,3 +47,19 @@ Portfolio → Bearbeiten → PDF-Block bearbeiten) – höchstens 6 Dateien,
 danach `verapdf --flavour ua1` und Textvergleich (`pdftotext`) gegen das
 Original. Löschen mit Bestätigungsdialog. **Nie per URL neu laden** – das
 beendet die Sitzung; nur innerhalb der Seite navigieren.
+
+**etengo** (My.Etengo → Mitarbeiterverwaltung → Person → Qualifikationsprofil)
+– **ein** PDF je Sprache, höchstens 6 MB; ein neues ersetzt das alte. Hochgeladen
+wird ein zusammengefasstes „Qualifikationsprofil“: CV + Skill Matrix A4 +
+Portfolio (verkleinerte GULP-Fassung), mit pikepdf aneinandergehängt
+(`~/.newmonday/venv`), Name „New Monday - <Name> - Qualifikationsprofil.pdf“.
+Sprache „Deutsch“ wählen, Datei in den Input, „Qualifikationsprofil hochladen“;
+Erfolg: Meldung „Qualifikationsprofil erfolgreich hochgeladen“. Die Seite meldet
+nach einiger Zeit „Sitzung läuft bald ab“ → „Angemeldet bleiben“.
+
+**SOLCOM** (Mein Projektportal → Meine Dokumente → Hinzufügen, öffnet das
+Profilformular) – eine gemeinsame Dokumentenliste des Firmenkontos, keine
+Personenprofile. Nur die Dateien tauschen, die dort schon liegen (bisher CVs):
+neue in „Neue Datei hinzufügen“ (lädt sofort, gleiche Namen bekommen „_0“),
+alte per „Entfernen“, dann unten „Speichern“. Prüfen in der Liste
+„Hochgeladene Unterlagen“.

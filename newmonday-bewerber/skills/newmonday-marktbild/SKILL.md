@@ -231,7 +231,7 @@ Nutzer von Hand nachgepflegt hat.
    neuen dorthin legen („New Monday - <Name> - CV.pdf“, „… - Skillmatrix
    A4.pdf“, „… - Portfolio.pdf“).
 3. **Plattformen:** nach `references/plattformen.md` – CRM, freelancermap,
-   Hays, GULP: neue hoch, alte dieses Kandidaten löschen. Nur über
+   Hays, GULP, etengo, SOLCOM: neue hoch, alte dieses Kandidaten löschen. Nur über
    Claude in Chrome; ist der Nutzer nicht angemeldet, darum bitten.
 4. **Marktbild:** `marktbild.py auswerten` – die Lücken des Kandidaten werden
    kleiner – und spiegeln.
