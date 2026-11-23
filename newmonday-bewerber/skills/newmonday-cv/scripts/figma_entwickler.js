@@ -14,11 +14,13 @@ await figma.setCurrentPageAsync(seite);
 
 for (const [f, s] of [["Inter", "Regular"], ["Inter", "Semi Bold"], ["Inter", "Bold"], ["Rethink Sans", "SemiBold"]])
   await figma.loadFontAsync({ family: f, style: s });
-const V = {};
-for (const [n, k] of Object.entries(P.variablen)) V[n] = await figma.variables.importVariableByKeyAsync(k);
 const K = {};
 for (const [n, [k, set]] of Object.entries(P.komponenten))
   K[n] = set ? await figma.importComponentSetByKeyAsync(k) : await figma.importComponentByKeyAsync(k);
+// Komponenten vor Variablen: in einem neuen File scheitert importVariableByKeyAsync
+// sonst mit „Failed to upsert variable“ (23.11.2026).
+const V = {};
+for (const [n, k] of Object.entries(P.variablen)) V[n] = await figma.variables.importVariableByKeyAsync(k);
 const variante = (set, name) => set.children.find(c => c.name === name) || set.defaultVariant;
 
 const farbe = (name) => figma.variables.setBoundVariableForPaint(
