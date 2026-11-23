@@ -176,8 +176,13 @@ Entscheidungssitzung. Abweichungen gegenüber dort:
 - **Bestandsfragen entfallen.** Was der Bestand schon beantwortet – NM-Rolle,
   NM-Start, Weiterbildungen, Verfügbarkeit, NDA, KI-Werkzeuge, die Projekte
   selbst –, wird mit dem Bestandswert beantwortet und nicht gestellt.
+- **Profilseite des Portfolios wird nicht gefragt.** Top-Kenntnisse und
+  Kenntnisse auf Seite 2 stellt der Skill so um, wie er es empfiehlt; der
+  Vorschlag steht in der Übergabe unter „Zur Freigabe“ (Wunsch des Nutzers,
+  23.11.2026). Kommt trotzdem eine solche Frage aus einer `fragen.json`, wird
+  sie mit der empfohlenen Option beantwortet und nicht gestellt.
 - **Gestellt werden:** Ausrichtungsfragen (Schwerpunkte/Hero,
-  Top-Kenntnisse/Kenntnisse, Schwerpunkt-Folien, Projektreihenfolge),
+  Schwerpunkt-Folien, Projektreihenfolge),
   Kürzungen fürs Layout und **die Technik-Fragen** aus Regel 3 – gesammelt
   aus `anfrage_luecken` und den Fragen der Skills, je Kandidat, als
   *Ja – hat er/sie (Projekt über Other)* | *Nein* | *Weiß ich nicht*.
