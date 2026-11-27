@@ -74,7 +74,7 @@ Skript (`DEUTSCH`, `DURCHKOPPLUNG`, `GRENZFAELLE`), nicht im Pool.
 
 1. **UX Strategy & Product Discovery** (9)
 2. **User Research & Insights** (13)
-3. **Interaction & Visual Design** (13)
+3. **Interaction & Visual Design** (14)
 4. **UI Design & Visual Systems** (10)
 5. **Design Systems & Scaling** (10)
 6. **Usability Testing & Evaluation** (10)
@@ -83,7 +83,7 @@ Skript (`DEUTSCH`, `DURCHKOPPLUNG`, `GRENZFAELLE`), nicht im Pool.
 9. **Stakeholder Management & Facilitation** (8)
 10. **Development Collaboration** (9)
 11. **AI & Emerging Tech** (17)
-12. **Tools** (22)
+12. **Tools** (25)
 13. **Coding Skills** (12)
 
 Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens fuenf — die, die das Profil belegt — und dazu optional `Tools`. Gibt es eine Anfrage (Ausschreibung, Projektbeschreibung, Kundenwunsch), steht die Kategorie zuerst, die fuer sie am wichtigsten ist, danach absteigend nach Bedeutung fuer die Anfrage; ohne Anfrage eine KI-Kategorie zuerst, danach die staerkste (SKILL.md, Schritt 2a).
@@ -139,6 +139,7 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 | Ideation |  | Erste Ansätze zur Erstellung oder Überarbeitung von Anwendungen. |
 | Concept Development | Konzeption | Ideen zu validierten und tragfähigen Konzepten ausarbeiten. |
 | Platform Guidelines | Plattform-Guidelines | Gestaltung nach den Plattform-Guidelines für Web, Mobile und Desktop. |
+| Android & Material Design 3 |  | Android-Oberflächen nach den Material-Design-3-Richtlinien gestalten. |
 
 ## UI Design & Visual Systems
 
@@ -263,16 +264,19 @@ Eine Matrix nimmt **drei bis vier** Kategorien als Kernkompetenzen, hoechstens f
 | Claude |  | KI-gestützte Konzeption, Analyse und Automatisierung von Designaufgaben. |
 | ChatGPT |  | Ideation, Textarbeit und Recherche mit generativer KI. |
 | Gemini |  | Multimodale Analyse und Ideation mit generativer KI. |
+| Kiro |  | KI-gestützte Konzeption und Prototyping in der Entwicklungsumgebung. |
 | Adobe CC |  | Photoshop, Illustrator und After Effects. |
 | Fullstory |  | Session Replays und Click Paths auswerten. |
 | Dovetail |  | Research zentral dokumentieren, clustern und teilen. |
 | Google Analytics |  | Nutzungsdaten und Conversion Funnels auswerten. |
 | Hotjar |  | Heatmaps und Nutzeraufzeichnungen auswerten. |
 | Git |  | Versionierung und Zusammenarbeit im Repository. |
+| GitLab |  | Issues, Merge Requests und Design-Handover im Entwicklungsteam. |
 | UXPin |  | Interaktive Prototypen mit echten Frontendkomponenten bauen. |
 | Jira |  | Tickets und Sprints im agilen Team planen. |
 | Confluence |  | Konzepte, Designs und Projekte dokumentieren. |
 | Linear |  | Tickets im agilen Team planen und verfolgen. |
+| Azure DevOps |  | Work Items, Boards und Releases im agilen Team verfolgen. |
 | Webflow |  | Websites visuell aufbauen und per CMS pflegen. |
 | Framer |  | Interaktive Websites und Prototypen gestalten. |
 | Sketch |  | Interface-Design und Prototyping. |
